@@ -1,0 +1,102 @@
+<Actions>
+
+   <Action id="rebootUNIFIdevice">
+        <Name>Reboot a unifi device </Name>
+            <CallbackMethod>buttonConfirmrebootCALLBACKaction</CallbackMethod>
+        <ConfigUI>
+            <Field     id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
+                <Label>select which device:</Label>
+                <List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <Action id="powerCyclePort">
+        <Name>Power cycle a port on a unifi switch</Name>
+            <CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        <ConfigUI>
+            <Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
+                <Label>select which switch:</Label>
+                <List class="self" filter="" method="filterUnifiSwitch"  dynamicReload="false"/>
+            </Field>
+            <Field    id="confirmSW" type="button" tooltip="" >
+                <Label>confirm SW</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
+            </Field>
+            <Field     id="selectedUnifiSwitchPort" type="menu" defaultValue="1">
+                <Label>select which port(#1..xx):</Label>
+                <List class="self" filter="" method="filterUnifiSwitchPort"  dynamicReload="yes"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="powerClientCyclePort">
+        <Name>Power cycle Unifi Client</Name>
+            <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACKaction</CallbackMethod>        <ConfigUI>
+            <Field     id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
+                <Label>Select Unifi-CLient:</Label>
+                <List class="self" filter="" method="filterUnifiClient"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="reconnectWiFiDevice">
+        <Name>Re-connect a wifi device</Name>
+        <CallbackMethod>buttonConfirmReconnectCALLBACKaction</CallbackMethod> <ConfigUI>
+            <Field     id="selectedDevice" type="menu" defaultValue="0">
+                <Label>select Unifi-CLient Wifi device:</Label>
+                <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="blockDevice">
+        <Name>Block a device / client</Name>
+        <CallbackMethod>buttonConfirmBlockCALLBACKaction</CallbackMethod> <ConfigUI>
+            <Field     id="selectedDevice" type="menu" defaultValue="0">
+                <Label>select Unifi-CLient device::</Label>
+                <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="unblockDevice">
+        <Name>UN-Block a device / client</Name>
+        <CallbackMethod>buttonConfirmUnBlockCALLBACKaction</CallbackMethod> <ConfigUI>
+            <Field     id="selectedDevice" type="menu" defaultValue="0">
+                <Label>select Unifi-CLient device::</Label>
+                <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <Action id="APledON">
+        <Name>Switch ON all AP LEDs</Name>
+        <CallbackMethod>buttonConfirmAPledONControllerCALLBACKaction</CallbackMethod> 
+    </Action>
+
+    <Action id="APledOFF">
+        <Name>Switch off all AP LEDs</Name>
+        <CallbackMethod>buttonConfirmAPledOFFControllerCALLBACKaction</CallbackMethod> 
+    </Action>
+
+
+    <Action id="APledBlinkON">
+        <Name>Blink one AP LED ON</Name>
+        <CallbackMethod>buttonConfirmAPxledONControllerCALLBACKaction</CallbackMethod> <ConfigUI>
+            <Field     id="selectedAPDevice" type="menu" defaultValue="0">
+                <Label>select Unifi-AP device:</Label>
+                <List class="self" filter="" method="filterMAConlyAP"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+        </Action>
+        
+    <Action id="APledBlinkOFF">
+        <Name>Blink one AP LED OFF</Name>
+        <CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACKaction</CallbackMethod> <ConfigUI>
+            <Field     id="selectedAPDevice" type="menu" defaultValue="0">
+                <Label>select Unifi-AP device:</Label>
+                <List class="self" filter="" method="filterMAConlyAP"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+        </Action>
+
+
+
+
+
+</Actions>

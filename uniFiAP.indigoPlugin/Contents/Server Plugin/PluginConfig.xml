@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<PluginConfig>
+
+    <Field id="infoLabel1" type="label"> <Label>Ubiquity  UniFi AP-Switch-Gateway plugin  Developed by Karl Wachs</Label>  </Field>
+
+    <Field id="simpleSeparator22" type="separator"/>
+    <Field id="infoLabel22" type="label"> <Label>== General Parameters for Plugin </Label>  </Field>
+
+    <Field    id="updateDescriptions"   type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
+        <Label>update notes/description field (every time data received)</Label>
+    </Field>
+
+
+    <Field    id="expirationTime"   type="menu" defaultValue="120" tooltip="this is the general parameter can be overwritten for each device individually">
+        <Label>UP to DOWN to Expired if no message after:</Label>
+        <List>
+            <Option value="10"   >10 seconds (for testing only)</Option>
+            <Option value="20"   >20 seconds (for testing only)</Option>
+            <Option value="30"   >30 seconds (for testing only)</Option>
+            <Option value="40"   >40 seconds (for testing only)</Option>
+            <Option value="60"   >60 seconds</Option>
+            <Option value="90"   >90 seconds</Option>
+            <Option value="120"  >2 minutes</Option>
+            <Option value="180"  >3 minutes</Option>
+            <Option value="300"  >5 minutes</Option>
+            <Option value="360"  >6 minutes</Option>
+            <Option value="420"  >7 minutes</Option>
+            <Option value="480"  >8 minutes</Option>
+            <Option value="540"  >9 minutes</Option>
+            <Option value="600"  >10 minutes</Option>
+         </List>
+    </Field>
+    <Field    id="fixExpirationTime" type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the devcie expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
+     <Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  </Field>
+
+
+    <Field    id="ignoreNewNeighbors"    type="checkbox"  defaultValue="false"    > <Label>Ignore NEW neighbor wifi router devices:</Label>   </Field>
+    <Field    id="ignoreNeighborForFing" type="checkbox"  defaultValue="true"     > <Label>Ignore neighbor changes for FINGscan:</Label>   </Field>
+
+    <Field    id="enableFINGSCAN" type="checkbox"  defaultValue="false" tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
+        <Label>Trigger FINGSCAN:</Label></Field>
+
+    <Field    id="loopSleep"   type="menu" defaultValue="8" tooltip="how long should the plugin pause in each loop">
+        <Label>sleep parameter in loop:</Label>
+        <List>
+            <Option value="0.5"  >1/2 second for testing</Option>
+            <Option value="1"    >1 second for testing</Option>
+            <Option value="2"    >2 seconds for testing</Option>
+            <Option value="4"    >4 seconds </Option>
+            <Option value="8"    >8  seconds, default</Option>
+            <Option value="15"   >15 seconds</Option>
+        </List>
+    </Field>
+    <Field    id="timeoutDICT"   type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
+        <Label>timeout for expect DICT:</Label>
+        <List>
+            <Option value="5"     >5 seconds </Option>
+            <Option value="10"    >10 seconds </Option>
+            <Option value="15"    >15 seconds </Option>
+            <Option value="20"    >20 seconds, default</Option>
+            <Option value="25"    >25 seconds</Option>
+            <Option value="30"    >30 seconds</Option>
+            <Option value="35"    >35 seconds</Option>
+            <Option value="40"    >40 seconds</Option>
+            <Option value="60"    >1 minute </Option>
+            <Option value="120"   >2 minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="restartIfNoMessageSeconds"   type="menu" defaultValue="180" tooltip="if no message for xx time,  the  message tracking /  db dump   commands will be re-issued">
+        <Label>restart connection to UnifiDevice if no message for:</Label>
+        <List>
+            <Option value="20"    >20 seconds (for testing only)</Option>
+            <Option value="40"    >40 seconds (for testing only)</Option>
+            <Option value="60"    >1  minutes</Option>
+            <Option value="90"    >90 seconds</Option>
+            <Option value="120"   >2  minutes</Option>
+            <Option value="180"   >3  minutes, default</Option>
+            <Option value="300"   >5  minutes </Option>
+            <Option value="420"   >7  minutes </Option>
+            <Option value="600"   >10 minutes</Option>
+        </List>
+    </Field>
+
+    <Field defaultValue="21" id="enableMACtoVENDORlookup" type="menu" alignText="right">
+                <List>
+                <Option value="0"  >disable </Option>
+                <Option value="7"  >enable, refresh every  7 days </Option>
+                <Option value="14" >enable, refresh every 14 days </Option>
+                <Option value="21" >enable, refresh every 21 days </Option>
+                <Option value="30" >enable, refresh every 30 days </Option>
+                </List>
+        <Label>MAC# to vendor lookup</Label>
+    </Field>
+
+    <Field id="simpleSeparatorFN" type="separator"/>
+    <Field id="infoLabelNames" type="label"> <Label>== Names for Folders (they can all be the same)</Label>  </Field>
+
+    <Field    id="folderNameCreated"       type="textfield"  defaultValue="UNIFI_created"      > <Label> .. new clients (regular devices):</Label>  </Field>
+    <Field    id="folderNameSystem"        type="textfield"  defaultValue="UNIFI_system"       > <Label> .. new system devices (AP,SW,GW):</Label>  </Field>
+    <Field    id="folderNameNeighbors"     type="textfield"  defaultValue="UNIFI_neighbors"    > <Label> .. new neighbors:</Label>  </Field>
+
+
+    <Field id="simpleSeparatorCO" type="separator"/>
+
+    <Field id="infoLabel217" type="label"> <Label>== Controller info (for controller commands):
+                    if Controller ip number is set, it will automatically detect new unifi system devices 
+                      and will populate sw ap gw settings automatically
+                      In most cases both (unifi system and controller) 
+                      userids and passwords are set to be the same</Label>  </Field>
+    <Field    id="unifiCloudKeyMode"       type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
+        <List>
+            <Option value="ON"             >ON </Option>
+            <Option value="off"            >off</Option>
+            <Option value="ONreportsOnly"  >ON, reports Only</Option>
+        </List>
+    </Field>
+    <Field    id="unifiCONTROLLERUserID"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
+        <Label>... UserID for UniFi CONTROLLER:</Label>
+    </Field>
+
+    <Field    id="unifiCONTROLLERPassWd"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
+        <Label>...password cor UniFi CONTROLLER:</Label>
+    </Field>
+    <Field    id="unifiCloudKeyIP"       type="textfield" defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..ipNumber of controller</Label>  </Field>
+    <Field    id="unifiCloudKeyPort"     type="textfield" defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
+    <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site name of unifi install:</Label>  </Field>
+    <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..unifi api web page:</Label>  </Field>
+    <Field    id="unfiCurl"              type="menu" defaultValue="curl"             visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" tooltip="for elCapitan and lower use curl, for high osx you can try requests .. not tested"  > <Label>..use curl or requests:</Label> 
+        <List>
+            <Option value="curl"      >curl</Option>
+            <Option value="requests"  >python requests</Option>
+        </List>
+    </Field>
+
+
+    <Field id="simpleSeparator215" type="separator"/>
+    <Field id="infoLabel215" type="label"> <Label>== Changes in the following section will restart the plugin:</Label>  </Field>
+
+
+    <Field    id="unifiUserID"   type="textfield" defaultValue="" >
+        <Label>UserID of UniFi system devices:</Label>
+    </Field>
+
+    <Field    id="unifiPassWd"   type="textfield" defaultValue="" >
+        <Label>password of UniFi system devices:</Label>
+    </Field>
+
+    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section...........................:</Label>  </Field>
+    <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
+        <Label>...read database dump every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds for testing</Option>
+            <Option value="10"    >10 seconds for testing</Option>
+            <Option value="20"    >20 seconds for testing </Option>
+            <Option value="30"    >30 seconds </Option>
+            <Option value="40"    >40 seconds </Option>
+            <Option value="60"    >1  minutes, default</Option>
+            <Option value="90"    >90 seconds</Option>
+            <Option value="120"   >2  minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="ipON0" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"     > <Label>.. AP-0 active:</Label>  </Field>
+    <Field    id="ip0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" visibleBindingValue="true"> <Label>..ipNumber of AP-0:</Label>  </Field>
+
+    <Field    id="ipON1" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-1 active:</Label>  </Field>
+    <Field    id="ip1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON1" visibleBindingValue="true"> <Label>..ipNumber of AP-1:</Label>  </Field>
+
+    <Field    id="ipON2" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-2 active:</Label>  </Field>
+    <Field    id="ip2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON2" visibleBindingValue="true"> <Label>..ipNumber of AP-2:</Label>  </Field>
+
+    <Field    id="ipON3" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label> AP-3 active:</Label>  </Field>
+    <Field    id="ip3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON3" visibleBindingValue="true"> <Label>..ipNumber of AP-3:</Label>  </Field>
+
+    <Field    id="ipON4" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-4 active:</Label>  </Field>
+    <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>..ipNumber of AP-4:</Label>  </Field>
+
+
+    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:....................................</Label>  </Field>
+    <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
+        <Label>...read database dump every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds for testing</Option>
+            <Option value="10"    >10 seconds for testing</Option>
+            <Option value="20"    >20 seconds for testing</Option>
+            <Option value="30"    >30 seconds </Option>
+            <Option value="40"    >40 seconds </Option>
+            <Option value="60"    >1  minutes, default</Option>
+            <Option value="90"    >90 seconds</Option>
+            <Option value="120"   >2  minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>..ipNumber of your USG:</Label>  </Field>
+    <Field    id="gwPrompt"   type="menu" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
+        <Label>...prompt when logging in:</Label>
+        <List>
+            <Option value=":~"      >:~</Option>
+        </List>
+    </Field>
+
+
+
+    <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:.....................</Label>  </Field>
+
+    <Field    id="readDictEverySecondsSW"   type="menu" defaultValue="60" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
+        <Label>...read database dump every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds for testing</Option>
+            <Option value="10"    >10 seconds for testing</Option>
+            <Option value="20"    >20 seconds for testing</Option>
+            <Option value="30"    >30 seconds </Option>
+            <Option value="40"    >40 seconds </Option>
+            <Option value="60"    >1  minutes, default</Option>
+            <Option value="90"    >90 seconds</Option>
+            <Option value="120"   >2  minutes</Option>
+            <Option value="180"   >3  minutes</Option>
+            <Option value="240"   >4  minutes</Option>
+            <Option value="300"   >5  minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="ipSWON0" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 0 active:</Label>  </Field>
+    <Field    id="ipSW0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON0" visibleBindingValue="true" > <Label>..ipNumber of your unifi switch 0:</Label>  </Field>
+    <Field    id="ipSWON1" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 1 active:</Label>  </Field>
+    <Field    id="ipSW1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON1" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 1:</Label>  </Field>
+    <Field    id="ipSWON2" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 2 active:</Label>  </Field>
+    <Field    id="ipSW2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON2" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 2:</Label>  </Field>
+    <Field    id="ipSWON3" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 3 active:</Label>  </Field>
+    <Field    id="ipSW3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON3" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 3:</Label>  </Field>
+    <Field    id="ipSWON4" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 4 active:</Label>  </Field>
+    <Field    id="ipSW4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON4" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 4:</Label>  </Field>
+    <Field    id="ipSWON5" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 5 active:</Label>  </Field>
+    <Field    id="ipSW5"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON5" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 5:</Label>  </Field>
+    <Field    id="ipSWON6" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 6 active:</Label>  </Field>
+    <Field    id="ipSW6"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON6" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 6:</Label>  </Field>
+    <Field    id="ipSWON7" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 7 active:</Label>  </Field>
+    <Field    id="ipSW7"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON7" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 7:</Label>  </Field>
+    <Field    id="ipSWON8" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 8 active:</Label>  </Field>
+    <Field    id="ipSW8"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON8" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 8:</Label>  </Field>
+    <Field    id="ipSWON9" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 9 active:</Label>  </Field>
+    <Field    id="ipSW9"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 9:</Label>  </Field>
+    <Field    id="ipSWON10" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 10 active:</Label>  </Field>
+    <Field    id="ipSW10"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 10:</Label>  </Field>
+
+
+
+
+    <Field id="simpleSeparator222" type="separator"/>
+
+
+    <Field id="infoLabel226" type="label"> <Label>== Debug:... (no restart)</Label>  </Field>
+
+    <Field    id="debugLogic"       type="checkbox"  defaultValue="false"   > <Label>... (1) Logic:</Label>  </Field>
+    <Field    id="debugLog"         type="checkbox"  defaultValue="false"   > <Label>... (2) logMessages:</Label>  </Field>
+    <Field    id="debugLogDetails"  type="checkbox"  defaultValue="false"   > <Label>... (3) ...  Details:</Label>  </Field>
+    <Field    id="debugDict"        type="checkbox"  defaultValue="false"   > <Label>... (4) Dict Messages:</Label>  </Field>
+    <Field    id="debugDictDetails" type="checkbox"  defaultValue="false"   > <Label>... (5) ...  Details:</Label>  </Field>
+    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) connection to AP...:</Label>  </Field>
+    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (7) Fing:</Label>  </Field>
+    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (8) all of the above = everything:</Label>  </Field>
+    <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
+        <List>
+            <Option value="no"       > no special unifi logfile, std indigo logfile</Option>
+            <Option value="user"     > ~/indigo/unifi/unifi.log                    </Option>
+            <Option value="indigo"   > .. Perceptive Automation/Indigo 7/Logs/com.karlwachs.uniFiAP/unifi.log </Option>
+        </List>
+    </Field>
+
+
+</PluginConfig>

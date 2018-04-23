@@ -1,0 +1,48 @@
+set userID [lindex $argv 0 ] 
+set password [lindex $argv 1 ] 
+set ipNumber [lindex $argv 2 ] 
+set promptOnServer [lindex $argv 3]
+set endDictToken [lindex $argv 4]
+set readDictEverySeconds [lindex $argv 5]
+set mcatimeout [lindex $argv 6]
+set logfile [lindex $argv 7]
+
+set timeout 10
+spawn  ssh $userID@$ipNumber
+expect {
+    "(yes/no)? " {
+        send "yes\n"
+        sleep 0.1
+        expect "assword: " { send "$password\n"}
+    }
+    "assword: " {
+        send "$password\n"
+    }
+}
+set timeout 3
+expect "Permission denied" {send \003\r"; exit 1}
+expect "$promptOnServer" {puts "startxxxx\r";}
+sleep 1.0
+
+set timeout $mcatimeout
+send "\r"
+    for {set i 1} {$i >0} {incr i 1} {
+        sleep 0.2
+        expect "$promptOnServer"
+        send "mca-dump | sed -e 's/^ *//' \r"
+        expect "$promptOnServer"
+        puts "$endDictToken$i\r\r"
+        sleep $readDictEverySeconds
+        send "\r"
+        expect "$promptOnServer"
+        if {$logfile != "doNotSendAliveMessage"} {
+            send "echo ThisIsTheAliveTestFromUnifiToPlugin >> $logfile\r"
+        }
+
+    }
+
+expect "$promptOnServer"
+puts "end\r"
+send "exit\r"
+sleep 0.1
+expect eof

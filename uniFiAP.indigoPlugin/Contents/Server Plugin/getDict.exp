@@ -1,0 +1,28 @@
+set userID [lindex $argv 0 ] 
+set password [lindex $argv 1 ] 
+set ipNumber [lindex $argv 2 ] 
+set cmd [lindex $argv 3]
+set endToken [lindex $argv 4]
+
+set timeout 10
+spawn  ssh $userID@$ipNumber
+expect {
+    "(yes/no)? " {
+        send "yes\n"
+        sleep 0.1
+        expect "assword: " { send "$password\n"}
+    }
+    "assword: " {
+        send "$password\n"
+    }
+}
+
+sleep 1
+expect "$endToken" {
+    sleep 0.1
+    send "$cmd \r"
+    }
+sleep 0.5
+expect "$endToken" {}
+set timeout 0.1
+expect eof

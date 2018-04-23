@@ -1,0 +1,48 @@
+set userID [lindex $argv 0 ] 
+set password [lindex $argv 1 ] 
+set ipNumber [lindex $argv 2 ] 
+set port [lindex $argv 3]
+set endToken [lindex $argv 4]
+
+set timeout 10
+spawn  ssh $userID@$ipNumber
+expect {
+    "(yes/no)? " {
+        send "yes\n"
+        sleep 0.1
+        expect "assword: " { send "$password\n"}
+    }
+    "assword: " {
+        send "$password\n"
+    }
+}
+set timeout 3
+expect "Permission denied" {send \003\r"; exit 1}
+sleep 1
+
+expect "$endToken" {
+    sleep 0.1
+    send "telnet localhost 23\r"
+    sleep 0.1
+    send "enable\r"
+    sleep 0.05
+    send "configure\r"
+    sleep 0.05
+    send "interface 0/$port\r"
+    sleep 0.05
+    send "poe opmode shutdown\r"
+    sleep 0.3
+    send "poe opmode auto\r"
+    sleep 0.05
+    send "exit\r"
+    sleep 0.05
+    send "exit\r"
+    sleep 0.05
+    send "exit\r"
+    sleep 0.05
+    send "exit\r"
+    sleep 0.05
+    send "exit\r"
+    }
+sleep 0.2
+expect eof

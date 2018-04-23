@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<Events>
+    <Event id="Group0_allAway">	<Name>Group0_allAway  .. ALL devices                in the group must be AWAY to trigger</Name> </Event>
+    <Event id="Group0_oneAway">	<Name>Group0_oneAway  .. ONE device  of the devices in the group must be AWAY to trigger</Name> </Event>
+    <Event id="Group0_oneHome">	<Name>Group0_oneHome  .. ONE device  of the devices in the group must be HOME to trigger</Name> </Event>
+    <Event id="Group0_allHome">	<Name>Group0_allHome  .. ALL devices                in the group must be HOME to trigger</Name> </Event>
+
+    <Event id="Group1_allAway">	<Name>Group1_allAway ... </Name> </Event>
+    <Event id="Group1_oneAway">	<Name>Group1_oneAway ... </Name> </Event>
+    <Event id="Group1_oneHome">	<Name>Group1_oneHome ... </Name> </Event>
+    <Event id="Group1_allHome">	<Name>Group1_allHome ... </Name> </Event>
+
+    <Event id="Group2_allAway">	<Name>Group2_allAway ... </Name> </Event>
+    <Event id="Group2_oneAway">	<Name>Group2_oneAway ... </Name> </Event>
+    <Event id="Group2_oneHome">	<Name>Group2_oneHome ... </Name> </Event>
+    <Event id="Group2_allHome">	<Name>Group2_allHome ... </Name> </Event>
+
+    <Event id="Group3_allAway">	<Name>Group3_allAway ... </Name> </Event>
+    <Event id="Group3_oneAway">	<Name>Group3_oneAway ... </Name> </Event>
+    <Event id="Group3_oneHome">	<Name>Group3_oneHome ... </Name> </Event>
+    <Event id="Group3_allHome">	<Name>Group3_allHome ... </Name> </Event>
+
+    <Event id="Group4_allAway">	<Name>Group4_allAway ... </Name> </Event>
+    <Event id="Group4_oneAway">	<Name>Group4_oneAway ... </Name> </Event>
+    <Event id="Group4_oneHome">	<Name>Group4_oneHome ... </Name> </Event>
+    <Event id="Group4_allHome">	<Name>Group4_allHome ... </Name> </Event>
+
+    <Event id="Group5_allAway">	<Name>Group5_allAway ... </Name> </Event>
+    <Event id="Group5_oneAway">	<Name>Group5_oneAway ... </Name> </Event>
+    <Event id="Group5_oneHome">	<Name>Group5_oneHome ... </Name> </Event>
+    <Event id="Group5_allHome">	<Name>Group5_allHome ... </Name> </Event>
+
+    <Event id="Group6_allAway">	<Name>Group6_allAway ... </Name> </Event>
+    <Event id="Group6_oneAway">	<Name>Group6_oneAway ... </Name> </Event>
+    <Event id="Group6_oneHome">	<Name>Group6_oneHome ... </Name> </Event>
+    <Event id="Group6_allHome">	<Name>Group6_allHome ... </Name> </Event>
+
+    <Event id="Group7_allAway">	<Name>Group7_allAway ... </Name> </Event>
+    <Event id="Group7_oneAway">	<Name>Group7_oneAway ... </Name> </Event>
+    <Event id="Group7_oneHome">	<Name>Group7_oneHome ... </Name> </Event>
+    <Event id="Group7_allHome">	<Name>Group7_allHome ... </Name> </Event>
+
+    <Event id="Group8_allAway">	<Name>Group8_allAway ... </Name> </Event>
+    <Event id="Group8_oneAway">	<Name>Group8_oneAway ... </Name> </Event>
+    <Event id="Group8_oneHome">	<Name>Group8_oneHome ... </Name> </Event>
+    <Event id="Group8_allHome">	<Name>Group8_allHome ... </Name> </Event>
+
+    <Event id="Group9_allAway">	<Name>Group9_allAway ... </Name> </Event>
+    <Event id="Group9_oneAway">	<Name>Group9_oneAway ... </Name> </Event>
+    <Event id="Group9_oneHome">	<Name>Group9_oneHome ... </Name> </Event>
+    <Event id="Group9_allHome">	<Name>Group9_allHome ... </Name> </Event>
+
+    <Event id="someStatusHasChanged"><Name>the status of at least one UniFi device has changed</Name> </Event>
+</Events>
+
