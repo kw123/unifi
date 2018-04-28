@@ -257,6 +257,60 @@
 
 
 
+    <Device type="custom" id="camera">
+        <Name>gateway</Name>
+        <UiDisplayStateId>displayStatus</UiDisplayStateId>
+        <ConfigUI>
+        </ConfigUI>
+
+        <States>
+              <State id="status">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>status</TriggerLabel>
+                    <ControlPageLabel>status</ControlPageLabel>
+              </State>
+              <State id="eventNumber">
+                    <ValueType>number</ValueType>
+                    <TriggerLabel>eventNumber</TriggerLabel>
+                    <ControlPageLabel>eventNumber</ControlPageLabel>
+              </State>
+              <State id="lastEventStart">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>lastEventStart</TriggerLabel>
+                    <ControlPageLabel>lastEventStart</ControlPageLabel>
+              </State>
+              <State id="lastEventStop">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>lastEventStop</TriggerLabel>
+                    <ControlPageLabel>lastEventStop</ControlPageLabel>
+              </State>
+              <State id="lastEventLength">
+                    <ValueType>Number</ValueType>
+                    <TriggerLabel>lastEventLength</TriggerLabel>
+                    <ControlPageLabel>lastEventLength</ControlPageLabel>
+              </State>
+              <State id="cameraNumber">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>cameraNumber</TriggerLabel>
+                    <ControlPageLabel>cameraNumber</ControlPageLabel>
+              </State>
+              <State id="lastStatusChange">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>lastStatusChange</TriggerLabel>
+                    <ControlPageLabel>lastStatusChange</ControlPageLabel>
+              </State>
+                  <State id="displayStatus">
+                        <ValueType>String</ValueType>
+                        <TriggerLabel>displayStatus</TriggerLabel>
+                        <ControlPageLabel>displayStatus</ControlPageLabel>
+                  </State>
+
+
+        </States>
+    </Device>
+
+
+
     <Device type="custom" id="gateway">
         <Name>gateway</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
@@ -401,6 +455,8 @@
 
         </States>
     </Device>
+
+
 
     <Device type="custom" id="DHCP">
         <Name>DHCP depreciated</Name>

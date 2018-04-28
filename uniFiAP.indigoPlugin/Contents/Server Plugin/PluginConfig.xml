@@ -146,6 +146,8 @@
         <Label>password of UniFi system devices:</Label>
     </Field>
 
+
+
     <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section...........................:</Label>  </Field>
     <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
@@ -244,6 +246,34 @@
     <Field    id="ipSWON10" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 10 active:</Label>  </Field>
     <Field    id="ipSW10"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 10:</Label>  </Field>
 
+
+
+
+
+    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section...........................:</Label>  </Field>
+
+    <Field    id="unifiVIDEOUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>..UserID for UniFi VIDEO:</Label>
+    </Field>
+    <Field    id="unifiVIDEOPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>.. password cor UniFi VIDEO:</Label>
+    </Field>
+    <Field    id="ipVIDEO"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
+       <Label>..ipNumber of your Video NVR:</Label>  
+    </Field>
+    <Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
+        <Label>..keep x number of events:</Label>  
+            <List>
+            <Option value="10"          > 10</Option>
+            <Option value="100"         > 100</Option>
+            <Option value="1000"        > 1000</Option>
+            <Option value="10000"       > 10000</Option>
+            <Option value="100000"      > 100000</Option>
+            <Option value="1000000"     > 10000000</Option>
+            <Option value="10000000"    > 100000000</Option>
+            <Option value="100000000"   > 1000000000</Option>
+            </List>
+    </Field>
 
 
 

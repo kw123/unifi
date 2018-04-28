@@ -154,6 +154,11 @@
         <CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
     </MenuItem>
 
+    <MenuItem id="printCameraEvents">
+        <Name>Print max 500 Camera Events</Name>
+        <CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
+    </MenuItem>
+
     <MenuItem id="logMACs">
         <Name>Track info for specific MAC in logfile</Name>
         <ConfigUI>
