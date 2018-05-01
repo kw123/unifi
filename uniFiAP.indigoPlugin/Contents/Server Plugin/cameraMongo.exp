@@ -1,10 +1,11 @@
 set userID [lindex $argv 0 ] 
 set password [lindex $argv 1 ] 
 set ipNumber [lindex $argv 2 ] 
-set cmd [lindex $argv 3]
-set endToken [lindex $argv 4]
+set promptOnServer [lindex $argv 3]
+set sep [lindex $argv 4]
+set cmd [lindex $argv 5]
 
-set timeout 10
+set timeout 3
 spawn  ssh $userID@$ipNumber
 expect {
     "(yes/no)? " {
@@ -16,13 +17,16 @@ expect {
         send "$password\n"
     }
 }
-
-sleep 1
-expect "$endToken" {
-    sleep 0.1
-    send "$cmd \r"
-    }
-sleep 0.5
-expect "$endToken" {}
-set timeout 0.1
+expect $promptOnServer
+sleep 0.1
+set timeout 5
+puts "$sep\r";
+expect $promptOnServer
+sleep 0.1
+send "$cmd | sed 's/^\s*//' \r"
+expect $promptOnServer
+sleep 0.1
+puts "$sep\r"
+send "exit\r"
+sleep 0.1
 expect eof

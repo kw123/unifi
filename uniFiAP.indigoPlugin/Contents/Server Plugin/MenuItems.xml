@@ -154,11 +154,6 @@
         <CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
     </MenuItem>
 
-    <MenuItem id="printCameraEvents">
-        <Name>Print max 500 Camera Events</Name>
-        <CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
-    </MenuItem>
-
     <MenuItem id="logMACs">
         <Name>Track info for specific MAC in logfile</Name>
         <ConfigUI>
@@ -192,6 +187,44 @@
             </Field>
             <Field    id="confirmUnIgnore" type="button" tooltip="" >
                 <Label>Click to  STOP  ignoring</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </MenuItem>
+
+
+    <MenuItem id="CameraActions">
+        <Name>Camera Info and Settings</Name>
+        <ConfigUI>
+            <Field     id="maxEvents" type="menu" defaultValue="10">
+                <Label>Print, max number of events:</Label>
+                 <List>
+                    <Option value="5"     >5</Option>
+                    <Option value="10"    >10</Option>
+                    <Option value="20"    >20</Option>
+                    <Option value="100"   >100</Option>
+                    <Option value="200"   >200</Option>
+                    <Option value="1000"  >1000</Option>
+                    <Option value="2000"  >2000</Option>
+                    <Option value="10000" >10000</Option>
+                 </List>
+            </Field>
+            <Field    id="confirmSprint" type="button" tooltip="" >
+                <Label>Click to</Label><Title>PRINT</Title><CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator1" type="separator"/>
+            <Field id="printLab1" type="label"> <Label>Reset stored camera event # to 0, ie if yo have replaced or initialized a camera:</Label>  </Field>
+            <Field    id="resetCamevents" type="button" tooltip="" >
+                <Label>Click to </Label><Title>RESET</Title><CallbackMethod>buttonresetCameraEventsCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator2" type="separator"/>
+            <Field id="printsyslabel" type="label"> <Label>Print camera server system info:</Label>  </Field>
+            <Field    id="printCamarasysinfo" type="button" tooltip="" >
+                <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraSystemCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator3" type="separator"/>
+            <Field id="printcamlabel" type="label"> <Label>Print camera config and info:</Label>  </Field>
+            <Field    id="printCamarainfo" type="button" tooltip="" >
+                <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraCALLBACK</CallbackMethod>
             </Field>
         </ConfigUI>
     </MenuItem>

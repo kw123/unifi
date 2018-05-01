@@ -148,7 +148,7 @@
 
 
 
-    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section...........................:</Label>  </Field>
+    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section.....................................:</Label>  </Field>
     <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
         <List>
@@ -162,6 +162,27 @@
             <Option value="120"   >2  minutes</Option>
         </List>
     </Field>
+
+    <Field    id="APtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
+    <Label>.. AP tail command(no"):</Label>  
+        <List>
+            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
+            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
+        </List>
+    </Field>
+    <Field    id="APdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
+    <Label>.. AP dict command(no"):</Label>  
+        <List>
+            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
+        </List>
+    </Field>
+    <Field    id="apPrompt"   type="menu" defaultValue=":~" visibleBindingId="apON" visibleBindingValue="true">
+        <Label>...prompt when logging in:</Label>
+        <List>
+            <Option value="BZ.v"      >BZ.v</Option>
+        </List>
+    </Field>
+
 
     <Field    id="ipON0" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"     > <Label>.. AP-0 active:</Label>  </Field>
     <Field    id="ip0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" visibleBindingValue="true"> <Label>..ipNumber of AP-0:</Label>  </Field>
@@ -179,7 +200,7 @@
     <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>..ipNumber of AP-4:</Label>  </Field>
 
 
-    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:....................................</Label>  </Field>
+    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:............................................</Label>  </Field>
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
         <List>
@@ -195,6 +216,19 @@
     </Field>
 
     <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>..ipNumber of your USG:</Label>  </Field>
+    <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
+    <Label>.. GW tail command(no"):</Label>  
+        <List>
+            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
+            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
+        </List>
+    </Field>
+    <Field    id="GWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
+    <Label>.. GW dict command(no"):</Label>  
+        <List>
+            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
+        </List>
+    </Field>
     <Field    id="gwPrompt"   type="menu" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
         <Label>...prompt when logging in:</Label>
         <List>
@@ -204,7 +238,7 @@
 
 
 
-    <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:.....................</Label>  </Field>
+    <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:...............................</Label>  </Field>
 
     <Field    id="readDictEverySecondsSW"   type="menu" defaultValue="60" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
@@ -220,6 +254,25 @@
             <Option value="180"   >3  minutes</Option>
             <Option value="240"   >4  minutes</Option>
             <Option value="300"   >5  minutes</Option>
+        </List>
+    </Field>
+    <Field    id="SWtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Label>.. SW tail command(no"):</Label>  
+        <List>
+            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
+            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
+        </List>
+    </Field>
+    <Field    id="SWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Label>.. SW dict command(no"):</Label>  
+        <List>
+            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
+        </List>
+    </Field>
+    <Field    id="swPrompt" type="menu"  defaultValue=":~"         visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Label>.. SW prompt:</Label>  
+        <List>
+            <Option value="US.v"      > US.v </Option>
         </List>
     </Field>
 
@@ -250,19 +303,35 @@
 
 
 
-    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section...........................:</Label>  </Field>
+    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section..................................:</Label>  </Field>
 
     <Field    id="unifiVIDEOUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..UserID for UniFi VIDEO:</Label>
+        <Label>..UserID for UniFi VIDEO unix box:</Label>
     </Field>
     <Field    id="unifiVIDEOPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>.. password cor UniFi VIDEO:</Label>
+        <Label>..Password for UniFi VIDEO unix box:</Label>
+    </Field>
+    <Field    id="vdPrompt"   type="textfield" defaultValue="VirtualBox" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>..Prompt for UniFi VIDEO unix box:</Label>
     </Field>
     <Field    id="ipVIDEO"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>..ipNumber of your Video NVR:</Label>  
     </Field>
+    <Field    id="VDtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
+    <Label>.. Video tail command(no"):</Label>  
+        <List>
+            <Option value="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"      > /usr/bin/tail -F /var/lib/unifi-video/logs/motion.log </Option>
+        </List>
+    </Field>
+    <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"          > 
+    <Label>.. Video dict command(no"):</Label>  
+        <List>
+            <Option value="not implemented"      > not implemented </Option>
+        </List>
+    </Field>
+
     <Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
-        <Label>..keep x number of events:</Label>  
+        <Label>..Keep x number of events in Indigo db:</Label>  
             <List>
             <Option value="10"          > 10</Option>
             <Option value="100"         > 100</Option>
@@ -287,9 +356,10 @@
     <Field    id="debugLogDetails"  type="checkbox"  defaultValue="false"   > <Label>... (3) ...  Details:</Label>  </Field>
     <Field    id="debugDict"        type="checkbox"  defaultValue="false"   > <Label>... (4) Dict Messages:</Label>  </Field>
     <Field    id="debugDictDetails" type="checkbox"  defaultValue="false"   > <Label>... (5) ...  Details:</Label>  </Field>
-    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) connection to AP...:</Label>  </Field>
-    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (7) Fing:</Label>  </Field>
-    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (8) all of the above = everything:</Label>  </Field>
+    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) ssh connection to unifi devices..:</Label>  </Field>
+    <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (7) Video...:</Label>  </Field>
+    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
+    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (9) all of the above = everything:</Label>  </Field>
     <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
         <List>
             <Option value="no"       > no special unifi logfile, std indigo logfile</Option>

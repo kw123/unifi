@@ -118,6 +118,7 @@ class Plugin(indigo.PluginBase):
         if self.pluginPrefs.get(u"debugLogDetails", False):      self.debugLevel.append("LogDetails")
         if self.pluginPrefs.get(u"debugDictDetails", False):     self.debugLevel.append("DictDetails")
         if self.pluginPrefs.get(u"debugConnection", False):      self.debugLevel.append("Connection")
+        if self.pluginPrefs.get(u"debugVideo", False):           self.debugLevel.append("Video")
         if self.pluginPrefs.get(u"debugFing", False):            self.debugLevel.append("Fing")
         if self.pluginPrefs.get(u"debugall", False):             self.debugLevel.append("all")
         self.logFileActive          = self.pluginPrefs.get("logFilePath", "no")
@@ -145,19 +146,21 @@ class Plugin(indigo.PluginBase):
                      "VDtail": "execLogVideo.exp",
                      "GWdict": "dictLoop.exp",
                      "SWdict": "dictLoop.exp",
-                     "APdict": "dictLoop.exp"}
-        self.commandOnServer= {   "APtail": "'/usr/bin/tail -f /var/log/messages'",
-                     "GWtail": "'/usr/bin/tail -f /var/log/messages'",
-                     "SWtail": "'/usr/bin/tail -f /var/log/messages'",
-                     "VDtail": "'/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log'",
+                     "APdict": "dictLoop.exp",
+                     "VDdict": "cameraMongo.exp"}
+        self.commandOnServer= {   "APtail": "/usr/bin/tail -F /var/log/messages",
+                     "GWtail": "/usr/bin/tail -F /var/log/messages",
+                     "SWtail": "/usr/bin/tail -F /var/log/messages",
+                     "VDtail": "/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
+                     "VDdict": "not implemented ",
                      "GWdict": "mca-dump | sed -e 's/^ *//'",
                      "SWdict": "mca-dump | sed -e 's/^ *//'",
                      "APdict": "mca-dump | sed -e 's/^ *//'"}
         self.promptOnServer = {   "APtail": "BZ.v",
                      "GWtail": ":~",
                      "SWtail": "US.v",
-                     "SWtail": "logon",
-                     "VDtail": "login",
+                     "VDtail": "VirtualBox",
+                     "VDdict": "VirtualBox",
                      "GWdict": ":~",
                      "SWdict": "US.v",
                      "APdict": "BZ.v"}
@@ -170,16 +173,29 @@ class Plugin(indigo.PluginBase):
                      "APdict": "mca-dump | sed -e 's/^ *//'"}
         self.endDictToken   = {   "APtail": "x",
                      "GWtail": "x",
-                     "GWtail": "x",
                      "VDtail": "x",
                      "GWdict": "xxxThisIsTheEndTokenxxx",
                      "SWdict": "xxxThisIsTheEndTokenxxx",
                      "APdict": "xxxThisIsTheEndTokenxxx"}
         self.numberOfPortsInSwitch=[8,10,18,26,52]
         
-        gwPrompt  = self.pluginPrefs.get(u"gwPrompt",u":~")
-        self.promptOnServer["GWtail"] = gwPrompt
-        self.promptOnServer["GWdict"] = gwPrompt
+        self.promptOnServer["GWtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+        self.promptOnServer["GWdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+        self.promptOnServer["VDdict"]  = self.pluginPrefs.get(u"VDprompt",u"VirtualBox")
+        self.promptOnServer["VDtail"]  = self.pluginPrefs.get(u"VDprompt",u"VirtualBox")
+
+        self.commandOnServer["VDtail"]  = self.pluginPrefs.get(u"VDtailCommand",  self.commandOnServer["VDtail"])
+        self.commandOnServer["VDdict"]  = self.pluginPrefs.get(u"VDdictCommand",  self.commandOnServer["VDdict"])
+
+        self.commandOnServer["GWtail"]  = self.pluginPrefs.get(u"GWtailCommand",  self.commandOnServer["GWtail"])
+        self.commandOnServer["GWdict"]  = self.pluginPrefs.get(u"GWdictCommand",  self.commandOnServer["GWdict"])
+
+        self.commandOnServer["APtail"]  = self.pluginPrefs.get(u"APtailCommand",  self.commandOnServer["APtail"])
+        self.commandOnServer["APdict"]  = self.pluginPrefs.get(u"APdictCommand",  self.commandOnServer["APdict"])
+
+        self.commandOnServer["SWtail"]  = self.pluginPrefs.get(u"SWtailCommand",  self.commandOnServer["SWtail"])
+        self.commandOnServer["SWdict"]  = self.pluginPrefs.get(u"SWdictCommand",  self.commandOnServer["SWdict"])
+
 
 
         self.blockAccess = []
@@ -209,6 +225,7 @@ class Plugin(indigo.PluginBase):
         self.unifiVIDEOPassWd           = self.pluginPrefs.get(u"unifiVIDEOPassWd", "")
         try:    self.unifiVIDEONumerOfEvents = int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
         except: self.unifiVIDEONumerOfEvents = 1000
+        self.saveCameraEventsLastCheck  = 0
         self.cameras                    ={}
         self.saveCameraEventsStatus     = False
         self.unifiApiWebPage            =  "/api/s/"
@@ -546,6 +563,7 @@ class Plugin(indigo.PluginBase):
         if valuesDict[u"debugLogDetails"]:      self.debugLevel.append("LogDetails")
         if valuesDict[u"debugDictDetails"]:     self.debugLevel.append("DictDetails")
         if valuesDict[u"debugConnection"]:      self.debugLevel.append("Connection")
+        if valuesDict[u"debugVideo"]:           self.debugLevel.append("Video")
         if valuesDict[u"debugFing"]:            self.debugLevel.append("Fing")
         if valuesDict[u"debugall"]:             self.debugLevel.append("all")
 
@@ -614,12 +632,29 @@ class Plugin(indigo.PluginBase):
         self.SWsEnabled     = copy.copy(acNew)
 
 
+        
+        self.promptOnServer["GWtail"], rebootRequired       = self.getNewValusDictField("gwPrompt",      valuesDict, self.promptOnServer["GWtail"], rebootRequired)
+        self.promptOnServer["APtail"], rebootRequired       = self.getNewValusDictField("swPrompt",      valuesDict, self.promptOnServer["APtail"], rebootRequired)
+        self.promptOnServer["SWtail"], rebootRequired       = self.getNewValusDictField("apPrompt",      valuesDict, self.promptOnServer["SWtail"], rebootRequired)
+        self.promptOnServer["VDtail"], rebootRequired       = self.getNewValusDictField("vdPrompt",      valuesDict, self.promptOnServer["VDtail"], rebootRequired)
 
-        gwPrompt    = valuesDict[u"gwPrompt"]
-        if gwPrompt != self.promptOnServer["GWtail"]:
-            rebootRequired = True
-        self.promptOnServer["GWtail"] = gwPrompt
-        self.promptOnServer["GWdict"] = gwPrompt
+        self.promptOnServer["GWdict"] = self.promptOnServer["GWtail"]
+        self.promptOnServer["APdict"] = self.promptOnServer["APtail"]
+        self.promptOnServer["SWdict"] = self.promptOnServer["SWtail"]
+        self.promptOnServer["VDdict"] = self.promptOnServer["VDtail"]
+
+        self.commandOnServer["GWtailCommand"], rebootRequired = self.getNewValusDictField("GWtailCommand", valuesDict, self.commandOnServer["GWtail"], rebootRequired)
+        self.commandOnServer["GWdictCommand"], rebootRequired = self.getNewValusDictField("GWdictCommand", valuesDict, self.commandOnServer["GWdict"], rebootRequired)
+        self.commandOnServer["SWtailCommand"], rebootRequired = self.getNewValusDictField("SWtailCommand", valuesDict, self.commandOnServer["SWtail"], rebootRequired)
+        self.commandOnServer["SWdictCommand"], rebootRequired = self.getNewValusDictField("SWdictCommand", valuesDict, self.commandOnServer["SWdict"], rebootRequired)
+        self.commandOnServer["APtailCommand"], rebootRequired = self.getNewValusDictField("APtailCommand", valuesDict, self.commandOnServer["APtail"], rebootRequired)
+        self.commandOnServer["APdictCommand"], rebootRequired = self.getNewValusDictField("APdictCommand", valuesDict, self.commandOnServer["APdict"], rebootRequired)
+        self.commandOnServer["VDtailCommand"], rebootRequired = self.getNewValusDictField("VDtailCommand", valuesDict, self.commandOnServer["VDtail"], rebootRequired)
+        self.commandOnServer["VDdictCommand"], rebootRequired = self.getNewValusDictField("VDdictCommand", valuesDict, self.commandOnServer["VDdict"], rebootRequired)
+
+
+
+
 
         ip0         = valuesDict[u"ipUGA"]
         if self.ipnumberOfUGA != ip0:
@@ -656,6 +691,14 @@ class Plugin(indigo.PluginBase):
         if rebootRequired: 
             self.quitNow = u"config changed"
         return True, valuesDict
+
+
+    ####-----------------    ---------
+    def getNewValusDictField(self,item,  valuesDict, old, rebootRequired):
+        xxx    = valuesDict[item]
+        if xxx != old:
+            rebootRequired = True
+        return   xxx, rebootRequired
 
     ####-----------------  config setting ----  END    ----------#########
 
@@ -939,30 +982,158 @@ class Plugin(indigo.PluginBase):
 
 
     ####-----------------    ---------
-    def buttonprintCameraEventsCALLBACK(self):
-        out = "\n ====== Camera Events ======"
-        out += "\nNumber        Name      Ev#  start                  end\n"
-        for cameraNumber in self.cameras:
-            out += cameraNumber+"  "+self.cameras[cameraNumber]["cameraName"]+"\n"
+    def buttonprintCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
+        maxEvents= int(valuesDict["maxEvents"])
+        totEvents= 0
+        for MAC in self.cameras:
+            totEvents += len(self.cameras[MAC]["events"])
+
+        out = "\n======= Camera Events ======"
+        out += "\nDev MAC            dev.id     Name "
+        out += "\n         Ev#  start                  end      dur[secs]\n"
+        for MAC in self.cameras:
+            out += MAC+" %11d"%self.cameras[MAC]["devid"]+" "+self.cameras[MAC]["cameraName"].ljust(25)+"  # events total: "+str(len(self.cameras[MAC]["events"]))+"\n"
             evList=[]
-            for evNo in self.cameras[cameraNumber]["events"]:
-                dateStart = time.strftime(u"%Y-%m-%d %H:%M:%S",time.localtime(self.cameras[cameraNumber]["events"][evNo]["start"]))
-                dateStop  = time.strftime(u" .. %H:%M:%S",time.localtime(self.cameras[cameraNumber]["events"][evNo]["stop"]))
-                delta  = self.cameras[cameraNumber]["events"][evNo]["stop"]
-                delta -= self.cameras[cameraNumber]["events"][evNo]["start"]
-                evList.append("                 "+ str(evNo).rjust(10)+"  "+dateStart+dateStop+"  %6.1f"%delta+"[secs]\n")
+            for evNo in self.cameras[MAC]["events"]:
+                dateStart = time.strftime(u"%Y-%m-%d %H:%M:%S",time.localtime(self.cameras[MAC]["events"][evNo]["start"]))
+                dateStop  = time.strftime(u" .. %H:%M:%S",time.localtime(self.cameras[MAC]["events"][evNo]["stop"]))
+                delta  = self.cameras[MAC]["events"][evNo]["stop"]
+                delta -= self.cameras[MAC]["events"][evNo]["start"]
+                evList.append("  "+ str(evNo).rjust(10)+"  "+dateStart+dateStop+"  %8.1f"%delta+"\n")
             evList= sorted(evList, reverse=True)
             count =0
             for o in evList:
                 count+=1
-                if count > 500: break
+                if count > maxEvents: break
                 out += o
-        out += "====== Camera Events ======  END"
+        out += "====== Camera Events ======;                         all # events total: " +str(totEvents) +"\n"
 
         self.ML.myLog( text=out, mType=" " )
         return 
 
+    ####-----------------    ---------
+    def buttonresetCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
+        for dev in indigo.devices.iter(self.pluginId):
+            if dev.deviceTypeId != "camera":   continue
+            dev.updateStateOnServer("eventNumber",0)
+            self.ML.myLog( text="reset event number for "+dev.name)
+        self.resetCamerasStats()
+        return 
+    ####-----------------    ---------
+    
+    
+    ####-----------------    ---------
+    def buttonPrintCameraSystemCALLBACK(self,valuesDict, typeId="", devId=""):
+        cmdstr= "\"mongo 127.0.0.1:7441/av --quiet --eval 'db.server.find().forEach(printjsononeline)'\"" 
+        keepList = ["systemInfo","recordingSettings","firmwareVersion","host","firmwareVersion","livePortSettings","recordingSettings","systemSettings"]
+        self.getMongoData(cmdstr, keepList, dType="server")
+        return
 
+
+    
+    ####-----------------    ---------
+    def buttonPrintCameraCALLBACK(self,valuesDict, typeId="", devId=""):
+        cmdstr =  "\"mongo 127.0.0.1:7441/av --quiet --eval  'db.camera.find().forEach(printjsononeline)'\"" 
+        keepList = ["name","host","model","host","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings"]
+        self.getMongoData(cmdstr, keepList, dType="camera")
+        return
+    
+
+    def getMongoData(self, cmdstr, keepList, dType="camera"):
+        try:
+            uType = "VDdict"
+            userid, passwd =  self.getUidPasswd(uType)
+            cmd = "/usr/bin/expect  '" + \
+                  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
+                  userid + " " + \
+                  passwd + " " + \
+                  self.ipnumberOfVIDEO + " " + \
+                  self.promptOnServer[uType] + " " + \
+                  " XXXXsepXXXXX " + \
+                  cmdstr 
+            if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmd ,mType="CameraInfo")
+            ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+            dbJson, error= self.makeJson(ret[0], "XXXXsepXXXXX")
+            if error !="":
+                self.ML.myLog( text="camera system (dump, no json conversion)  info:\n"+ unicode(dbJson) )
+                return 
+            keepJson = {}
+            out      = []
+            for xx in dbJson:
+                keepJson = {}
+                for keep in keepList:
+                    if keep in xx:
+                        keepJson[keep] = xx[keep]
+                out.append(keepJson)
+            self.ML.myLog( text="camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
+            return
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                self.ML.myLog( text="camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
+        return 
+
+    ####-----------------    ---------
+    def makeJson(self, dump, sep):
+        try:
+            begStr,endStr ="{","}"
+            dump         = dump.split(sep)
+            if len(dump) !=3: return ""
+            dump  = dump[1].strip("\n").strip("\r")
+            s1 = dump.find(begStr)
+            dump = dump[s1:]
+            s2 = dump.rfind(endStr)
+            dump = dump[:s2+1].strip("\n").strip("\r")
+            out =[]
+            dump = dump.split("\n")
+            for line in dump:
+                nnn1   = line.find(begStr)
+                temp   = line[nnn1:]
+                nnn2   = temp.rfind(endStr)
+                temp   = temp[0:nnn2+1]
+                temp   = self.replaceFunc(temp)
+                out.append(json.loads(temp))
+            return out, ""
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return dump, "error"
+
+    ####-----------------    ---------
+    def replaceFunc(self, dump):
+        try:
+            for ii in range(100):
+                nn = dump.find("BinData(")
+                if nn ==-1: break
+                endst = dump[nn:].find(")")
+                dump = dump[0:nn-1]+'"xxx"'+ dump[nn+endst+1:]
+
+            for kk in range(30):  # loop over func Names, max 30
+                ss = 0
+                for ll in range(100): # remove " (xxx) from targest only abc(xx)
+                    nn = dump[ss:].find("(")
+                    if nn ==-1: break
+                    if dump[ss+nn-1] != " ": 
+                        nn+=ss
+                        break 
+                    ss = nn+1
+                    
+                    
+                if nn ==-1: break
+                startSt= dump[0:nn].rfind(" ")
+                replString= dump[startSt+1:nn+1]
+                lenrepString = len(replString)
+                for ii in range(100):  # loop of all occurance of func replacements 
+                    nn = dump.find(replString)
+                    if nn == -1: break
+                    pp = dump[nn:].find(")")
+                    dump = dump[0:nn] + dump[nn+lenrepString:nn+pp] + dump[nn+pp+1:]
+            return dump
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return ""
+        
     ####-----------------    ---------
     def buttonZeroStatsCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
         self.zeroDataStats()
@@ -1990,7 +2161,7 @@ class Plugin(indigo.PluginBase):
                 found = False
                 name = "--"
                 for dev in indigo.devices.iter(self.pluginId):
-                    if dev.deviceTypeId == u"UniFi": continue
+                    if dev.deviceTypeId in [u"UniFi",u"camera"] : continue
                     if "MAClan" in dev.states and dev.states[u"MAClan"] == MAC: 
                         found = True
                         name = dev.name
@@ -2584,7 +2755,7 @@ class Plugin(indigo.PluginBase):
         self.readMACdata()
         delDEV = {}
         for dev in indigo.devices.iter(self.pluginId):
-            if dev.deviceTypeId == u"client": continue
+            if dev.deviceTypeId in[u"client",u"camera"]: continue
             if u"status" not in dev.states:
                 self.ML.myLog( text=dev.name + u" has no status")
                 continue
@@ -2795,7 +2966,7 @@ class Plugin(indigo.PluginBase):
         self.trVDLog = ""
         if self.VIDEOEnabled:
             self.ML.myLog( text=u"..starting threads for VIDEO NVR log event capture")
-            self.trVDLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfVIDEO,u"VD",u"VDtail",-1,))
+            self.trVDLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfVIDEO,u"VD",u"VDtail",3600,))
             self.trVDLog.start()
             self.sleep(0.2)
 
@@ -3042,6 +3213,8 @@ class Plugin(indigo.PluginBase):
 
 
                     if "MAC" not in dev.states: continue
+                    if dev.deviceTypeId == u"camera": continue
+                    
                     MAC     = dev.states[u"MAC"]
                     if dev.deviceTypeId == u"UniFi" and self.testIgnoreMAC(MAC,"priodCheck") : continue
                     if unicode(devid) not in self.xTypeMac: 
@@ -3368,6 +3541,7 @@ class Plugin(indigo.PluginBase):
             indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e) )
         return 1
 
+    ####-----------------    ---------
     ### init,save,write data stats for receiving messages 
     ####-----------------    ---------
     def addTypeToDataStats(self,ipNumber, apN, uType):
@@ -3415,18 +3589,46 @@ class Plugin(indigo.PluginBase):
 
         self.resetDataStats()
         return 
+    ####-----------------    --------- END
+    ### init,save,write data stats for receiving messages 
+    ####-----------------    --------- END
 
-    ####------ camera io ---    ---------
+
+
+    ####-----------------    ---------
+    ####------ camera io ---    -------
+    ####-----------------    ---------
     def resetCamerasStats(self): 
         self.cameras={}
+        self.saveCameraEventsStatus = True
+        self.saveCameraEventsLastCheck = 0
         self.saveCamerasStats()  
     ####-----------------    ---------
     def saveCamerasStats(self): 
         if not self.saveCameraEventsStatus: return 
-        self.saveCameraEventsStatus = False
+        
+        # check if we have deleted devices in cameras
+        if time.time() - self.saveCameraEventsLastCheck > 500:
+
+            cameraMacList ={}
+            for dev in indigo.devices.iter(self.pluginId):
+                if dev.deviceTypeId != u"camera": continue
+                cameraMacList[dev.states["MAC"]] = dev.id
+             
+            delList ={}
+            for MAC in self.cameras:
+                if MAC not in cameraMacList:
+                    delList[MAC]=True
+            for MAC in delList:
+                del self.cameras[MAC]
+
+            self.saveCameraEventsLastCheck = time.time()
+                
+        # save cameras to disk    
         f=open(self.unifiPath+"CamerasStats","w")
         f.write(json.dumps(self.cameras, sort_keys=True, indent=2))
         f.close()
+        self.saveCameraEventsStatus = False
         
     ####-----------------    ---------
     def readCamerasStats(self):
@@ -3439,12 +3641,15 @@ class Plugin(indigo.PluginBase):
 
         self.resetCamerasStats()
         return 
+    ####-----------------    --------- END
+    ####------ camera io ---    -------
+    ####-----------------    --------- END
 
 
 
-    ### ----------- save read MAC2INDIGO  -----  ##
-        
-    ####-----------------    ---------
+    ####-----------------    -----------
+    ### ----------- save read MAC2INDIGO
+    ####-----------------    -----------
     def saveMACdata(self): 
         if time.time() - 20  < self.lastSaveMAC2INDIGO: return 
         self.lastSaveMAC2INDIGO = time.time() 
@@ -3472,6 +3677,9 @@ class Plugin(indigo.PluginBase):
         except: 
             self.MACignorelist ={}
         return 
+    ####-----------------    -----------   END
+    ### ----------- save read MAC2INDIGO  
+    ####-----------------    -----------   END
 
         
     ### here we do the work, setup the logfiles listening and read the logfiles and check if everything is running, if not restart
@@ -3675,28 +3883,29 @@ class Plugin(indigo.PluginBase):
             TT= uType[0:2]
             for ii in range(20):
                 if uType.find("dict")>-1:
-                    cmd = "/usr/bin/expect  '" + \
-                          self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
+                    cmd = "/usr/bin/expect  \"" + \
+                          self.pathToPlugin + self.expectCmdFile[uType] + "\" " + \
                           userid + " " + \
                           passwd + " " + \
                           ipNumber + " " + \
                           self.promptOnServer[uType] + " " + \
                           self.endDictToken[uType]+ " " + \
                           unicode(self.readDictEverySeconds[TT])+ " " + \
-                          unicode(self.timeoutDICT)
+                          unicode(self.timeoutDICT)+ \
+                          " \""+self.commandOnServer[uType]+"\" "
                     if uType.find("AP") >-1:
                          cmd += "  /var/log/messages"
                     else:
                          cmd += "  doNotSendAliveMessage"
 
                 else:
-                    cmd = "/usr/bin/expect  '" + \
-                          self.pathToPlugin +self.expectCmdFile[uType] + "' " + \
+                    cmd = "/usr/bin/expect  \"" + \
+                          self.pathToPlugin +self.expectCmdFile[uType] + "\" " + \
                           userid + " " + \
                           passwd + " " + \
                           ipNumber + " " + \
-                          self.promptOnServer[uType] + " " + \
-                          self.commandOnServer[uType]
+                          self.promptOnServer[uType]  +\
+                          " \""+self.commandOnServer[uType]+"\" "
 
                 if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmd, mType=u"EXPECT")
                 ListenProcess = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -3818,7 +4027,7 @@ class Plugin(indigo.PluginBase):
                 
                 try: timeSt= float(items[0].split()[0])
                 except: 
-                    if self.ML.decideMyLog(u"Log"):  self.ML.myLog( text="bad float",mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"):  self.ML.myLog( text="bad float",mType = "MS-VD----")
                     continue
 
                 items= items[1].strip().split()
@@ -3827,16 +4036,17 @@ class Plugin(indigo.PluginBase):
                     continue
 
                 if items[0].find("Camera[") ==-1: 
-                    if self.ML.decideMyLog(u"Log"): self.ML.myLog( text="no Camera[",mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="no Camera[",mType = "MS-VD----")
                     continue
-                cameraNumber = items[0].split("[")[1].strip("]")
+                c = items[0].split("[")[1].strip("]").lower()
+                MAC = c[0:2]+":"+c[2:4]+":"+c[4:6]+":"+c[6:8]+":"+c[8:10]+":"+c[10:12]
 
                 if items[1].find("type:") ==-1: 
-                    if self.ML.decideMyLog(u"Log"): self.ML.myLog( text=" no  type: ",mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=" no  type: ",mType = "MS-VD----")
                     continue
                 evType = items[1].split(":")[1]
                 if evType not in ["start","stop"]:
-                    if self.ML.decideMyLog(u"Log"): self.ML.myLog( text="bad eventType "+evType,mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="bad eventType "+evType,mType = "MS-VD----")
                     continue
                 
 
@@ -3846,52 +4056,58 @@ class Plugin(indigo.PluginBase):
                     continue
                 try: evNo = int(items[2].split(":")[1])
                 except: 
-                    if self.ML.decideMyLog(u"Log"): self.ML.myLog( text="bad int",mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="bad int",mType = "MS-VD----")
                     continue
 
                 cameraName   = " ".join(items[4:]).split(")")[0].split("(")[1].strip()
 
-                if self.ML.decideMyLog(u"Log"): self.ML.myLog( text="parsed items: " +str(timeSt)+"  "+evType+"  "+str(evNo)+"  "+cameraName+"  "+cameraNumber , mType = "MS-VD----")
+                if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="parsed items: #%5d"%evNo+"  "+evType.ljust(5)+"  %13.1f"%timeSt+"  "+MAC+"  "+cameraName , mType = "MS-VD----")
                 
-                if cameraNumber not in self.cameras:
-                    if self.ML.decideMyLog(u"Log"): self.cameras[cameraNumber] = {"cameraName":cameraName,"events":{}}
-                if evNo not in  self.cameras[cameraNumber]["events"]:
-                    if self.ML.decideMyLog(u"Log"): self.cameras[cameraNumber]["events"][evNo] = {"start":0,"stop":0}
+                if MAC not in self.cameras:
+                     self.cameras[MAC] = {"cameraName":cameraName,"events":{},"devid":-1}
+                if evNo not in  self.cameras[MAC]["events"]:
+                    self.cameras[MAC]["events"][evNo] = {"start":0,"stop":0}
 
-                if len(self.cameras[cameraNumber]["events"]) > self.unifiVIDEONumerOfEvents:
+                if len(self.cameras[MAC]["events"]) > self.unifiVIDEONumerOfEvents:
                     delEvents={}
-                    for ev in self.cameras[cameraNumber]["events"]:
+                    for ev in self.cameras[MAC]["events"]:
                         if evNo - ev > maxNumberOfEvents:
                             delEvents[ev]=True
                     if len(delEvents) >0:
-                        if self.ML.decideMyLog(u"Log"): self.ML.myLog( text=cameraName+" number of events > "+str(maxNumberOfEvents)+"; deleting "+str(len(delEvents))+" events" , mType = "MS-VD----")
+                        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cameraName+" number of events > "+str(maxNumberOfEvents)+"; deleting "+str(len(delEvents))+" events" , mType = "MS-VD----")
                         for ev in delEvents:
-                            del  self.cameras[cameraNumber]["events"][ev]
+                            del  self.cameras[MAC]["events"][ev]
                         
-                self.cameras[cameraNumber]["events"][evNo][evType]  = timeSt
-                if self.ML.decideMyLog(u"Log"): self.ML.myLog( text=unicode(self.cameras) , mType = "MS-VD----")
+                self.cameras[MAC]["events"][evNo][evType]  = timeSt
+                ##if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=unicode(self.cameras) , mType = "MS-VD----")
 
 
                 devFound = False
-                for dev in indigo.devices.iter(self.pluginId):
-                    if dev.deviceTypeId != u"camera":       continue
-                    if "cameraNumber" not in dev.states:    continue
-                    if dev.states["cameraNumber"] == cameraNumber:
+                if "devid" in self.cameras[MAC]:
+                    try: 
+                        dev = indigo.devices[self.cameras[MAC]["devid"]]
                         devFound = True
-                        break
+                    except: pass
+                if  not devFound:
+                    for dev in indigo.devices.iter(self.pluginId):
+                        if dev.deviceTypeId != u"camera":       continue
+                        if "MAC" not in dev.states:    continue
+                        if dev.states["MAC"] == MAC:
+                            devFound = True
+                            break
 
                 if not devFound:
                     try:
                         dev = indigo.device.create(
                             protocol=indigo.kProtocol.Plugin,
-                            address=cameraNumber,
-                            name = "Camera_"+cameraName+"_"+cameraNumber ,
+                            address=MAC,
+                            name = "Camera_"+cameraName+"_"+MAC ,
                             description="",
                             pluginId=self.pluginId,
                             deviceTypeId="camera",
                             folder=self.folderNameCreatedID,
                             )
-                        dev.updateStateOnServer("cameraNumber", cameraNumber)
+                        dev.updateStateOnServer("MAC", MAC)
                         dev.updateStateOnServer("eventNumber", -1)
                         dev = indigo.devices[dev.id]
                     except  Exception, e:
@@ -3899,8 +4115,9 @@ class Plugin(indigo.PluginBase):
                                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                             continue
 
+                self.cameras[MAC]["devid"] = dev.id
                 if dev.states["eventNumber"] > evNo:
-                    if self.ML.decideMyLog(u"Log"): self.ML.myLog( text="rejected event number "+ str(evNo), mType = "MS-VD----")
+                    if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="rejected event number "+ str(evNo), mType = "MS-VD----")
                     continue # old event
                     
                      
@@ -3911,8 +4128,8 @@ class Plugin(indigo.PluginBase):
                 else:
                     self.addToStatesUpdateList(unicode(dev.id),u"lastEventStop", dateStr )
                     self.addToStatesUpdateList(unicode(dev.id),u"status", "off" )
-                    evLength  = float(self.cameras[cameraNumber]["events"][evNo]["stop"])
-                    evLength -= float(self.cameras[cameraNumber]["events"][evNo]["start"])
+                    evLength  = float(self.cameras[MAC]["events"][evNo]["stop"])
+                    evLength -= float(self.cameras[MAC]["events"][evNo]["start"])
                     self.addToStatesUpdateList(unicode(dev.id),u"lastEventLength", int(evLength))
                 self.addToStatesUpdateList(unicode(dev.id),u"eventNumber", int(evNo) )
                 self.executeUpdateStatesList()
@@ -3973,7 +4190,7 @@ class Plugin(indigo.PluginBase):
                     except:
                         if self.ML.decideMyLog(u"LogDetails") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC][u"devId"]) + " wrong " + devType)
                         for dev in indigo.devices.iter(self.pluginId):
-                            if dev.deviceTypeId == "client": continue
+                            if dev.deviceTypeId in [u"client",u"camera"] : continue
                             if dev.deviceTypeId != devType: continue
                             if "MAC" not in dev.states: continue
                             if dev.states[u"MAC"] != MAC: continue
@@ -4158,7 +4375,7 @@ class Plugin(indigo.PluginBase):
                         except:
                             if self.ML.decideMyLog(u"all"): self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC][u"devId"]) + " wrong " + devType)
                             for dev in indigo.devices.iter(self.pluginId):
-                                if dev.deviceTypeId == "client": continue
+                                if dev.deviceTypeId in [u"client",u"camera"] : continue
                                 if dev.deviceTypeId != devType:  continue
                                 if "MAC" not in dev.states:      continue
                                 if dev.states[u"MAC"] != MAC:    continue
@@ -4552,7 +4769,7 @@ class Plugin(indigo.PluginBase):
                         except:
                             if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC][u"devId"]) + " wrong " + devType)
                             for dev in indigo.devices.iter(self.pluginId):
-                                if dev.deviceTypeId == "client":    continue
+                                if dev.deviceTypeId in [u"client",u"camera"] :    continue
                                 if dev.deviceTypeId != devType:     continue
                                 if "MAC" not in dev.states:         continue
                                 if dev.states[u"MAC"] != MAC:       continue
@@ -4734,7 +4951,7 @@ class Plugin(indigo.PluginBase):
                         except:
                             if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
                             for dev in indigo.devices.iter(self.pluginId):
-                                if dev.deviceTypeId == "client": continue
+                                if dev.deviceTypeId in [u"client",u"camera"] : continue
                                 if dev.deviceTypeId != devType: continue
                                 if "MAC" not in dev.states: continue
                                 if dev.states[u"MAC"] != MAC: continue
@@ -4898,7 +5115,7 @@ class Plugin(indigo.PluginBase):
                     except:
                         if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
                         for dev in indigo.devices.iter(self.pluginId):
-                            if dev.deviceTypeId == "client": continue
+                            if dev.deviceTypeId in [u"client",u"camera"] : continue
                             if dev.deviceTypeId != devType: continue
                             if "MAC" not in dev.states: continue
                             if dev.states[u"MAC"] != MAC: continue
@@ -5209,7 +5426,7 @@ class Plugin(indigo.PluginBase):
                     except:
                         if self.ML.decideMyLog(u"Logic"): self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
                         for dev in indigo.devices.iter(self.pluginId):
-                            if dev.deviceTypeId == "client": continue
+                            if dev.deviceTypeId in [u"client",u"camera"] : continue
                             if "MAC" not in dev.states: continue
                             if dev.states[u"MAC"] != MAC: continue
                             self.MAC2INDIGO[xType][MAC][u"devId"] = dev.id
@@ -5379,7 +5596,7 @@ class Plugin(indigo.PluginBase):
                 except:
                     if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
                     for dev in indigo.devices.iter(self.pluginId):
-                        if dev.deviceTypeId == "client":    continue
+                        if dev.deviceTypeId in [u"client",u"camera"] :    continue
                         if dev.deviceTypeId != devType:     continue
                         if "MAC" not in dev.states:         continue
                         if dev.states[u"MAC"] != MAC:       continue
@@ -5511,7 +5728,7 @@ class Plugin(indigo.PluginBase):
                         except:
                             if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
                             for dev in indigo.devices.iter(self.pluginId):
-                                if dev.deviceTypeId == "client": continue
+                                if dev.deviceTypeId in [u"client",u"camera"] : continue
                                 if dev.deviceTypeId != devType: continue
                                 if "MAC" not in dev.states: continue
                                 if dev.states[u"MAC"] != MAC: continue
@@ -5643,7 +5860,8 @@ class Plugin(indigo.PluginBase):
                 except:
                     if self.ML.decideMyLog(u"Logic") or MAC in self.MACloglist: self.ML.myLog( text=MAC+"  "+unicode(self.MAC2INDIGO[xType][MAC])+u" wrong "+ devType)
                     for dev in indigo.devices.iter(self.pluginId):
-                        if dev.deviceTypeId !=devType: continue
+                        if dev.deviceTypeId in [u"client",u"camera"] : continue
+                        if dev.deviceTypeId != devType: continue
                         if u"MAC" not in dev.states: continue
                         if dev.states[u"MAC"] != MAC: continue
                         self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
@@ -6013,7 +6231,7 @@ class Plugin(indigo.PluginBase):
                 self.logCount[unicode(apNumb)] += 1
 
                 name = self.unifiPath + u"dict-"+unifiDeviceType+u"#" + unicode(apNumb) + u"-Seq-"
-                maxLog =2
+                maxLog =1
                 for ii in range(maxLog):
                     if os.path.isfile(name + unicode(maxLog - ii) + ".txt"):
                         os.remove(name + unicode(maxLog - ii) + ".txt")
@@ -6136,6 +6354,8 @@ class Plugin(indigo.PluginBase):
         elif status == u"changed":   return status.ljust(8)
         elif status == u"double":    return status.ljust(8)
         elif status == u"ignored":   return status.ljust(8)
+        elif status == u"off":       return status.ljust(11)
+        elif status == u"ON":        return status.ljust(10)
         else:                        return status.ljust(10)
 
     

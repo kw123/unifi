@@ -258,7 +258,7 @@
 
 
     <Device type="custom" id="camera">
-        <Name>gateway</Name>
+        <Name>camera</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
         <ConfigUI>
         </ConfigUI>
@@ -289,10 +289,10 @@
                     <TriggerLabel>lastEventLength</TriggerLabel>
                     <ControlPageLabel>lastEventLength</ControlPageLabel>
               </State>
-              <State id="cameraNumber">
+              <State id="MAC">
                     <ValueType>string</ValueType>
-                    <TriggerLabel>cameraNumber</TriggerLabel>
-                    <ControlPageLabel>cameraNumber</ControlPageLabel>
+                    <TriggerLabel>MAC</TriggerLabel>
+                    <ControlPageLabel>MAC</ControlPageLabel>
               </State>
               <State id="lastStatusChange">
                     <ValueType>String</ValueType>
