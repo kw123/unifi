@@ -7,6 +7,7 @@
         <Name>UniFi</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
         <ConfigUI>
+            <Field id="isUnifi"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
             <Field    id="label0" 			  type="label" >
                 <Label>configure UP and DOWN choices for device</Label>
             </Field>
@@ -261,6 +262,7 @@
         <Name>camera</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
         <ConfigUI>
+            <Field id="isCamera"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
         </ConfigUI>
 
         <States>
@@ -294,16 +296,31 @@
                     <TriggerLabel>MAC</TriggerLabel>
                     <ControlPageLabel>MAC</ControlPageLabel>
               </State>
+              <State id="ip">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>ip</TriggerLabel>
+                    <ControlPageLabel>ip</ControlPageLabel>
+              </State>
+              <State id="uuid">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>uuid</TriggerLabel>
+                    <ControlPageLabel>uuid</ControlPageLabel>
+              </State>
+              <State id="eventJpeg">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>eventJpeg</TriggerLabel>
+                    <ControlPageLabel>eventJpeg</ControlPageLabel>
+              </State>
               <State id="lastStatusChange">
                     <ValueType>String</ValueType>
                     <TriggerLabel>lastStatusChange</TriggerLabel>
                     <ControlPageLabel>lastStatusChange</ControlPageLabel>
               </State>
-                  <State id="displayStatus">
-                        <ValueType>String</ValueType>
-                        <TriggerLabel>displayStatus</TriggerLabel>
-                        <ControlPageLabel>displayStatus</ControlPageLabel>
-                  </State>
+              <State id="displayStatus">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>displayStatus</TriggerLabel>
+                    <ControlPageLabel>displayStatus</ControlPageLabel>
+              </State>
 
 
         </States>
@@ -315,6 +332,7 @@
         <Name>gateway</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
         <ConfigUI>
+            <Field id="isGateway"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                <Field    id="expirationTime"       type="menu"  defaultValue="90"
                           tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
@@ -474,6 +492,7 @@
           <Name>Device-SW-52</Name>
           <UiDisplayStateId>displayStatus</UiDisplayStateId>
           <ConfigUI>
+                <Field id="isSwitch"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>
@@ -888,6 +907,7 @@
           <Name>Device-SW-26</Name>
           <UiDisplayStateId>displayStatus</UiDisplayStateId>
           <ConfigUI>
+                <Field id="isSwitch"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>
@@ -1162,6 +1182,7 @@
             <Name>Device-SW-18</Name>
             <UiDisplayStateId>displayStatus</UiDisplayStateId>
             <ConfigUI>
+                <Field id="isSwitch"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                     <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                         <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                         <List>
@@ -1386,6 +1407,7 @@
             <Name>Device-SW-10</Name>
             <UiDisplayStateId>displayStatus</UiDisplayStateId>
             <ConfigUI>
+                <Field id="isSwitch"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>
@@ -1567,6 +1589,7 @@
             <Name>Device-SW-8</Name>
             <UiDisplayStateId>displayStatus</UiDisplayStateId>
             <ConfigUI>
+                <Field id="isSwitch"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>
@@ -1741,6 +1764,7 @@
             <Name>Device-AP</Name>
             <UiDisplayStateId>displayStatus</UiDisplayStateId>
             <ConfigUI>
+                <Field id="isAP"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>
@@ -1906,6 +1930,7 @@
             <Name>neighbor</Name>
             <UiDisplayStateId>displayStatus</UiDisplayStateId>
             <ConfigUI>
+                <Field id="isNeighbor"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
                 <Field    id="expirationTime"       type="menu"  defaultValue="90"   tooltip=" overwrites common expiration time set in config ">
                     <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
                     <List>

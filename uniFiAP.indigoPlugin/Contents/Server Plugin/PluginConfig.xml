@@ -148,7 +148,7 @@
 
 
 
-    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section.....................................:</Label>  </Field>
+    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section........................................................:</Label>  </Field>
     <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
         <List>
@@ -200,7 +200,7 @@
     <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>..ipNumber of AP-4:</Label>  </Field>
 
 
-    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:............................................</Label>  </Field>
+    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:...............................................................</Label>  </Field>
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
         <List>
@@ -238,7 +238,7 @@
 
 
 
-    <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:...............................</Label>  </Field>
+    <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:..................................................</Label>  </Field>
 
     <Field    id="readDictEverySecondsSW"   type="menu" defaultValue="60" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump every:</Label>
@@ -303,31 +303,20 @@
 
 
 
-    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section..................................:</Label>  </Field>
+    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Enable Video  ..............................................................:</Label>  </Field>
+    <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR: </Label>  </Field>
 
     <Field    id="unifiVIDEOUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..UserID for UniFi VIDEO unix box:</Label>
+        <Label>..UserID for UniFi VIDEO unix box(empty=off):</Label>
     </Field>
     <Field    id="unifiVIDEOPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Password for UniFi VIDEO unix box:</Label>
     </Field>
-    <Field    id="vdPrompt"   type="textfield" defaultValue="VirtualBox" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Prompt for UniFi VIDEO unix box:</Label>
     </Field>
     <Field    id="ipVIDEO"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>..ipNumber of your Video NVR:</Label>  
-    </Field>
-    <Field    id="VDtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
-    <Label>.. Video tail command(no"):</Label>  
-        <List>
-            <Option value="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"      > /usr/bin/tail -F /var/lib/unifi-video/logs/motion.log </Option>
-        </List>
-    </Field>
-    <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"          > 
-    <Label>.. Video dict command(no"):</Label>  
-        <List>
-            <Option value="not implemented"      > not implemented </Option>
-        </List>
     </Field>
 
     <Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
@@ -344,7 +333,47 @@
             </List>
     </Field>
 
+    <Field    id="VDtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
+    <Label>.. Video tail command(no"):</Label>  
+        <List>
+            <Option value="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"      > /usr/bin/tail -F /var/lib/unifi-video/logs/motion.log </Option>
+        </List>
+    </Field>
+    <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"   hidden="true"       > 
+    <Label>.. Video dict command(no"):</Label>  
+        <List>
+            <Option value="not implemented"      > not implemented </Option>
+        </List>
+    </Field>
 
+    
+    <Field id="infoLabelvideo3" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                        ---if the MAC has access to the UniFi Video clips -------- </Label>  </Field>
+    <Field    id="videoPath" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/video"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
+        <Label>.. path to NVR video directory:</Label>  
+    </Field>
+    <Field id="infoLabelvideovideoPath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ... source of image files</Label>  </Field>
+
+    <Field    id="changedImagePath" type="textfield"  defaultValue="/Users/YOURID/indigo/unifi/eventPic.jpg"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
+        <Label>.. target path to most recent event image:</Label>  
+    </Field>
+    <Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> .../CamName_event.jpg </Label>  </Field>
+
+    <Field id="infoLabelvideo2" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                        ---only if you use VM machine to host UniFi NVR -------- </Label>  </Field>
+
+    <Field    id="vmMachine" type="textfield"  defaultValue="ubuntu"  visibleBindingId="vdON" visibleBindingValue="true" tooltip="name of the system you gave it in VBOX app "          > 
+        <Label>.. name of VM machine used(empty=off):</Label>  
+    </Field>
+    <Field id="infoLabelvideovmMachine" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
+
+    <Field    id="vboxPath" type="textfield"  defaultValue="/Applications/VirtualBox.app/Contents/MacOS/"  visibleBindingId="vdON" visibleBindingValue="true" > 
+        <Label>.. path to VM box app:</Label>  
+    </Field>
+    <Field id="infoLabelvideovboxPath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
+
+    <Field    id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="vdON" visibleBindingValue="true" tooltip="fully qualified path to disk image"       > 
+        <Label>.. path to VM box disk image file:</Label>  
+    </Field>
+    <Field id="infoLabelvideovmDisk" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage compress</Label>  </Field>
 
     <Field id="simpleSeparator222" type="separator"/>
 

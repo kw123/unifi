@@ -59,7 +59,7 @@
             </Field>
 
             <Field  id="Label21" type="label"> 
-<Label>                Does not work for type clients, ie gw, ap, sw
+                <Label>                Does not work for type clients, ie gw, ap, sw
                        and long time expired devices = not in controller memory</Label> </Field>
             <Field id="simpleSeparator2" type="separator"/>
 
@@ -175,7 +175,7 @@
         <Field id="ignoreLabel" type="label"> <Label>select MACs to COMPLETELY ignore:</Label>  </Field>
             <Field     id="MACdeviceSelected" type="menu" defaultValue="">
                 <Label>select which MAC # / device:</Label>
-                <List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="false"/>
+                <List class="self" filter="" method="filterMACunifiAndCameraOnly"  dynamicReload="false"/>
             </Field>
             <Field    id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
                 <Label>Click to  START  ignoring</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
@@ -226,6 +226,70 @@
             <Field    id="printCamarainfo" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraCALLBACK</CallbackMethod>
             </Field>
+        </ConfigUI>
+    </MenuItem>
+
+    <MenuItem id="restartListeners">
+        <Name>Restart ... listeners ... </Name>
+        <ConfigUI>
+                <Field    id="resetCam" type="button" tooltip="" >
+                    <Label>Camera listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="simpleSeparatorCam" type="separator"/>
+                <Field    id="resetGW" type="button" tooltip="" >
+                    <Label>Gateway listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartGWListenerCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="simpleSeparatorGW" type="separator"/>
+                <Field     id="pickAP" type="menu" defaultValue="0">
+                    <Label>which AP# should be restarted</Label>
+                     <List>
+                        <Option value="0"    > #0</Option>
+                        <Option value="1"    > #1</Option>
+                        <Option value="2"    > #2</Option>
+                        <Option value="3"    > #3</Option>
+                        <Option value="4"    > #4</Option>
+                    </List>
+                </Field>
+                <Field    id="resetAP" type="button" tooltip="" >
+                    <Label>AP listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartAPListenerCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="simpleSeparatorAP" type="separator"/>
+                <Field     id="pickSW" type="menu" defaultValue="0">
+                    <Label>which SWP# should be restarted</Label>
+                     <List>
+                        <Option value="0"    > #0</Option>
+                        <Option value="1"    > #1</Option>
+                        <Option value="2"    > #2</Option>
+                        <Option value="3"    > #3</Option>
+                        <Option value="4"    > #4</Option>
+                        <Option value="5"    > #5</Option>
+                        <Option value="6"    > #6</Option>
+                        <Option value="7"    > #7</Option>
+                        <Option value="8"    > #8</Option>
+                        <Option value="9"    > #9</Option>
+                        <Option value="10"   > #10</Option>
+                    </List>
+                </Field>
+                <Field    id="resetSW" type="button" tooltip="" >
+                    <Label>Switch listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartSWListenerCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="simpleSeparatorSW" type="separator"/>
+                <Field    id="stopVideoservice" type="button" tooltip="" >
+                    <Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
+                </Field>
+                <Field    id="startVideoservice" type="button" tooltip="" >
+                    <Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="simpleSeparatorVD1" type="separator"/>
+                <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running" >
+                    <Label>VirtualMachine box ==></Label><Title>START</Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
+                </Field>
+                <Field    id="VboxActionStopCALLBACK" type="button" tooltip="" >
+                    <Label>VirtualMachine box ==></Label><Title>STOP</Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
+                </Field>
+                <Field    id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
+                    <Label>VirtualMachine box ==></Label><Title>COMPRESS</Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
+                </Field>
         </ConfigUI>
     </MenuItem>
 
