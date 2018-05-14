@@ -193,7 +193,7 @@
 
 
     <MenuItem id="CameraActions">
-        <Name>Camera Info and Settings</Name>
+        <Name>Camera Info and Settings, actions</Name>
         <ConfigUI>
             <Field     id="maxEvents" type="menu" defaultValue="10">
                 <Label>Print, max number of events:</Label>
@@ -225,6 +225,25 @@
             <Field id="printcamlabel" type="label"> <Label>Print camera config and info:</Label>  </Field>
             <Field    id="printCamarainfo" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="stopVideoservice" type="button" tooltip="" >
+                    <Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
+             </Field>
+             <Field    id="startVideoservice" type="button" tooltip="" >
+                    <Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparatorVD1" type="separator"/>
+            <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running" >
+                    <Label>VirtualMachine box ==></Label><Title>START</Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="VboxActionStopCALLBACK" type="button" tooltip="" >
+                    <Label>VirtualMachine box ==></Label><Title>STOP</Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
+                    <Label>VirtualMachine box ==></Label><Title>COMPRESS</Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="VboxActionBackupCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
+                    <Label>VirtualMachine box ==></Label><Title>Backup</Title><CallbackMethod>buttonVboxActionBackupCALLBACK</CallbackMethod>
             </Field>
         </ConfigUI>
     </MenuItem>
@@ -272,23 +291,6 @@
                 </Field>
                 <Field    id="resetSW" type="button" tooltip="" >
                     <Label>Switch listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartSWListenerCALLBACK</CallbackMethod>
-                </Field>
-            <Field id="simpleSeparatorSW" type="separator"/>
-                <Field    id="stopVideoservice" type="button" tooltip="" >
-                    <Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
-                </Field>
-                <Field    id="startVideoservice" type="button" tooltip="" >
-                    <Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
-                </Field>
-            <Field id="simpleSeparatorVD1" type="separator"/>
-                <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running" >
-                    <Label>VirtualMachine box ==></Label><Title>START</Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
-                </Field>
-                <Field    id="VboxActionStopCALLBACK" type="button" tooltip="" >
-                    <Label>VirtualMachine box ==></Label><Title>STOP</Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
-                </Field>
-                <Field    id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
-                    <Label>VirtualMachine box ==></Label><Title>COMPRESS</Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
                 </Field>
         </ConfigUI>
     </MenuItem>
@@ -409,22 +411,18 @@
 
         </ConfigUI>
     </MenuItem>
-
-    <MenuItem id="rebootUNIFIdevice">
-        <Name>Reboot a unifi device </Name>
-        <ConfigUI>
-            <Field     id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
-                <Label>select which device:</Label>
-                <List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
-            </Field>
-            <Field    id="confirmReboot" type="button" tooltip="" >
-                <Label>Click to reboot</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
-            </Field>
-        </ConfigUI>
-    </MenuItem>
     <MenuItem id="powerCyclePort">
         <Name>Power cycle a port on a unifi switch</Name>
         <ConfigUI>
+            <Field    id="onOffCycle" type="menu" tooltip="" >
+                <List>
+                    <Option value="ON"        >ON</Option>
+                    <Option value="OFF"        >OFF</Option>
+                    <Option value="CYCLE"      >CYCLE</Option>
+                </List>
+                <Label>which action</Label>
+            </Field>
+            <Field id="simpleSeparator0" type="separator"/>
             <Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
                 <Label>Select which switch:</Label>
                 <List class="self" filter="" method="filterUnifiSwitch"  dynamicReload="false"/>
@@ -437,7 +435,7 @@
                 <List class="self" filter="" method="filterUnifiSwitchPort"  dynamicReload="yes"/>
             </Field>
             <Field    id="confirmpowerCycle" type="button" tooltip="" >
-                <Label>Click to powercycle</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
+                <Label>Click to</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
             </Field>
             <Field id="simpleSeparator2" type="separator"/>
             <Field     id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
@@ -445,7 +443,7 @@
                 <List class="self" filter="" method="filterUnifiClient"  dynamicReload="no"/>
             </Field>
             <Field    id="confirmpowerCycleClient" type="button" tooltip="" >
-                <Label>Click to powercycle</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACK</CallbackMethod>
+                <Label>Click to</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACK</CallbackMethod>
             </Field>
         </ConfigUI>
     </MenuItem>
@@ -487,6 +485,46 @@
             </Field>
         </ConfigUI>
     </MenuItem>
+
+    <MenuItem id="rebootUNIFIdevice">
+        <Name>Reboot a unifi device </Name>
+        <ConfigUI>
+            <Field     id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
+                <Label>select which device:</Label>
+                <List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="confirmReboot" type="button" tooltip="" >
+                <Label>Click to reboot</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </MenuItem>
+
+    <MenuItem id="suspendUnifiDevice">
+        <Name>Suspend a Unifi system device (plugin does not do anything with it)</Name>
+        <ConfigUI>
+            <Field     id="selectedDevice" type="menu" defaultValue="0">
+                <Label>select Unifi system device:</Label>
+                <List class="self" filter="" method="filterUNIFIsystemDeviceSuspend"  dynamicReload="no"/>
+            </Field>
+            <Field    id="confirmSuspend" type="button" tooltip="" >
+                <Label>Click to suspend</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmsuspendCALLBACKbutton</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </MenuItem>
+
+    <MenuItem id="reactivateDevice">
+        <Name>Re-Activate a system Unifi device from suspend</Name>
+        <ConfigUI>
+            <Field     id="selectedDevice" type="menu" defaultValue="0">
+                <Label>select Unifi system device:</Label>
+                <List class="self" filter="" method="filterUNIFIsystemDeviceSuspended"  dynamicReload="no"/>
+            </Field>
+            <Field    id="confirmActivate" type="button" tooltip="" >
+                <Label>Click to re-activate</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmactivateCALLBACKbutton</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </MenuItem>
+
 
     <MenuItem id="APledON">
         <Name>Set AP LEDs ON/off</Name>

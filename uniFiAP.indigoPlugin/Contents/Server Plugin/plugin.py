@@ -201,12 +201,12 @@ class Plugin(indigo.PluginBase):
 
         self.vmMachine                  = self.pluginPrefs.get(u"vmMachine",        "")
         self.vboxPath                   = self.completePath(self.pluginPrefs.get(u"vboxPath",         "/Applications/VirtualBox.app/Contents/MacOS/"))
-        self.vmDisk                     = self.completePath(self.pluginPrefs.get(u"vmDisk",           "/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi"))
+        self.vmDisk                     = self.pluginPrefs.get(u"vmDisk",           "/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
         self.changedImagePath           = self.completePath(self.pluginPrefs.get(u"changedImagePath", "/Users/karlwachs/indio/unifi/"))
         self.videoPath                  = self.completePath(self.pluginPrefs.get(u"videoPath",        "/Volumes/data4TB/Users/karlwachs/video/"))
 
         
-
+        self.suspendedUnifiSystemDevicesIP={}
 
 
         self.restartRequest             = {}
@@ -703,7 +703,7 @@ class Plugin(indigo.PluginBase):
         self.videoPath                  = self.completePath(valuesDict[u"videoPath"])
         self.vboxPath                   = self.completePath(valuesDict["vboxPath"])
         self.changedImagePath           = self.completePath(valuesDict[u"changedImagePath"])
-        self.vmDisk                     = self.completePath(valuesDict["vmDisk"])
+        self.vmDisk                     = valuesDict["vmDisk"]
 
         ip0         = valuesDict[u"ipVIDEO"]
         if self.ipnumberOfVIDEO != ip0:
@@ -1017,28 +1017,54 @@ class Plugin(indigo.PluginBase):
         
         return
 
+
+    def checkifVboxActionRunning(self,text):
+        cmd = "ps -ef | grep '/vboxAction.py ' | grep -v grep"
+        if len(subprocess.Popen( cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]) > 10: 
+            self.ML.myLog( text="VBOXAction: still runing, not executing: "+text ,mType="CameraInfo")
+            return True
+        return False
         
     def buttonVboxActionStopCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        action = json.dumps({"action":["stop"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath })
+        action = json.dumps({"action":["stop"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.logFile})
         cmd = self.pythonPath + " '" + self.pathToPlugin + "vboxAction.py' '"+action+"'   & "
-        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmd ,mType="CameraInfo")
+        if self.checkifVboxActionRunning(cmd): return 
+        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="VBOXAction: "+cmd ,mType="CameraInfo")
         subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         return
 
         
     def buttonVboxActionStartCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        action = json.dumps({"action":["start"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath })
+        action = json.dumps({"action":["start"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.logFile})
         cmd = self.pythonPath + " '" + self.pathToPlugin + "vboxAction.py' '"+action+"'   & "
-        self.ML.myLog( text="VOBXAction: "+cmd ,mType="CameraInfo")
+        if self.checkifVboxActionRunning(cmd): return 
+        self.ML.myLog( text="VBOXAction: "+cmd ,mType="CameraInfo")
         subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         return
 
         
     def buttonVboxActionCompressCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        action = json.dumps({"action":["stop","compress","start"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath ,"vmDisk":self.vmDisk })
+        action = json.dumps({"action":["stop","compress","start"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.logFile,"vmDisk":self.vmDisk })
         cmd = self.pythonPath + " '" + self.pathToPlugin + "vboxAction.py' '"+action+"'   & "
-        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmd ,mType="CameraInfo")
+        if self.checkifVboxActionRunning(cmd): return 
+        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="VBOXAction: "+cmd ,mType="CameraInfo")
         subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        return
+
+    def buttonVboxActionBackupCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
+        self.buttonVboxActionBackupCALLBACK(valuesDict= action1.props)
+
+    def buttonVboxActionBackupCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+        action = json.dumps({"action":["stop","backup","start"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.logFile,"vmDisk":self.vmDisk })
+        cmd = self.pythonPath + " '" + self.pathToPlugin + "vboxAction.py' '"+action+"'   & "
+        if self.checkifVboxActionRunning(cmd): return 
+        if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="VBOXAction: "+cmd ,mType="CameraInfo")
+        subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        ip = self.ipnumberOfVIDEO
+        for dev in indigo.devices.iter(self.pluginId+",props.isUniFi"):
+            if ip == dev.states["ipNumber"]:
+                self.suspendedUnifiSystemDevicesIP[ip] = time.time()
+                break
         return
         
 
@@ -1487,6 +1513,23 @@ class Plugin(indigo.PluginBase):
             list.append([dev.states["MAC"].lower(),dev.name+"--"+ dev.states["MAC"] ])
         return sorted(list, key=lambda x: x[1])
 
+    ####-----------------    ---------
+    def filterUNIFIsystemDeviceSuspend(self, filter="", valuesDict=None, typeId="", devId=""):
+    
+        list = []
+        for dev in indigo.devices.iter(self.pluginId+",props.isSwitch,props.isGateway,props.isAP"):
+            list.append([dev.id,dev.name])
+        return sorted(list, key=lambda x: x[1])
+
+    ####-----------------    ---------
+    def filterUNIFIsystemDeviceSuspended(self, filter="", valuesDict=None, typeId="", devId=""):
+    
+        list = []
+        for dev in indigo.devices.iter(self.pluginId+",props.isSwitch,props.isGateway,props.isAP"):
+            ipNumber = dev.states["ipNumber"] 
+            list.append([dev.id,dev.name])
+        return sorted(list, key=lambda x: x[1])
+
 
 
     ####-----------------    ---------
@@ -1652,15 +1695,18 @@ class Plugin(indigo.PluginBase):
         for port in range(99):
             if u"port_%02d"%port not in dev.states: continue
             if  dev.states[u"port_%02d"%port].find("poe") >-1:
-                name =""
-                for dev2 in indigo.devices.iter(self.pluginId+",props.isUniFi"):
-                    if "SW_Port" in dev2.states and len(dev2.states["SW_Port"]) > 2:
-                        sw   = dev2.states["SW_Port"].split(":")
-                        if sw[0] == snNo:
-                            if sw[1].find("poe") >-1:
-                                if unicode(port) == sw[1].split("-")[0]:
-                                    name = " - "+dev2.name
-                                    break
+                if  dev.states[u"port_%02d"%port].find("poeX") >-1:
+                    name = " - empty"
+                else:
+                    name =""
+                    for dev2 in indigo.devices.iter(self.pluginId+",props.isUniFi"):
+                        if "SW_Port" in dev2.states and len(dev2.states["SW_Port"]) > 2:
+                            sw   = dev2.states["SW_Port"].split(":")
+                            if sw[0] == snNo:
+                                if sw[1].find("poe") >-1:
+                                    if unicode(port) == sw[1].split("-")[0]:
+                                        name = " - "+dev2.name
+                                        break
                 list.append([port,u"port#"+unicode(port)+name])
         return list
 
@@ -1682,13 +1728,23 @@ class Plugin(indigo.PluginBase):
         return self.buttonConfirmpowerCycleCALLBACK(valuesDict=action1.props)
 
     ####-----------------    ---------
+    def buttonConfirmpowerCycleClientsCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
+        return self.buttonConfirmpowerCycleClientsCALLBACK(valuesDict=action1.props)
+
+    ####-----------------    ---------
     def buttonConfirmpowerCycleCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        ip_type  =  valuesDict[u"selectedUnifiSwitch"].split(u"-")
-        ipNumber = self.ipNumbersOfSWs[int(ip_type[0])]
-        dtype    = ip_type[1]
-        port     = unicode(valuesDict[u"selectedUnifiSwitchPort"])
+        onOffCycle  = valuesDict[u"onOffCycle"]
+        ip_type     =  valuesDict[u"selectedUnifiSwitch"].split(u"-")
+        ipNumber    = self.ipNumbersOfSWs[int(ip_type[0])]
+        dtype       = ip_type[1]
+        port        = unicode(valuesDict[u"selectedUnifiSwitchPort"])
         cmd = u"/usr/bin/expect  '"
-        cmd+= self.pathToPlugin + u"cyclePort.exp" + "' "
+        if onOffCycle == "CYCLE":
+            cmd+= self.pathToPlugin + u"cyclePort.exp" + "' "
+        elif  onOffCycle =="ON":
+            cmd+= self.pathToPlugin + u"onPort.exp" + "' "
+        elif  onOffCycle =="OFF":
+            cmd+= self.pathToPlugin + u"offPort.exp" + "' "
         cmd+= self.unifiUserID + u" " 
         cmd+= self.unifiPassWd + u" "
         cmd+= ipNumber + " "
@@ -1699,13 +1755,6 @@ class Plugin(indigo.PluginBase):
         if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=unicode(ret) ,mType="RECYCLE")
         return 
  
-
-
-
-    ####-----------------    ---------
-    def buttonConfirmpowerCycleClientsCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
-        return self.buttonConfirmpowerCycleClientsCALLBACK(valuesDict=action1.props)
-
     ####-----------------    ---------
     def buttonConfirmpowerCycleClientsCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
         ip_type  =  valuesDict[u"selectedUnifiClientSwitchPort"].split(u"-")
@@ -1714,6 +1763,45 @@ class Plugin(indigo.PluginBase):
         self.buttonConfirmpowerCycleCALLBACK(valuesDict)
         return 
 
+
+    ####-----------------  suspend / activate unifi devices    ---------
+    def buttonConfirmsuspendCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
+        self.buttonConfirmsuspendCALLBACKbutton(valuesDict=action1.props)
+    
+    ####-----------------  suspend / activate unifi devices    ---------
+    def buttonConfirmactivateCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
+        self.buttonConfirmactivateCALLBACKbutton(valuesDict=action1.props)
+
+     ####-----------------  suspend / activate unifi devices    ---------
+    def buttonConfirmsuspendCALLBACKbutton(self, valuesDict=None, filter="", typeId="", devId=""):
+        try:    
+            id = int(valuesDict["selectedDevice"])
+            dev= indigo.devices[id]
+            ip = dev.states["ipNumber"]
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+            return
+        self.ML.myLog( text=u"suspending Unifi system device "+dev.name+"  "+ip)
+        self.suspendedUnifiSystemDevicesIP[ip] = time.time()
+        self.exeDisplayStatus(dev,"susp")
+
+    
+    def buttonConfirmactivateCALLBACKbutton(self, valuesDict=None, filter="", typeId="", devId=""):
+        try:    
+            id = int(valuesDict["selectedDevice"])
+            dev= indigo.devices[id]
+            ip = dev.states["ipNumber"]
+            try: 
+                del self.suspendedUnifiSystemDevicesIP[ip]
+                self.exeDisplayStatus(dev,"up")
+                self.ML.myLog( text=u"reactivating Unifi system device "+dev.name+"  "+ip)
+            except: pass
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return
+        
 
    
     ####-----------------  Unifi api calls    ---------
@@ -2303,7 +2391,7 @@ class Plugin(indigo.PluginBase):
                 
                 found = False
                 name = "--"
-                for dev in indigo.devices.iter(self.pluginId,"props.isAP,props.isSwitch,props.isGateway"):
+                for dev in indigo.devices.iter(self.pluginId+"props.isAP,props.isSwitch,props.isGateway"):
                     if "MAClan" in dev.states and dev.states[u"MAClan"] == MAC: 
                         found = True
                         name = dev.name
@@ -2842,16 +2930,11 @@ class Plugin(indigo.PluginBase):
 
                 for ii in range(_GlobalConst_numberOfSW):
                     for item in [u"inListSWITCH_"]:
-                        #indigo.server.log("setupStructures testing inListSWITCH_:"+str(ii)) 
                         if item+unicode(ii) not in self.MAC2INDIGO[xType][MAC]:
                             self.MAC2INDIGO[xType][MAC][item+unicode(ii)] = -1
-                            indigo.server.log("setupStructures adding inListSWITCH_:"+str(ii)) 
                     for item in [u"ageSWITCH_",u"uptimeSWITCH_"]:
                         if item+unicode(ii) not in self.MAC2INDIGO[xType][MAC]:
                             self.MAC2INDIGO[xType][MAC][item+unicode(ii)] = ""
-                for nnn in self.MAC2INDIGO["UN"]:
-                    if nnn.find("inListSWITCH_") >-1:
-                        indigo.server.log("setupStructures MAC2INDIGO:"+unicode(self.MAC2INDIGO["UN"][nnn]))
 
 
         if xType ==u"SW":
@@ -3367,6 +3450,7 @@ class Plugin(indigo.PluginBase):
                     
                     MAC     = dev.states[u"MAC"]
                     if dev.deviceTypeId == u"UniFi" and self.testIgnoreMAC(MAC,"priodCheck") : continue
+
                     if unicode(devid) not in self.xTypeMac: 
                         if dev.deviceTypeId == u"UniFi":
                             self.setupStructures(u"UN", dev, MAC)
@@ -3387,6 +3471,21 @@ class Plugin(indigo.PluginBase):
                         lastUpTT = time.time()
 
                     if dev.deviceTypeId == u"UniFi":
+                        ipN = dev.states[u"ipNumber"]
+
+                        # check for supended status, if sup : set, if back reset susp status
+                        if ipN in self.suspendedUnifiSystemDevicesIP:
+                            ## check if we need to reset suspend after 300 secs 
+                            if (time.time() - self.suspendedUnifiSystemDevicesIP[ipN] > 150 and self.testPing(ipN) == 0) :
+                                    del self.suspendedUnifiSystemDevicesIP[ipN]
+                                    lastUpTT = time.time()
+                                    self.ML.myLog( text=dev.name + u" is back from suspended status")
+                            else:
+                                if dev.states[u"status"] != "susp": 
+                                    self.setImageAndStatus(dev, "susp", oldStatus=dev.states[u"status"],ts=time.time(), fing=False, level=1, text1= dev.name.ljust(30) + u" status "  + status.ljust(10) +";  set to susp", iType=u"PER-susp",reason=u"Period Check susp "+status)
+                                    changed = True
+                                continue
+
 
                         if u"useWhatForStatus" in props:
                             if props[u"useWhatForStatus"] == "WiFi":
@@ -3488,11 +3587,15 @@ class Plugin(indigo.PluginBase):
                                 continue
                                 ipN = self.ipNumbersOfAPs[int(dev.states[u"apNo"])]
                                 dev.updateStateOnServer(u"ipNumber", ipN )
-
-                            dt = time.time() - self.APUP[dev.states[u"ipNumber"]]
-                            if   dt <  1 * expT:  status = u"up"
-                            elif dt <  2 * expT:  status = u"down"
-                            else :                status = u"expired"
+                            if ipN in self.suspendedUnifiSystemDevicesIP:
+                                status = "susp"
+                                dt=999
+                                expt=999
+                            else:
+                                dt = time.time() - self.APUP[dev.states[u"ipNumber"]]
+                                if   dt <  1 * expT:  status = u"up"
+                                elif dt <  2 * expT:  status = u"down"
+                                else :                status = u"expired"
                             if dev.states[u"status"] != status:
                                 if status =="down" and self.doubleCheckWithPing(status,dev.states["ipNumber"], props,dev.states[u"MAC"],"Logic", "Period check-dev-AP", "chk-Time",xType) ==0:
                                     status = u"up"
@@ -3510,11 +3613,16 @@ class Plugin(indigo.PluginBase):
                             if ipN not in self.SWUP:
                                 ipN = self.ipNumbersOfSWs[int(dev.states[u"switchNo"])]
                                 dev.updateStateOnServer(u"ipNumber", ipN )
+                            if ipN in self.suspendedUnifiSystemDevicesIP:
+                                status = "susp"
+                                dt=999
+                                expt=999
+                            else:
                                 
-                            dt = time.time() - self.SWUP[ipN]
-                            if   dt < 1 * expT: status = u"up"
-                            elif dt < 2 * expT: status = u"down"
-                            else:               status = u"expired"
+                                dt = time.time() - self.SWUP[ipN]
+                                if   dt < 1 * expT: status = u"up"
+                                elif dt < 2 * expT: status = u"down"
+                                else:               status = u"expired"
                             if dev.states[u"status"] != status:
                                 if status =="down" and self.doubleCheckWithPing(status,dev.states["ipNumber"], props,dev.states[u"MAC"],"Logic", "Period check-dev-SW", "chk-Time",xType) ==0:
                                     status = u"up"
@@ -3676,18 +3784,16 @@ class Plugin(indigo.PluginBase):
                     return 0
                 return 1
 
-
             ret = os.system("/sbin/ping  -c 4 -W 1 -o " + ipNumber + ">/dev/null ")  # send max 4 packets, wait 0.5 secs between each and if one gets back stop
             if int(ret) == 0:
                 return 0
 
-            self.ML.myLog( text=u" ping return-code not 0: " + unicode(ret) )
             self.sleep(2)
             ret = os.system("/sbin/ping  -c 4 -W 1 -o " + ipNumber + ">/dev/null ")
             if int(ret) == 0:
                 return 0
 
-            self.ML.myLog( text=u" ping return-code not 0: " + unicode(ret) )
+            self.ML.myLog( text=ipNumber+ u" ping return-code not 0: " + unicode(ret) )
             return 1
         except  Exception, e:
             indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e) )
@@ -3954,6 +4060,10 @@ class Plugin(indigo.PluginBase):
                 
             while True:
 
+                if ipNumber in self.suspendedUnifiSystemDevicesIP:
+                    self.sleep(20)
+                    continue
+                    
                 if len(self.restartRequest) > 0:
                     if uType in self.restartRequest:
                         if self.restartRequest[uType] == apnS:
@@ -4058,7 +4168,7 @@ class Plugin(indigo.PluginBase):
                     pos2 = linesFromServer.find("Killed by signal")
                     pos3 = linesFromServer.find("Killed -9")
                     if (  pos1 >- 1 or pos2 >- 1 or pos3 > -1):
-                        self.ML.myLog( text=uType+" returning " + ipNumber  ,mType=u"EXPECT" )
+                        self.ML.myLog( text=uType+" " + ipNumber+" returning: "  ,mType=u"EXPECT" )
                         if pos1 >-1: self.ML.myLog( text=unicode(linesFromServer[max(0,pos1 - 100):pos1 + 100]), mType=u"EXPECT")
                         if pos2 >-1: self.ML.myLog( text=unicode(linesFromServer[max(0,pos2 - 100):pos2 + 100]), mType=u"EXPECT")
                         if pos3 >-1: self.ML.myLog( text=unicode(linesFromServer[max(0,pos3 - 100):pos3 + 100]), mType=u"EXPECT")
@@ -4909,6 +5019,9 @@ class Plugin(indigo.PluginBase):
                 ipNDevice= apDict[u"ip"]
 
                 for jj in range(len(apDict[u"vap_table"])):
+                    if "usage" in apDict[u"vap_table"][jj]: #skip if not wireless 
+                        if apDict[u"vap_table"][jj]["usage"] == "downlink": continue
+                        if apDict[u"vap_table"][jj]["usage"] == "uplink":   continue
                     channel = unicode(apDict[u"vap_table"][jj][u"channel"])
                     if int(channel) >= 36:
                         GHz = "5"
@@ -6289,13 +6402,16 @@ class Plugin(indigo.PluginBase):
                             portsMAC["link"] = SWP
 
                             poe=""
-                            if u"poe_enable" in port and port[u"poe_enable"]:
-                                if (u"poe_good" in port and port[u"poe_good"])  :
-                                    poe="poe1"
-                                elif (u"poe_mode" in port and port[u"poe_mode"] =="passthrough") :
-                                    poe="poeP"
+                            if u"poe_enable" in port:
+                                if port[u"poe_enable"]:
+                                    if (u"poe_good" in port and port[u"poe_good"])  :
+                                        poe="poe1"
+                                    elif (u"poe_mode" in port and port[u"poe_mode"] =="passthrough") :
+                                        poe="poeP"
+                                    else:
+                                        poe="poe0"
                                 else:
-                                    poe="poe0"
+                                        poe="poeX"
                             if poe !="":
                                 ppp+=";"+poe
                             portsMAC["poe"] = poe
@@ -6592,17 +6708,20 @@ class Plugin(indigo.PluginBase):
 
 
     ####-----------------    ---------
-    def exeDisplayStatus(self, dev, status):
+    def exeDisplayStatus(self, dev, status, upStatus=True):
                 if status in [u"up","ON"] :
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
                 elif status in [u"down",u"off"]:
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
                 elif status in [u"expired","REC"] :
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                elif status in [u"susp"] :
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
                 elif status == u"" :
-                    dev.updateStateOnServer(u"displayStatus",self.padDisplay(u"expired")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
-                    dev.updateStateOnServer(u"status",u"expired")
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                if upStatus or status =="":
+                    dev.updateStateOnServer(u"displayStatus",self.padDisplay(status)+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
+                    dev.updateStateOnServer(u"status",status)
 
 
     ####-----------------    ---------
@@ -6655,7 +6774,7 @@ class Plugin(indigo.PluginBase):
                                 ts = datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S")
                                 changedOnly[devId].append({u"key":u"lastStatusChange", u"value":ts})
                                 changedOnly[devId].append({u"key":u"displayStatus",    u"value":self.padDisplay(value)+ts[5:] } )
-                                self.exeDisplayStatus(dev, value)
+                                self.exeDisplayStatus(dev, value, upStatus=False)
                                 
                                 self.statusChanged = max(1,self.statusChanged)
                                 trigList.append(dev.name)
@@ -6693,6 +6812,7 @@ class Plugin(indigo.PluginBase):
         if	 status == u"up":        return status.ljust(11)
         elif status == u"expired":   return status.ljust(8)
         elif status == u"down":      return status.ljust(9)
+        elif status == u"susp":      return status.ljust(9)
         elif status == u"changed":   return status.ljust(8)
         elif status == u"double":    return status.ljust(8)
         elif status == u"ignored":   return status.ljust(8)
