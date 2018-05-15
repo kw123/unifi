@@ -1839,43 +1839,43 @@
                   </State>
 -->                  <State id="channel_2">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>channel-2</TriggerLabel>
-                        <ControlPageLabel>channel-2</ControlPageLabel>
+                        <TriggerLabel>channel_2</TriggerLabel>
+                        <ControlPageLabel>channel_2</ControlPageLabel>
                   </State>
                   <State id="channel_5">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>channel-5</TriggerLabel>
-                        <ControlPageLabel>channel-5</ControlPageLabel>
+                        <TriggerLabel>channel_5</TriggerLabel>
+                        <ControlPageLabel>channel_5</ControlPageLabel>
                   </State>
                   <State id="essid_2">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>essid-2</TriggerLabel>
-                        <ControlPageLabel>essid-2</ControlPageLabel>
+                        <TriggerLabel>essid_2</TriggerLabel>
+                        <ControlPageLabel>essid_2</ControlPageLabel>
                   </State>
                   <State id="essid_5">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>essid-5</TriggerLabel>
-                        <ControlPageLabel>essid-5</ControlPageLabel>
+                        <TriggerLabel>essid_5</TriggerLabel>
+                        <ControlPageLabel>essid_5</ControlPageLabel>
                   </State>
                   <State id="tx_power_2">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>tx_power-2</TriggerLabel>
-                        <ControlPageLabel>tx_power-2</ControlPageLabel>
+                        <TriggerLabel>tx_power_2</TriggerLabel>
+                        <ControlPageLabel>tx_power_2</ControlPageLabel>
                   </State>
                   <State id="tx_power_5">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>tx_power-5</TriggerLabel>
-                        <ControlPageLabel>tx_power-5</ControlPageLabel>
+                        <TriggerLabel>tx_power_5</TriggerLabel>
+                        <ControlPageLabel>tx_power_5</ControlPageLabel>
                   </State>
                   <State id="nStations_2">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>nStations-2</TriggerLabel>
-                        <ControlPageLabel>nStations-2</ControlPageLabel>
+                        <TriggerLabel>nStations_2</TriggerLabel>
+                        <ControlPageLabel>nStations_2</ControlPageLabel>
                   </State>
                   <State id="nStations_5">
                         <ValueType>String</ValueType>
-                        <TriggerLabel>nStations-5</TriggerLabel>
-                        <ControlPageLabel>nStations-5</ControlPageLabel>
+                        <TriggerLabel>nStations_5</TriggerLabel>
+                        <ControlPageLabel>nStations_5</ControlPageLabel>
                   </State>
                   <State id="radio_5">
                         <ValueType>String</ValueType>
@@ -1886,6 +1886,11 @@
                         <ValueType>String</ValueType>
                         <TriggerLabel>radio_2</TriggerLabel>
                         <ControlPageLabel>radio_2</ControlPageLabel>
+                  </State>
+                  <State id="ap_id">
+                        <ValueType>String</ValueType>
+                        <TriggerLabel>ap_id</TriggerLabel>
+                        <ControlPageLabel>ap_id</ControlPageLabel>
                   </State>
                   <State id="created">
                         <ValueType>String</ValueType>

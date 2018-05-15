@@ -1,7 +1,7 @@
 <Actions>
 
     <Action id="powerCyclePort">
-        <Name>Power cycle a port on a unifi switch</Name>
+        <Name>POWER  cycle a port on a UniFi switch</Name>
         <CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
@@ -27,11 +27,11 @@
     </Action>
 
     <Action id="powerClientCyclePort">
-        <Name>Power cycle Unifi Client(PORT)</Name>
+        <Name>POWER  cycle UniFi Client (PORT)</Name>
         <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
-                <Label>Select Unifi-CLient:</Label>
+                <Label>Select UniFi-CLient:</Label>
                 <List class="self" filter="" method="filterUnifiClient"  dynamicReload="no"/>
             </Field>
             <Field    id="onOffCycle" type="menu" tooltip="" >
@@ -46,40 +46,66 @@
     </Action>
 
     <Action id="reconnectWiFiDevice">
-        <Name>Re-connect a wifi device</Name>
+        <Name>RECONNECT  a wifi device</Name>
         <CallbackMethod>buttonConfirmReconnectCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient Wifi device:</Label>
+                <Label>select UniFi-CLient Wifi device:</Label>
                 <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
     </Action>
 
+
+
+
     <Action id="blockDevice">
-        <Name>Block a device / client</Name>
+        <Name>Block  a device / client</Name>
         <CallbackMethod>buttonConfirmBlockCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient device::</Label>
+                <Label>select UniFi-CLient device::</Label>
                 <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
     </Action>
 
     <Action id="unblockDevice">
-        <Name>UN-Block a device / client</Name>
+        <Name>UN-Block  a device / client</Name>
         <CallbackMethod>buttonConfirmUnBlockCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient device::</Label>
+                <Label>select UniFi-CLient device::</Label>
                 <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
     </Action>
 
+    <Action id="disableUniFiAPDevice">
+        <Name>DISABLE a UniFi AP device </Name>
+        <CallbackMethod>buttonConfirmDisableAPConllerCALLBACKaction</CallbackMethod> 
+        <ConfigUI>
+            <Field     id="apDeviceSelected" type="menu" defaultValue="0">
+                <Label>select UniFi AP device::</Label>
+                <List class="self" filter="" method="filterAPdevices"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <Action id="enableUniFiAPDevice">
+        <Name>ENABLE  a UniFi AP device </Name>
+        <CallbackMethod>buttonConfirmEnableAPConllerCALLBACKaction</CallbackMethod> 
+        <ConfigUI>
+            <Field     id="apDeviceSelected" type="menu" defaultValue="0">
+                <Label>select UniFi AP device::</Label>
+                <List class="self" filter="" method="filterAPdevices"  dynamicReload="no"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+
     <Action id="suspendUnifiDevice">
-        <Name>suspend a UniFi system device (plugin does not do anything with it)</Name>
+        <Name>SUSPEND a UniFi system device (plugin does not do anything with it)</Name>
         <CallbackMethod>buttonConfirmsuspendCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
@@ -90,7 +116,7 @@
     </Action>
 
     <Action id="activateUnifiDevice">
-        <Name>activate a UniFi system device from suspend</Name>
+        <Name>UN-SUSPEND a UniFi system device from suspend state </Name>
         <CallbackMethod>buttonConfirmactivateCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
@@ -101,11 +127,11 @@
     </Action>
 
    <Action id="rebootUNIFIdevice">
-        <Name>Reboot a unifi device </Name>
+        <Name>REBOOT a UniFi system device </Name>
             <CallbackMethod>buttonConfirmrebootCALLBACKaction</CallbackMethod>
         <ConfigUI>
             <Field     id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
-                <Label>select which device:</Label>
+                <Label>select which UniFi device:</Label>
                 <List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
             </Field>
         </ConfigUI>
@@ -113,18 +139,18 @@
 
 
     <Action id="APledON">
-        <Name>Switch ON all AP LEDs</Name>
+        <Name>LED  swictch ON all AP LEDs</Name>
         <CallbackMethod>buttonConfirmAPledONControllerCALLBACKaction</CallbackMethod> 
     </Action>
 
     <Action id="APledOFF">
-        <Name>Switch off all AP LEDs</Name>
+        <Name>LED  Switch off all AP LEDs</Name>
         <CallbackMethod>buttonConfirmAPledOFFControllerCALLBACKaction</CallbackMethod> 
     </Action>
 
 
     <Action id="APledBlinkON">
-        <Name>Blink one AP LED ON</Name>
+        <Name>LED  Blink one AP LED ON</Name>
         <CallbackMethod>buttonConfirmAPxledONControllerCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedAPDevice" type="menu" defaultValue="0">
@@ -135,7 +161,7 @@
     </Action>
         
     <Action id="APledBlinkOFF">
-        <Name>Blink one AP LED OFF</Name>
+        <Name>LED  Blink one AP LED OFF</Name>
         <CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedAPDevice" type="menu" defaultValue="0">
@@ -145,9 +171,31 @@
         </ConfigUI>
     </Action>
 
+
+    <Action id="stopVbox">
+        <Name>VIRTUALBOX  Stop vbox machine</Name>
+        <CallbackMethod>buttonVboxActionStopCALLBACKaction</CallbackMethod>
+    </Action>
+
+    <Action id="startVbox">
+        <Name>VIRTUALBOX  start Vbox machine</Name>
+        <CallbackMethod>buttonVboxActionStartCALLBACKaction</CallbackMethod>
+    </Action>
+
     <Action id="backupVbox">
-        <Name>Backup vbox vm-disk</Name>
+        <Name>VIRTUALBOX  Backup vbox vm-disk</Name>
         <CallbackMethod>buttonVboxActionBackupCALLBACKaction</CallbackMethod>
     </Action>
+
+    <Action id="compressVbox">
+        <Name>VIRTUALBOX  Compress vbox vm-disk</Name>
+        <CallbackMethod>buttonVboxActionCompressCALLBACKaction</CallbackMethod>
+    </Action>
+
+    <Action id="mountVMDiskPath">
+        <Name>VIRTUALBOX  Mount Video path/drive on unix box</Name>
+        <CallbackMethod>buttonMountOSXDriveOnVboxCALLBACKaction</CallbackMethod>
+    </Action>
+
 
 </Actions>

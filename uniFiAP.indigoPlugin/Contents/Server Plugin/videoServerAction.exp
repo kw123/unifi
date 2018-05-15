@@ -10,9 +10,9 @@ expect {
     "(yes/no)? " {
         send "yes\n"
         sleep 0.1
-        expect "assword: " { send "$password\n"}
+        expect "assword" { send "$password\n"}
     }
-    "assword: " {
+    "assword" {
         send "$password\n"
     }
 }
@@ -22,10 +22,11 @@ set timeout 10
 sleep 0.1
 send "$cmd  \r"
 expect {
-    "assword: " {
+    "assword" {
         send "$password\n"
     }
 }
+set timeout 2
 expect $promptOnServer
 sleep 0.1
 send "exit\r"

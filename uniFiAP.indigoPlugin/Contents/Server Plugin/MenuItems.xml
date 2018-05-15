@@ -3,11 +3,11 @@
   <MenuItem id="dPR"> <Name>-------------PRINT/ignore   ---------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
     <MenuItem id="printConfig">
-        <Name>Print Config parameters to logfile </Name>
+        <Name>PRINT Config parameters to logfile </Name>
         <CallbackMethod>printConfigMenu</CallbackMethod>
     </MenuItem>
     <MenuItem id="printALLMACMenue">
-        <Name>Print ALL info for ALL devices to logfile .. a lot of lines !!!</Name>
+        <Name>PRINT ALL info for ALL devices to logfile .. a lot of lines !!!</Name>
         <ConfigUI>
             <Field    id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
                 <Label>Click to  PRINT  !!! a lot of lines !!! </Label><Title>CONFIRM</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
@@ -15,11 +15,11 @@
         </ConfigUI>
     </MenuItem>
     <MenuItem id="printALLUNIFIsreduced">
-        <Name>Print overview info for UNIFI devices to logfile </Name>
+        <Name>PRINT overview info for UniFi devices to logfile </Name>
         <CallbackMethod>printALLUNIFIsreducedMenue</CallbackMethod>
     </MenuItem>
     <MenuItem id="prinMAC">
-        <Name>Print all info for SPECIFIC MAC#</Name>
+        <Name>PRINT all info for SPECIFIC MAC#</Name>
         <ConfigUI>
             <Field     id="MACdeviceSelected" type="menu" defaultValue="">
                 <Label>select which MAC # / device:</Label>
@@ -32,11 +32,16 @@
     </MenuItem>
 
     <MenuItem id="printDevInfoFromController">
-        <Name>Print info from UniFi Controller DB</Name>
+        <Name>PRINT - get info from UniFi Controller DB</Name>
         <ConfigUI>
             <Field  id="Label01" type="label"> 
             <Label>Make sure that retention is set properly in MAINTENANCE in the controller
             and enable "use controller info mut NOT be off  </Label> </Field>
+            <Field id="simpleSeparatorS" type="separator"/>
+
+            <Field    id="confirm0" type="button" tooltip="" >
+                <Label>Get _id into dev state ap_id  </Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
+            </Field>
             <Field id="simpleSeparator0" type="separator"/>
 
             <Field  id="Label1" type="label"> <Label>Print info for system devices:</Label> </Field>
@@ -145,7 +150,7 @@
     </MenuItem>
 
     <MenuItem id="printDataStats">
-        <Name>Print communication stats</Name>
+        <Name>PRINT communication stats</Name>
         <CallbackMethod>buttonPrintStatsCALLBACK</CallbackMethod>
     </MenuItem>
 
@@ -155,7 +160,7 @@
     </MenuItem>
 
     <MenuItem id="logMACs">
-        <Name>Track info for specific MAC in logfile</Name>
+        <Name>TRACK info for specific MAC in logfile</Name>
         <ConfigUI>
             <Field     id="MACdeviceSelected" type="menu" defaultValue="">
                 <Label>select which MAC # / device:</Label>
@@ -170,7 +175,7 @@
         </ConfigUI>
     </MenuItem>
     <MenuItem id="ignoreMACs">
-        <Name>(UN)Ignore UniFi clients with specific MAC</Name>
+        <Name>(UN)IGNORE UniFi clients with specific MAC</Name>
         <ConfigUI>
         <Field id="ignoreLabel" type="label"> <Label>select MACs to COMPLETELY ignore:</Label>  </Field>
             <Field     id="MACdeviceSelected" type="menu" defaultValue="">
@@ -193,7 +198,7 @@
 
 
     <MenuItem id="CameraActions">
-        <Name>Camera Info and Settings, actions</Name>
+        <Name>CAMERA Info and Settings, actions</Name>
         <ConfigUI>
             <Field     id="maxEvents" type="menu" defaultValue="10">
                 <Label>Print, max number of events:</Label>
@@ -229,8 +234,12 @@
             <Field    id="stopVideoservice" type="button" tooltip="" >
                     <Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
              </Field>
-             <Field    id="startVideoservice" type="button" tooltip="" >
+            <Field    id="startVideoservice" type="button" tooltip="" >
                     <Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparatorMount" type="separator"/>
+            <Field    id="mountOSXpath" type="button" tooltip="" >
+                    <Label>Mount Video path/drive on unix box ==></Label><Title>MOUNT</Title><CallbackMethod>buttonMountOSXDriveOnVboxCALLBACK</CallbackMethod>
             </Field>
             <Field id="simpleSeparatorVD1" type="separator"/>
             <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running" >
@@ -249,7 +258,7 @@
     </MenuItem>
 
     <MenuItem id="restartListeners">
-        <Name>Restart ... listeners ... </Name>
+        <Name>RESTART ... listeners  </Name>
         <ConfigUI>
                 <Field    id="resetCam" type="button" tooltip="" >
                     <Label>Camera listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
@@ -260,7 +269,7 @@
                 </Field>
             <Field id="simpleSeparatorGW" type="separator"/>
                 <Field     id="pickAP" type="menu" defaultValue="0">
-                    <Label>which AP# should be restarted</Label>
+                    <Label>which AP# listener should be restarted</Label>
                      <List>
                         <Option value="0"    > #0</Option>
                         <Option value="1"    > #1</Option>
@@ -274,7 +283,7 @@
                 </Field>
             <Field id="simpleSeparatorAP" type="separator"/>
                 <Field     id="pickSW" type="menu" defaultValue="0">
-                    <Label>which SWP# should be restarted</Label>
+                    <Label>which SWP# listener should be restarted</Label>
                      <List>
                         <Option value="0"    > #0</Option>
                         <Option value="1"    > #1</Option>
@@ -299,7 +308,7 @@
   <MenuItem id="dGR"> <Name>-------------Groups   ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
     <MenuItem id="addToGroups">
-        <Name>Add or remove device types from to groups</Name>
+        <Name>ADD or REMOVE device types from to GROUPS</Name>
         <ConfigUI>
             <Field     id="addRemoveGroupsWhichDevice" type="menu" defaultValue="system">
                 <Label>select which type of device:</Label>
@@ -337,7 +346,7 @@
 
     <MenuItem id="dAC"> <Name>-------------Actions   ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
     <MenuItem id="setDevicesOptimized">
-        <Name>Set all UniFi devices props to .... </Name>
+        <Name>SET ALL  UniFi devices PROPS to .... </Name>
         <ConfigUI>
             <Field    id="confirm11" type="button" tooltip="will set all WiFi devices to Optimized, IDLETIME = 30 secs or Uptime changed" >
                 <Label>Change all Wifi devices to OPTIMIZED</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetWifiOptCALLBACK</CallbackMethod>
@@ -412,7 +421,7 @@
         </ConfigUI>
     </MenuItem>
     <MenuItem id="powerCyclePort">
-        <Name>Power cycle a port on a unifi switch</Name>
+        <Name>POWER cycle a port on a UniFi switch</Name>
         <ConfigUI>
             <Field    id="onOffCycle" type="menu" tooltip="" >
                 <List>
@@ -448,10 +457,10 @@
         </ConfigUI>
     </MenuItem>
     <MenuItem id="reconnectWiFiDevice">
-        <Name>Re-connect a wifi device</Name>
+        <Name>Re-CONNECT a wifi device</Name>
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient Wifi device:</Label>
+                <Label>select UniFi-CLient Wifi device:</Label>
                 <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
             </Field>
             <Field    id="confirmReconnect" type="button" tooltip="" >
@@ -461,33 +470,23 @@
     </MenuItem>
 
     <MenuItem id="blockDevice">
-        <Name>Block a device / client</Name>
+        <Name>(UN) BLOCK a device / client</Name>
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient device:</Label>
+                <Label>select UniFi-CLient device:</Label>
                 <List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
             </Field>
-            <Field    id="confirmReconnect" type="button" tooltip="" >
+            <Field    id="confirmblock" type="button" tooltip="" >
                 <Label>Click to block</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmBlockCALLBACK</CallbackMethod>
             </Field>
-        </ConfigUI>
-    </MenuItem>
-
-    <MenuItem id="unBlockDevice">
-        <Name>UN-Block device / client </Name>
-        <ConfigUI>
-            <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-CLient device:</Label>
-                <List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
-            </Field>
-            <Field    id="confirmReconnect" type="button" tooltip="" >
+            <Field    id="confirmUNblockt" type="button" tooltip="" >
                 <Label>Click to un-block</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmUnBlockCALLBACK</CallbackMethod>
             </Field>
         </ConfigUI>
     </MenuItem>
 
     <MenuItem id="rebootUNIFIdevice">
-        <Name>Reboot a unifi device </Name>
+        <Name>REBOOT a UniFi system device </Name>
         <ConfigUI>
             <Field     id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
                 <Label>select which device:</Label>
@@ -499,28 +498,40 @@
         </ConfigUI>
     </MenuItem>
 
-    <MenuItem id="suspendUnifiDevice">
-        <Name>Suspend a Unifi system device (plugin does not do anything with it)</Name>
+
+    <MenuItem id="enableDisableUniFiAPDevice">
+        <Name>EN-DISABLE a UniFi AP device </Name>
         <ConfigUI>
+            <Field  id="Label01" type="label"> 
+            <Label> This will disable(re enable) the functionality of the selected AP, like in the controller /Config/managedevcie/disable-enable </Label> </Field>
+            <Field     id="apDeviceSelected" type="menu" defaultValue="system">
+                <Label>select which device:</Label>
+                <List class="self" filter="" method="filterAPdevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="confirmE" type="button" tooltip="" >
+                <Label>Click to ENABLE </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmEnableAPConllerCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="confirmD" type="button" tooltip="" >
+                <Label>Click to DISABLE </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmDisableAPConllerCALLBACK</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </MenuItem>
+
+
+    <MenuItem id="activateSuspendUnifiDevice">
+        <Name>SUSPEND-ACTIVATE a UniFi system device (effects plugin only)</Name>
+        <ConfigUI>
+            <Field  id="Label01" type="label"> 
+            <Label> This will make the plugin to ignore that unfi system device, will just not use it or change it </Label> </Field>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
                 <Label>select Unifi system device:</Label>
                 <List class="self" filter="" method="filterUNIFIsystemDeviceSuspend"  dynamicReload="no"/>
             </Field>
             <Field    id="confirmSuspend" type="button" tooltip="" >
-                <Label>Click to suspend</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmsuspendCALLBACKbutton</CallbackMethod>
-            </Field>
-        </ConfigUI>
-    </MenuItem>
-
-    <MenuItem id="reactivateDevice">
-        <Name>Re-Activate a system Unifi device from suspend</Name>
-        <ConfigUI>
-            <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select Unifi system device:</Label>
-                <List class="self" filter="" method="filterUNIFIsystemDeviceSuspended"  dynamicReload="no"/>
+                <Label>Click to SUSPEND</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmsuspendCALLBACKbutton</CallbackMethod>
             </Field>
             <Field    id="confirmActivate" type="button" tooltip="" >
-                <Label>Click to re-activate</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmactivateCALLBACKbutton</CallbackMethod>
+                <Label>Click to re-ACTIVATE</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmactivateCALLBACKbutton</CallbackMethod>
             </Field>
         </ConfigUI>
     </MenuItem>
@@ -538,7 +549,7 @@
             </Field>
             <Field id="simpleSeparator2" type="separator"/>
             <Field     id="selectedAPDevice" type="menu" defaultValue="0">
-                <Label>select Unifi-AP device:</Label>
+                <Label>select UniFi-AP device:</Label>
                 <List class="self" filter="" method="filterMAConlyAP"  dynamicReload="no"/>
             </Field>
             <Field    id="confirm3" type="button" tooltip="" >

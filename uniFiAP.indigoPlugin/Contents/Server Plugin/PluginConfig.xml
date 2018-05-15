@@ -373,6 +373,10 @@
     <Field    id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="vdON" visibleBindingValue="true" tooltip="fully qualified path to disk image"       > 
         <Label>.. path to VM box disk image file:</Label>  
     </Field>
+
+    <Field    id="mountPathVM" type="textfield"  defaultValue="/home/yourid/osx"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
+        <Label>.. Mount path on VM box for images:</Label>  
+    </Field>
     <Field id="infoLabelvideovmDisk" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage compress</Label>  </Field>
 
     <Field id="simpleSeparator222" type="separator"/>
