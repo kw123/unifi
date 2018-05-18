@@ -1670,7 +1670,7 @@ class Plugin(indigo.PluginBase):
     ####-----------------    ---------
     def buttonConfirmStopIgnoringCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
-        for dev in indigo.devices.iter(self.pluginId+"props.isUniFi,props.isCamera"):
+        for dev in indigo.devices.iter(self.pluginId+",props.isUniFi,props.isCamera"):
             if u"MAC" in dev.states  and dev.states[u"MAC"] == valuesDict[u"MACdeviceIgnored"]:
                 if u"displayStatus" in dev.states: 
                     dev.updateStateOnServer(u"displayStatus",self.padDisplay(u"")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
@@ -2450,7 +2450,7 @@ class Plugin(indigo.PluginBase):
                 
                 found = False
                 name = "--"
-                for dev in indigo.devices.iter(self.pluginId+"props.isAP,props.isSwitch,props.isGateway"):
+                for dev in indigo.devices.iter(self.pluginId+",props.isAP,props.isSwitch,props.isGateway"):
                     if "MAClan" in dev.states and dev.states[u"MAClan"] == MAC: 
                         found = True
                         name = dev.name
