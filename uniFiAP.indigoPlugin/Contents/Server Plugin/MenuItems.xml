@@ -1,36 +1,43 @@
 <?xml version="1.0"?>
 <MenuItems>
-  <MenuItem id="dPR"> <Name>-------------PRINT/ignore   ---------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
     <MenuItem id="printConfig">
-        <Name>PRINT Config parameters to logfile </Name>
-        <CallbackMethod>printConfigMenu</CallbackMethod>
-    </MenuItem>
-    <MenuItem id="printALLMACMenue">
-        <Name>PRINT ALL info for ALL devices to logfile .. a lot of lines !!!</Name>
+        <Name>PRINT parameters to logfile </Name>
         <ConfigUI>
-            <Field    id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
-                <Label>Click to  PRINT  !!! a lot of lines !!! </Label><Title>CONFIRM</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
-            </Field>
-        </ConfigUI>
-    </MenuItem>
-    <MenuItem id="printALLUNIFIsreduced">
-        <Name>PRINT overview info for UniFi devices to logfile </Name>
-        <CallbackMethod>printALLUNIFIsreducedMenue</CallbackMethod>
-    </MenuItem>
-    <MenuItem id="prinMAC">
-        <Name>PRINT all info for SPECIFIC MAC#</Name>
-        <ConfigUI>
-            <Field     id="MACdeviceSelected" type="menu" defaultValue="">
-                <Label>select which MAC # / device:</Label>
-                <List class="self" filter="" method="filterMAC"  dynamicReload="false"/>
-            </Field>
-            <Field    id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
-                <Label>Click to  PRINT </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
-            </Field>
-        </ConfigUI>
-    </MenuItem>
 
+                <Field id="printConfig" type="button"> 
+                    <Label>PRINT Config parameters to logfile </Label> 
+                    <Title>CONFIRM</Title><CallbackMethod>printConfigMenu</CallbackMethod>
+                </Field>
+
+                <Field id="simpleSeparator1" type="separator"/>
+
+                <Field id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
+                    <Label>Print All info for all MAC numbers</Label>
+                    <Title>CONFIRM</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
+                </Field>
+
+                <Field id="simpleSeparator2" type="separator"/>
+
+                <Field id="PrintOverview" type="button"> 
+                    <Label>PRINT overview info for UniFi devices to logfile </Label> 
+                    <Title>CONFIRM</Title><CallbackMethod>printALLUNIFIsreducedMenue</CallbackMethod>
+                </Field>
+
+                <Field id="simpleSeparator3" type="separator"/>
+
+                <Field id="printspecificmac" type="label">  <Label>PRINT all info for SPECIFIC MAC#</Label> </Field>
+                <Field id="MACdeviceSelected" type="menu" defaultValue="">
+                    <Label>select which MAC # / device:</Label>
+                    <List class="self" filter="" method="filterMAC"  dynamicReload="false"/>
+                </Field>
+                <Field id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
+                    <Label>Click to  PRINT </Label>
+                    <Title>CONFIRM</Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
+                </Field>
+
+        </ConfigUI>
+    </MenuItem>
     <MenuItem id="printDevInfoFromController">
         <Name>PRINT - get info from UniFi Controller DB</Name>
         <ConfigUI>
@@ -305,11 +312,19 @@
     </MenuItem>
 
 
-  <MenuItem id="dGR"> <Name>-------------Groups   ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
     <MenuItem id="addToGroups">
-        <Name>ADD or REMOVE device types from to GROUPS</Name>
+        <Name>Manage Groups</Name>
         <ConfigUI>
+                <Field id="printGroups" type="button"> 
+                    <Label>PRINT Groups </Label> 
+                    <Title>CONFIRM</Title><CallbackMethod>printGroupsCALLBACK</CallbackMethod>
+                </Field>
+
+                <Field id="simpleSeparator00" type="separator"/>
+
+                <Field id="simpleSeparator01" type="separator"/>
+            <Field id="labeladdremovetypes" type="label"> <Label>ADD or remove devices types from to groups:</Label>  </Field>
             <Field     id="addRemoveGroupsWhichDevice" type="menu" defaultValue="system">
                 <Label>select which type of device:</Label>
                  <List>
@@ -321,18 +336,7 @@
             </Field>
             <Field     id="addRemoveGroupsWhichGroup" type="menu" defaultValue="0">
                 <Label>select which Group you want to add to / remove from:</Label>
-                 <List>
-                    <Option value="Group0"    >group0</Option>
-                    <Option value="Group1"    >group1</Option>
-                    <Option value="Group2"    >group2</Option>
-                    <Option value="Group3"    >group3</Option>
-                    <Option value="Group4"    >group4</Option>
-                    <Option value="Group5"    >group5</Option>
-                    <Option value="Group6"    >group6</Option>
-                    <Option value="Group7"    >group7</Option>
-                    <Option value="Group8"    >group8</Option>
-                    <Option value="Group9"    >group9</Option>
-                </List>
+                <List class="self" filter="" method="filterGroupNoName"  dynamicReload="false"/>
             </Field>
             <Field    id="confirmadd" type="button" tooltip="" >
                 <Label>Click to add</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmAddDevGroupCALLBACK</CallbackMethod>
@@ -340,6 +344,45 @@
             <Field    id="confirmrem" type="button" tooltip="" >
                 <Label>Click to remove</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmRemDevGroupCALLBACK</CallbackMethod>
             </Field>
+
+            <Field id="simpleSeparator10" type="separator"/>
+
+            <Field id="simpleSeparator11" type="separator"/>
+            <Field id="labeladdremove01" type="label"> <Label>ADD or remove individual devices from to groups:</Label>  </Field>
+
+            <Field id="selectedGroup" type="menu" defaultValue="">
+                <Label>select which GROUP:</Label>
+                <List class="self" filter="" method="filterGroups"  dynamicReload="false"/>
+            </Field>
+            <Field id="confirmGroup" type="button" tooltip="" >
+                <Label>Click to  select Group </Label>
+                <Title>CONFIRM</Title> <CallbackMethod>buttonConfirmgroupCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator30" type="separator"/>
+            <Field id="labeladdremove32" type="label"> <Label>REMOVE:</Label>  </Field>
+            <Field id="removeALLGroupMembers" type="button" tooltip="" >
+                <Label>Click to  REMOVE ALL group members</Label>
+                <Title>CONFIRM</Title> <CallbackMethod>buttonConfirmremoveALLGroupMembersCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="selectedGroupMemberIndigoIdremove" type="menu" tooltip="" >
+                <Label>Click to  select group MEMBER </Label>
+                <List class="self" filter="" method="filterGroupMembers"  dynamicReload="false"/>
+            </Field>
+            <Field id="removeGroupMember" type="button" tooltip="" >
+                <Label>Click to  REMOVE group member</Label>
+                <Title>CONFIRM</Title> <CallbackMethod>buttonConfirmremoveGroupMemberCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator40" type="separator"/>
+            <Field id="labeladdremove42" type="label"> <Label>ADD:</Label>  </Field>
+            <Field id="selectedGroupMemberIndigoIdadd" type="menu" tooltip="" >
+                <Label>Click to  select group MEMBER to add </Label>
+                <List class="self" filter="" method="filterDevicesToAddToGroup"  dynamicReload="false"/>
+            </Field>
+            <Field id="addGroupMember" type="button" tooltip="" >
+                <Label>Click to  ADD group member</Label>
+                <Title>CONFIRM</Title> <CallbackMethod>buttonConfirmADDGroupMemberCALLBACK</CallbackMethod>
+            </Field>
+
         </ConfigUI>
     </MenuItem>
 

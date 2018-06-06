@@ -392,7 +392,8 @@
     <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) ssh connection to unifi devices..:</Label>  </Field>
     <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (7) Video...:</Label>  </Field>
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
-    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (9) all of the above = everything:</Label>  </Field>
+    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (9) Ping WOL:</Label>  </Field>
+    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (10) all of the above = everything:</Label>  </Field>
     <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
         <List>
             <Option value="no"       > no special unifi logfile, std indigo logfile</Option>

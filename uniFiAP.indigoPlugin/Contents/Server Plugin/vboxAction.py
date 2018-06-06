@@ -19,7 +19,7 @@ def toLog(text):
     if logfile !="":
         try:
             f=open(logfile,"a")
-            f.write(datetime.datetime.now().strftime("%H:%M:%S")+" vboxaction (pid# "+mypid+"):"+text+"\n")
+            f.write(datetime.datetime.now().strftime("%H:%M:%S")+" vboxaction (pid# "+mypid+"): ---- "+text+"\n")
             f.close()
         except: 
             print text
@@ -48,9 +48,10 @@ mypid = str(os.getpid())
 vmMachine = "ubuntu"
 vboxPath  = "/Applications/VirtualBox.app/Contents/MacOS/"
 vmDisk    = "/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi" 
-action    = ["stop","compress","start","backup"]
+action    = [] # ["stop","compress","start","backup","mountDisk"]
 logfile   = ""
 
+pathToPlugin = sys.argv[0].split("/vboxAction.py")[0]
 
 try:
     xxx = json.loads(sys.argv[1])
@@ -64,8 +65,11 @@ try:
     except: pass
     try:    logfile     = xxx["logfile"]
     except: pass
+    try:    mountCmd     = json.loads(sys.argv[2])
+    except: print sys.argv[2]
 except: pass
 toLog("  imput: "+ json.dumps(xxx))
+
 
 pid = testIfAlreadyRunning()
 
@@ -123,5 +127,12 @@ if "start" in action:
             subprocess.Popen(vboxPath+"VBoxManage  startvm '"+vmMachine+"' --type headless &", shell=True)
             time.sleep(20)
     time.sleep(25) # keep "vboxAction.py active for some seconds to enbale tests if still running.. to give vbox time to start
+
+if "mountDisk" in action: 
+    time.sleep(20)
+    cmd = mountCmd
+    toLog(vmMachine+" mount command "+cmd)
+    subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
 toLog("--finished--")
 

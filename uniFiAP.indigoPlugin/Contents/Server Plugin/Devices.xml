@@ -130,7 +130,23 @@
                 <Label>double check status going to UP with ping:</Label>
             </Field>
             <Field id="unifi-sep-02" type="separator"/>
-
+            <Field   id="useWOL"  type="menu"  defaultValue="0" tooltip="used only for wifi devices, might help them stay up sends a magic packet to the MAC number, once eevry xx sec AND if down, will also follow up with a ping  " >
+                <Label>send Wake On Lan package to device every:</Label>
+                <List>
+                    <Option value="0" >do not use wakeOnLan</Option>
+                    <Option value="20" >20 secs</Option>
+                    <Option value="30" >30 secs</Option>
+                    <Option value="60" >60 secs</Option>
+                    <Option value="90" >90 secs</Option>
+                    <Option value="120" >2 min</Option>
+                    <Option value="150" >150 secs</Option>
+                    <Option value="180" >3 min</Option>
+                    <Option value="240" >4 min</Option>
+                    <Option value="300" >5 min</Option>
+                    <Option value="360" >6 min</Option>
+                </List>
+            </Field>
+            <Field id="unifi-sep-03" type="separator"/>
 
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
@@ -141,6 +157,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
 
 
@@ -1215,6 +1240,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
             </ConfigUI>
 
@@ -1440,6 +1474,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
             </ConfigUI>
 
@@ -1622,6 +1665,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
             </ConfigUI>
 
@@ -1797,6 +1849,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
             </ConfigUI>
 
@@ -1968,6 +2029,15 @@
             <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
             <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
             <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+            <Field id="Group10" type="checkbox"  defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+            <Field id="Group11" type="checkbox"  defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+            <Field id="Group12" type="checkbox"  defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+            <Field id="Group13" type="checkbox"  defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+            <Field id="Group14" type="checkbox"  defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+            <Field id="Group16" type="checkbox"  defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+            <Field id="Group17" type="checkbox"  defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+            <Field id="Group18" type="checkbox"  defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+            <Field id="Group19" type="checkbox"  defaultValue="false"> <Label>Member of group19:</Label>  </Field>
 
             </ConfigUI>
 
