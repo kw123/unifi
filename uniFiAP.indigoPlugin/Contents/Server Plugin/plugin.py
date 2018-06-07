@@ -877,39 +877,80 @@ class Plugin(indigo.PluginBase):
             self.ML.myLog( text=u"===== UNIFI device info =========",  mType="")
 
             dType ="UniFi"                                                     
-            line =u"                                 curr.;  exp;   use ping  ;   use what 4;       WiFi;         WiFi;    DHCP;         SWITCH;"
+            line =u"                                 curr.;  exp;   use ping  ; use WOL;     use what 4;       WiFi;         WiFi;    DHCP;         SWITCH;    lastStatusChange;                              reason; "
             self.ML.myLog( text=line,  mType=u" ")
-            line =u"id:         MAC#             ;  status; time;    up;  down;       Status;     Status;max-idle Time;  ax-AGE; UPtime changed;"
+            line =u"id:         MAC#             ;  status; time;    up;  down;   [sec];         Status;     Status;max-idle Time; max-AGE; UPtime changed;                    ;                          for change; "
+            lineI = []
+            lineE = []
+            lineD = []
             self.ML.myLog( text=line,  mType=u"dev Name")
             for dev in indigo.devices.iter("props.isUniFi"):
                 props = dev.pluginProps
                 mac = dev.states[u"MAC"]
                 if u"useWhatForStatus" in props and props[u"useWhatForStatus"] == u"WiFi": wf = True 
                 else:                                                                      wf = False 
+
                 if True:                                            line  = unicode(dev.id).ljust(12)+mac+"; "
+
                 if mac in self.MACignorelist:                       line += ("IGNORED").rjust(7)+u"; "
                 elif u"status" in dev.states:                       line += (dev.states[u"status"]).rjust(7)+u"; "
                 else:                                               line += (" ").rjust(7)+u"; "
+
                 if u"expirationTime" in props :                     line += (unicode(props[u"expirationTime"]).split(".")[0]).rjust(4)+u"; "
                 else:                                               line += " ".ljust(4)+"; "
+
                 if u"usePingUP" in props :                          line += (unicode(props[u"usePingUP"])).rjust(5)+u"; "
                 else:                                               line += " ".ljust(5)+"; "
+
                 if u"usePingDOWN" in props :                        line += (unicode(props[u"usePingDOWN"])).rjust(5)+u"; "
                 else:                                               line += " ".ljust(5)+"; "
-                if u"useWhatForStatus" in props :                   line += (unicode(props[u"useWhatForStatus"])).rjust(12)+u"; "
+
+                if u"useWOL" in props :                             
+                    if props[u"useWOL"] =="0": 
+                                                                    line += ("no").ljust(7)+u"; "
+                    else: 
+                                                                    line += (unicode(props[u"useWOL"])).rjust(7)+u"; "
+                else:                                               line += "no".ljust(7)+"; "
+
+                if u"useWhatForStatus" in props :                   line += (unicode(props[u"useWhatForStatus"])).rjust(14)+u"; "
                 else:                                               line += " ".ljust(12)+"; "
+
                 if u"useWhatForStatusWiFi" in props and wf:         line += (unicode(props[u"useWhatForStatusWiFi"])).rjust(10)+u"; "
                 else:                                               line += " ".ljust(10)+"; "
+
                 if u"idleTimeMaxSecs" in props and wf:              line += (unicode(props[u"idleTimeMaxSecs"])).rjust(12)+u"; "
                 else:                                               line += " ".ljust(12)+"; "
+
                 if u"useAgeforStatusDHCP" in props and not wf:      line += (unicode(props[u"useAgeforStatusDHCP"])).rjust(7)+u"; "
                 else:                                               line += " ".ljust(7)+"; "
+
                 if u"useupTimeforStatusSWITCH" in props and not wf: line += (unicode(props[u"useupTimeforStatusSWITCH"])).rjust(14)+u"; "
                 else:                                               line += " ".ljust(14)+"; "
-                self.ML.myLog( text=line,  mType=dev.name)
 
-            self.printGroups()
+                if u"lastStatusChange" in dev.states:               line += (unicode(dev.states[u"lastStatusChange"])).rjust(19)+u"; "
+                else:                                               line += " ".ljust(18)+"; "
+                if u"lastStatusChangeReason" in dev.states:         line += (unicode(dev.states[u"lastStatusChangeReason"])[0:35]).rjust(35)+u"; "
+                else:                                               line += " ".ljust(35)+"; "
 
+                if line.find("IGNORED;") >-1:
+                    lineI.append([line,dev.name])
+                elif line.find("expired;") >-1:
+                    lineE.append([line,dev.name])
+                elif line.find("down;") >-1:
+                    lineD.append([line,dev.name])
+                else:
+                    self.ML.myLog( text=line,  mType=dev.name)
+
+            if lineD !=[]: 
+                for xx in lineD:
+                    self.ML.myLog( text=xx[0],  mType=xx[1])
+            if lineE !=[]: 
+                for xx in lineE:
+                    self.ML.myLog( text=xx[0],  mType=xx[1])
+            if lineI !=[]: 
+                for xx in lineI:
+                    self.ML.myLog( text=xx[0],  mType=xx[1])
+            
             self.ML.myLog( text=u"===== UNIFI device info ========= END ",  mType="")
 
 
@@ -1125,6 +1166,7 @@ class Plugin(indigo.PluginBase):
         totErr  = 0
         totRes  = 0
         totAli  = 0
+        out     = ""
         for uType in sorted(self.dataStats["tcpip"].keys()):
             for ipNumber in sorted(self.dataStats["tcpip"][uType].keys()):
                 if nSecs ==0: 
@@ -1262,8 +1304,8 @@ class Plugin(indigo.PluginBase):
             return  out
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
-                self.ML.myLog( text="camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
+                indigo.server.log(u"getMongoData in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                self.ML.myLog( text="getMongoData camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
         return {}
 
     ####-----------------    ---------
@@ -1516,6 +1558,23 @@ class Plugin(indigo.PluginBase):
                 dev = indigo.devices[self.MAC2INDIGO["UN"][MAC]["devId"]]
                 props = dev.pluginProps
                 props["expirationTime"]           =int(valuesDict["expirationTime"])
+                dev.replacePluginPropsOnServer(props)
+            except:
+                pass
+        self.printALLUNIFIsreduced()
+        return 
+
+    ####-----------------    ---------
+    def buttonConfirmSetExpTimeMinCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+        for MAC in self.MAC2INDIGO["UN"]:
+            try:
+                dev = indigo.devices[self.MAC2INDIGO["UN"][MAC]["devId"]]
+                props = dev.pluginProps
+                try: 
+                    if int(props["expirationTime"]) < int(valuesDict["expirationTime"]):
+                        props["expirationTime"]       =int(valuesDict["expirationTime"])
+                except:
+                    props["expirationTime"]           =int(valuesDict["expirationTime"])
                 dev.replacePluginPropsOnServer(props)
             except:
                 pass

@@ -265,7 +265,7 @@
     </MenuItem>
 
     <MenuItem id="restartListeners">
-        <Name>RESTART ... listeners  </Name>
+        <Name>LISTENERS ... Manage </Name>
         <ConfigUI>
                 <Field    id="resetCam" type="button" tooltip="" >
                     <Label>Camera listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
@@ -314,7 +314,7 @@
 
 
     <MenuItem id="addToGroups">
-        <Name>Manage Groups</Name>
+        <Name>Groups ... Manage</Name>
         <ConfigUI>
                 <Field id="printGroups" type="button"> 
                     <Label>PRINT Groups </Label> 
@@ -403,33 +403,33 @@
 
             <Field id="simpleSeparator1" type="separator"/>
 
-            <Field    id="confirm3" type="button" tooltip="will set all non-WiFi devices to Opt DHCP AND SWITCH with DHCP age lt 60 secs OR SWITCH UPTIME must change" >
+            <Field    id="confirm23" type="button" tooltip="will set all non-WiFi devices to Opt DHCP AND SWITCH with DHCP age lt 60 secs OR SWITCH UPTIME must change" >
                 <Label>Change all Non-Wifi devices to OPTIMIZED  </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiOptCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="confirm4" type="button" tooltip="will set all non-WiFi devices to  SWITCH with SWITCH UPTIME must change" >
+            <Field    id="confirm24" type="button" tooltip="will set all non-WiFi devices to  SWITCH with SWITCH UPTIME must change" >
                 <Label>Change all Non-Wifi devices to SWITCH</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiToSwitchCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="confirm5" type="button" tooltip="will set all non-WiFi devices to  DHCP with DHCP AGE lt 60 secs" >
+            <Field    id="confirm25" type="button" tooltip="will set all non-WiFi devices to  DHCP with DHCP AGE lt 60 secs" >
                 <Label>Change all Non-Wifi devices to DHCP</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiToDHCPCALLBACK</CallbackMethod>
             </Field>
 
-            <Field id="simpleSeparator2" type="separator"/>
+            <Field id="simpleSeparator22" type="separator"/>
 
-            <Field    id="confirm6" type="button" tooltip="" >
+            <Field    id="confirm36" type="button" tooltip="" >
                 <Label>Change all devices to USE PING for UP test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingUPonCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="confirm7" type="button" tooltip="" >
+            <Field    id="confirm37" type="button" tooltip="" >
                 <Label>Change all devices to NOT use PING for UP test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingUPoffCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirm8" type="button" tooltip="" >
+            <Field    id="confirm38" type="button" tooltip="" >
                 <Label>Change all devices to USE PING for DOWN test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingDOWNonCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="confirm9" type="button" tooltip="" >
+            <Field    id="confirm39" type="button" tooltip="" >
                 <Label>Change all devices to NOT use PING for DOWN test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingDOWNoffCALLBACK</CallbackMethod>
             </Field>
 
-            <Field id="simpleSeparator10" type="separator"/>
+            <Field id="simpleSeparator50" type="separator"/>
 
             <Field    id="expirationTime"       type="menu"  defaultValue="90" tooltip="">
                 <Label>Set time for UP to DOWN to EXPIRED for ALL devices</Label>
@@ -456,8 +456,11 @@
                     <Option value="-1"   >use common expiration time</Option>
                 </List>
             </Field>
-            <Field    id="confirm10" type="button" tooltip="" >
+            <Field    id="confirm50" type="button" tooltip="" >
                 <Label>Change all devices to this exp time</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetExpTimeCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="confirm51" type="button" tooltip="" >
+                <Label>Change all devices to at least this MINUMUM exp time</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetExpTimeMinCALLBACK</CallbackMethod>
             </Field>
 
 
