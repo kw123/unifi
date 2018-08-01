@@ -37,6 +37,16 @@
     <Field    id="ignoreNewNeighbors"    type="checkbox"  defaultValue="false"    > <Label>Ignore NEW neighbor wifi router devices:</Label>   </Field>
     <Field    id="ignoreNeighborForFing" type="checkbox"  defaultValue="true"     > <Label>Ignore neighbor changes for FINGscan:</Label>   </Field>
 
+    <Field    id="enableBroadCastEvents" type="menu"  defaultValue="false" tooltip="if enabled any change of status of a up/down devices will send indigo broadcast  to read the status and use it to determine home or away events">
+        <List>
+            <Option value="0"          >disable</Option>
+            <Option value="all"        >ENABLE ALL:   for all devices that have an up/ down status</Option>
+            <Option value="individual" >ENABLE INDIVIDUAL:  individual devices must be enabled in device edit</Option>
+        </List>
+        <Label>Enable BC of up/ down staus:</Label>
+    </Field>
+
+
     <Field    id="enableFINGSCAN" type="checkbox"  defaultValue="false" tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
         <Label>Trigger FINGSCAN:</Label></Field>
 
@@ -392,8 +402,9 @@
     <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) ssh connection to unifi devices..:</Label>  </Field>
     <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (7) Video...:</Label>  </Field>
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
-    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (9) Ping WOL:</Label>  </Field>
-    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (10) all of the above = everything:</Label>  </Field>
+    <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (9) BroadCast:</Label>  </Field>
+    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (10) Ping WOL:</Label>  </Field>
+    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
     <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
         <List>
             <Option value="no"       > no special unifi logfile, std indigo logfile</Option>

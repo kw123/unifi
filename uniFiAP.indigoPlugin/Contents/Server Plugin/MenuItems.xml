@@ -238,27 +238,27 @@
             <Field    id="printCamarainfo" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="stopVideoservice" type="button" tooltip="" >
+            <Field id="simpleSeparator31" type="separator"/>
+            <Field    id="stopVideoservice" type="button" tooltip="sends   service unifi-video stop  to unix box" >
                     <Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
              </Field>
-            <Field    id="startVideoservice" type="button" tooltip="" >
+            <Field    id="startVideoservice" type="button" tooltip="sends   service unifi-video start  to unix box" >
                     <Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparatorMount" type="separator"/>
-            <Field    id="mountOSXpath" type="button" tooltip="" >
+            <Field    id="mountOSXpath" type="button" tooltip="sends   sudo mount -t vboxsf -o uid=unifi-video,gid=unifi-video video (mount-path)    to unix box" >
                     <Label>Mount Video path/drive on unix box ==></Label><Title>MOUNT</Title><CallbackMethod>buttonMountOSXDriveOnVboxCALLBACK</CallbackMethod>
             </Field>
             <Field id="simpleSeparatorVD1" type="separator"/>
-            <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running" >
+            <Field    id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running; with   VBoxManage controlvm (vmMachine)  acpipowerbutton  " >
                     <Label>VirtualMachine box ==></Label><Title>START</Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="VboxActionStopCALLBACK" type="button" tooltip="" >
+            <Field    id="VboxActionStopCALLBACK" type="button" tooltip="this will start vm box if not running; with   VBoxManage startvm (vmMachine)   --type headless  " >
                     <Label>VirtualMachine box ==></Label><Title>STOP</Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
+            <Field    id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, VBoxManage modifymedium disk  (vmDisk) --compact     and restart vm box" >
                     <Label>VirtualMachine box ==></Label><Title>COMPRESS</Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="VboxActionBackupCALLBACK" type="button" tooltip=" this will stop, compress and restart vm box" >
+            <Field    id="VboxActionBackupCALLBACK" type="button" tooltip=" this will stop, backup disk file  and restart vm box" >
                     <Label>VirtualMachine box ==></Label><Title>Backup</Title><CallbackMethod>buttonVboxActionBackupCALLBACK</CallbackMethod>
             </Field>
         </ConfigUI>

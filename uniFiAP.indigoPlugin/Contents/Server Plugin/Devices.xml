@@ -123,10 +123,10 @@
             </Field>
             <Field id="unifi-sep-01" type="separator"/>
 
-            <Field   id="usePingDOWN"  type="checkbox"  defaultValue="false" tooltip=" using this for too many devices will slow down the reaction for all devices as each time it takes 0.3 secs to do the ping" >
+            <Field   id="usePingDOWN"  type="checkbox"  defaultValue="false" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
                 <Label>double check status going to DOWN with ping:</Label>
             </Field>
-            <Field   id="usePingUP"  type="checkbox"  defaultValue="false" tooltip=" using this for too many devices will slow down the reaction for all devices as each time it takes 0.3 secs to do the ping" >
+            <Field   id="usePingUP"  type="checkbox"  defaultValue="false" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
                 <Label>double check status going to UP with ping:</Label>
             </Field>
             <Field id="unifi-sep-02" type="separator"/>
@@ -148,6 +148,15 @@
             </Field>
             <Field id="unifi-sep-03" type="separator"/>
 
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
+
+            <Field id="unifi-sep-04" type="separator"/>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -381,6 +390,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -540,6 +558,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -956,6 +983,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -1231,6 +1267,15 @@
                             <Option value="-1"   >use common expiration time</Option>
                         </List>
                     </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -1465,6 +1510,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -1656,6 +1710,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -1840,6 +1903,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
@@ -2020,6 +2092,15 @@
                         <Option value="-1"   >use common expiration time</Option>
                     </List>
                 </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip="this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
             <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
             <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
             <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>

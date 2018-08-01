@@ -123,6 +123,7 @@ class Plugin(indigo.PluginBase):
         if self.pluginPrefs.get(u"debugConnection", False):      self.debugLevel.append("Connection")
         if self.pluginPrefs.get(u"debugVideo", False):           self.debugLevel.append("Video")
         if self.pluginPrefs.get(u"debugFing", False):            self.debugLevel.append("Fing")
+        if self.pluginPrefs.get(u"debugBC", False):              self.debugLevel.append("BC")
         if self.pluginPrefs.get(u"debugPing", False):            self.debugLevel.append("Ping")
         if self.pluginPrefs.get(u"debugall", False):             self.debugLevel.append("all")
         self.logFileActive          = self.pluginPrefs.get("logFilePath", "no")
@@ -131,16 +132,13 @@ class Plugin(indigo.PluginBase):
             indigo.server.log("logfile handling: regular indigo logfile")
         elif self.logFileActive =="indigo":
             self.logFile = self.indigoPath.split("Plugins/")[0]+"logs/"+self.pluginId+"/UniFi.log"
-            indigo.server.log("logfile handling to : "+self.logFile)
+            indigo.server.log("logfile output to : "+self.logFile)
         else:
             self.logFile    = self.unifiPath + "UniFi.log"
-            indigo.server.log("logfile handling to : "+self.logFile)
+            indigo.server.log("logfile output to : "+self.logFile)
 
 
         self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile)
-
-        indigo.server.log(self.pluginId)
-        indigo.server.log(self.logFile)
 
 
 
@@ -225,6 +223,8 @@ class Plugin(indigo.PluginBase):
         self.ignoreNewNeighbors         = self.pluginPrefs.get(u"ignoreNewNeighbors", False)
         self.enableFINGSCAN             = self.pluginPrefs.get(u"enableFINGSCAN", False)
         self.sendUpdateToFingscanList   = {}
+        self.enableBroadCastEvents      = self.pluginPrefs.get(u"enableBroadCastEvents", "0")
+        self.sendBroadCastEventsList    = []
         self.unifiCloudKeySiteName      = self.pluginPrefs.get(u"unifiCloudKeySiteName", "default")
         self.unifiCloudKeyIP            = self.pluginPrefs.get(u"unifiCloudKeyIP", "")
         self.unifiCloudKeyPort          = self.pluginPrefs.get(u"unifiCloudKeyPort", "8443")
@@ -339,7 +339,6 @@ class Plugin(indigo.PluginBase):
             self.VIDEOEnabled = False
             self.VIDEOUP      = 0
 
-
         self.getFolderId()
 
         self.readSuspend()
@@ -353,11 +352,11 @@ class Plugin(indigo.PluginBase):
         self.killIfRunning(self.ipnumberOfUGA, "")
 
 
+        self.readDataStats()  # must come before other dev/states updates ... 
+
         self.groupStatusINIT()
         self.setGroupStatus(init=True)        
-
         self.readCamerasStats() 
-        self.readDataStats() 
         self.readMACdata()
         self.checkDisplayStatus()
         
@@ -437,7 +436,11 @@ class Plugin(indigo.PluginBase):
                         dev.replacePluginPropsOnServer(props)
                         ##if dev.name.find("SW") > -1:  self.ML.myLog( text= u" updateing") 
                     break
-             
+
+            if "enableBroadCastEvents" not in props:
+                        props = dev.pluginProps
+                        props["enableBroadCastEvents"] = "0"
+                        dev.replacePluginPropsOnServer(props)
             
         elif self.pluginState == "run":
             self.devNeedsUpdate.append(unicode(dev.id))
@@ -531,6 +534,8 @@ class Plugin(indigo.PluginBase):
         self.lastUnifiCookie                        = 0
         self.checkforUnifiSystemDevicesState        = "validateConfig"
         self.enableFINGSCAN                         = valuesDict[u"enableFINGSCAN"]
+        self.enableBroadCastEvents                  = valuesDict[u"enableBroadCastEvents"]
+        self.sendBroadCastEventsList                = []
         self.ignoreNewNeighbors                     = valuesDict[u"ignoreNewNeighbors"]
         self.loopSleep                              = float(valuesDict[u"loopSleep"])
         self.unifiCONTROLLERUserID                  = valuesDict[u"unifiCONTROLLERUserID"]
@@ -771,6 +776,7 @@ class Plugin(indigo.PluginBase):
             self.ML.myLog( text=u"unifi CONTROLLER PassWd".ljust(30)   + unicode(self.unifiCONTROLLERPassWd))
             self.ML.myLog( text=u"logFile".ljust(30)                   + unicode(self.logFile))
             self.ML.myLog( text=u"enableFINGSCAN".ljust(30)            + unicode(self.enableFINGSCAN))
+            self.ML.myLog( text=u"enableBroadCastEvents".ljust(30)     + unicode(self.enableBroadCastEvents))
             self.ML.myLog( text=u"ignoreNeighborForFing".ljust(30)     + unicode(self.ignoreNeighborForFing))
             self.ML.myLog( text=u"expirationTime".ljust(30)            + unicode(self.expirationTime).ljust(3)+u" [sec]")
             self.ML.myLog( text=u"readDictEverySeconds".ljust(30)      + unicode(self.readDictEverySeconds)+u" [sec]")
@@ -874,12 +880,12 @@ class Plugin(indigo.PluginBase):
     def printALLUNIFIsreduced(self):
         try:
 
-            self.ML.myLog( text=u"===== UNIFI device info =========",  mType="")
+            self.ML.myLog( text=u"===== UniFi device info =========",  mType="")
 
             dType ="UniFi"                                                     
-            line =u"                                 curr.;  exp;   use ping  ; use WOL;     use what 4;       WiFi;         WiFi;    DHCP;         SWITCH;    lastStatusChange;                              reason; "
+            line =u"                                 curr.;  exp;   use ping  ; use WOL;     use what 4;       WiFi;WiFi-max;    DHCP;  SW-UPtm; lastStatusChge;                              reason;     member of;"
             self.ML.myLog( text=line,  mType=u" ")
-            line =u"id:         MAC#             ;  status; time;    up;  down;   [sec];         Status;     Status;max-idle Time; max-AGE; UPtime changed;                    ;                          for change; "
+            line =u"id:         MAC#             ;  status; time;    up;  down;   [sec];         Status;     Status;  idle-T; max-AGE;    chged;               ;                          for change;        groups;"
             lineI = []
             lineE = []
             lineD = []
@@ -913,24 +919,27 @@ class Plugin(indigo.PluginBase):
                 else:                                               line += "no".ljust(7)+"; "
 
                 if u"useWhatForStatus" in props :                   line += (unicode(props[u"useWhatForStatus"])).rjust(14)+u"; "
-                else:                                               line += " ".ljust(12)+"; "
+                else:                                               line += " ".ljust(14)+"; "
 
                 if u"useWhatForStatusWiFi" in props and wf:         line += (unicode(props[u"useWhatForStatusWiFi"])).rjust(10)+u"; "
                 else:                                               line += " ".ljust(10)+"; "
 
-                if u"idleTimeMaxSecs" in props and wf:              line += (unicode(props[u"idleTimeMaxSecs"])).rjust(12)+u"; "
-                else:                                               line += " ".ljust(12)+"; "
+                if u"idleTimeMaxSecs" in props and wf:              line += (unicode(props[u"idleTimeMaxSecs"])).rjust(7)+u"; "
+                else:                                               line += " ".ljust(7)+"; "
 
                 if u"useAgeforStatusDHCP" in props and not wf:      line += (unicode(props[u"useAgeforStatusDHCP"])).rjust(7)+u"; "
                 else:                                               line += " ".ljust(7)+"; "
 
-                if u"useupTimeforStatusSWITCH" in props and not wf: line += (unicode(props[u"useupTimeforStatusSWITCH"])).rjust(14)+u"; "
-                else:                                               line += " ".ljust(14)+"; "
+                if u"useupTimeforStatusSWITCH" in props and not wf: line += (unicode(props[u"useupTimeforStatusSWITCH"])).rjust(8)+u"; "
+                else:                                               line += " ".ljust(8)+"; "
 
-                if u"lastStatusChange" in dev.states:               line += (unicode(dev.states[u"lastStatusChange"])).rjust(19)+u"; "
-                else:                                               line += " ".ljust(18)+"; "
+                if u"lastStatusChange" in dev.states:               line += (unicode(dev.states[u"lastStatusChange"])[5:]).rjust(14)+u"; "
+                else:                                               line += " ".ljust(14)+"; "
                 if u"lastStatusChangeReason" in dev.states:         line += (unicode(dev.states[u"lastStatusChangeReason"])[0:35]).rjust(35)+u"; "
                 else:                                               line += " ".ljust(35)+"; "
+
+                if u"groupMember" in dev.states:               line += (  (unicode(dev.states[u"groupMember"]).replace("Group","")).strip(",")  ).rjust(13)+u"; "
+                else:                                               line += " ".ljust(13)+"; "
 
                 if line.find("IGNORED;") >-1:
                     lineI.append([line,dev.name])
@@ -951,7 +960,7 @@ class Plugin(indigo.PluginBase):
                 for xx in lineI:
                     self.ML.myLog( text=xx[0],  mType=xx[1])
             
-            self.ML.myLog( text=u"===== UNIFI device info ========= END ",  mType="")
+            self.ML.myLog( text=u"===== UniFi device info ========= END ",  mType="")
 
 
 
@@ -959,6 +968,7 @@ class Plugin(indigo.PluginBase):
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
+    ####-----------------  printGroups    ---------
     def printGroups(self):
         try:
             
@@ -1264,16 +1274,22 @@ class Plugin(indigo.PluginBase):
         
     ####-----------------    ---------
     def getCamerasFromNVR(self,doPrint = True):
-
-        cmdstr =  "\"mongo 127.0.0.1:7441/av --quiet --eval  'db.camera.find().forEach(printjsononeline)'\"" 
-        keepList = ["name","uuid","host","model","host","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings"]
-        cameraJson = self.getMongoData(cmdstr, keepList, doPrint, dType="camera")
-        return cameraJson
-    
+        try:
+            cmdstr =  "\"mongo 127.0.0.1:7441/av --quiet --eval  'db.camera.find().forEach(printjsononeline)'\"" 
+            keepList = ["name","uuid","host","model","host","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings"]
+            cameraJson = self.getMongoData(cmdstr, keepList, doPrint, dType="camera")
+            return cameraJson
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                self.ML.myLog( text="getMongoData camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
+        return {}                
 
     ####-----------------    ---------
     def getMongoData(self, cmdstr, keepList, doPrint, dType="camera"):
         try:
+            out =[]
+            keepJson = {}
             uType = "VDdict"
             userid, passwd =  self.getUidPasswd(uType)
             if userid == "": return {}
@@ -1292,8 +1308,6 @@ class Plugin(indigo.PluginBase):
             if error !="":
                 self.ML.myLog( text="camera system (dump, no json conversion)  info:\n"+ unicode(dbJson) )
                 return {}
-            keepJson = {}
-            out      = []
             for xx in dbJson:
                 keepJson = {}
                 for keep in keepList:
@@ -1304,7 +1318,7 @@ class Plugin(indigo.PluginBase):
             return  out
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log(u"getMongoData in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                 self.ML.myLog( text="getMongoData camera system info:\n"+ json.dumps(out,sort_keys=True, indent=2))
         return {}
 
@@ -1768,6 +1782,7 @@ class Plugin(indigo.PluginBase):
                     props[newGroup] = True
                     dev.replacePluginPropsOnServer(props)
                     gMembers = self.makeGroupMemberstring(props)
+                    dev = indigo.devices[dev.id]
                     self.updateDevStateGroupMembers(dev,gMembers)
                 self.statusChanged = 2
                     
@@ -1812,11 +1827,9 @@ class Plugin(indigo.PluginBase):
                               dev.states["signalWiFi"]     =="" ): continue
 
                 props = dev.pluginProps
-                updateProps = False
                 if newGroup in props:
                     del props[newGroup]
-                    updateProps  = True
-                if updateProps: dev.replacePluginPropsOnServer(props)
+                dev.replacePluginPropsOnServer(props)
                 gMembers = self.makeGroupMemberstring(props)
                 self.updateDevStateGroupMembers(dev,gMembers)
 
@@ -1902,8 +1915,8 @@ class Plugin(indigo.PluginBase):
         props = dev.pluginProps
         if mm in self.groupStatusList[gpN]["members"]:
             del self.groupStatusList[gpN]["members"][mm]
-        if gpN in props:
-            del props[gpN]
+        if gpN in props and props[gpN]:
+            props[gpN] = False
             dev.replacePluginPropsOnServer(props)
             gMembers = self.makeGroupMemberstring(props)
             self.updateDevStateGroupMembers(dev,gMembers)
@@ -1916,11 +1929,13 @@ class Plugin(indigo.PluginBase):
         self.groupStatusList[gpN]["members"] ={}
         for dev in indigo.devices.iter(self.pluginId):
             props=dev.pluginProps
-            if gpN in props:
-                del props[gpN]
+            if gpN in props and props[gpN]:
+                props[gpN] = False
+                gMembers = self.makeGroupMemberstring(props)
                 dev.replacePluginPropsOnServer(props)
                 gMembers = self.makeGroupMemberstring(props)
                 self.updateDevStateGroupMembers(dev,gMembers)
+
         #indigo.server.log(" after  : "+str(self.groupStatusList[gpN]["members"]) )
         #indigo.server.log("        : "+unicode(props) ) 
         return valuesDict
@@ -1949,15 +1964,14 @@ class Plugin(indigo.PluginBase):
             indigo.server.log(" bad dev id: "+str(mm) ) 
             return 
         props = dev.pluginProps
-        #indigo.server.log(" remove from group#:"+str(self.selectedGroup)+"  member: "+ dev.name+"  "+ dev.states["MAC"]+"  "+unicode(props) ) 
-        #indigo.server.log(" before : "+str(self.groupStatusList[gpN]["members"]) ) 
+        #indigo.server.log(" add to  from group#:"+str(self.selectedGroup)+"  member: "+ dev.name+"  "+ dev.states["MAC"]+"  "+unicode(props) ) 
         if mm not in self.groupStatusList[gpN]["members"]:
             self.groupStatusList[gpN]["members"][mm]=True
-        if gpN not in props:
-            props[gpN] =True
-            dev.replacePluginPropsOnServer(props)
-            gMembers = self.makeGroupMemberstring(props)
-            self.updateDevStateGroupMembers(dev,gMembers)
+        props[gpN] =True
+        dev.replacePluginPropsOnServer(props)
+        gMembers = self.makeGroupMemberstring(props)
+        self.updateDevStateGroupMembers(dev,gMembers)
+        #self.printMACs(dev.states["MAC"])
         return valuesDict
 
 
@@ -3542,7 +3556,6 @@ class Plugin(indigo.PluginBase):
         self.broadcastIP = ip[0]+"."+ip[1]+"."+ip[2]+".255"
                
 
-        #self.sendUpdatetoFingscanNOW(force=True)
 
     ################   ------- here the loop starts    --------------
         indigo.server.log( u"initialized")
@@ -3602,6 +3615,7 @@ class Plugin(indigo.PluginBase):
                     self.setGroupStatus(init=True)
 
                 self.executeUpdateStatesList()
+                if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
                 
                 if len(self.blockAccess)>0:  del self.blockAccess[0]
             
@@ -3610,7 +3624,8 @@ class Plugin(indigo.PluginBase):
                     self.statusChanged = max(1,self.statusChanged)
 
                     if self.VIDEOEnabled and self.vmMachine !="":
-                        if  "VDtail" in self.msgListenerActive and self.msgListenerActive["VDtail"] == 0:
+                        if  "VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command
+                            self.msgListenerActive["VDtail"] = time.time()
                             self.buttonVboxActionStartCALLBACK()
                 
                     if lastMinute10Check != (datetime.datetime.now().minute)/10: 
@@ -4418,7 +4433,7 @@ class Plugin(indigo.PluginBase):
 
         apnS = unicode(apN)
         self.addTypeToDataStats(ipNumber, apnS, uType)
-        self.msgListenerActive[uType] = 0
+        self.msgListenerActive[uType] = time.time() - 200
         try:
             errorCount =0
             unifiDeviceType = uType[0:2]
@@ -4463,8 +4478,8 @@ class Plugin(indigo.PluginBase):
 
                             self.killIfRunning(ipNumber,self.expectCmdFile[uType] )
                             if not self.testServerIfOK(ipNumber,uType):
-                                self.ML.myLog(text="\n\n================================================\n FATAL error connecting to ip#: "\
-                                +ipNumber+" wrong ip/ password or system down...?\n================================================n",mType="getMessages") 
+                                self.ML.myLog(text="\n\n================================================\n (1) FATAL error connecting to ip#: "\
+                                +ipNumber+" wrong ip/ password or system down or ssh timed out ...?\n================================================n",mType="getMessages") 
                                 time.sleep(15)
                                 self.msgListenerActive[uType] = 0
                                 continue
@@ -4503,8 +4518,8 @@ class Plugin(indigo.PluginBase):
                                 if self.testAPandPing(ipNumber,uType):
                                     if not self.testServerIfOK(ipNumber,uType):
                                         if errorCount%10 == 0:
-                                            self.ML.myLog(text="\n\n================================================\n FATAL error connecting to ip#: "\
-                                            +ipNumber+" wrong ip/ password  or system down...?\n================================================n",mType="getMessages") 
+                                            self.ML.myLog(text="\n\n================================================\n (2) FATAL error connecting to ip#: "\
+                                            +ipNumber+" wrong ip/ password  or system down  or ssh time out ...?\n================================================n",mType="getMessages") 
                                         self.sleep(15)
                                         self.msgListenerActive[uType] = 0
                                         continue
@@ -4566,6 +4581,8 @@ class Plugin(indigo.PluginBase):
                             self.GWUP[ipNumber] = time.time()
                         elif    unifiDeviceType == "VD":
                             self.VDUP[ipNumber] = time.time()
+                            self.msgListenerActive[uType] = time.time()
+
                         errorCount = 0
                         if linesFromServer.find("ThisIsTheAliveTestFromUnifiToPlugin") > -1:
                             self.dataStats["tcpip"][uType][ipNumber]["aliveTestCount"]+=1
@@ -4615,6 +4632,8 @@ class Plugin(indigo.PluginBase):
                     if self.statusChanged > 0:   
                         self.setGroupStatus()
                         
+                if len(self.sendUpdateToFingscanList) >0: self.sendUpdatetoFingscanNOW()
+                if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
 
         except  Exception, e:
             if len(unicode(e)) > 5:
@@ -4753,7 +4772,6 @@ class Plugin(indigo.PluginBase):
                 self.executeUpdateStatesList()
 
             self.logQueue.task_done()
-            if len(self.sendUpdateToFingscanList) >0: self.sendUpdatetoFingscanNOW()
         except  Exception, e:
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -6969,6 +6987,36 @@ class Plugin(indigo.PluginBase):
                 x = "break"
         self.sendUpdateToFingscanList ={}
         return x
+    ####----------------- if FINGSCAN is enabled send update signal  ---------
+    def sendBroadCastNOW(self):
+        try:
+            x = ""
+            if  self.enableBroadCastEvents =="0":
+                self.sendBroadCastEventsList = []
+                return x
+            if self.sendBroadCastEventsList == []:  
+                return x
+            if self.countLoop < 10:
+                self.sendBroadCastEventsList = [] 
+                return x  ## only after stable ops for 10 loops ~ 20 secs
+                
+            msg = copy.copy(self.sendBroadCastEventsList)
+            self.sendBroadCastEventsList = []
+            if len(msg) >0:
+                msg ={"pluginId":self.pluginId,"data":msg}
+                try:
+                    if self.ML.decideMyLog(u"BC"): self.ML.myLog( text=u"updating BC with " + unicode(msg),mType=u"BroadCast" )
+                    indigo.server.broadcastToSubscribers(u"deviceStatusChanged", json.dumps(msg))
+                except  Exception, e:
+                    if len(unicode(e)) > 5:
+                        indigo.server.log( u"updating sendBroadCastNOW has error in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+u" finscan update failed")
+
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log( u"updating sendBroadCastNOW has error in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+            else:
+                x = "break"
+        return x
 
     ####-----------------    ---------
     def checkMAC(self, MAC):
@@ -7197,9 +7245,17 @@ class Plugin(indigo.PluginBase):
                                 
                                 self.statusChanged = max(1,self.statusChanged)
                                 trigList.append(dev.name)
+                                val = unicode(value).lower() 
+                                if self.enableBroadCastEvents !="0" and val in ["up","down","expired"]:
+                                    props = dev.pluginProps
+                                    if  self.enableBroadCastEvents == "all" or  ("enableBroadCastEvents" in props and props["enableBroadCastEvents"] == "1" ):
+                                        msg = {"action":"event", "id":str(dev.id), "name":dev.name, "state":"status", "valueForON":"up", "newValue":val}
+                                        if self.ML.decideMyLog(u"BC"):  self.ML.myLog( text=dev.name+" " +unicode(msg), mType="BroadCast") 
+                                        self.sendBroadCastEventsList.append(msg)
 
                             
                     if devId in changedOnly and changedOnly[devId] !=[]:
+                        
                         self.dataStats[u"updates"][u"devs"]   +=1
                         self.dataStats[u"updates"][u"states"] +=len(changedOnly)
                         if self.indigoVersion >6:
@@ -7224,6 +7280,7 @@ class Plugin(indigo.PluginBase):
                 try:
                     self.ML.myLog( text=dev.name+u"  "+ devId +u"  "+ unicode(key)+";  devStateChangeList:\n"+ unicode(local))
                 except:pass
+        if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
         return 
         
     ####-----------------    ---------

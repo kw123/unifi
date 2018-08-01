@@ -66,7 +66,7 @@ try:
     try:    logfile     = xxx["logfile"]
     except: pass
     try:    mountCmd     = json.loads(sys.argv[2])
-    except: print sys.argv[2]
+    except: pass
 except: pass
 toLog("  imput: "+ json.dumps(xxx))
 
