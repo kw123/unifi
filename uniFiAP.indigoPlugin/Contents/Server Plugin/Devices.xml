@@ -512,6 +512,11 @@
                     <TriggerLabel>upSince</TriggerLabel>
                     <ControlPageLabel>upSince</ControlPageLabel>
               </State>
+              <State id="wanUpTime">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanUpTime</TriggerLabel>
+                    <ControlPageLabel>wanUpTime</ControlPageLabel>
+              </State>
 
 
         </States>

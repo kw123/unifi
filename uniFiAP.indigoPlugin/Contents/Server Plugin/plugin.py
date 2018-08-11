@@ -6403,6 +6403,21 @@ class Plugin(indigo.PluginBase):
                                 lanPort = xx
                                 break
 
+                ifnameWAN =""
+                for xx in range(len(gwDict["config_port_table"])):
+                    if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="wan":
+                        ifnameWAN = gwDict["config_port_table"][xx]["ifname"]
+                        break
+
+                wanUpTime ="0"
+                for xx in range(len(gwDict[u"if_table"])):
+                    test = gwDict[u"if_table"][xx]
+                    if "name" in test and test["name"] == ifnameWAN and "uptime" in test:
+                        wanUpTime = unicode(datetime.timedelta(seconds=test["uptime"]))
+                        break
+
+                ipNDevice = self.fixIP(ipNDevice)
+
                 for xx in range(len(gwDict[u"if_table"])):
                     lan = gwDict[u"if_table"][xx]
                     if ipNDevice !="":
@@ -6420,7 +6435,7 @@ class Plugin(indigo.PluginBase):
                             MAClan      = lan[u"mac"]
                             break
 
-                ipNDevice = self.fixIP(ipNDevice)
+
 
             if "ip" in wan:                 publicIP    = wan[u"ip"].split("/")[0]
             else:                           publicIP    = ""
@@ -6499,6 +6514,11 @@ class Plugin(indigo.PluginBase):
                     if dev.states[u"model"] != model and model != "":
                         self.addToStatesUpdateList(unicode(dev.id),u"model", model)
 
+                    if dev.states[u"wanUpTime"] != wanUpTime:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
+
+
+
                     self.setStatusUpForSelfUnifiDev(MAC)
  
 
@@ -6521,6 +6541,7 @@ class Plugin(indigo.PluginBase):
                     self.addToStatesUpdateList(unicode(dev.id),u"upload", upload)
                     self.addToStatesUpdateList(unicode(dev.id),u"download", download)
                     self.addToStatesUpdateList(unicode(dev.id),u"runDate", runDate)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
                     self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
                     self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         GW DICT new gateway if_table", u"STATUS-GW")
                 except  Exception, e:
