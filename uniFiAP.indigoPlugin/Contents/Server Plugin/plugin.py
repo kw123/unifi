@@ -6379,66 +6379,50 @@ class Plugin(indigo.PluginBase):
             ##########  do gateway params  ###
             #indigo.server.log(" GW dict if_table:"+json.dumps(gwDict, sort_keys=True, indent=2 ) )
 
-            if "if_table" not in gwDict: return
-            wan = gwDict[u"if_table"][0]
-            for kk in gwDict[u"if_table"]:
-                if "gateways" in kk and len(kk["gateways"]) > 2:
-                    wan = kk
-                    break
-            MAC = wan[u"mac"]
-
+            if "if_table"          not in gwDict: return
+            if "config_port_table" not in gwDict: return
 
             #  get lan info ------
-            if True:
-                lanPort     = -1 
-                ipNDevice   = ""
-                MAClan      = ""
-                if "connect_request_ip" in gwDict:
-                    ipNDevice = gwDict["connect_request_ip"]
+            ipNDevice   = ""
+            MAClan      = ""
+            MAC         = ""
+            wan         = ""
+            lan         = ""
+            if "connect_request_ip" in gwDict:
+                ipNDevice = self.fixIP(gwDict["connect_request_ip"])
+            if ipNDevice =="": return 
 
-                if ipNDevice == "":
-                    if "config_port_table" in gwDict:
-                        for xx in range(len(gwDict["config_port_table"])):
-                            if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="lan":
-                                lanPort = xx
-                                break
+            for xx in range(len(gwDict["config_port_table"])):
+                if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="lan":
+                    ifnameLAN = gwDict["config_port_table"][xx]["ifname"]
+                    if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameLAN:
+                        lan = gwDict[u"if_table"][xx]
+                if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="wan":
+                    ifnameWAN = gwDict["config_port_table"][xx]["ifname"]
+                    if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+                        wan = gwDict[u"if_table"][xx]
 
-                ifnameWAN =""
-                for xx in range(len(gwDict["config_port_table"])):
-                    if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="wan":
-                        ifnameWAN = gwDict["config_port_table"][xx]["ifname"]
-                        break
+#            indigo.server.log("wan" + unicode(wan) )
+#            indigo.server.log("lan" + unicode(lan) )
+#            indigo.server.log("gwDict" + json.dumps(gwDict["config_port_table"], sort_keys=True, indent=2) )
+#            indigo.server.log("if_table" + json.dumps(gwDict["if_table"], sort_keys=True, indent=2 ) )
 
-                wanUpTime ="0"
-                for xx in range(len(gwDict[u"if_table"])):
-                    test = gwDict[u"if_table"][xx]
-                    if "name" in test and test["name"] == ifnameWAN and "uptime" in test:
-                        wanUpTime = unicode(datetime.timedelta(seconds=test["uptime"]))
-                        break
-
-                ipNDevice = self.fixIP(ipNDevice)
-
-                for xx in range(len(gwDict[u"if_table"])):
-                    lan = gwDict[u"if_table"][xx]
-                    if ipNDevice !="":
-                        if "ip" in lan and ipNDevice == lan[u"ip"]:
-                            MAClan   = lan[u"mac"]
-                            break
-                    elif lanPort > -1 and lanPort == xx and "gateways" not in lan:
-                        if "ip" in lan:                 
-                            ipNDevice    = lan[u"ip"]
-                            MAClan = lan[u"mac"]
-                            break
-                    elif xx == 1:
-                        if "ip" in lan:
-                            ipNDevice   = lan[u"ip"]
-                            MAClan      = lan[u"mac"]
-                            break
-
-
+            if wan == "": return 
+            if lan == "": return 
+            
 
             if "ip" in wan:                 publicIP    = wan[u"ip"].split("/")[0]
             else:                           publicIP    = ""
+            if "uptime" in wan:             
+                try:    wanUpTime = unicode(datetime.timedelta(seconds=wan[u"uptime"])).replace(" days","")[0:-3].replace(",","d,")
+                except: wanUpTime   = ""
+            else:                           wanUpTime   = ""
+            if "mac" in wan:                MAC         = wan[u"mac"]
+            else:                           MAC         = ""
+            if "up" in wan:                 wanUP       = "up" if wan[u"up"] else "down"
+            else:                           wanUP       = ""
+
+
             if "speedtest_ping" in wan:     pingTime    = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
             else:                           pingTime    = ""
             if "latency" in wan:            latency     = "%4.1f" % wan[u"latency"] + u"[ms]"
@@ -6458,7 +6442,10 @@ class Plugin(indigo.PluginBase):
                 self.ML.myLog( text=u"model_display not in dict doGatewaydict") 
                 model = ""
 
+            if "mac" in lan:                MAClan      = lan[u"mac"]
+            else:                           MAClan      = ""
 
+            if MAC =="": return 
 
             new = True
           
@@ -6516,6 +6503,8 @@ class Plugin(indigo.PluginBase):
 
                     if dev.states[u"wanUpTime"] != wanUpTime:
                         self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
+                    if dev.states[u"wan"] != wanUP:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
 
 
 
@@ -6534,6 +6523,8 @@ class Plugin(indigo.PluginBase):
                         folder=self.folderNameCreatedID,
                         props={u"useWhatForStatus":"",isType:True})
                     self.setupStructures(xType, dev, MAC)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
+                    self.addToStatesUpdateList(unicode(dev.id),u"MAC", MAC)
                     self.addToStatesUpdateList(unicode(dev.id),u"MAClan", MAClan)
                     self.addToStatesUpdateList(unicode(dev.id),u"pingTime", pingTime)
                     self.addToStatesUpdateList(unicode(dev.id),u"latency", latency)
@@ -6544,6 +6535,7 @@ class Plugin(indigo.PluginBase):
                     self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
                     self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
                     self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         GW DICT new gateway if_table", u"STATUS-GW")
+                    if self.ML.decideMyLog(u"Dict") or MAC in self.MACloglist: self.ML.myLog( text=">>"+MAC + "<<  ip:"+ ipNDevice+"  "+ dev.name +"  new dec" ,mType=u"DC-GW-1")
                 except  Exception, e:
                     if len(unicode(e)) > 5:
                         indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))

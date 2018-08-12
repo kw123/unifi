@@ -517,6 +517,11 @@
                     <TriggerLabel>wanUpTime</TriggerLabel>
                     <ControlPageLabel>wanUpTime</ControlPageLabel>
               </State>
+              <State id="wan">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wan</TriggerLabel>
+                    <ControlPageLabel>wan</ControlPageLabel>
+              </State>
 
 
         </States>
