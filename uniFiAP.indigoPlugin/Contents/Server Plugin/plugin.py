@@ -4601,6 +4601,7 @@ class Plugin(indigo.PluginBase):
                                 dictData0 = ppp[len(ppp) - 1].lstrip("\r\n")
 
                                 try:
+                                    ok = True
                                     dictData= dictData0.split(self.endDictToken[uType])[0]
                                     ## remove last line
                                     if dictData[-1] !="}":
@@ -4637,7 +4638,7 @@ class Plugin(indigo.PluginBase):
 
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                indigo.server.log(u"getMessages in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 
 
@@ -6414,36 +6415,46 @@ class Plugin(indigo.PluginBase):
             if "ip" in wan:                 publicIP    = wan[u"ip"].split("/")[0]
             else:                           publicIP    = ""
             if "uptime" in wan:             
-                try:    wanUpTime = unicode(datetime.timedelta(seconds=wan[u"uptime"])).replace(" days","")[0:-3].replace(",","d,")
+                try:    
+                    wanUpTime =""
+                    xx = unicode(datetime.timedelta(seconds=wan[u"uptime"])).replace(" days","").split(",")
+                    if len(xx) ==2:
+                        wanUpTime = xx[0]+"d "
+                        yy = xx[1].split(":")
+                        if len(yy) >1:
+                            wanUpTime += yy[0]+"h " +yy[1]+"m"
+                        else: wanUpTime =""
+                    if len(xx) ==1:
+                        yy = xx[0].split(":")
+                        if len(yy) >1:
+                            wanUpTime += yy[0]+"h " +yy[1]+"m"
                 except: wanUpTime   = ""
             else:                           wanUpTime   = ""
             if "mac" in wan:                MAC         = wan[u"mac"]
             else:                           MAC         = ""
-            if "up" in wan:                 wanUP       = "up" if wan[u"up"] else "down"
-            else:                           wanUP       = ""
-
-
-            if "speedtest_ping" in wan:     pingTime    = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
-            else:                           pingTime    = ""
-            if "latency" in wan:            latency     = "%4.1f" % wan[u"latency"] + u"[ms]"
-            else:                           latency     = ""
-            if "xput_down" in wan:          download    = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
-            else:                           download    = ""
-            if "xput_up" in wan:            upload      = "%4.1f" % wan[u"xput_up"] + u"[Mb/S]"
-            else:                           upload      = ""
-            if "nameservers" in wan:        nameservers = "-".join(wan[u"nameservers"])
-            else:                           nameservers = "-"
             if "gateways" in wan:           gateways    = "-".join(wan[u"gateways"])
             else:                           gateways    = "-"
-            if "speedtest_lastrun" in wan:  runDate     = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S") + u"[UTC]"
-            else:                           runDate     = ""
             if "model_display" in gwDict:   model       = gwDict[u"model_display"]
             else:                           
                 self.ML.myLog( text=u"model_display not in dict doGatewaydict") 
                 model = ""
-
             if "mac" in lan:                MAClan      = lan[u"mac"]
             else:                           MAClan      = ""
+
+            if "up" in wan:                 wanUP       = "up" if wan[u"up"] else "down"
+            else:                           wanUP       = ""
+            if "speedtest_ping" in wan:     wanPingTime    = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
+            else:                           wanPingTime    = ""
+            if "latency" in wan:            wanLatency  = "%4.1f" % wan[u"latency"] + u"[ms]"
+            else:                           wanLatency  = ""
+            if "xput_down" in wan:          wanDownload    = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
+            else:                           wanDownload    = ""
+            if "xput_up" in wan:            wanUpload      = "%4.1f" % wan[u"xput_up"] + u"[Mb/S]"
+            else:                           wanUpload      = ""
+            if "nameservers" in wan:        nameservers = "-".join(wan[u"nameservers"])
+            else:                           nameservers = "-"
+            if "speedtest_lastrun" in wan:  wanRunDate     = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S") + u"[UTC]"
+            else:                           wanRunDate     = ""
 
             if MAC =="": return 
 
@@ -6470,26 +6481,32 @@ class Plugin(indigo.PluginBase):
                             self.addToStatesUpdateList(unicode(dev.id),u"upSince",  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-gwDict[u"uptime"])) )
 
                     self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNDevice
+                    if gateways != dev.states[u"gateways"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"gateways", gateways)
+                    if nameservers != dev.states[u"nameservers"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
                     if MAClan != dev.states[u"MAClan"]:
                         self.addToStatesUpdateList(unicode(dev.id),u"MAClan", MAClan)
                     if ipNDevice != dev.states[u"ipNumber"]:
                         self.addToStatesUpdateList(unicode(dev.id),u"ipNumber", ipNDevice)
-                    if pingTime != dev.states[u"pingTime"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"pingTime", pingTime)
-                    if latency != dev.states[u"latency"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"latency", latency)
                     if publicIP != dev.states[u"publicIP"]:
                         self.addToStatesUpdateList(unicode(dev.id),u"publicIP", publicIP)
-                    if gateways != dev.states[u"gateways"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"gateways", gateways)
-                    if upload != dev.states[u"upload"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"upload", upload)
-                    if upload != dev.states[u"runDate"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"runDate", runDate)
-                    if download != dev.states[u"download"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"download", download)
-                    if nameservers != dev.states[u"nameservers"]:
-                        self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
+
+                    if wanPingTime != dev.states[u"wanPingTime"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanPingTime", wanPingTime)
+                    if wanLatency != dev.states[u"wanLatency"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanLatency", wanLatency)
+                    if wanUpload != dev.states[u"wanUpload"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanUpload", wanUpload)
+                    if wanRunDate != dev.states[u"wanRunDate"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanRunDate", wanRunDate)
+                    if wanDownload != dev.states[u"wanDownload"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanDownload", wanDownload)
+                    if wanUpTime != dev.states[u"wanUpTime"]:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
+                    if dev.states[u"wan"] != wanUP:
+                        self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
+
                     if dev.states[u"status"] != "up":
                         self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.ljust(30) + u" status up         GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
@@ -6500,11 +6517,6 @@ class Plugin(indigo.PluginBase):
                         self.addToStatesUpdateList(unicode(dev.id),u"MAC", MAC)
                     if dev.states[u"model"] != model and model != "":
                         self.addToStatesUpdateList(unicode(dev.id),u"model", model)
-
-                    if dev.states[u"wanUpTime"] != wanUpTime:
-                        self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
-                    if dev.states[u"wan"] != wanUP:
-                        self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
 
 
 
@@ -6523,16 +6535,16 @@ class Plugin(indigo.PluginBase):
                         folder=self.folderNameCreatedID,
                         props={u"useWhatForStatus":"",isType:True})
                     self.setupStructures(xType, dev, MAC)
-                    self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
                     self.addToStatesUpdateList(unicode(dev.id),u"MAC", MAC)
                     self.addToStatesUpdateList(unicode(dev.id),u"MAClan", MAClan)
-                    self.addToStatesUpdateList(unicode(dev.id),u"pingTime", pingTime)
-                    self.addToStatesUpdateList(unicode(dev.id),u"latency", latency)
-                    self.addToStatesUpdateList(unicode(dev.id),u"gateways", gateways)
-                    self.addToStatesUpdateList(unicode(dev.id),u"upload", upload)
-                    self.addToStatesUpdateList(unicode(dev.id),u"download", download)
-                    self.addToStatesUpdateList(unicode(dev.id),u"runDate", runDate)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanPingTime", wanPingTime)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanLatency", wanLatency)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanUpload", wanUpload)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanDownload", wanDownload)
+                    self.addToStatesUpdateList(unicode(dev.id),u"wanRunDate", wanRunDate)
                     self.addToStatesUpdateList(unicode(dev.id),u"wanUpTime", wanUpTime)
+                    self.addToStatesUpdateList(unicode(dev.id),u"gateways", gateways)
                     self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
                     self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         GW DICT new gateway if_table", u"STATUS-GW")
                     if self.ML.decideMyLog(u"Dict") or MAC in self.MACloglist: self.ML.myLog( text=">>"+MAC + "<<  ip:"+ ipNDevice+"  "+ dev.name +"  new dec" ,mType=u"DC-GW-1")

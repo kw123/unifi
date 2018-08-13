@@ -426,41 +426,15 @@
                     <TriggerLabel>groupMember</TriggerLabel>
                     <ControlPageLabel>groupMember</ControlPageLabel>
               </State>
-              <State id="pingTime">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>pingTime</TriggerLabel>
-                    <ControlPageLabel>pingTime</ControlPageLabel>
-              </State>
               <State id="model">
                     <ValueType>String</ValueType>
                     <TriggerLabel>model</TriggerLabel>
                     <ControlPageLabel>model</ControlPageLabel>
               </State>
-              <State id="latency">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>latency</TriggerLabel>
-                    <ControlPageLabel>latency</ControlPageLabel>
-              </State>
               <State id="ipNumber">
                     <ValueType>String</ValueType>
                     <TriggerLabel>ipNumber</TriggerLabel>
                     <ControlPageLabel>ipNumber</ControlPageLabel>
-              </State>
-
-              <State id="download">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>download</TriggerLabel>
-                    <ControlPageLabel>download</ControlPageLabel>
-              </State>
-              <State id="upload">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>upload</TriggerLabel>
-                    <ControlPageLabel>upload</ControlPageLabel>
-              </State>
-              <State id="runDate">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>runDate</TriggerLabel>
-                    <ControlPageLabel>runDate</ControlPageLabel>
               </State>
               <State id="gateways">
                     <ValueType>String</ValueType>
@@ -511,6 +485,31 @@
                     <ValueType>String</ValueType>
                     <TriggerLabel>upSince</TriggerLabel>
                     <ControlPageLabel>upSince</ControlPageLabel>
+              </State>
+              <State id="wanPingTime">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanPingTime</TriggerLabel>
+                    <ControlPageLabel>wanPingTime</ControlPageLabel>
+              </State>
+              <State id="wanLatency">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanLatency</TriggerLabel>
+                    <ControlPageLabel>wanLatency</ControlPageLabel>
+              </State>
+              <State id="wanDownload">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanDownload</TriggerLabel>
+                    <ControlPageLabel>wanDownload</ControlPageLabel>
+              </State>
+              <State id="wanUpload">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanUpload</TriggerLabel>
+                    <ControlPageLabel>wanUpload</ControlPageLabel>
+              </State>
+              <State id="wanRunDate">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>wanRunDate</TriggerLabel>
+                    <ControlPageLabel>wanRunDate</ControlPageLabel>
               </State>
               <State id="wanUpTime">
                     <ValueType>String</ValueType>
