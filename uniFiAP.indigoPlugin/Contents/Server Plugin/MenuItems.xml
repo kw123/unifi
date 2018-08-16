@@ -39,7 +39,7 @@
         </ConfigUI>
     </MenuItem>
     <MenuItem id="printDevInfoFromController">
-        <Name>PRINT - get info from UniFi Controller DB</Name>
+        <Name>PRINT &#38; get info from UniFi Controller DB and UGA</Name>
         <ConfigUI>
             <Field  id="Label01" type="label"> 
             <Label>Make sure that retention is set properly in MAINTENANCE in the controller
@@ -134,23 +134,27 @@
             <Field    id="confirm8" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint7DayInfoFromControllerCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparator8" type="separator"/>
 
             <Field  id="Label9" type="label"> <Label>Print 48 hour stats:</Label> </Field>
             <Field    id="confirm9" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint48HourInfoFromControllerCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparator9" type="separator"/>
 
             <Field  id="Label91" type="label"> <Label>Print 5 Minutes stats:</Label> </Field>
             <Field    id="confirm91" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint5MinutesInfoFromControllerCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparator91" type="separator"/>
             
+            <Field id="simpleSeparator101" type="separator"/>
             <Field  id="Label10" type="label"> <Label>Print W-lan Config (passwords will be printed!!):</Label> </Field>
             <Field    id="confirm10" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintWlanConfInfoFromControllerCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field id="simpleSeparator111" type="separator"/>
+            <Field  id="Label11" type="label"> <Label>Print UGA setup parameters:</Label> </Field>
+            <Field    id="confirm11" type="button" tooltip="" >
+                <Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>executeMCAconfigDumpOnGW</CallbackMethod>
             </Field>
 
         </ConfigUI>

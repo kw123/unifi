@@ -35,7 +35,7 @@ _GlobalConst_numberOfGroups = 20
 _GlobalConst_groupList      = [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
 _GlobalConst_dTypes         = ["UniFi","gateway","DHCP","SWITCH","Device-AP","Device-SW-8","Device-SW-10","Device-SW-18" ,"Device-SW-26","Device-SW-52","neighbor"]
 ################################################################################
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PySimplifyBooleanCheck,PySimplifyBooleanCheck
 class Plugin(indigo.PluginBase):
     ####-----------------             ---------
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
@@ -53,7 +53,7 @@ class Plugin(indigo.PluginBase):
         #self.errorLog(self.pathToPlugin)
         self.indigoVersion = int(self.indigoPath.strip("/")[-1:])
         indigo.server.log(u"setting parameters for indigo version: >>"+unicode(self.indigoVersion)+u"<<")   
-        self.pluginState                = "init"
+        self.pluginState        = "init"
         self.pluginVersion      = pluginVersion
         self.pluginId           = pluginId
         self.pluginName         = pluginId.split(".")[-1]
@@ -149,7 +149,8 @@ class Plugin(indigo.PluginBase):
                      "GWdict": "dictLoop.exp",
                      "SWdict": "dictLoop.exp",
                      "APdict": "dictLoop.exp",
-                     "VDdict": "cameraMongo.exp"}
+                     "GWctrl": "simplecmd.exp",
+                     "VDdict": "simplecmd.exp"}
         self.commandOnServer= {   "APtail": "/usr/bin/tail -F /var/log/messages",
                      "GWtail": "/usr/bin/tail -F /var/log/messages",
                      "SWtail": "/usr/bin/tail -F /var/log/messages",
@@ -157,9 +158,11 @@ class Plugin(indigo.PluginBase):
                      "VDdict": "not implemented ",
                      "GWdict": "mca-dump | sed -e 's/^ *//'",
                      "SWdict": "mca-dump | sed -e 's/^ *//'",
+                     "GWctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
                      "APdict": "mca-dump | sed -e 's/^ *//'"}
         self.promptOnServer = {   "APtail": "BZ.v",
                      "GWtail": ":~",
+                     "GWctrl": ":~",
                      "SWtail": "US.v",
                      "VDtail": "VirtualBox",
                      "VDdict": "VirtualBox",
@@ -622,6 +625,7 @@ class Plugin(indigo.PluginBase):
         self.promptOnServer["APdict"] = self.promptOnServer["APtail"]
         self.promptOnServer["SWdict"] = self.promptOnServer["SWtail"]
         self.promptOnServer["VDdict"] = self.promptOnServer["VDtail"]
+        self.promptOnServer["GWctrl"] = self.promptOnServer["GWtail"]
 
         self.commandOnServer["GWtailCommand"], rebootRequired = self.getNewValusDictField("GWtailCommand", valuesDict, self.commandOnServer["GWtail"], rebootRequired)
         self.commandOnServer["GWdictCommand"], rebootRequired = self.getNewValusDictField("GWdictCommand", valuesDict, self.commandOnServer["GWdict"], rebootRequired)
@@ -733,7 +737,7 @@ class Plugin(indigo.PluginBase):
     def getNewValusDictField(self,item,  valuesDict, old, rebootRequired):
         xxx    = valuesDict[item]
         if xxx != old:
-            rebootRequired += " "+item+" changed";
+            rebootRequired += " "+item+" changed"
         return   xxx, rebootRequired
 
     ####-----------------  config setting ----  END    ----------#########
@@ -748,7 +752,6 @@ class Plugin(indigo.PluginBase):
             if items[1] != unicode(pid): continue
             if len(items) < 6: continue
             return (items[6])
-            break
         return ""
 
     ####-----------------    ---------
@@ -1117,7 +1120,7 @@ class Plugin(indigo.PluginBase):
                 self.setSuspend(ip,time.time()+1000000000)
                 break
         return
-        return
+
 
     ####-----------------  Start    ---------
     def buttonVboxActionStartCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
@@ -1184,7 +1187,7 @@ class Plugin(indigo.PluginBase):
                     self.ML.myLog( text=u"ipNumber            msgcount;    msgBytes;  errCount;  restarts;aliveCount;   msg/min; bytes/min;   err/min; aliveC/min", mType="dev type")
                 nSecs = time.time() - self.dataStats["tcpip"][uType][ipNumber]["startTime"]
                 nMin  = nSecs/60.
-                out=ipNumber.ljust(18)
+                out  =ipNumber.ljust(18)
                 out +="%10d"%(self.dataStats["tcpip"][uType][ipNumber]["inMessageCount"]) +";"
                 out +="%12d"%(self.dataStats["tcpip"][uType][ipNumber]["inMessageBytes"]) +";"
                 out +="%10d"%(self.dataStats["tcpip"][uType][ipNumber]["inErrorCount"]) +";"
@@ -1263,7 +1266,7 @@ class Plugin(indigo.PluginBase):
         self.getCameraSystemFromNVR()
     ####-----------------    ---------
     def getCameraSystemFromNVR(self,doPrint = True):
-        cmdstr= "\"mongo 127.0.0.1:7441/av --quiet --eval 'db.server.find().forEach(printjsononeline)'\"" 
+        cmdstr= "\"mongo 127.0.0.1:7441/av --quiet --eval 'db.server.find().forEach(printjsononeline)' | sed 's/^\s*//' \"" 
         keepList = ["systemInfo","recordingSettings","firmwareVersion","host","firmwareVersion","livePortSettings","recordingSettings","systemSettings"]
         self.getMongoData(cmdstr, keepList, doPrint, dType="server")
         return
@@ -1275,7 +1278,7 @@ class Plugin(indigo.PluginBase):
     ####-----------------    ---------
     def getCamerasFromNVR(self,doPrint = True):
         try:
-            cmdstr =  "\"mongo 127.0.0.1:7441/av --quiet --eval  'db.camera.find().forEach(printjsononeline)'\"" 
+            cmdstr =  "\"mongo 127.0.0.1:7441/av --quiet --eval  'db.camera.find().forEach(printjsononeline)'  | sed 's/^\s*//' \"" 
             keepList = ["name","uuid","host","model","host","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings"]
             cameraJson = self.getMongoData(cmdstr, keepList, doPrint, dType="camera")
             return cameraJson
@@ -1286,11 +1289,10 @@ class Plugin(indigo.PluginBase):
         return {}                
 
     ####-----------------    ---------
-    def getMongoData(self, cmdstr, keepList, doPrint, dType="camera"):
+    def getMongoData(self, cmdstr, keepList, doPrint, dType="camera",uType="VDdict"):
         try:
             out =[]
             keepJson = {}
-            uType = "VDdict"
             userid, passwd =  self.getUidPasswd(uType)
             if userid == "": return {}
             
@@ -1342,6 +1344,22 @@ class Plugin(indigo.PluginBase):
                 temp   = temp[0:nnn2+1]
                 temp   = self.replaceFunc(temp)
                 out.append(json.loads(temp))
+            return out, ""
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return dump, "error"
+    ####-----------------    ---------
+    def makeJson2(self, dump, sep):
+        try:
+            begStr,endStr ="{","}"
+            dump         = dump.split(sep)
+            if len(dump) !=3: return ""
+            dump  = dump[1].replace("\n","").replace("\r","")
+            s1 = dump.find(begStr)
+            dump = dump[s1:]
+            s2 = dump.rfind(endStr)
+            out=json.loads(dump[:s2+1])
             return out, ""
         except  Exception, e:
             if len(unicode(e)) > 5:
@@ -2871,6 +2889,74 @@ class Plugin(indigo.PluginBase):
         return
 
 
+#/usr/bin/expect  '/Library/Application Support/Perceptive Automation/Indigo 7/Plugins/uniFiAP.indigoPlugin/Contents/Server Plugin/simplecmd.exp' karlwachs 457654aA.unifi 192.168.1.1 :~  XXXXsepXXXXX  'mca-ctrl -t dump-cfg | sed -e 's/^ *//''
+
+
+    ####-----------------    ---------
+    def executeMCAconfigDumpOnGW(self, valuesDict={},typeId="" ):
+        keepList=["vpn","port-forward","service:radius-server","service:dhcp-server"]
+        jsonAction="print"
+        ret =[]
+        try:
+            cmd = "/usr/bin/expect  '" + \
+                  self.pathToPlugin + self.expectCmdFile["GWctrl"] + "' " + \
+                  self.unifiUserID  + " " + \
+                  self.unifiPassWd + " " + \
+                  self.ipnumberOfUGA + " " + \
+                  self.promptOnServer["GWctrl"] + " " + \
+                  " XXXXsepXXXXX " + " " + \
+                  "\""+self.commandOnServer["GWctrl"] +"\""
+            if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=" UGA EXPECT CMD: "+ unicode(cmd))
+            ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+            dbJson, error= self.makeJson2(ret[0], "XXXXsepXXXXX")
+            if jsonAction == "print": 
+                for xx in keepList:
+                    if xx.find(":") >-1:
+                        yy = xx.split(":")
+                        if yy[0] in dbJson and yy[1] in dbJson[yy[0]]:
+                            short = dbJson[yy[0]][yy[1]]
+                            if yy[1] =="dhcp-server":
+                                for z in short:
+                                    if z =="shared-network-name":
+                                        for zz in short[z]:
+                                            #indigo.server.log(" in "+zz)
+                                            for zzz in short[z][zz]: # net_LAN_192.168.1.0-24"
+                                                if zzz =="subnet":
+                                                    for zzzz in short[z][zz][zzz]:  # "192.168.1.0/24"
+                                                        for zzzzz in short[z][zz][zzz][zzzz]:
+                                                            if zzzzz =="static-mapping":
+                                                                s0 = short[z][zz][zzz][zzzz][zzzzz]
+                                                                ## need to sort 
+                                                                u =[]
+                                                                v =[]
+                                                                for t in s0:
+                                                                    u.append((s0[t]["mac-address"],s0[t]["ip-address"]))
+                                                                    v.append((self.fixIP(s0[t]["ip-address"]),s0[t]["ip-address"],s0[t]["mac-address"]))
+                                                                
+                                                                sortMacKey = sorted(u)
+                                                                sortIPKey  = sorted(v)
+                                                                out ="   static DHCP mappings:\n"
+                                                                for m in range(len(sortMacKey)):
+                                                                    out += sortMacKey[m][0]+" --> "+ sortMacKey[m][1].ljust(20)+"       "+sortIPKey[m][1].ljust(18)+"--> "+ sortIPKey[m][2]+"\n"
+                                                                self.ML.myLog( text= out, mType="==== UGA-setup ====")
+                            else:
+                                self.ML.myLog( text="   "+xx+":\n"+json.dumps(short,sort_keys=True,indent=2), mType="==== UGA-setup ====")
+                        else:
+                            self.ML.myLog( text=xx+" not in json returned from UGA ", mType="UGA-setup")
+                    else:
+                        if xx in dbJson:
+                            self.ML.myLog( text="   "+xx+":\n"+json.dumps(dbJson[xx],sort_keys=True,indent=2), mType="==== UGA-setup ====")
+                        else:
+                            self.ML.myLog( text=xx+" not in json returned from UGA ", mType="UGA-setup")
+            else:
+                return valuesDict
+
+                    
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                self.ML.myLog( text="executeMCAconfigDumpOnGW  system info:\n>>>"+ unicode(ret)[0:100]+"<<<")
+        return valuesDict                
 
     ####-----------------    ---------
     def executeCMDOnController(self, data={},pageString="",jsonAction="",startText="", put="put"):
@@ -3232,7 +3318,7 @@ class Plugin(indigo.PluginBase):
 
 
     ####-----------------setup empty dicts for pointers  type, mac --> indigop and indigo --> mac,  type ---------
-    def setupStructures(self, xType, dev, MAC): 
+    def setupStructures(self, xType, dev, MAC,init=False):
         try:
             if xType == u"UN" and MAC in self.MACignorelist: 
                 if MAC in self.MAC2INDIGO[xType]:
@@ -3976,8 +4062,8 @@ class Plugin(indigo.PluginBase):
                             ipN = dev.states[u"ipNumber"]
                             if ipN not in self.APUP:
                                 continue
-                                ipN = self.ipNumbersOfAPs[int(dev.states[u"apNo"])]
-                                dev.updateStateOnServer(u"ipNumber", ipN )
+                                #ipN = self.ipNumbersOfAPs[int(dev.states[u"apNo"])]
+                                #dev.updateStateOnServer(u"ipNumber", ipN )
                             if ipN in self.suspendedUnifiSystemDevicesIP:
                                 status = "susp"
                                 self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
@@ -4146,7 +4232,7 @@ class Plugin(indigo.PluginBase):
 
             if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=u"check if pgm is running" ,mType=u"CONNtest")
             ret = subprocess.Popen("ps -ef | grep " +self.expectCmdFile[type]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
-            if len(ret) < 5: False
+            if len(ret) < 5: return False
             lines = ret.split("\n")
             for line in lines:
                 if len(line) < 5:
@@ -4383,7 +4469,7 @@ class Plugin(indigo.PluginBase):
             self.MAC2INDIGO= json.loads(f.read())
             f.close()
         except: 
-            self.MAC2INDIGO ={"UN":{},u"GW":{},u"SW":{},u"AP":{},u"NB":{},u"SW":{}}
+            self.MAC2INDIGO= {"UN":{},u"GW":{},u"SW":{},u"AP":{},u"NB":{}}
         try:
             f=open(self.unifiPath+"MACignorelist","r")
             self.MACignorelist= json.loads(f.read())
@@ -5935,8 +6021,7 @@ class Plugin(indigo.PluginBase):
             for MAC in self.MAC2INDIGO[xType]:
                 if self.MAC2INDIGO[xType][MAC][u"AP"]  != ipNDevice: continue
                 if self.MAC2INDIGO[xType][MAC][u"GHz"] != GHz:       continue
-                for MAC in self.MAC2INDIGO[xType]:
-                    self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 0
+                self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 0
                     
 
             for ii in range(len(adDict)):
