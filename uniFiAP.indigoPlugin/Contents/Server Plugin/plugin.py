@@ -2178,7 +2178,7 @@ class Plugin(indigo.PluginBase):
 
     ####-----------------    ---------
     def buttonConfirmReconnectCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        self.executeCMDOnController(data={"cmd":"kick-sta","mac":valuesDict["selectedDevice"]},pageString="/cmd/stamgr")
+        self.executeCMDOnController(data={"cmd":"kick-sta","mac":valuesDict["selectedDevice"]},pageString="/cmd/stamgr",cmdType="post")
         return 
         
     ####-----------------    ---------
@@ -2187,7 +2187,7 @@ class Plugin(indigo.PluginBase):
 
     ####-----------------    ---------
     def buttonConfirmBlockCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        self.executeCMDOnController(data={"cmd":"block-sta","mac":valuesDict["selectedDevice"]},pageString="/cmd/stamgr")
+        self.executeCMDOnController(data={"cmd":"block-sta","mac":valuesDict["selectedDevice"]},pageString="/cmd/stamgr",cmdType="post")
         return 
 
     ####-----------------    ---------
@@ -2196,7 +2196,7 @@ class Plugin(indigo.PluginBase):
 
     ####-----------------    ---------
     def buttonConfirmUnBlockCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-        self.executeCMDOnController(data={"cmd":"unblock-sta","mac":valuesDict["selectedDevice"]}, pageString="/cmd/stamgr")
+        self.executeCMDOnController(data={"cmd":"unblock-sta","mac":valuesDict["selectedDevice"]}, pageString="/cmd/stamgr",cmdType="post")
         return 
 ######## block / unblock reconnec  end 
 
@@ -2752,7 +2752,7 @@ class Plugin(indigo.PluginBase):
         ip = dev.states["ipNumber"]
         if disable: self.setSuspend(ip, time.time() + 99999999)
         else      : self.delSuspend(ip)
-        self.executeCMDOnController(data={"disabled":disable}, pageString="/rest/device/"+id, put="put")
+        self.executeCMDOnController(data={"disabled":disable}, pageString="/rest/device/"+id, cmdType="put")
         return 
 
 
@@ -2959,7 +2959,7 @@ class Plugin(indigo.PluginBase):
         return valuesDict                
 
     ####-----------------    ---------
-    def executeCMDOnController(self, data={},pageString="",jsonAction="",startText="", put="put"):
+    def executeCMDOnController(self, data={},pageString="",jsonAction="",startText="", cmdType="put"):
 
         try:    
             if not self.isValidIP(self.unifiCloudKeyIP): return {}
@@ -2969,9 +2969,11 @@ class Plugin(indigo.PluginBase):
                 cmdL  = "/usr/bin/curl --insecure -c /tmp/cookie   --data '"+json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd})+"' https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login"
                 if data =={}: dataDict = ""
                 else:         dataDict = "--data '"+json.dumps(data)+"'"
-                if put == "put":  PUT=" -X PUT"
-                else:             PUT =""
-                cmdR  = "/usr/bin/curl --insecure -b /tmp/cookie "  +dataDict+PUT+  " https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
+                if   cmdType == "put":    cmdTypeUse= " -X PUT"
+                elif cmdType == "post":   cmdTypeUse= " -X post"
+                elif cmdType == "get":    cmdTypeUse= " -X get"
+                else:                     cmdTypeUse= ""
+                cmdR  = "/usr/bin/curl --insecure -b /tmp/cookie "  +dataDict+cmdTypeUse+  " https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
                 if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmdL ,mType="Connection")
                 try:
@@ -3027,8 +3029,10 @@ class Plugin(indigo.PluginBase):
                 if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=url +"  "+ dataDict,mType="Connection")
                 if startText !="":                     self.ML.myLog( text=startText ,mType="Connection")
                 try:
-                        if put == "put": resp = self.unifiControllerSession.put(url,data = dataDict)
-                        else:            resp = self.unifiControllerSession.post(url,data = dataDict)
+                        if   cmdType == "put":   resp = self.unifiControllerSession.put(url,data = dataDict)
+                        elif cmdType == "post":  resp = self.unifiControllerSession.post(url,data = dataDict)
+                        elif cmdType == "get":   resp = self.unifiControllerSession.get(url,data = dataDict)
+                        else:                    resp = self.unifiControllerSession.put(url,data = dataDict)
                         jj = json.loads(resp.text)
                         if jj["meta"]["rc"] !="ok" :
                            self.ML.myLog( text=u"error:>> "+ unicode(resp) ,mType="Reconnect")
