@@ -3073,6 +3073,8 @@ class Plugin(indigo.PluginBase):
 
         try:    indigo.variable.create("Unifi_With_Status_Change",value="", folder=fID)
         except: pass
+        try:    indigo.variable.create("Unifi_With_IPNumber_Change",value="", folder=fID)
+        except: pass
     
     ####-----------------      ---------
     def setGroupStatus(self, init=False):
@@ -5794,6 +5796,8 @@ class Plugin(indigo.PluginBase):
                             if ipx !="" and (oldIPX != ipx or ( (dev.description != ipx + "-" + nameSW or len(dev.description) < 5) and len(nameSW)> 0 and  (dev.description).find("=WiFi") ==-1 )) :
                                 dev.description = ipx + "-" + nameSW
                                 if self.ML.decideMyLog(u"DictDetails") or MAC in self.MACloglist: self.ML.myLog( text=u"updating description for "+dev.name+"  to   "+ dev.description, mType=u"DC-SW-7") 
+                                if oldIPX != ipx:
+                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                                 dev.replaceOnServer()
 
                         #break
@@ -5959,6 +5963,8 @@ class Plugin(indigo.PluginBase):
                                     oldIPX[0] = ipx
                                     dev.description = "-".join(oldIPX)
                                     if self.ML.decideMyLog(u"DictDetails") or MAC in self.MACloglist: self.ML.myLog( text=u"updating description for "+dev.name+"  to   "+ dev.description) 
+                                    if oldIPX != ipx:
+                                        indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                                     dev.replaceOnServer()
 
 
@@ -6166,6 +6172,8 @@ class Plugin(indigo.PluginBase):
                                 else:
                                     dev.description = newDescr
                                 dev.replaceOnServer()
+                                if oldIPX != ipx:
+                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                             
                         # check what is used to determine up / down, make WiFi a priority
                         if ( "useWhatForStatus" not in  props ) or ( "useWhatForStatus"  in props and props[u"useWhatForStatus"] != "WiFi" ):
@@ -6981,6 +6989,8 @@ class Plugin(indigo.PluginBase):
                             oldDescr[0] = ipx
                             newDescr = "-".join(oldDescr)
                             dev.description = newDescr
+                            if oldIPX != ipx:
+                                indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                             dev.replaceOnServer()
 
 

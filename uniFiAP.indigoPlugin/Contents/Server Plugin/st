@@ -1,1 +1,0 @@
-{ "data" : [ { "_id" : "5a4fefc4e4b0b9db03902d97" , "blocked" : false , "first_seen" : 1515188164 , "hostname" : "iPhone" , "is_guest" : false , "is_wired" : true , "last_seen" : 1536334964 , "mac" : "1c:36:bb:97:c0:85" , "name" : "iphone Karl" , "noted" : true , "oui" : "Apple" , "site_id" : "5750f2ade4b04dab3d3d0d4f" , "usergroup_id" : ""}] , "meta" : { "rc" : "ok"}}
