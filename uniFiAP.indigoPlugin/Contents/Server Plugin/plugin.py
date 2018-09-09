@@ -5792,12 +5792,12 @@ class Plugin(indigo.PluginBase):
                                     if self.ML.decideMyLog(u"Dict") or MAC in self.MACloglist: self.ML.myLog( text=u" "+  MAC+u" SW DICT network_table  restart exp timer ", mType=u"DC-SW-6")
                             
                         if self.updateDescriptions:
-                            oldIPX = dev.description.split("-")[0]
-                            if ipx !="" and (oldIPX != ipx or ( (dev.description != ipx + "-" + nameSW or len(dev.description) < 5) and len(nameSW)> 0 and  (dev.description).find("=WiFi") ==-1 )) :
+                            oldIPX = dev.description.split("-")
+                            if ipx !="" and (oldIPX[0] != ipx or ( (dev.description != ipx + "-" + nameSW or len(dev.description) < 5) and len(nameSW)> 0 and  (dev.description).find("=WiFi") ==-1 )) :
+                                if oldIPX[0] != ipx and oldIPX[0] !="":
+                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX[0]+"/"+ipx)
                                 dev.description = ipx + "-" + nameSW
                                 if self.ML.decideMyLog(u"DictDetails") or MAC in self.MACloglist: self.ML.myLog( text=u"updating description for "+dev.name+"  to   "+ dev.description, mType=u"DC-SW-7") 
-                                if oldIPX != ipx:
-                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                                 dev.replaceOnServer()
 
                         #break
@@ -5959,12 +5959,11 @@ class Plugin(indigo.PluginBase):
                             if self.updateDescriptions:
                                 oldIPX = dev.description.split("-")
                                 ipx = self.fixIP(ip)
-                                if ipx!="" and oldIPX[0] != ipx:
+                                if ipx!="" and oldIPX[0] != ipx and oldIPX[0] !="":
+                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX[0]+"/"+ipx)
                                     oldIPX[0] = ipx
                                     dev.description = "-".join(oldIPX)
                                     if self.ML.decideMyLog(u"DictDetails") or MAC in self.MACloglist: self.ML.myLog( text=u"updating description for "+dev.name+"  to   "+ dev.description) 
-                                    if oldIPX != ipx:
-                                        indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                                     dev.replaceOnServer()
 
 
@@ -6157,23 +6156,22 @@ class Plugin(indigo.PluginBase):
                         oldStatus = dev.states[u"status"]
                            
                         if self.updateDescriptions:  
-                            oldDescr = dev.description.split("-")
-                            oldIPX   = oldDescr[0]
-                            if oldIPX != ipx or (dev.description != ipx + "-" + nameCl+"=WiFi" or len(dev.description) < 5):
-                                if len(oldDescr) < 2:
-                                    oldDescr.append(nameCl.strip("-"))
-                                elif len(oldDescr) == 2 and oldDescr[1] == "":
+                            oldIPX = dev.description.split("-")
+                            if oldIPX[0] != ipx or (dev.description != ipx + "-" + nameCl+"=WiFi" or len(dev.description) < 5):
+                                if oldIPX[0] != ipx and oldIPX[0] !="":
+                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX[0]+"/"+ipx)
+                                if len(oldIPX) < 2:
+                                    oldIPX.append(nameCl.strip("-"))
+                                elif len(oldIPX) == 2 and oldIPX[1] == "":
                                     if nameCl != "":
-                                        oldDescr[1] = nameCl.strip("-")
-                                oldDescr[0] = ipx
-                                newDescr = "-".join(oldDescr)
+                                        oldIPX[1] = nameCl.strip("-")
+                                oldIPX[0] = ipx
+                                newDescr = "-".join(oldIPX)
                                 if (dev.description).find("=WiFi")==-1:
                                     dev.description = newDescr+"=WiFi"
                                 else:
                                     dev.description = newDescr
                                 dev.replaceOnServer()
-                                if oldIPX != ipx:
-                                    indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                             
                         # check what is used to determine up / down, make WiFi a priority
                         if ( "useWhatForStatus" not in  props ) or ( "useWhatForStatus"  in props and props[u"useWhatForStatus"] != "WiFi" ):
@@ -6978,19 +6976,18 @@ class Plugin(indigo.PluginBase):
 
                     if self.updateDescriptions:  
                         ipx = self.fixIP(ipNDevice)
-                        oldDescr = dev.description.split("-")
-                        oldIPX   = oldDescr[0]
-                        if oldIPX != ipx or ( (dev.description != ipx + "-" + hostname) or len(dev.description) < 5):
-                            if len(oldDescr) < 2:
-                                oldDescr.append(hostname.strip("-"))
-                            elif len(oldDescr) == 2 and oldDescr[1] == "":
+                        oldIPX = dev.description.split("-")
+                        if oldIPX[0] != ipx or ( (dev.description != ipx + "-" + hostname) or len(dev.description) < 5):
+                            if oldIPX[0] != ipx and oldIPX[0] !="":
+                                indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX[0]+"/"+ipx)
+                            if len(oldIPX) < 2:
+                                oldIPX.append(hostname.strip("-"))
+                            elif len(oldIPX) == 2 and oldIPX[1] == "":
                                 if hostname != "":
-                                    oldDescr[1] = hostname.strip("-")
-                            oldDescr[0] = ipx
-                            newDescr = "-".join(oldDescr)
+                                    oldIPX[1] = hostname.strip("-")
+                            oldIPX[0] = ipx
+                            newDescr = "-".join(oldIPX)
                             dev.description = newDescr
-                            if oldIPX != ipx:
-                                indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states["MAC"]+"/"+oldIPX+"/"+ipx)
                             dev.replaceOnServer()
 
 
