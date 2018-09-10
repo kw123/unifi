@@ -3075,6 +3075,8 @@ class Plugin(indigo.PluginBase):
         except: pass
         try:    indigo.variable.create("Unifi_With_IPNumber_Change",value="", folder=fID)
         except: pass
+        try:    indigo.variable.create("Unifi_New_Device",value="", folder=fID)
+        except: pass
     
     ####-----------------      ---------
     def setGroupStatus(self, init=False):
@@ -4416,6 +4418,7 @@ class Plugin(indigo.PluginBase):
                                 props={"isCamera":True},
                                 folder=self.folderNameSystemID
                                 )
+                            indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+ipx)
                         except  Exception, e:
                             if unicode(e).find("NameNotUniqueError") >-1:
                                 dev = indigo.devices["Camera_"+self.cameras[MAC]["cameraName"]+"_"+MAC]
@@ -5013,6 +5016,7 @@ class Plugin(indigo.PluginBase):
                                 dev = indigo.devices[dev.id]
 
                             continue
+                    indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/")
 
                 self.cameras[MAC]["devid"] = dev.id
 
@@ -5183,6 +5187,7 @@ class Plugin(indigo.PluginBase):
                         continue    
                     self.setupStructures(xType, dev, MAC)
                     self.setupBasicDeviceStates(dev, MAC, "UN", "", "", "", u" status up         GW msg new device", "STATUS-DHCP")
+                    indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+ip)
  
             self.executeUpdateStatesList()
         except  Exception, e:
@@ -5419,6 +5424,7 @@ class Plugin(indigo.PluginBase):
                         if unicode(dev.id) in self.upDownTimers:
                             del self.upDownTimers[unicode(dev.id)]
                         self.setupBasicDeviceStates(dev, MAC,  "UN", "", "", "", "  "+MAC+u" status up         AP msg new device", "MS-AP-WiF-6")
+                        indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/")
 
                         self.executeUpdateStatesList()
         except  Exception, e:
@@ -5825,6 +5831,7 @@ class Plugin(indigo.PluginBase):
                         self.MAC2INDIGO[xType][MAC][u"uptime"+suffixN] = newUp
                         self.setupBasicDeviceStates(dev, MAC, xType, ip, "", "", u" status up         SWITCH DICT new Device", "STATUS-SW")
                         self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 1
+                        indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+ipx)
 
             self.doInList(suffixN)
             self.executeUpdateStatesList()
@@ -5989,6 +5996,7 @@ class Plugin(indigo.PluginBase):
                         self.MAC2INDIGO[xType][MAC][u"uptime"+suffixN]      = uptime 
                         self.MAC2INDIGO[xType][MAC][u"inList"+suffixN]      = True
                         self.setupBasicDeviceStates(dev, MAC, xType, ip, "", "", u" status up         GW DICT  new device","DC-DHCP-3")
+                        indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+ip)
 
 
 
@@ -6326,6 +6334,7 @@ class Plugin(indigo.PluginBase):
                     self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 1
                     self.addToStatesUpdateList(unicode(dev.id),u"state"+suffixN, state)
                     self.MAC2INDIGO[xType][MAC][u"uptime"+suffixN] = newUpTime 
+                    indigo.variable.updateValue("Unifi_New_Device", dev.name+"/"+MAC+"/"+ipx)
 
                 
             self.doInList(suffixN,wifiIP=ipNDevice)
@@ -6440,6 +6449,7 @@ class Plugin(indigo.PluginBase):
                         self.addToStatesUpdateList(unicode(dev.id),u"tx_power_" + GHz, tx_power)
                         self.executeUpdateStatesList()
                         self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
+                        indigo.variable.updateValue("Unifi_New_Device", dev.name+"/"+MAC+"/"+ipNDevice)
                     except  Exception, e:
                       if len(unicode(e)) > 5:
                             indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -6642,6 +6652,7 @@ class Plugin(indigo.PluginBase):
                     self.addToStatesUpdateList(unicode(dev.id),u"gateways", gateways)
                     self.addToStatesUpdateList(unicode(dev.id),u"nameservers", nameservers)
                     self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         GW DICT new gateway if_table", u"STATUS-GW")
+                    indigo.variable.updateValue("Unifi_New_Device", dev.name+"/"+MAC+"/"+ipNDevice)
                     if self.ML.decideMyLog(u"Dict") or MAC in self.MACloglist: self.ML.myLog( text=">>"+MAC + "<<  ip:"+ ipNDevice+"  "+ dev.name +"  new dec" ,mType=u"DC-GW-1")
                 except  Exception, e:
                     if len(unicode(e)) > 5:
@@ -6772,6 +6783,7 @@ class Plugin(indigo.PluginBase):
                         self.MAC2INDIGO[xType][MAC][u"age"] = age 
                         self.addToStatesUpdateList(unicode(dev.id),u"adhoc", adhoc)
                         self.setupBasicDeviceStates(dev, MAC, xType, "", "", "", u" status up         neighbor DICT new neighbor", "DC-NEIG-2")
+                        indigo.variable.updateValue("Unifi_New_Device", dev.name+"/"+MAC+"/")
                 self.executeUpdateStatesList()
 
         except  Exception, e:
@@ -7013,6 +7025,7 @@ class Plugin(indigo.PluginBase):
                     self.addToStatesUpdateList(unicode(dev.id),u"hostname", hostname)
                     self.addToStatesUpdateList(unicode(dev.id),u"switchNo", apNumb)
                     self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         SW DICT  new SWITCH", "STATUS-SW")
+                    indigo.variable.updateValue("Unifi_New_Device", dev.name+"/"+MAC+"/"+ipNDevice)
                 except  Exception, e:
                     if len(unicode(e)) > 5:
                         indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
