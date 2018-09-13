@@ -3576,7 +3576,7 @@ class Plugin(indigo.PluginBase):
             self.sleep(0.2)
 
 
-        self.broadcastIP = ""
+        self.broadcastIP = 192.168.1.255
 
         
         try:
@@ -3646,8 +3646,11 @@ class Plugin(indigo.PluginBase):
             self.quitNow = u"stop"
  
  
-        ip = self.broadcastIP.split(".")
-        self.broadcastIP = ip[0]+"."+ip[1]+"."+ip[2]+".255"
+        try:
+            ip = self.broadcastIP.split(".")
+            self.broadcastIP = ip[0]+"."+ip[1]+"."+ip[2]+".255"
+        except:
+            pass
                
 
 
