@@ -174,14 +174,14 @@
     </Field>
 
     <Field    id="APtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP tail command(no"):</Label>  
+    <Label>.. AP tail command(empty = off):</Label>  
         <List>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
     <Field    id="APdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP dict command(no"):</Label>  
+    <Label>.. AP dict command(empty = off):</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
@@ -227,14 +227,14 @@
 
     <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>..ipNumber of your USG:</Label>  </Field>
     <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
-    <Label>.. GW tail command(no"):</Label>  
+    <Label>.. GW tail command(empty = off):</Label>  
         <List>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
     <Field    id="GWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
-    <Label>.. GW dict command(no"):</Label>  
+    <Label>.. GW dict command(empty = off):</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
@@ -267,14 +267,14 @@
         </List>
     </Field>
     <Field    id="SWtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW tail command(no"):</Label>  
+    <Label>.. SW tail command(empty = off):</Label>  
         <List>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
     <Field    id="SWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW dict command(no"):</Label>  
+    <Label>.. SW dict command(empty = off):</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
@@ -343,14 +343,12 @@
             </List>
     </Field>
 
-    <Field    id="VDtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
-    <Label>.. Video tail command(no"):</Label>  
-        <List>
-            <Option value="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"      > /usr/bin/tail -F /var/lib/unifi-video/logs/motion.log </Option>
-        </List>
+    <Field    id="VDtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
+    <Label>.. Video tail command(empty=off):</Label>  
     </Field>
+    <Field id="infoLabelVDtailCommand" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> .../usr/bin/tail -F pathTo motion.log</Label>  </Field>
     <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"   hidden="true"       > 
-    <Label>.. Video dict command(no"):</Label>  
+    <Label>.. Video dict command(no="):</Label>  
         <List>
             <Option value="not implemented"      > not implemented </Option>
         </List>

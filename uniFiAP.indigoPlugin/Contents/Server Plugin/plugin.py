@@ -3576,7 +3576,7 @@ class Plugin(indigo.PluginBase):
             self.sleep(0.2)
 
 
-        self.broadcastIP = 192.168.1.255
+        self.broadcastIP = "192.168.1.255"
 
         
         try:
@@ -4809,14 +4809,12 @@ class Plugin(indigo.PluginBase):
 
             cmd = "/usr/bin/expect  '" + self.pathToPlugin +"test.exp' " + userid + " " + passwd + " " + ipNumber 
             if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmd, mType=u"EXPECT")
-            ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-            if ret[0].find("Welcome") > -1:       return True
-            if ret[0].find("UniFi") > -1:         return True
-            if ret[0].find("Edge") > -1:          return True
-            if ret[0].find("BusyBox") > -1:       return True
-            if ret[0].find("Ubiquiti") > -1:      return True
-            if ret[0].find("ubnt") > -1:          return True
-            self.ML.myLog(text="\n==========="+ipNumber+"  ==> "+ ret[0],mType=u"testConnection") 
+            ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+            test = ret[0].lower()
+            tags = ["welcome","unifi","edge","busybox","ubiquiti","ubnt"]
+            for tag in tags:
+                if tag in test:  return True
+            self.ML.myLog(text="\n==========="+ipNumber+"  ssh response, tags "+unicode(tags)+" not found : ==> "+ test,mType=u"testConnection") 
         except  Exception, e:
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))

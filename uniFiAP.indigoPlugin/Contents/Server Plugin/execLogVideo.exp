@@ -23,7 +23,7 @@ expect "$promptOnServer" {}
 send "\n"
 
 sleep 0.1
-send "sudo tail -F  /var/lib/unifi-video/logs/motion.log\n"
+send "$command\n"
 expect "assword"
 send "$password\n"
 interact
