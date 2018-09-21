@@ -290,6 +290,16 @@
                         <TriggerLabel>blocked</TriggerLabel>
                         <ControlPageLabel>blocked</ControlPageLabel>
                   </State>
+                  <State id="useFixedIP">
+                        <ValueType>Boolean</ValueType>
+                        <TriggerLabel>useFixedIP</TriggerLabel>
+                        <ControlPageLabel>useFixedIP</ControlPageLabel>
+                  </State>
+                  <State id="firstSeen">
+                        <ValueType>String</ValueType>
+                        <TriggerLabel>firstSeen</TriggerLabel>
+                        <ControlPageLabel>firstSeen</ControlPageLabel>
+                  </State>
 
         </States>
     </Device>

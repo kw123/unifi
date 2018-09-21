@@ -2768,7 +2768,49 @@ class Plugin(indigo.PluginBase):
 
 ########  check if we have blocked/ unblocked devices 
     ####-----------------    ---------
-    def checkForBlockedClients(self):
+    def addFirstSeenToStates(self):
+        try:
+            if self.unifiCloudKeyMode!= "ON":                                                        return 
+            listOfClients={}
+            # get data from conroller 
+            data =    self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData")
+            if data == {}: 
+                self.ML.myLog( text="No data returned from controller",mType="addFirstSeenToStates" )
+                return
+            for client in data:
+                if len(client) ==0: continue
+                if "mac" not in client: continue
+                listOfClients[client["mac"]] = {}
+                if "first_seen" in client:
+                    try: listOfClients[client["mac"]]["first_seen"] = datetime.datetime.fromtimestamp(client["first_seen"]).strftime(u"%Y-%m-%d %H:%M:%S")
+                    except: pass
+                    
+                if "use_fixedip" in client:
+                        listOfClients[client["mac"]]["use_fixedip"] = client["use_fixedip"]
+                else:
+                        listOfClients[client["mac"]]["use_fixedip"] = False
+                        
+            #indigo.server.log("listOfBlockedClients  "+ unicode(listOfBlockedClients))
+            for dev in indigo.devices.iter("props.isUniFi"):
+                MAC = dev.states["MAC"]
+                if  MAC in listOfClients:
+                    if "first_seen" in listOfClients[MAC]:
+                        if "firstSeen" in dev.states and dev.states["firstSeen"] != listOfClients[MAC]["first_seen"]:
+                            dev.updateStateOnServer("firstSeen",listOfClients[MAC]["first_seen"])
+
+                    if "use_fixedip" in listOfClients[MAC]:
+                        if "useFixedIP" in dev.states and dev.states["useFixedIP"] != listOfClients[MAC]["use_fixedip"]:
+                            dev.updateStateOnServer("useFixedIP",listOfClients[MAC]["use_fixedip"])
+
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+
+        return
+
+########  check if we have blocked/ unblocked devices 
+    ####-----------------    ---------
+    def checkForBlockedClients(self, force= False):
         try:
             if self.unifiCloudKeyMode!= "ON":                                                        return 
             if time.time() - self.lastCheckForcheckForBlockedClients > self.unifigetBlockedClients : return 
@@ -2795,12 +2837,18 @@ class Plugin(indigo.PluginBase):
                     #indigo.server.log(dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC]))
                     if "blocked" in dev.states and dev.states["blocked"] !=listOfBlockedClients[MAC]:
                         dev.updateStateOnServer("blocked",listOfBlockedClients[MAC])
+                else:
+                    if force and dev.states[""]:
+                        if "blocked" in dev.states and dev.states["blocked"]:
+                            dev.updateStateOnServer("blocked",False)
 
         except  Exception, e:
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
         return
+
+                
 
                 
 
@@ -3612,7 +3660,8 @@ class Plugin(indigo.PluginBase):
 
         self.pluginState   = "run"
 
-        #self.checkForBlockedClients()
+        self.checkForBlockedClients(force=True)
+        self.addFirstSeenToStates()
 
         ###########  set up threads  ########
         
@@ -3790,7 +3839,7 @@ class Plugin(indigo.PluginBase):
                     
                         if lastHourCheck != datetime.datetime.now().hour:
                             lastHourCheck = datetime.datetime.now().hour
-
+                            self.addFirstSeenToStates()
                             self.saveupDownTimers()
                             if lastHourCheck ==1: # recycle at midnight 
                                 try:             
