@@ -111,6 +111,8 @@
     <Field    id="folderNameNeighbors"     type="textfield"  defaultValue="UNIFI_neighbors"    > <Label> .. new neighbors:</Label>  </Field>
 
 
+
+
     <Field id="simpleSeparatorCO" type="separator"/>
 
     <Field id="infoLabel217" type="label"> <Label>== Controller info (for controller commands):
@@ -143,6 +145,18 @@
         </List>
     </Field>
 
+    <Field    id="unifigetBlockedClients"       type="menu"  defaultValue="999999999"            > <Label>.. get (ub)blocked client info from Controller:</Label> 
+        <List>
+            <Option value="999999999" >off</Option>
+            <Option value="20" >every 20 secs</Option>
+            <Option value="30" >every 30 secs</Option>
+            <Option value="40" >every 40 secs</Option>
+            <Option value="50" >every 50 secs</Option>
+            <Option value="60" >every 60 secs</Option>
+            <Option value="90" >every 90 secs</Option>
+            <Option value="120" >every 120 secs</Option>
+        </List>
+    </Field>
 
     <Field id="simpleSeparator215" type="separator"/>
     <Field id="infoLabel215" type="label"> <Label>== Changes in the following section will restart the plugin:</Label>  </Field>

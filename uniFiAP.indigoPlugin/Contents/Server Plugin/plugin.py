@@ -51,7 +51,9 @@ class Plugin(indigo.PluginBase):
         #self.errorLog(self.indigoPath)
         #self.errorLog(self.pathToPlugin)
         #self.errorLog(self.pathToPlugin)
-        self.indigoVersion = int(self.indigoPath.strip("/")[-1:])
+        major, minor, release = map(int, indigo.server.version.split("."))
+        self.indigoVersion = major
+
         indigo.server.log(u"setting parameters for indigo version: >>"+unicode(self.indigoVersion)+u"<<")   
         self.pluginState        = "init"
         self.pluginVersion      = pluginVersion
@@ -235,6 +237,8 @@ class Plugin(indigo.PluginBase):
         self.unifiCONTROLLERUserID      = self.pluginPrefs.get(u"unifiCONTROLLERUserID", "")
         self.unifiCONTROLLERPassWd      = self.pluginPrefs.get(u"unifiCONTROLLERPassWd", "")
         self.pluginPrefs[u"createUnifiDevicesCounter"] =     int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))   
+        self.unifigetBlockedClients      = int(self.pluginPrefs.get(u"unifigetBlockedClients",999999999))   
+        self.lastCheckForcheckForBlockedClients     = time.time()
 
         self.listenStart                = {}
         self.unifiUserID                = self.pluginPrefs.get(u"unifiUserID", "")
@@ -543,7 +547,8 @@ class Plugin(indigo.PluginBase):
         self.loopSleep                              = float(valuesDict[u"loopSleep"])
         self.unifiCONTROLLERUserID                  = valuesDict[u"unifiCONTROLLERUserID"]
         self.unifiCONTROLLERPassWd                  = valuesDict[u"unifiCONTROLLERPassWd"]
-
+        try:    self.unifigetBlockedClients         =  int(valuesDict[u"unifigetBlockedClients"])
+        except: self.unifigetBlockedClients         = 999999999
         
         
         if self.unifiUserID  != valuesDict[u"unifiUserID"]:             rebootRequired += " unifiUserID changed;"
@@ -777,6 +782,7 @@ class Plugin(indigo.PluginBase):
             self.ML.myLog( text=u"unifi CONTROLLER Mode".ljust(30)     + unicode(self.unifiCloudKeyMode))
             self.ML.myLog( text=u"unifi CONTROLLER UserID".ljust(30)   + unicode(self.unifiCONTROLLERUserID))
             self.ML.myLog( text=u"unifi CONTROLLER PassWd".ljust(30)   + unicode(self.unifiCONTROLLERPassWd))
+            self.ML.myLog( text=u"unifi get blocked client info".ljust(30)   + unicode(self.unifigetBlockedClients))
             self.ML.myLog( text=u"logFile".ljust(30)                   + unicode(self.logFile))
             self.ML.myLog( text=u"enableFINGSCAN".ljust(30)            + unicode(self.enableFINGSCAN))
             self.ML.myLog( text=u"enableBroadCastEvents".ljust(30)     + unicode(self.enableBroadCastEvents))
@@ -2758,6 +2764,47 @@ class Plugin(indigo.PluginBase):
 
 ######## set leds on /off  END 
 
+
+
+########  check if we have blocked/ unblocked devices 
+    ####-----------------    ---------
+    def checkForBlockedClients(self):
+        try:
+            if self.unifiCloudKeyMode!= "ON":                                                        return 
+            if time.time() - self.lastCheckForcheckForBlockedClients > self.unifigetBlockedClients : return 
+            listOfBlockedClients={}
+            # get data from conroller 
+            data =    self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData")
+            if data == {}: 
+                self.ML.myLog( text="No data returned from controller",mType="BlockedClients" )
+                return
+            #indigo.server.log(unicode(data)[0:100])
+            for client in data:
+                if len(client) ==0: continue
+                #indigo.server.log(unicode(client)[0:100])
+                if "mac" not in client: continue
+                if "blocked" in client:
+                    listOfBlockedClients[client["mac"]] = client["blocked"]
+                    #indigo.server.log(unicode(client))
+                    
+
+            #indigo.server.log("listOfBlockedClients  "+ unicode(listOfBlockedClients))
+            for dev in indigo.devices.iter("props.isUniFi"):
+                MAC = dev.states["MAC"]
+                if  MAC in listOfBlockedClients:
+                    #indigo.server.log(dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC]))
+                    if "blocked" in dev.states and dev.states["blocked"] !=listOfBlockedClients[MAC]:
+                        dev.updateStateOnServer("blocked",listOfBlockedClients[MAC])
+
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+
+        return
+
+                
+
+
 ########  check if we have new unifi system devces, if yes: litt basic variables and request a reboot 
     ####-----------------    ---------
     def checkForNewUnifiSystemDevices(self):
@@ -3565,6 +3612,8 @@ class Plugin(indigo.PluginBase):
 
         self.pluginState   = "run"
 
+        #self.checkForBlockedClients()
+
         ###########  set up threads  ########
         
                 ### start video logfile listening     
@@ -3653,7 +3702,6 @@ class Plugin(indigo.PluginBase):
             pass
                
 
-
     ################   ------- here the loop starts    --------------
         indigo.server.log( u"initialized")
         try:    indigo.server.savePluginPrefs()
@@ -3715,10 +3763,14 @@ class Plugin(indigo.PluginBase):
                 if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
                 
                 if len(self.blockAccess)>0:  del self.blockAccess[0]
+
+                self.checkForBlockedClients()
+
             
                 if lastMinuteCheck != datetime.datetime.now().minute: 
                     lastMinuteCheck = datetime.datetime.now().minute
                     self.statusChanged = max(1,self.statusChanged)
+                    self.checkForBlockedClients()
 
                     if self.VIDEOEnabled and self.vmMachine !="":
                         if  "VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command

@@ -285,6 +285,11 @@
                         <TriggerLabel>SW_Port</TriggerLabel>
                         <ControlPageLabel>SW_Port</ControlPageLabel>
                   </State>
+                  <State id="blocked">
+                        <ValueType>Boolean</ValueType>
+                        <TriggerLabel>blocked</TriggerLabel>
+                        <ControlPageLabel>blocked</ControlPageLabel>
+                  </State>
 
         </States>
     </Device>
