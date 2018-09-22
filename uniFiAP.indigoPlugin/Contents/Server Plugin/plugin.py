@@ -2812,8 +2812,9 @@ class Plugin(indigo.PluginBase):
     ####-----------------    ---------
     def checkForBlockedClients(self, force= False):
         try:
-            if self.unifiCloudKeyMode!= "ON":                                                        return 
-            if time.time() - self.lastCheckForcheckForBlockedClients > self.unifigetBlockedClients : return 
+            if self.unifiCloudKeyMode!= "ON":                                                                     return 
+            if time.time() - self.lastCheckForcheckForBlockedClients < self.unifigetBlockedClients and not force: return 
+            self.lastCheckForcheckForBlockedClients = time.time()
             listOfBlockedClients={}
             # get data from conroller 
             data =    self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData")
@@ -2834,11 +2835,12 @@ class Plugin(indigo.PluginBase):
             for dev in indigo.devices.iter("props.isUniFi"):
                 MAC = dev.states["MAC"]
                 if  MAC in listOfBlockedClients:
-                    #indigo.server.log(dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC]))
-                    if "blocked" in dev.states and dev.states["blocked"] !=listOfBlockedClients[MAC]:
-                        dev.updateStateOnServer("blocked",listOfBlockedClients[MAC])
+                    if "blocked" in dev.states:
+                        #indigo.server.log(dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC])+"  "+unicode(dev.states["blocked"]))
+                        if dev.states["blocked"] != listOfBlockedClients[MAC]:
+                            dev.updateStateOnServer("blocked",listOfBlockedClients[MAC])
                 else:
-                    if force and dev.states[""]:
+                    if force:
                         if "blocked" in dev.states and dev.states["blocked"]:
                             dev.updateStateOnServer("blocked",False)
 
