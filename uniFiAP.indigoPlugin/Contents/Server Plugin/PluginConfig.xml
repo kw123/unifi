@@ -416,6 +416,7 @@
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
     <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (9) BroadCast:</Label>  </Field>
     <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (10) Ping WOL:</Label>  </Field>
+    <Field    id="Special"          type="checkbox"  defaultValue="false"   > <Label>... (11) Special debug for development:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
     <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
         <List>

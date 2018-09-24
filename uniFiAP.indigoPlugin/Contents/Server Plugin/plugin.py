@@ -127,6 +127,7 @@ class Plugin(indigo.PluginBase):
         if self.pluginPrefs.get(u"debugFing", False):            self.debugLevel.append("Fing")
         if self.pluginPrefs.get(u"debugBC", False):              self.debugLevel.append("BC")
         if self.pluginPrefs.get(u"debugPing", False):            self.debugLevel.append("Ping")
+        if self.pluginPrefs.get(u"Special", False):              self.debugLevel.append("Special")
         if self.pluginPrefs.get(u"debugall", False):             self.debugLevel.append("all")
         self.logFileActive          = self.pluginPrefs.get("logFilePath", "no")
         if self.logFileActive =="no":
@@ -596,6 +597,7 @@ class Plugin(indigo.PluginBase):
         if valuesDict[u"debugVideo"]:           self.debugLevel.append("Video")
         if valuesDict[u"debugFing"]:            self.debugLevel.append("Fing")
         if valuesDict[u"debugPing"]:            self.debugLevel.append("Ping")
+        if valuesDict[u"Special"]:              self.debugLevel.append("Special")
         if valuesDict[u"debugall"]:             self.debugLevel.append("all")
 
         for TT in[u"AP",u"GW",u"SW"]:
@@ -2777,6 +2779,7 @@ class Plugin(indigo.PluginBase):
             if data == {}: 
                 self.ML.myLog( text="No data returned from controller",mType="addFirstSeenToStates" )
                 return
+            if self.ML.decideMyLog(u"Special"): self.ML.myLog( text="data[0:200]: " +unicode(data)[0:200],mType=u"addFirstSeenToStates")
             for client in data:
                 if len(client) ==0: continue
                 if "mac" not in client: continue
@@ -2790,7 +2793,7 @@ class Plugin(indigo.PluginBase):
                 else:
                         listOfClients[client["mac"]]["use_fixedip"] = False
                         
-            #indigo.server.log("listOfBlockedClients  "+ unicode(listOfBlockedClients))
+            if self.ML.decideMyLog(u"Special"): self.ML.myLog( text="listOfClients: " +unicode(listOfClients),mType=u"addFirstSeenToStates")
             for dev in indigo.devices.iter("props.isUniFi"):
                 MAC = dev.states["MAC"]
                 if  MAC in listOfClients:
@@ -2821,27 +2824,27 @@ class Plugin(indigo.PluginBase):
             if data == {}: 
                 self.ML.myLog( text="No data returned from controller",mType="BlockedClients" )
                 return
-            #indigo.server.log(unicode(data)[0:100])
+            if self.ML.decideMyLog(u"Special"): self.ML.myLog( text="data[0:200]: " +unicode(data)[0:200],mType=u"checkForBlockedClients")
             for client in data:
                 if len(client) ==0: continue
                 #indigo.server.log(unicode(client)[0:100])
                 if "mac" not in client: continue
                 if "blocked" in client:
                     listOfBlockedClients[client["mac"]] = client["blocked"]
-                    #indigo.server.log(unicode(client))
-                    
+                    if self.ML.decideMyLog(u"Special"): self.ML.myLog( text="client: " +unicode(client),mType=u"checkForBlockedClients")
 
-            #indigo.server.log("listOfBlockedClients  "+ unicode(listOfBlockedClients))
+            if self.ML.decideMyLog(u"Special"): self.ML.myLog( text="listOfBlockedClients: " +unicode(listOfBlockedClients),mType=u"checkForBlockedClients")
             for dev in indigo.devices.iter("props.isUniFi"):
                 MAC = dev.states["MAC"]
                 if  MAC in listOfBlockedClients:
                     if "blocked" in dev.states:
-                        #indigo.server.log(dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC])+"  "+unicode(dev.states["blocked"]))
+                        if self.ML.decideMyLog(u"Special"): self.ML.myLog( text=dev.name+" "+MAC +"  "+unicode(listOfBlockedClients[MAC])+"  "+unicode(dev.states["blocked"]),mType=u"checkForBlockedClients")
                         if dev.states["blocked"] != listOfBlockedClients[MAC]:
                             dev.updateStateOnServer("blocked",listOfBlockedClients[MAC])
                 else:
                     if force:
                         if "blocked" in dev.states and dev.states["blocked"]:
+                            if self.ML.decideMyLog(u"special"): self.ML.myLog( text=dev.name+" "+MAC +" not in list, setting to not blocked",mType=u"checkForBlockedClients")
                             dev.updateStateOnServer("blocked",False)
 
         except  Exception, e:
@@ -6589,8 +6592,10 @@ class Plugin(indigo.PluginBase):
             ##########  do gateway params  ###
             #indigo.server.log(" GW dict if_table:"+json.dumps(gwDict, sort_keys=True, indent=2 ) )
 
-            if "if_table"          not in gwDict: return
-            if "config_port_table" not in gwDict: return
+            if "if_table"             not in gwDict: return
+            if    "config_port_table"     in gwDict: table = "config_port_table"
+            elif  "config_network_ports"  in gwDict: table = "config_network_ports"
+            else:                                    return
 
             #  get lan info ------
             ipNDevice   = ""
@@ -6602,15 +6607,30 @@ class Plugin(indigo.PluginBase):
                 ipNDevice = self.fixIP(gwDict["connect_request_ip"])
             if ipNDevice =="": return 
 
-            for xx in range(len(gwDict["config_port_table"])):
-                if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="lan":
-                    ifnameLAN = gwDict["config_port_table"][xx]["ifname"]
-                    if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameLAN:
-                        lan = gwDict[u"if_table"][xx]
-                if "name" in gwDict["config_port_table"][xx] and gwDict["config_port_table"][xx]["name"] =="wan":
-                    ifnameWAN = gwDict["config_port_table"][xx]["ifname"]
-                    if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
-                        wan = gwDict[u"if_table"][xx]
+
+            if table =="config_network_ports":
+                    if "LAN" in gwDict[table]:
+                        ifnameLAN = gwDict[table]["LAN"]
+                        for xx in range(len(gwDict[u"if_table"])):
+                            if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameLAN:
+                                lan = gwDict[u"if_table"][xx]
+                    if "WAN" in gwDict[table]:
+                        ifnameWAN = gwDict[table]["WAN"]
+                        for xx in range(len(gwDict[u"if_table"])):
+                            if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+                                wan = gwDict[u"if_table"][xx]
+
+            elif table =="config_port_table":
+                for xx in range(len(gwDict[table])):
+                    if "name" in gwDict[table][xx] and gwDict[table][xx]["name"].lower() == "lan":
+                        ifnameLAN = gwDict[table][xx]["ifname"]
+                        if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameLAN:
+                            lan = gwDict[u"if_table"][xx]
+                    if "name" in gwDict[table][xx] and gwDict[table][xx]["name"].lower() =="wan":
+                        ifnameWAN = gwDict[table][xx]["ifname"]
+                        if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+                            wan = gwDict[u"if_table"][xx]
+            else: return 
 
 #            indigo.server.log("wan" + unicode(wan) )
 #            indigo.server.log("lan" + unicode(lan) )
@@ -6662,7 +6682,8 @@ class Plugin(indigo.PluginBase):
             else:                           wanUpload      = ""
             if "nameservers" in wan:        nameservers = "-".join(wan[u"nameservers"])
             else:                           nameservers = "-"
-            if "speedtest_lastrun" in wan:  wanRunDate     = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S") + u"[UTC]"
+            if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
+                                            wanRunDate     = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S") + u"[UTC]"
             else:                           wanRunDate     = ""
 
             if MAC =="": return 
