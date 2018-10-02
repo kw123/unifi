@@ -31,7 +31,7 @@
         <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
-                <Label>Select UniFi-CLient:</Label>
+                <Label>Select UniFi-Client:</Label>
                 <List class="self" filter="" method="filterUnifiClient"  dynamicReload="no"/>
             </Field>
             <Field    id="onOffCycle" type="menu" tooltip="" >
@@ -50,7 +50,7 @@
         <CallbackMethod>buttonConfirmReconnectCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select UniFi-CLient Wifi device:</Label>
+                <Label>select UniFi-Client Wifi device:</Label>
                 <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
@@ -60,23 +60,23 @@
 
 
     <Action id="blockDevice">
-        <Name>Block  a device / client</Name>
+        <Name>Block  a device / Client</Name>
         <CallbackMethod>buttonConfirmBlockCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select UniFi-CLient device::</Label>
-                <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
+                <Label>select UniFi-Client device::</Label>
+                <List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
     </Action>
 
     <Action id="unblockDevice">
-        <Name>UN-Block  a device / client</Name>
+        <Name>UN-Block  a device / Client</Name>
         <CallbackMethod>buttonConfirmUnBlockCALLBACKaction</CallbackMethod> 
         <ConfigUI>
             <Field     id="selectedDevice" type="menu" defaultValue="0">
-                <Label>select UniFi-CLient device::</Label>
-                <List class="self" filter="" method="filterWiFiDevice"  dynamicReload="no"/>
+                <Label>select UniFi-Client device::</Label>
+                <List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
             </Field>
         </ConfigUI>
     </Action>

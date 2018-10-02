@@ -6603,6 +6603,25 @@ class Plugin(indigo.PluginBase):
             MAC         = ""
             wan         = ""
             lan         = ""
+            publicIP    = ""
+            model       = ""
+            cpuPercent  = ""
+            memPercent  = ""
+            temperature = ""
+            MAC         = ""
+            gateways    = ""
+            MAClan      = ""
+            wanUP       = ""
+            wanPingTime = ""
+            wanLatency  = ""
+            wanDownload = ""
+            wanUpload   = ""
+            nameservers = "-"
+            wanRunDate  = ""
+            wanUpTime   = ""
+            gateways    = "-"
+            wanUpTime   = ""
+
             if "connect_request_ip" in gwDict:
                 ipNDevice = self.fixIP(gwDict["connect_request_ip"])
             if ipNDevice =="": return 
@@ -6641,50 +6660,45 @@ class Plugin(indigo.PluginBase):
             if lan == "": return 
             
 
-            if "ip" in wan:                 publicIP    = wan[u"ip"].split("/")[0]
-            else:                           publicIP    = ""
+            if "ip" in wan:    publicIP    = wan[u"ip"].split("/")[0]
             if "uptime" in wan:             
                 try:    
-                    wanUpTime =""
                     xx = unicode(datetime.timedelta(seconds=wan[u"uptime"])).replace(" days","").split(",")
                     if len(xx) ==2:
                         wanUpTime = xx[0]+"d "
                         yy = xx[1].split(":")
                         if len(yy) >1:
                             wanUpTime += yy[0]+"h " +yy[1]+"m"
-                        else: wanUpTime =""
                     if len(xx) ==1:
                         yy = xx[0].split(":")
                         if len(yy) >1:
                             wanUpTime += yy[0]+"h " +yy[1]+"m"
-                except: wanUpTime   = ""
-            else:                           wanUpTime   = ""
+                except: pass
+
             if "mac" in wan:                MAC         = wan[u"mac"]
-            else:                           MAC         = ""
             if "gateways" in wan:           gateways    = "-".join(wan[u"gateways"])
-            else:                           gateways    = "-"
             if "model_display" in gwDict:   model       = gwDict[u"model_display"]
             else:                           
                 self.ML.myLog( text=u"model_display not in dict doGatewaydict") 
-                model = ""
-            if "mac" in lan:                MAClan      = lan[u"mac"]
-            else:                           MAClan      = ""
+                
+            if "system-stats" in gwDict:
+                sysStats = gwDict["system-stats"]
+                if "cpu" in sysStats: cpuPercent= sysStats["cpu"]
+                if "mem" in sysStats: memPercent= sysStats["mem"]
+                if "temps" in sysStats: 
+                    for key,value in sysStats["temps"].iteritems():
+                        temperature +=key+":"+value+";"
+                    temperature = temperature.strip(":")
 
-            if "up" in wan:                 wanUP       = "up" if wan[u"up"] else "down"
-            else:                           wanUP       = ""
-            if "speedtest_ping" in wan:     wanPingTime    = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
-            else:                           wanPingTime    = ""
-            if "latency" in wan:            wanLatency  = "%4.1f" % wan[u"latency"] + u"[ms]"
-            else:                           wanLatency  = ""
-            if "xput_down" in wan:          wanDownload    = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
-            else:                           wanDownload    = ""
-            if "xput_up" in wan:            wanUpload      = "%4.1f" % wan[u"xput_up"] + u"[Mb/S]"
-            else:                           wanUpload      = ""
-            if "nameservers" in wan:        nameservers = "-".join(wan[u"nameservers"])
-            else:                           nameservers = "-"
             if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
                                             wanRunDate     = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S") + u"[UTC]"
-            else:                           wanRunDate     = ""
+            if "mac" in lan:                MAClan         = lan[u"mac"]
+            if "up" in wan:                 wanUP          = "up" if wan[u"up"] else "down"
+            if "speedtest_ping" in wan:     wanPingTime    = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
+            if "latency" in wan:            wanLatency     = "%4.1f" % wan[u"latency"] + u"[ms]"
+            if "xput_down" in wan:          wanDownload    = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
+            if "xput_up" in wan:            wanUpload      = "%4.1f" % wan[u"xput_up"] + u"[Mb/S]"
+            if "nameservers" in wan:        nameservers    = "-".join(wan[u"nameservers"])
 
             if MAC =="": return 
 
@@ -6747,7 +6761,12 @@ class Plugin(indigo.PluginBase):
                         self.addToStatesUpdateList(unicode(dev.id),u"MAC", MAC)
                     if dev.states[u"model"] != model and model != "":
                         self.addToStatesUpdateList(unicode(dev.id),u"model", model)
-
+                    if dev.states[u"temperature"] != temperature and temperature != "":
+                        self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
+                    if dev.states[u"memPercent"] != cpuPercent and memPercent != "":
+                        self.addToStatesUpdateList(unicode(dev.id),u"memPercent", memPercent)
+                    if dev.states[u"cpuPercent"] != cpuPercent and cpuPercent != "":
+                        self.addToStatesUpdateList(unicode(dev.id),u"cpuPercent", cpuPercent)
 
 
                     self.setStatusUpForSelfUnifiDev(MAC)
