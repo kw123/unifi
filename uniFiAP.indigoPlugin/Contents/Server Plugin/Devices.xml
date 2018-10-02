@@ -441,21 +441,6 @@
                     <TriggerLabel>groupMember</TriggerLabel>
                     <ControlPageLabel>groupMember</ControlPageLabel>
               </State>
-              <State id="cpuPercent">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>cpuPercent</TriggerLabel>
-                    <ControlPageLabel>cpuPercent</ControlPageLabel>
-              </State>
-              <State id="memPercent">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>memPercent</TriggerLabel>
-                    <ControlPageLabel>memPercent</ControlPageLabel>
-              </State>
-              <State id="temperature">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>temperature</TriggerLabel>
-                    <ControlPageLabel>temperature</ControlPageLabel>
-              </State>
               <State id="model">
                     <ValueType>String</ValueType>
                     <TriggerLabel>model</TriggerLabel>
