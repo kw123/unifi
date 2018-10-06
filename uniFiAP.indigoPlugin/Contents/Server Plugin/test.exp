@@ -2,19 +2,19 @@ set userID [lindex $argv 0 ]
 set password [lindex $argv 1 ] 
 set ipNumber [lindex $argv 2 ] 
 
-set timeout 15
+set timeout 10
 spawn  ssh $userID@$ipNumber
 expect {
-    "(yes/no)? " {
-        send "yes\n"
-        sleep 0.1
-        expect "assword" { send "$password\n"}
+    "(yes/no)? " {send "yes\r"  
+        expect "assword" { send "$password\n"} 
     }
-    "assword: " {
-        send "$password\n"
+    "assword:"    {  send "$password\r"
+        expect {
+            ":"     { send "exit\r" 
+                    }
+            "refused"     {  exit 1  }
+             "denied"     {  exit 2  }   
+        }
     }
 }
-
-send "exit\r"
-sleep 0.1
 expect eof

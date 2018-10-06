@@ -47,7 +47,7 @@
             <Field id="simpleSeparatorS" type="separator"/>
 
             <Field    id="confirm0" type="button" tooltip="" >
-                <Label>Get _id into dev state ap_id  </Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
+                <Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
             </Field>
             <Field id="simpleSeparator0" type="separator"/>
 
@@ -212,7 +212,7 @@
         <Name>CAMERA Info and Settings, actions</Name>
         <ConfigUI>
             <Field     id="maxEvents" type="menu" defaultValue="10">
-                <Label>Print, max number of events:</Label>
+                <Label>Print  .....   max number of events:</Label>
                  <List>
                     <Option value="5"     >5</Option>
                     <Option value="10"    >10</Option>
@@ -227,20 +227,116 @@
             <Field    id="confirmSprint" type="button" tooltip="" >
                 <Label>Click to</Label><Title>PRINT</Title><CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparator1" type="separator"/>
-            <Field id="printLab1" type="label"> <Label>Reset stored camera event # to 0, ie if yo have replaced or initialized a camera:</Label>  </Field>
-            <Field    id="resetCamevents" type="button" tooltip="" >
-                <Label>Click to </Label><Title>RESET</Title><CallbackMethod>buttonresetCameraEventsCALLBACK</CallbackMethod>
-            </Field>
-            <Field id="simpleSeparator2" type="separator"/>
-            <Field id="printsyslabel" type="label"> <Label>Print camera server system info:</Label>  </Field>
+            <Field id="printsyslabel" type="label"> <Label> ..... camera + NVR server system info:</Label>  </Field>
             <Field    id="printCamarasysinfo" type="button" tooltip="" >
                 <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraSystemCALLBACK</CallbackMethod>
             </Field>
-            <Field id="simpleSeparator3" type="separator"/>
-            <Field id="printcamlabel" type="label"> <Label>Print camera config and info:</Label>  </Field>
-            <Field    id="printCamarainfo" type="button" tooltip="" >
-                <Label>Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraCALLBACK</CallbackMethod>
+            <Field id="simpleSeparator2" type="separator"/>
+            <Field id="resetCameventsLab1" type="label"> <Label>Reset stored camera event # to 0, ie if yo have replaced or initialized a camera:</Label>  </Field>
+
+
+            <Field    id="resetCamevents" type="button" tooltip="" >
+                <Label>Click to </Label><Title>RESET</Title><CallbackMethod>buttonresetCameraEventsCALLBACK</CallbackMethod>
+            </Field>
+            <Field id="simpleSeparator50" type="separator"/>
+
+
+
+            <Field id="sendcmdtoCameraNVR" type="label"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
+            <Field    id="cameraCmd" type="checkbox"  defaultValue="false"  > <Label>Show Camera commands:</Label>  </Field>
+            <Field    id="retCodeCam" type="textfield"  defaultValue="" visibleBindingId="cameraCmd" visibleBindingValue="true" > <Label>ret code from plugin:</Label>  </Field>
+
+            <Field     id="cameraDeviceSelected" type="menu" defaultValue="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>select camera device:</Label>
+                <List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
+            </Field>
+            <Field id="sendEDONLab1" type="label" visibleBindingId="cameraCmd" visibleBindingValue="true"> <Label>led on:</Label>  </Field>
+            <Field     id="camLED" type="menu" defaultValue="0" visibleBindingId="cameraCmd" visibleBindingValue="true" >
+                <Label>LED set ON off:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="1"    >ON</Option>
+                 </List>
+            </Field>
+            <Field    id="sendLEDtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true" >
+                <Label>Click to </Label><Title>SET LED</Title><CallbackMethod>buttonSendCommandToNVRLEDCALLBACK</CallbackMethod>
+            </Field>
+            <Field     id="camRecord" type="menu" defaultValue="0" visibleBindingId="cameraCmd" visibleBindingValue="true" >
+                <Label>Camera record on motion  ON off:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="1"    >ON</Option>
+                 </List>
+            </Field>
+            <Field     id="camRecordChannel" type="menu" defaultValue="0" visibleBindingId="cameraCmd" visibleBindingValue="true" >
+                <Label> ... w resolution:</Label>
+                 <List>
+                    <Option value="2"    >2 low res</Option>
+                    <Option value="1"    >1 med res</Option>
+                    <Option value="0"    >0 high res</Option>
+                 </List>
+            </Field>
+            <Field    id="sendrecordtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Click to </Label><Title>SET Recording</Title><CallbackMethod>buttonSendCommandToNVRRecordCALLBACK</CallbackMethod>
+            </Field>
+            <Field     id="camSounds" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>system Sounds Enabled  ON off:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="1"    >ON</Option>
+                 </List>
+            </Field>
+            <Field    id="sendsoundstoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Click to </Label><Title>SET SOUND</Title><CallbackMethod>buttonSendCommandToNVRSoundsCALLBACK</CallbackMethod>
+            </Field>
+            <Field     id="enableSpeaker" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Speaker Enabled  ON off:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="1"    >ON</Option>
+                 </List>
+            </Field>
+            <Field    id="sendenableSpeakertoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Click to </Label><Title>SET SPEAKER</Title><CallbackMethod>buttonSendCommandToNVRenableSpeakerCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field     id="micVolume" type="menu" defaultValue="0" visibleBindingId="cameraCmd" visibleBindingValue="true" >
+                <Label>Mic Volume:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="10"   >10</Option>
+                    <Option value="20"   >20</Option>
+                    <Option value="30"   >30</Option>
+                    <Option value="40"   >40</Option>
+                    <Option value="50"   >50</Option>
+                    <Option value="60"   >60</Option>
+                    <Option value="70"   >70</Option>
+                    <Option value="80"   >80</Option>
+                    <Option value="90"   >90</Option>
+                    <Option value="100"  >100</Option>
+                 </List>
+            </Field>
+            <Field    id="sendmicVolumetoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Click to </Label><Title>SET Mic Vol</Title><CallbackMethod>buttonSendCommandToNVRmicVolumeCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field     id="enableExternalIr" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>IR Enabled  ON off:</Label>
+                 <List>
+                    <Option value="0"    >off</Option>
+                    <Option value="1"    >ON</Option>
+                 </List>
+            </Field>
+            <Field    id="sendIRtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>Click to </Label><Title>SET IR</Title><CallbackMethod>buttonSendCommandToNVRIRCALLBACK</CallbackMethod>
+            </Field>
+
+
+
+            <Field id="simpleSeparator30" type="separator"/>
+            <Field id="refreshCamconfigLab1" type="label"> <Label>(Re)-load config from NVR into indigo:</Label>  </Field>
+            <Field    id="refreshCamconfig" type="button" tooltip="" >
+                <Label>Click to </Label><Title>REFRESH</Title><CallbackMethod>buttonrefreshCameraSystemCALLBACK</CallbackMethod>
             </Field>
             <Field id="simpleSeparator31" type="separator"/>
             <Field    id="stopVideoservice" type="button" tooltip="sends   service unifi-video stop  to unix box" >

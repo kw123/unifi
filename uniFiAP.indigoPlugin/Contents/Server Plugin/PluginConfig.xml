@@ -5,6 +5,8 @@
 
     <Field id="simpleSeparator22" type="separator"/>
     <Field id="infoLabel22" type="label"> <Label>== General Parameters for Plugin </Label>  </Field>
+    <Field id="infoLabel23" type="label"> <Label>.   userids and passwords are used with quotes: 'userid' when calling external programs</Label>  </Field>
+    <Field id="infoLabel24" type="label"> <Label>-----------------</Label>  </Field>
 
     <Field    id="updateDescriptions"   type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
         <Label>update notes/description field (every time data received)</Label>
@@ -321,20 +323,31 @@
     <Field    id="ipSWON9" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 9 active:</Label>  </Field>
     <Field    id="ipSW9"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 9:</Label>  </Field>
     <Field    id="ipSWON10" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 10 active:</Label>  </Field>
-    <Field    id="ipSW10"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 10:</Label>  </Field>
+    <Field    id="ipSW10"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 10:</Label>  </Field>
 
 
 
 
 
     <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Enable Video  ..............................................................:</Label>  </Field>
-    <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR: </Label>  </Field>
+    <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR:</Label>  </Field>
 
-    <Field    id="unifiVIDEOUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+
+    <Field    id="unifiWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>..UserID for UniFi VIDEO web login(empty=off):</Label>
+    </Field>
+    <Field    id="unifiWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>..Password for UniFi VIDEO web login:</Label>
+    </Field>
+
+    <Field    id="unifiUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..UserID for UniFi VIDEO unix box(empty=off):</Label>
     </Field>
-    <Field    id="unifiVIDEOPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="unifiUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Password for UniFi VIDEO unix box:</Label>
+    </Field>
+    <Field    id="unifiVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+        <Label>..api key to access cameras(get in edit user on NVR):</Label>
     </Field>
     <Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Prompt for UniFi VIDEO unix box:</Label>

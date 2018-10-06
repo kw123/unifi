@@ -7,7 +7,7 @@
         <Name>UniFi</Name>
         <UiDisplayStateId>displayStatus</UiDisplayStateId>
         <ConfigUI>
-            <Field id="isUnifi"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
+            <Field id="isUniFi"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
             <Field    id="label0" 			  type="label" >
                 <Label>configure UP and DOWN choices for device</Label>
             </Field>
@@ -350,10 +350,20 @@
                     <TriggerLabel>ip</TriggerLabel>
                     <ControlPageLabel>ip</ControlPageLabel>
               </State>
+              <State id="name">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>name</TriggerLabel>
+                    <ControlPageLabel>name</ControlPageLabel>
+              </State>
               <State id="uuid">
                     <ValueType>string</ValueType>
                     <TriggerLabel>uuid</TriggerLabel>
                     <ControlPageLabel>uuid</ControlPageLabel>
+              </State>
+              <State id="apiKey">
+                    <ValueType>string</ValueType>
+                    <TriggerLabel>apiKey</TriggerLabel>
+                    <ControlPageLabel>apiKey</ControlPageLabel>
               </State>
               <State id="eventJpeg">
                     <ValueType>string</ValueType>
@@ -550,6 +560,156 @@
                     <ValueType>String</ValueType>
                     <TriggerLabel>wan</TriggerLabel>
                     <ControlPageLabel>wan</ControlPageLabel>
+              </State>
+
+
+        </States>
+    </Device>
+
+
+    <Device type="custom" id="NVR">
+        <Name>NVR-video</Name>
+        <UiDisplayStateId>displayStatus</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="isNVR"     type="checkbox"     defaultValue="true" hidden="yes"> </Field>
+               <Field    id="expirationTime"       type="menu"  defaultValue="90"
+                          tooltip=" overwrites common expiration time set in config ">
+                    <Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
+                    <List>
+                        <Option value="1"    > 1  seconds (for testing)</Option>
+                        <Option value="10"   >10  seconds (for testing)</Option>
+                        <Option value="20"   >20  seconds (for testing)</Option>
+                        <Option value="30"   >30  seconds </Option>
+                        <Option value="40"   >40  seconds </Option>
+                        <Option value="60"   >60  seconds </Option>
+                        <Option value="90"   >90  seconds (default)</Option>
+                        <Option value="120"  > 2  minutes</Option>
+                        <Option value="180"  > 3  minutes</Option>
+                        <Option value="240"  > 4  minutes</Option>
+                        <Option value="300"  > 5  minutes</Option>
+                        <Option value="360"  > 6  minutes</Option>
+                        <Option value="420"  > 7  minutes</Option>
+                        <Option value="490"  > 8  minutes</Option>
+                        <Option value="540"  > 9  minutes</Option>
+                        <Option value="600"  >10  minutes</Option>
+                        <Option value="-1"   >use common expiration time</Option>
+                    </List>
+                </Field>
+            <Field id="unifi-sep-03" type="separator"/>
+
+            <Field   id="enableBroadCastEvents"  type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+                <Label>:send broadcasts to other plugins for status up/x changes</Label>
+                <List>
+                    <Option value="0" >NO </Option>
+                    <Option value="1" >YES send BC, must be enabled in config  </Option>
+                </List>
+            </Field>
+            <Field id="Group0" type="checkbox"   defaultValue="false"> <Label>Member of group0:</Label>  </Field>
+            <Field id="Group1" type="checkbox"   defaultValue="false"> <Label>Member of group1:</Label>  </Field>
+            <Field id="Group2" type="checkbox"   defaultValue="false"> <Label>Member of group2:</Label>  </Field>
+            <Field id="Group3" type="checkbox"   defaultValue="false"> <Label>Member of group3:</Label>  </Field>
+            <Field id="Group4" type="checkbox"   defaultValue="false"> <Label>Member of group5:</Label>  </Field>
+            <Field id="Group6" type="checkbox"   defaultValue="false"> <Label>Member of group6:</Label>  </Field>
+            <Field id="Group7" type="checkbox"   defaultValue="false"> <Label>Member of group7:</Label>  </Field>
+            <Field id="Group8" type="checkbox"   defaultValue="false"> <Label>Member of group8:</Label>  </Field>
+            <Field id="Group9" type="checkbox"   defaultValue="false"> <Label>Member of group9:</Label>  </Field>
+        </ConfigUI>
+
+        <States>
+              <State id="status">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>status</TriggerLabel>
+                    <ControlPageLabel>status</ControlPageLabel>
+              </State>
+              <State id="displayStatus">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>displayStatus</TriggerLabel>
+                    <ControlPageLabel>displayStatus</ControlPageLabel>
+              </State>
+              <State id="groupMember">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>groupMember</TriggerLabel>
+                    <ControlPageLabel>groupMember</ControlPageLabel>
+              </State>
+              <State id="cpuLoad">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>cpu</TriggerLabel>
+                    <ControlPageLabel>cpu</ControlPageLabel>
+              </State>
+              <State id="dirName">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>dirName</TriggerLabel>
+                    <ControlPageLabel>dirName</ControlPageLabel>
+              </State>
+              <State id="memoryUsed">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>memoryUsed</TriggerLabel>
+                    <ControlPageLabel>memoryUsed</ControlPageLabel>
+              </State>
+              <State id="diskAvail">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>diskAvail</TriggerLabel>
+                    <ControlPageLabel>diskAvail</ControlPageLabel>
+              </State>
+              <State id="diskUsed">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>diskUsed</TriggerLabel>
+                    <ControlPageLabel>diskUsed</ControlPageLabel>
+              </State>
+              <State id="rtspPort">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>rtspPort</TriggerLabel>
+                    <ControlPageLabel>rtspPort</ControlPageLabel>
+              </State>
+              <State id="rtmpsPort">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>rtmpsPort</TriggerLabel>
+                    <ControlPageLabel>rtmpsPort</ControlPageLabel>
+              </State>
+              <State id="rtmpPort">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>rtmpPort</TriggerLabel>
+                    <ControlPageLabel>rtmpPort</ControlPageLabel>
+              </State>
+              <State id="ipNumber">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>ipNumber</TriggerLabel>
+                    <ControlPageLabel>ipNumber</ControlPageLabel>
+              </State>
+              <State id="lastStatusChange">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>lastStatusChange</TriggerLabel>
+                    <ControlPageLabel>lastStatusChange</ControlPageLabel>
+              </State>
+              <State id="MAC">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>MAC</TriggerLabel>
+                    <ControlPageLabel>MAC</ControlPageLabel>
+              </State>
+              <State id="unifiWebUserID">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>unifiWebUserID</TriggerLabel>
+                    <ControlPageLabel>unifiWebUserID</ControlPageLabel>
+              </State>
+              <State id="apiKey">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>apiKey</TriggerLabel>
+                    <ControlPageLabel>apiKey</ControlPageLabel>
+              </State>
+              <State id="apiAccess">
+                    <ValueType>Boolean</ValueType>
+                    <TriggerLabel>apiAccess</TriggerLabel>
+                    <ControlPageLabel>apiAccess</ControlPageLabel>
+              </State>
+              <State id="created">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>created</TriggerLabel>
+                    <ControlPageLabel>created</ControlPageLabel>
+              </State>
+              <State id="upSince">
+                    <ValueType>String</ValueType>
+                    <TriggerLabel>upSince</TriggerLabel>
+                    <ControlPageLabel>upSince</ControlPageLabel>
               </State>
 
 
