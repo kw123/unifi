@@ -350,10 +350,10 @@
                     <TriggerLabel>ip</TriggerLabel>
                     <ControlPageLabel>ip</ControlPageLabel>
               </State>
-              <State id="name">
+              <State id="nameOnNVR">
                     <ValueType>string</ValueType>
-                    <TriggerLabel>name</TriggerLabel>
-                    <ControlPageLabel>name</ControlPageLabel>
+                    <TriggerLabel>nameOnNVR</TriggerLabel>
+                    <ControlPageLabel>nameOnNVR</ControlPageLabel>
               </State>
               <State id="uuid">
                     <ValueType>string</ValueType>

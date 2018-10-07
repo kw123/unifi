@@ -1117,73 +1117,129 @@ class Plugin(indigo.PluginBase):
     def buttonSendCommandToNVRLEDCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRLEDCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRLEDCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"enableStatusLed",valuesDict["camLED"] == "1")
+        valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"enableStatusLed":valuesDict["camLED"] == "1"})
         return valuesDict
  
     ####-----------------    ---------
     def buttonSendCommandToNVRSoundsCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRSoundsCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRSoundsCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"systemSoundsEnabled",valuesDict["camSounds"] == "1" )
+        valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"systemSoundsEnabled":valuesDict["camSounds"] == "1"} )
         return valuesDict
 
     ####-----------------    ---------
     def buttonSendCommandToNVRenableSpeakerCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRenableSpeakerCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRenableSpeakerCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"enableSpeaker",valuesDict["enableSpeaker"] == "1" )
+        valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"enableSpeaker":valuesDict["enableSpeaker"] == "1", "speakerVolume":int(valuesDict["enableSpeaker"])} )
         return valuesDict
     
     ####-----------------    ---------
     def buttonSendCommandToNVRmicVolumeCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRmicVolumeCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRmicVolumeCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] = self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"micVolume",int(valuesDict["micVolume"]) )
+        valuesDict["retCodeCam"] = self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"micVolume":int(valuesDict["micVolume"])} )
         return valuesDict
 
     ####-----------------    ---------
     def buttonSendCommandToNVRRecordCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRRecordCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRRecordCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"recordingSettings",{'motionRecordEnabled': valuesDict["camRecord"] == "1", 'channel': valuesDict["camRecordChannel"]} )
+        if valuesDict["postPaddingSecs"] =="-1" and valuesDict["prePaddingSecs"] =="-1":
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],
+                    {"recordingSettings":{"motionRecordEnabled": valuesDict["motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict["fullTimeRecordEnabled"] == "1", 'channel': valuesDict["channel"]}
+                    } )
+        elif valuesDict["postPaddingSecs"] !="-1" and valuesDict["prePaddingSecs"] !="-1":
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],
+                    {"recordingSettings":{"motionRecordEnabled": valuesDict["motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict["fullTimeRecordEnabled"] == "1", 'channel': valuesDict["channel"], 
+                    "postPaddingSecs": int(valuesDict["postPaddingSecs"]), 
+                    "prePaddingSecs": int(valuesDict["prePaddingSecs"]) }
+                    } )
+        elif valuesDict["postPaddingSecs"] !="-1":
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],
+                    {"recordingSettings":{"motionRecordEnabled": valuesDict["motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict["fullTimeRecordEnabled"] == "1", 'channel': valuesDict["channel"], 
+                    "postPaddingSecs": int(valuesDict["postPaddingSecs"]) }
+                    } )
+        elif valuesDict["prePaddingSecs"] !="-1":
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],
+                    {"recordingSettings":{"motionRecordEnabled": valuesDict["motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict["fullTimeRecordEnabled"] == "1", 'channel': valuesDict["channel"], 
+                    "prePaddingSecs": int(valuesDict["prePaddingSecs"]) }
+                    } )
+        else:
+            valuesDict["retCodeCam"]="bad selection for recording"
         return valuesDict
 
     ####-----------------    ---------
     def buttonSendCommandToNVRIRCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
         return self.buttonSendCommandToNVRIRCALLBACK(valuesDict= action1.props)
     def buttonSendCommandToNVRIRCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-        valuesDict["retCodeCam"] =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"ispSettings",{"enableExternalIr": int(valuesDict["enableExternalIr"]) } )
+        xxx = valuesDict["irLedMode"]
+        if xxx.find("auto") >-1:
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict["enableExternalIr"]),"irLedMode":"auto" }} )
+        else:# for manual 0/100/255 level
+            xxx = xxx.split("-")
+            valuesDict["retCodeCam"],x =  self.setupNVRcmd(valuesDict["cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict["enableExternalIr"]),"irLedMode":xxx[0], "irLedLevel": int(xxx[1])}  } )
         return valuesDict
-    
     ####-----------------    ---------
-    def setupNVRcmd(self, devId, cmd, value):
+    def buttonSendCommandToNVRvideostreamingCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+        return self.buttonSendCommandToNVRIRCALLBACK(valuesDict= action1.props)
+    def buttonSendCommandToNVRvideostreamingCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+
+        # first we need to get the current values
+        error, ret = self.setupNVRcmd(valuesDict["cameraDeviceSelected"],"", cmdType="get")
+        if "channels" not in ret[0] or len(ret[0]["channels"]) !=3 : # something went wrong
+            indigo.server.log("videostreaming error: "+error+ "  \n>>"+ unicode(ret)+"<<")
+            valuesDict["retCodeCam"]=error
+            return valuesDict
+            
+        # modify the required ones 
+        channels = ret[0]["channels"] 
+        channel  = int(valuesDict["channelS"])
+        channels[channel]["isRtmpEnabled"]  = valuesDict["isRtmpEnabled"]=="1"
+        channels[channel]["isRtmpsEnabled"] = valuesDict["isRtmpsEnabled"]=="1"
+        channels[channel]["isRtspEnabled"]  = valuesDict["isRtspEnabled"]=="1"
+        # send back 
+        error, data=  self.setupNVRcmd(valuesDict["cameraDeviceSelected"], {"channels":channels}, cmdType="put")
+        valuesDict["retCodeCam"]=error
+        return valuesDict
+
+
+
+    ####-----------------    ---------
+    def setupNVRcmd(self, devId, payload,cmdType="put"):
 
         dev = indigo.devices[int(devId)]
         try:    
-            if not self.isValidIP(self.ipnumberOfVIDEO): return "error IP"
-            if not self.VIDEOEnabled:                    return "error enabled"
-            if len(self.unifiVIDEOapiKey) < 5:           return "error apikey"
-            payload = {'name': dev.states["name"], cmd: value}
-            ret = self.executeCMDonNVR(payload, dev.states["apiKey"],  cmdType="put")
-            return "ok"
+            if not self.isValidIP(self.ipnumberOfVIDEO): return "error IP",""
+            if not self.VIDEOEnabled:                    return "error enabled",""
+            if len(self.unifiVIDEOapiKey) < 5:           return "error apikey",""
+            
+            if payload !="":  payload['name']= dev.states["nameOnNVR"]
+            ret = self.executeCMDonNVR(payload, dev.states["apiKey"],  cmdType=cmdType)
+            self.fillCamerasIntoIndigo(ret)
+            return "ok",ret
         except  Exception, e:
             indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+
 
 
     ####-----------------    ---------
     def executeCMDonNVR(self, data, cameraKey,  cmdType="put"):
 
         try:    
-        
-            url = "https://"+self.ipnumberOfVIDEO+ ":7443/api/2.0/camera/"+ cameraKey+ "?apiKey=" + self.unifiVIDEOapiKey
+            if cameraKey !="":
+                url = "https://"+self.ipnumberOfVIDEO+ ":7443/api/2.0/camera/"+ cameraKey+ "?apiKey=" + self.unifiVIDEOapiKey
+           
+            else:
+                url = "https://"+self.ipnumberOfVIDEO+ ":7443/api/2.0/camera/"+"?apiKey=" + self.unifiVIDEOapiKey
 
             if self.unfiCurl =="curl":
-                if data =={}: dataDict = ""
-                else:         dataDict = " --data '"+json.dumps(data)+"' "
+                if data =={} or data =="": dataDict = ""
+                else:                      dataDict = " --data '"+json.dumps(data)+"' "
                 if   cmdType == "put":    cmdTypeUse= " -X PUT "
                 elif cmdType == "post":   cmdTypeUse= " -X post "
-                elif cmdType == "get":    cmdTypeUse= " -X get "
-                else:                     cmdTypeUse= " -X PUT "
+                elif cmdType == "get":    cmdTypeUse= "  "
+                else:                     cmdTypeUse= " "
                 cmd  = "/usr/bin/curl --header \"Content-Type: application/json\"  --insecure "+cmdTypeUse +  dataDict + url
 
                 if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmd ,mType="Video")
@@ -1193,15 +1249,15 @@ class Plugin(indigo.PluginBase):
                         try: 
                             jj = json.loads(ret[0])
                         except :
-                            indigo.server.log("executeCMDonNVR has error, no json object returned: " + unicode(ret))
-                            return 
+                            self.ML.myLog( text=u"executeCMDonNVR has error, no json object returned: " + unicode(ret))
+                            return []
                         if "rc" in jj["meta"] and unicode(jj["meta"]["rc"]).find("error")>-1:
-                            self.ML.myLog( text=u"error: >>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]) ,mType="Video")
-                            return 
+                            self.ML.myLog( text=u"error: data:>>"+ unicode(ret[0]) +"<<\n>>"+unicode(ret[1])+"<<\n" ,mType="Video")
+                            return []
                         elif self.ML.decideMyLog(u"Video"):
-                            self.ML.myLog( text=unicode(jj["data"]) ,mType="Video")
-                        self.fillCamerasIntoIndigo({"cameras":jj["data"]})
-                        return 
+                            self.ML.myLog( text="executeCMDonNV- camera Data:\n" +json.dumps(jj["data"], sort_keys=True, indent=2) ,mType="Video")
+                        
+                        return jj["data"]
                     except  Exception, e:
                         indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                 except  Exception, e:
@@ -1219,22 +1275,22 @@ class Plugin(indigo.PluginBase):
                         if   cmdType == "put":   resp = self.unifiControllerSession.put(url,data = dataDict)
                         elif cmdType == "post":  resp = self.unifiControllerSession.post(url,data = dataDict)
                         elif cmdType == "get":   resp = self.unifiControllerSession.get(url,data = dataDict)
-                        else:                    resp = self.unifiControllerSession.put(url,data = dataDict)
+                        else:                    resp = self.unifiControllerSession.get(url,data = dataDict)
                         jj = json.loads(resp.text)
                         if "rc" in jj["meta"] and unicode(jj["meta"]["rc"]).find("error") >-1:
                             self.ML.myLog( text=u"error: >>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]) ,mType="Video")
-                            return 
+                            return []
                         elif self.ML.decideMyLog(u"Video"):
                             self.ML.myLog( text=unicode(jj[data]) ,mType="Video")
                         self.fillCamerasIntoIndigo({"cameras":jj["data"]})
-                        return 
+                        return jj["data"]
                 except  Exception, e:
                     indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 
         except  Exception, e:
             indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
-        return 
+        return []
    
 
 
@@ -1424,7 +1480,6 @@ class Plugin(indigo.PluginBase):
             AAA     = []
             BBB     = []
             cmdstr   = ["\"mongo 127.0.0.1:7441/av --quiet --eval  'db.", ".find().forEach(printjsononeline)'  | sed 's/^\s*//' \"" ]
-            keepList = ["name","uuid","host","model","_id","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings","channels"   ]
 
             #indigo.server.log(" into getCamerasFromNVR "+unicode(action))
             if "system" in action:
@@ -1441,13 +1496,16 @@ class Plugin(indigo.PluginBase):
                 info["NVR"]     = self.getMongoData(cmdstr[0]+"server" +cmdstr[1])[0]
 
             if "cameras" in action:
-                info["cameras"] = self.getMongoData(cmdstr[0]+"camera" +cmdstr[1])
+                info["cameras"]  = self.executeCMDonNVR( {}, "",  cmdType="get")
+                if len(info["cameras"]) <1:
+                    info["cameras"] = self.getMongoData(cmdstr[0]+"camera" +cmdstr[1])
+                if len(info["cameras"]) >0: self.fillCamerasIntoIndigo(info["cameras"])
 
 
             ##indigo.server.log(unicode(info))
 
             if doPrint:
-                self.printCameras(info,keepList)
+                self.printCameras(info)
             return info
                 
             
@@ -1458,7 +1516,9 @@ class Plugin(indigo.PluginBase):
         return {}
             
     ####-----------------    ---------
-    def printCameras(self, info,keepList=["*"]):
+    def printCameras(self, info):
+        keepList = ["name","uuid","host","model","_id","firmwareVersion","systemInfo","mac","controllerHostAddress","controllerHostPort","deviceSettings","networkStatus","status","analyticsSettings","channels","ispSettings"   ]
+        out =""
         try:
             if "NVR" in info:
                 self.ML.myLog( text="--====================++++++++++++++++++++++++++++++++++++++++====================--",mType="System info-NVR:")
@@ -1533,14 +1593,14 @@ class Plugin(indigo.PluginBase):
             ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
             dbJson, error= self.makeJson(ret[0], "XXXXsepXXXXX")
             if error !="":
-                self.ML.myLog( text="camera system (dump, no json conversion)  info:\n"+ cmd+"\n"+unicode(ret[0]) )
-                return {}
+                self.ML.myLog( text="camera system (dump, no json conversion)  info:\n>>"+ cmd+"<<\n>>"+unicode(ret[0]) )
+                return []
             return  dbJson
         except  Exception, e:
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                 self.ML.myLog( text="getMongoData camera system info:\n"+ ret[0])
-        return {}
+        return []
 
     ####-----------------    ---------
     def makeJson(self, dump, sep):  ## {} separated by \n
@@ -1564,12 +1624,23 @@ class Plugin(indigo.PluginBase):
                 temp   = temp[0:nnn2+1]
                 temp2   = self.replaceFunc(temp).strip()
                 if len(temp2) >2:
-                    out.append(json.loads(temp2))
+                    try: 
+                        o =json.loads(temp2)
+                        out.append(o)
+                    except:
+                        self.ML.myLog( text="makeJson error , trying to fix:\n>>>>>"+ unicode(temp2)+"<<<<<\n>>>>"+unicode(dump)+"<<<<<" )
+                        try:
+                            o=json.loads(temp2+"}")
+                            out.append(o)
+                            self.ML.myLog( text="makeJson error fixed " )
+                        except:
+                            self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e) )
+                            
             return out, ""
         except  Exception, e:
             if len(unicode(e)) > 5:
                 indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
-                self.ML.myLog( text="makeJson error :\n>>>>>"+ unicode(temp)+"<<<<<\n>>>>"+unicode(dump)+"<<<<<" )
+                self.ML.myLog( text="makeJson error :\n>>>>>"+ unicode(temp2)+"<<<<<\n>>>>"+unicode(dump)+"<<<<<" )
         return dump, "error"
     ####-----------------    ---------
     def makeJson2(self, dump, sep):
@@ -3318,17 +3389,17 @@ class Plugin(indigo.PluginBase):
                             jj = json.loads(ret[0])
                         except :
                             indigo.server.log("executeCMDOnController has error, no json object returned: " + unicode(ret))
-                            return {}
+                            return []
                         if jj["meta"]["rc"] !="ok": 
                             self.ML.myLog( text=u"error: >>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]) ,mType="Connection")
-                            return {}
+                            return []
                         elif self.ML.decideMyLog(u"Connection"):
                             self.ML.myLog( text=ret[0] ,mType="Connection")
                         if jj["meta"]["rc"] =="ok" and jsonAction=="print":
                             self.ML.myLog( text=u" info\n"+ json.dumps(jj["data"],sort_keys=True, indent=2),mType="Connection" )
                         if jj["meta"]["rc"] =="ok" and jsonAction=="returnData":
                             return jj["data"]
-                        return {}
+                        return []
                     except  Exception, e:
                         indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                 except  Exception, e:
@@ -3740,9 +3811,6 @@ class Plugin(indigo.PluginBase):
         if self.VIDEOEnabled and self.vmMachine !="":
             self.buttonVboxActionStartCALLBACK()
 
-        self.getNVRIntoIndigo()
-
-
 ######## ths for fixing the change from mac to MAC in states
         self.MacToNamesOK = True
         if self.enableMACtoVENDORlookup  != "0": 
@@ -3883,6 +3951,9 @@ class Plugin(indigo.PluginBase):
 
         self.saveMACdata()
 
+
+
+
         self.lastSecCheck   = time.time()
 
         self.readupDownTimers()
@@ -3895,7 +3966,10 @@ class Plugin(indigo.PluginBase):
 
         self.checkForBlockedClients(force=True)
         self.addFirstSeenToStates()
-        self.getNVRIntoIndigo()
+
+        self.getNVRIntoIndigo(force= True)
+        self.getCamerasIntoIndigo(force=True)
+        self.saveCameraEventsStatus=True; self.saveCamerasStats(force=False)
 
         ###########  set up threads  ########
         
@@ -3984,7 +4058,7 @@ class Plugin(indigo.PluginBase):
         except:
             pass
                
-
+        
     ################   ------- here the loop starts    --------------
         indigo.server.log( u"initialized")
         try:    indigo.server.savePluginPrefs()
@@ -4237,6 +4311,10 @@ class Plugin(indigo.PluginBase):
             changed = False
 
             self.getNVRIntoIndigo()
+            self.getCamerasIntoIndigo(periodCheck = True)
+            self.saveCamerasStats()
+            self.saveDataStats()
+            self.saveMACdata()
             
             for dev in indigo.devices.iter(self.pluginId):
 
@@ -4673,7 +4751,7 @@ class Plugin(indigo.PluginBase):
          
     ####-----------------    ---------
     def saveCamerasStats(self,force=False): 
-        if  not self.saveCameraEventsStatus : return 
+        if  not self.saveCameraEventsStatus: return 
         
         if self.saveCameraEventsStatus == True:
             self.saveCameraEventsLastCheck = 0
@@ -4838,13 +4916,14 @@ class Plugin(indigo.PluginBase):
 
     ####-----------------    ---------
     def updateStatewCheck(self,dev, state , value, check = "", NotEq = False): 
-        if state not in dev.states:        return
+        if state not in dev.states:        return False
         if NotEq:
-            if dev.states[state] != check: return 
+            if dev.states[state] != check: return False
         else:
-            if state == check:             return
-        if dev.states[state]  ==  value:   return 
+            if state == check:             return False
+        if dev.states[state]  ==  value:   return False
         self.addToStatesUpdateList(unicode(dev.id),state,  value ) 
+        return True
 
     ####-----------------    ---------
     def getCamerasIntoIndigo(self, force = False, periodCheck = False): 
@@ -4876,19 +4955,18 @@ class Plugin(indigo.PluginBase):
                     MAC = MAC.lower()
 
                     if MAC in self.MACignorelist: continue
-                    
                     found = False
                     for cam in self.cameras:
                         if MAC == cam:
-                            self.cameras[MAC]["uuid"]   = cam2["uuid"]
-                            self.cameras[MAC]["ip"]     = cam2["host"]
-                            self.cameras[MAC]["apiKey"] = cam2["_id"]
-                            self.cameras[MAC]["cameraName"] = cam2["name"]
+                            self.cameras[MAC]["uuid"]       = cam2["uuid"]
+                            self.cameras[MAC]["ip"]         = cam2["host"]
+                            self.cameras[MAC]["apiKey"]     = cam2["_id"]
+                            self.cameras[MAC]["nameOnNVR"]  = cam2["name"]
                             found = True
                             break
                     if not found:
                         saveCam = True
-                        self.cameras[MAC]= {"cameraName":cam2["name"], "events":{}, "eventsLast":{"start":0,"stop":0},"devid":-1, "uuid":cam2["uuid"], "ip":cam2["host"], "apiKey":cam2["_id"]}
+                        self.cameras[MAC]= {"nameOnNVR":cam2["name"], "events":{}, "eventsLast":{"start":0,"stop":0},"devid":-1, "uuid":cam2["uuid"], "ip":cam2["host"], "apiKey":cam2["_id"]}
 
                     devFound = False
                     if "devid" in self.cameras[MAC]:
@@ -4908,7 +4986,7 @@ class Plugin(indigo.PluginBase):
                             dev = indigo.device.create(
                                 protocol=indigo.kProtocol.Plugin,
                                 address=MAC,
-                                name = "Camera_"+self.cameras[MAC]["cameraName"]+"_"+MAC ,
+                                name = "Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC ,
                                 description="",
                                 pluginId=self.pluginId,
                                 deviceTypeId="camera",
@@ -4918,7 +4996,7 @@ class Plugin(indigo.PluginBase):
                             indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+ipx)
                         except  Exception, e:
                             if unicode(e).find("NameNotUniqueError") >-1:
-                                dev = indigo.devices["Camera_"+self.cameras[MAC]["cameraName"]+"_"+MAC]
+                                dev = indigo.devices["Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC]
                                 props = dev.pluginProps
                                 props["isCamera"] = True
                                 dev.replaceOnServer()
@@ -4927,13 +5005,13 @@ class Plugin(indigo.PluginBase):
                                 if len(unicode(e)) > 5:
                                     indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                                 continue
-                    self.updateStatewCheck(dev,"MAC",         MAC)
-                    self.updateStatewCheck(dev,"apiKey",      self.cameras[MAC]["apiKey"])
-                    self.updateStatewCheck(dev,"uuid",        self.cameras[MAC]["uuid"])
-                    self.updateStatewCheck(dev,"ip",          self.cameras[MAC]["ip"])
-                    self.updateStatewCheck(dev,"name",        self.cameras[MAC]["cameraName"])
-                    self.updateStatewCheck(dev,"eventNumber", -1,                       check="", NotEq=True)
-                    self.updateStatewCheck(dev,"status",     "ON",                     check="", NotEq=True)
+                    saveCam or self.updateStatewCheck(dev,"MAC",         MAC)
+                    saveCam or self.updateStatewCheck(dev,"apiKey",      self.cameras[MAC]["apiKey"])
+                    saveCam or self.updateStatewCheck(dev,"uuid",        self.cameras[MAC]["uuid"])
+                    saveCam or self.updateStatewCheck(dev,"ip",          self.cameras[MAC]["ip"])
+                    saveCam or self.updateStatewCheck(dev,"nameOnNVR",   self.cameras[MAC]["nameOnNVR"])
+                    saveCam or self.updateStatewCheck(dev,"eventNumber", -1,                       check="", NotEq=True)
+                    saveCam or self.updateStatewCheck(dev,"status",     "ON",                      check="", NotEq=True)
                     self.executeUpdateStatesList()
                     if not devFound:
                         dev = indigo.devices[dev.id]
