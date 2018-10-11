@@ -419,6 +419,18 @@
                 <Label>--- Click to </Label><Title>SET Stream</Title><CallbackMethod>buttonSendCommandToNVRvideostreamingCALLBACK</CallbackMethod>
             </Field>
 
+            <Field id="snapShotLabel" type="label" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                  <Label>              === Camera Snap Shot</Label>  </Field>
+            <Field     id="widthOfImage" type="textfield" defaultValue="1024" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label> ...  width of image(pixels):</Label>
+           </Field>
+            <Field     id="fileNameOfImage" type="textfield" defaultValue="/users/" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label> ...  file name of image on MAC use .jpeg:</Label>
+           </Field>
+            <Field    id="getSnapshotFRomNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
+                <Label>--- Click to </Label><Title>Get Snapshot</Title><CallbackMethod>buttonSendCommandToNVRgetSnapshotCALLBACK</CallbackMethod>
+            </Field>
+
 
 
             <Field id="simpleSeparator30" type="separator"/>

@@ -38,6 +38,7 @@ class MLX():
             except  Exception, e:
                 if len(unicode(e)) > 5:
                     indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        indigo.server.log(u"myLogSet settting parameters -- logFileActive= "+ unicode(self.logFileActive) + ";  logFile= "+ unicode(self.logFile)  + ";  debugLevel= "+ unicode(self.debugLevel) +"; maxFileSize= "+ unicode(self.maxFileSize))
 
 
 ####-----------------  check logfile sizes ---------
@@ -59,32 +60,42 @@ class MLX():
                     os.rename(fn + ".log", fn + "-1.log")
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log( u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                indigo.server.log( u"checkLogFiles in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
             
             
 ####-----------------  print to logfile or indigo log  ---------
     def decideMyLog(self, msgLevel):
         try:
-            if msgLevel == u"all" or u"all" in self.debugLevel: return True
-            if msgLevel == ""   and u"all" not in self.debugLevel:   return False
-            if (msgLevel in self.debugLevel or  msgLevel == u"smallErr" or  msgLevel == u"bigErr"  ): return True
+            if msgLevel  == u"all" or u"all" in self.debugLevel:     return True
+            if msgLevel  == ""   and u"all" not in self.debugLevel:  return False
+            if msgLevel in self.debugLevel:                          return True
             return False
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log( u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                indigo.server.log( u"decideMyLog in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return False
 
-    def myLog(self,  text="", mType=""):
+    def myLog(self,  text="", mType="", errorType=""):
            
     
         if  time.time() - self.lastCheck > 100:
              self.checkLogFiles()
 
-        ### skip exiti log entries 
-        
+      
         try:
             if  self.logFileActive =="no":
+                if errorType == u"smallErr":
+                    indigo.server.log(u"------------------------------------------------------------------------------")
+                    indigo.server.log(text)
+                    indigo.server.log(u"------------------------------------------------------------------------------")
+                    return
 
-                if text.find("has error='None'") > 5: return 
+                if errorType == u"bigErr":
+                    self.errorLog(u"==================================================================================")
+                    self.errorLog(text)
+                    self.errorLog(u"==================================================================================")
+                    return
+
                 if mType == "":
                     indigo.server.log(text)
                 else:
@@ -93,6 +104,7 @@ class MLX():
 
 
             else: # print to external logfile
+
 
                 try:
                     if len(self.logFile) < 3: return # not properly defined
@@ -104,7 +116,23 @@ class MLX():
                     except:
                         pass
                     return
-                if text.find("has error='None'") > 5: return 
+
+                if errorType == u"smallErr":
+                    ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+                    f.write(u"----------------------------------------------------------------------------------\n")
+                    f.write((ts+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
+                    f.write(u"----------------------------------------------------------------------------------\n")
+                    f.close()
+                    return
+
+                if errorType == u"bigErr":
+                    ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+                    f.write(u"==================================================================================\n")
+                    f.write((ts+u" "+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
+                    f.write(u"==================================================================================\n")
+                    f.close()
+                    return
+
                 ts = datetime.datetime.now().strftime("%H:%M:%S")
                 if mType == u"":
                     f.write((ts+u" " +u" ".ljust(25)  +u"-" + text + u"\n").encode("utf8"))
@@ -116,7 +144,7 @@ class MLX():
 
         except  Exception, e:
             if len(unicode(e)) > 5:
-                indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+                indigo.server.log(u"myLog in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
                 indigo.server.log(text)
                 try: f.close()
                 except: pass

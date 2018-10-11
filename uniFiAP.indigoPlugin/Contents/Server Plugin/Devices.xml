@@ -686,11 +686,6 @@
                     <TriggerLabel>MAC</TriggerLabel>
                     <ControlPageLabel>MAC</ControlPageLabel>
               </State>
-              <State id="unifiWebUserID">
-                    <ValueType>String</ValueType>
-                    <TriggerLabel>unifiWebUserID</TriggerLabel>
-                    <ControlPageLabel>unifiWebUserID</ControlPageLabel>
-              </State>
               <State id="apiKey">
                     <ValueType>String</ValueType>
                     <TriggerLabel>apiKey</TriggerLabel>
