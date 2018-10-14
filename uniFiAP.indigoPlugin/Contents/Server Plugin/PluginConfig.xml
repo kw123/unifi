@@ -14,7 +14,7 @@
 
 
     <Field    id="expirationTime"   type="menu" defaultValue="120" tooltip="this is the general parameter can be overwritten for each device individually">
-        <Label>UP to DOWN to Expired if no message after:</Label>
+        <Label>UP to DOWN if no message after:</Label>
         <List>
             <Option value="10"   >10 seconds (for testing only)</Option>
             <Option value="20"   >20 seconds (for testing only)</Option>
@@ -34,6 +34,20 @@
     </Field>
     <Field    id="fixExpirationTime" type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the devcie expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
      <Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  </Field>
+   <Field    id="expTimeMultiplier"   type="menu" defaultValue="2" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
+        <Label>Status goes from DOWN 2 EXP after x times UP 2 DOWN time:</Label>
+        <List>
+            <Option value="1.5" > 1.5</Option>
+            <Option value="2"   > 2</Option>
+            <Option value="2.5" > 2.5</Option>
+            <Option value="3"   > 3</Option>
+            <Option value="3.5" > 3.5</Option>
+            <Option value="4"   > 4</Option>
+            <Option value="5"   > 5</Option>
+            <Option value="7"   > 7</Option>
+            <Option value="10"  >10 </Option>
+        </List>
+   </Field>
 
 
     <Field    id="ignoreNewNeighbors"    type="checkbox"  defaultValue="false"    > <Label>Ignore NEW neighbor wifi router devices:</Label>   </Field>
