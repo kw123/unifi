@@ -153,7 +153,7 @@
     <Field    id="unifiCloudKeyIP"       type="textfield" defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..ipNumber of controller</Label>  </Field>
     <Field    id="unifiCloudKeyPort"     type="textfield" defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site name of unifi install:</Label>  </Field>
-    <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..unifi api web page:</Label>  </Field>
+    <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
     <Field    id="unfiCurl"              type="menu" defaultValue="curl"             visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" tooltip="for elCapitan and lower use curl, for high osx you can try requests .. not tested"  > <Label>..use curl or requests:</Label> 
         <List>
             <Option value="curl"      >curl</Option>
@@ -347,31 +347,31 @@
     <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR:</Label>  </Field>
 
 
-    <Field    id="unifiWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..UserID for UniFi VIDEO web login(empty=off):</Label>
     </Field>
-    <Field    id="unifiWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Password for UniFi VIDEO web login:</Label>
     </Field>
 
-    <Field    id="unifiUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..UserID for UniFi VIDEO unix box(empty=off):</Label>
     </Field>
-    <Field    id="unifiUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+    <Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Password for UniFi VIDEO unix box:</Label>
     </Field>
-    <Field    id="unifiVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..api key to access cameras(get in edit user on NVR):</Label>
+    <Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true" readonly="true">
+        <Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
     </Field>
     <Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Prompt for UniFi VIDEO unix box:</Label>
     </Field>
-    <Field    id="ipVIDEO"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
+    <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>..ipNumber of your Video NVR:</Label>  
     </Field>
 
     <Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
-        <Label>..Keep x number of events in Indigo db:</Label>  
+        <Label>..Keep x number of events in Indigo plugin:</Label>  
             <List>
             <Option value="10"          > 10</Option>
             <Option value="100"         > 100</Option>
