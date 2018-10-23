@@ -204,14 +204,14 @@
     </Field>
 
     <Field    id="APtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP tail command(empty = off):</Label>  
+    <Label>.. AP tail command:</Label>  
         <List>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
     <Field    id="APdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP dict command(empty = off):</Label>  
+    <Label>.. AP dict command:</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
@@ -449,7 +449,7 @@
         <List>
             <Option value="no"       > no special unifi logfile, std indigo logfile</Option>
             <Option value="user"     > ~/indigo/unifi/unifi.log                    </Option>
-            <Option value="indigo"   > .. Perceptive Automation/Indigo 7/Logs/com.karlwachs.uniFiAP/unifi.log </Option>
+            <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/unifi.log </Option>
         </List>
     </Field>
 
