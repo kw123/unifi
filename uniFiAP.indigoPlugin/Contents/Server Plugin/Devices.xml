@@ -27,7 +27,7 @@
 					<Option value="WiFi"	> WiFi	</Option>
 					<Option value="DHCP"	> DHCP	</Option>
 					<Option value="SWITCH"	> SWITCH  </Option>
-					<Option value="OptDhcpSwitch"  > SWICTH AND DHCP info: using SW-upTime or DHCP-AGE to keep status UP </Option>
+					<Option value="OptDhcpSwitch"  > SWITCH AND DHCP info: using SW-upTime or DHCP-AGE to keep status UP </Option>
 				</List>
 			</Field>
 
@@ -832,7 +832,7 @@
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
 				<State id="overHeating">
-					<ValueType>String</ValueType>
+					<ValueType>boolean</ValueType>
 					<TriggerLabel>overHeating</TriggerLabel>
 					<ControlPageLabel>overHeating</ControlPageLabel>
 				</State>
@@ -870,6 +870,11 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>vendor</TriggerLabel>
 					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+				<State id="fanLevel">
+					<ValueType>number</ValueType>
+					<TriggerLabel>fanLevel</TriggerLabel>
+					<ControlPageLabel>fanLevel</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -1262,7 +1267,7 @@
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
 				<State id="overHeating">
-					<ValueType>String</ValueType>
+					<ValueType>boolean</ValueType>
 					<TriggerLabel>overHeating</TriggerLabel>
 					<ControlPageLabel>overHeating</ControlPageLabel>
 				</State>
@@ -1300,6 +1305,11 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>vendor</TriggerLabel>
 					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+				<State id="fanLevel">
+					<ValueType>number</ValueType>
+					<TriggerLabel>fanLevel</TriggerLabel>
+					<ControlPageLabel>fanLevel</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -1561,7 +1571,7 @@
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
 				<State id="overHeating">
-					<ValueType>String</ValueType>
+					<ValueType>boolean</ValueType>
 					<TriggerLabel>overHeating</TriggerLabel>
 					<ControlPageLabel>overHeating</ControlPageLabel>
 				</State>
@@ -1599,6 +1609,11 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>vendor</TriggerLabel>
 					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+				<State id="fanLevel">
+					<ValueType>number</ValueType>
+					<TriggerLabel>fanLevel</TriggerLabel>
+					<ControlPageLabel>fanLevel</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -1810,7 +1825,7 @@
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
 				<State id="overHeating">
-					<ValueType>String</ValueType>
+					<ValueType>boolean</ValueType>
 					<TriggerLabel>overHeating</TriggerLabel>
 					<ControlPageLabel>overHeating</ControlPageLabel>
 				</State>
@@ -2010,13 +2025,8 @@
 					<TriggerLabel>MAC</TriggerLabel>
 					<ControlPageLabel>MAC</ControlPageLabel>
 				</State>
-				<State id="temperature">
-					<ValueType>String</ValueType>
-					<TriggerLabel>temperature</TriggerLabel>
-					<ControlPageLabel>temperature</ControlPageLabel>
-				</State>
 				<State id="overHeating">
-					<ValueType>String</ValueType>
+					<ValueType>boolean</ValueType>
 					<TriggerLabel>overHeating</TriggerLabel>
 					<ControlPageLabel>overHeating</ControlPageLabel>
 				</State>

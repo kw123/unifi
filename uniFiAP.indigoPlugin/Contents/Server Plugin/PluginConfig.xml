@@ -6,7 +6,7 @@
     <Field id="simpleSeparator22" type="separator"/>
     <Field id="infoLabel22" type="label"> <Label>== General Parameters for Plugin </Label>  </Field>
     <Field id="infoLabel23" type="label"> <Label>.   userids and passwords are used with quotes: 'userid' when calling external programs</Label>  </Field>
-    <Field id="infoLabel24" type="label"> <Label>-----------------</Label>  </Field>
+    <Field id="infoLabel24" type="label"> <Label>  </Label>  </Field>
 
     <Field    id="updateDescriptions"   type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
         <Label>update notes/description field (every time data received)</Label>
@@ -32,7 +32,7 @@
             <Option value="600"  >10 minutes</Option>
          </List>
     </Field>
-    <Field    id="fixExpirationTime" type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the devcie expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
+    <Field    id="fixExpirationTime" type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the device expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
      <Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  </Field>
    <Field    id="expTimeMultiplier"   type="menu" defaultValue="2" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
         <Label>Status goes from DOWN 2 EXP after x times UP 2 DOWN time:</Label>
@@ -119,14 +119,23 @@
         <Label>MAC# to vendor lookup</Label>
     </Field>
 
+
+    <Field    id="unfiCurl"              type="menu" defaultValue="/usr/bin/curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+    <Label>Use curl or python-requests for web page access:</Label> 
+        <List>
+            <Option value="/usr/bin/curl"			>/usr/bin/curl  (std install)</Option>
+            <Option value="/usr/local/bin/curl"		>/usr/local/bin/curl (eg homebrew upgrade)</Option>
+            <Option value="requests"  				>python requests</Option>
+        </List>
+    </Field>
+
+
     <Field id="simpleSeparatorFN" type="separator"/>
     <Field id="infoLabelNames" type="label"> <Label>== Names for Folders (they can all be the same)</Label>  </Field>
 
     <Field    id="folderNameCreated"       type="textfield"  defaultValue="UNIFI_created"      > <Label> .. new clients (regular devices):</Label>  </Field>
     <Field    id="folderNameSystem"        type="textfield"  defaultValue="UNIFI_system"       > <Label> .. new system devices (AP,SW,GW):</Label>  </Field>
     <Field    id="folderNameNeighbors"     type="textfield"  defaultValue="UNIFI_neighbors"    > <Label> .. new neighbors:</Label>  </Field>
-
-
 
 
     <Field id="simpleSeparatorCO" type="separator"/>
@@ -154,12 +163,6 @@
     <Field    id="unifiCloudKeyPort"     type="textfield" defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site name of unifi install:</Label>  </Field>
     <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
-    <Field    id="unfiCurl"              type="menu" defaultValue="curl"             visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" tooltip="for elCapitan and lower use curl, for high osx you can try requests .. not tested"  > <Label>..use curl or requests:</Label> 
-        <List>
-            <Option value="curl"      >curl</Option>
-            <Option value="requests"  >python requests</Option>
-        </List>
-    </Field>
 
     <Field    id="unifigetBlockedClients"       type="menu"  defaultValue="999999999"            > <Label>.. get (ub)blocked client info from Controller:</Label> 
         <List>
@@ -369,9 +372,40 @@
     <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>..ipNumber of your Video NVR:</Label>  
     </Field>
+    <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
+        <Label>.. get event images:</Label>  
+            <List>
+            <Option value="noImage"               > no image</Option>
+            <Option value="imageFromDirectory"    > copy to local directory from mounted NVR drive</Option>
+            <Option value="imageFromNVR"          > use http to NVR (variable width setting)</Option>
+            <Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
+            </List>
+    </Field>
+    <Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
+        <Label>.. get snapshot images:</Label>  
+            <List>
+            <Option value="noImage"               > no image</Option>
+            <Option value="imageFromNVR"          > use http to NVR (variable width setting)</Option>
+            <Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
+            </List>
+    </Field>
+    <Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="swON" visibleBindingValue="true"> 
+       <Label>..event/snapshot image width(# of pixels) if supported:</Label>  
+            <List>
+            <Option value="240"         > 240</Option>
+            <Option value="320"         > 320</Option>
+            <Option value="480"         > 480</Option>
+            <Option value="640"         > 640 (low)</Option>
+            <Option value="720"         > 720</Option>
+            <Option value="1024"        > 1024 (med)</Option>
+            <Option value="1080"        > 1080</Option>
+            <Option value="1920"        > 1920 (high) </Option>
+            <Option value="2048"        > 2048 (max)</Option>
+            </List>
+    </Field>
 
     <Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
-        <Label>..Keep x number of events in Indigo plugin:</Label>  
+        <Label>..Keep x number of events history in Indigo plugin:</Label>  
             <List>
             <Option value="10"          > 10</Option>
             <Option value="100"         > 100</Option>
@@ -443,13 +477,13 @@
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
     <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (9) BroadCast:</Label>  </Field>
     <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (10) Ping WOL:</Label>  </Field>
-    <Field    id="Special"          type="checkbox"  defaultValue="false"   > <Label>... (11) Special debug for development:</Label>  </Field>
+    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (11) Special debug for development:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
-    <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
+    <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send logs to ..:</Label>
         <List>
-            <Option value="no"       > no special unifi logfile, std indigo logfile</Option>
+            <Option value="standard" > no special unifi logfile, std indigo logfile</Option>
             <Option value="user"     > ~/indigo/unifi/unifi.log                    </Option>
-            <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/unifi.log </Option>
+            <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
         </List>
     </Field>
 
