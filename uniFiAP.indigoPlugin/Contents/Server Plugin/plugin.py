@@ -26,6 +26,9 @@ import myLogPgms.myLogPgms
 import requests
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
+import cProfile
+import pstats
+
 
 dataVersion = 2.0
 
@@ -89,11 +92,11 @@ class Plugin(indigo.PluginBase):
 
 		self.myPID = os.getpid()
 		self.MACuserName   = pwd.getpwuid(os.getuid())[0]
-		self.MAChome	   = os.path.expanduser("~")
-		self.indigoHomeDir = self.MAChome+"/indigo/" #	this is the data directory
 
-		self.indigoConfigDir	 = self.indigoHomeDir + "unifi/"
-		self.indigoConfigDirOld  = self.MAChome + "/documents/unifi/"
+		self.MAChome					= os.path.expanduser(u"~")
+		self.userIndigoDir				= self.MAChome + "/indigo/"
+		self.userIndigoPluginDir		= self.userIndigoDir + u"unifi/"
+		self.userIndigoPluginDirOld		= self.MAChome + u"/documents/unifi/"
 
 		self.pythonPath					= u"/usr/bin/python2.6"
 		if os.path.isfile(u"/usr/bin/python2.7"):
@@ -101,22 +104,23 @@ class Plugin(indigo.PluginBase):
 
  
 		if True:
-			if not os.path.exists(self.indigoHomeDir):
-				os.mkdir(self.indigoHomeDir)
+			if not os.path.exists(self.userIndigoDir):
+				os.mkdir(self.userIndigoDir)
 
-			if not os.path.exists(self.indigoConfigDir):
-				os.mkdir(self.indigoConfigDir)
+			if not os.path.exists(self.userIndigoPluginDir):
+				os.mkdir(self.userIndigoPluginDir)
 	
-				if not os.path.exists(self.indigoConfigDir):
-					self.errorLog("error creating the plugin data dir did not work, can not create: "+ self.indigoConfigDir)
+				if not os.path.exists(self.userIndigoPluginDir):
+					self.errorLog("error creating the plugin data dir did not work, can not create: "+ self.userIndigoPluginDir)
 					self.sleep(1000)
 					exit()
 				
-				if os.path.exists(self.indigoConfigDirOld) :
-					indigo.server.log(u" moving "+ "cp -R" + self.indigoConfigDirOld+"* " + self.indigoConfigDir )
-					os.system("cp -R " + self.indigoConfigDirOld+"* " + self.indigoConfigDir )
+				if os.path.exists(self.userIndigoPluginDirOld) :
+					indigo.server.log(u" moving "+ "cp -R" + self.userIndigoPluginDirOld+"* " + self.userIndigoPluginDir )
+					os.system("cp -R " + self.userIndigoPluginDirOld+"* " + self.userIndigoPluginDir )
 
 
+		self.checkcProfile()
 
 
 		self.debugLevel = []
@@ -291,7 +295,7 @@ class Plugin(indigo.PluginBase):
 		self.GWUP						= {}
 		self.VDUP						= {}
 
-		self.version			 = self.getParamsFromFile(self.indigoConfigDir+"dataVersion", default=0)
+		self.version			 = self.getParamsFromFile(self.userIndigoPluginDir+"dataVersion", default=0)
 
 
 		#####  check AP parameters	
@@ -847,7 +851,7 @@ class Plugin(indigo.PluginBase):
 		self.logFileActive =lgFile
 		if   self.logFileActive =="standard":	self.logFile = ""
 		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
-		else:									self.logFile = self.indigoConfigDir + self.pluginShortName+".log"
+		else:									self.logFile = self.userIndigoPluginDir +"plugin.log"
 		self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile)
 
 	####-----------------	 ---------
@@ -3326,7 +3330,7 @@ class Plugin(indigo.PluginBase):
 			if len(self.changedImagePath) > 5: 
 				pluginProps["fileNameOfImage"] = self.changedImagePath+"nameofCamera.jpeg"
 			else:
-				pluginProps["fileNameOfImage"] = self.indigoConfigDir+"nameofCamera.jpeg"
+				pluginProps["fileNameOfImage"] = self.userIndigoPluginDir+"nameofCamera.jpeg"
 		return super(Plugin, self).getActionConfigUiValues(pluginProps, typeId, devId)
 
 
@@ -3358,7 +3362,7 @@ class Plugin(indigo.PluginBase):
 			if len(self.changedImagePath) > 5: 
 				self.menuXML["fileNameOfImage"] = self.changedImagePath+"nameofCamera.jpeg"
 			else:
-				self.menuXML["fileNameOfImage"] = self.indigoConfigDir+"nameofCamera.jpeg"
+				self.menuXML["fileNameOfImage"] = self.userIndigoPluginDir+"nameofCamera.jpeg"
 		self.menuXML["snapShotTextMethod"] = self.imageSourceForSnapShot
 			
 		for item in self.menuXML:
@@ -3460,13 +3464,14 @@ class Plugin(indigo.PluginBase):
 			newDeviceFound =[]
 		
 			deviceDict =		self.executeCMDOnController(data={}, pageString="/stat/device/", jsonAction="returnData")
+			#indigo.server.log("checkForNewUnifiSystemDevices deviceDict " +unicode(deviceDict)[0:100])
 			if deviceDict =={}: return
 			for item in deviceDict:
 				ipNumber = ""
 				MAC		 = ""
 				if "type"   not in item: continue
 				uType	 = item["type"]
-				#self.ML.myLog( text=u"ipNumber:"+ipNumber+" MAC:"+MAC+" uType:"+uType	,mType="test")
+				#indigo.server.log("checkForNewUnifiSystemDevices ipNumber:"+ipNumber+" MAC:"+MAC+" uType:"+uType	)
 				
 				if uType == "ugw":
 					if "network_table" in item:
@@ -4154,7 +4159,7 @@ class Plugin(indigo.PluginBase):
 		self.upDownTimers	= {}
 		self.xTypeMac		= {}
 
-		self.writeJson(dataVersion, fName=self.indigoConfigDir + "dataVersion")
+		self.writeJson(dataVersion, fName=self.userIndigoPluginDir + "dataVersion")
 
 		## if video enabled
 		if self.VIDEOEnabled and self.vmMachine !="":
@@ -4417,9 +4422,122 @@ class Plugin(indigo.PluginBase):
 
 		return True
 
-	###########################	   MAIN LOOP  ############################
-	####----------------- main loop ---------
+
+
+
+	###########################	   cProfile stuff   ############################ START
+	####-----------------  ---------
+	def getcProfileVariable(self):
+
+		try:
+			if self.timeTrVarName in indigo.variables:
+				xx = (indigo.variables[self.timeTrVarName].value).strip().lower().split("-")
+				if len(xx) ==1: 
+					cmd = xx[0]
+					pri = ""
+				elif len(xx) == 2:
+					cmd = xx[0]
+					pri = xx[1]
+				else:
+					cmd = "off"
+					pri  = ""
+				self.timeTrackWaitTime = 20
+				return cmd, pri
+		except	Exception, e:
+			pass
+
+		self.timeTrackWaitTime = 60
+		return "off",""
+
+	####-----------------            ---------
+	def printcProfileStats(self,pri=""):
+		try:
+			if pri !="": pick = pri
+			else:		 pick = 'cumtime'
+			outFile		= self.userIndigoPluginDir+"timeStats"
+			indigo.server.log(" print time track stats to: "+outFile+".dump / txt  with option: "+pick)
+			self.pr.dump_stats(outFile+".dump")
+			sys.stdout 	= open(outFile+".txt", "w")
+			stats 		= pstats.Stats(outFile+".dump")
+			stats.strip_dirs()
+			stats.sort_stats(pick)
+			stats.print_stats()
+			sys.stdout = sys.__stdout__
+		except: pass
+		"""
+		'calls'			call count
+		'cumtime'		cumulative time
+		'file'			file name
+		'filename'		file name
+		'module'		file name
+		'pcalls'		primitive call count
+		'line'			line number
+		'name'			function name
+		'nfl'			name/file/line
+		'stdname'		standard name
+		'time'			internal time
+		"""
+
+	####-----------------            ---------
+	def checkcProfile(self):
+		try: 
+			if time.time() - self.lastTimegetcProfileVariable < self.timeTrackWaitTime: 
+				return 
+		except: 
+			self.cProfileVariableLoaded = 0
+			self.do_cProfile  			= "x"
+			self.timeTrVarName 			= "enableTimeTracking_"+self.pluginName
+			indigo.server.log("testing if variable "+self.timeTrVarName+" is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)")
+
+		self.lastTimegetcProfileVariable = time.time()
+
+		cmd, pri = self.getcProfileVariable()
+		if self.do_cProfile != cmd:
+			if cmd == "on": 
+				if  self.cProfileVariableLoaded ==0:
+					indigo.server.log("======>>>>   loading cProfile & pstats libs for time tracking;  starting w cProfile ")
+					self.pr = cProfile.Profile()
+					self.pr.enable()
+					self.cProfileVariableLoaded = 2
+				elif  self.cProfileVariableLoaded >1:
+					self.quitNow = " restart due to change  ON  requested for print cProfile timers"
+			elif cmd == "off":
+					self.pr.disable()
+					self.quitNow = " restart due to  OFF  request for print cProfile timers "
+		if cmd == "print"  and self.cProfileVariableLoaded >0:
+				self.pr.disable()
+				self.printcProfileStats(pri=pri)
+				self.pr.enable()
+				indigo.variable.updateValue(self.timeTrVarName,"done")
+
+		self.do_cProfile = cmd
+		return 
+
+	####-----------------            ---------
+	def checkcProfileEND(self):
+		if self.do_cProfile in["on","print"] and self.cProfileVariableLoaded >0:
+			self.printcProfileStats(pri="")
+		return
+	###########################	   cProfile stuff   ############################ END
+
+
+
+####-----------------   main loop          ---------
 	def runConcurrentThread(self):
+
+		self.dorunConcurrentThread()
+		self.checkcProfileEND()
+
+		self.sleep(1)
+		if self.quitNow !="":
+			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: " + self.quitNow + " :::::")
+			serverPlugin = indigo.server.getPlugin(self.pluginId)
+			serverPlugin.restart(waitUntilDone=False)
+
+		return
+
+####-----------------   main loop            ---------
+	def dorunConcurrentThread(self): 
 
 		indigo.server.log(u" start   runConcurrentThread, initializing loop settings and threads ..")
 
@@ -4511,7 +4629,6 @@ class Plugin(indigo.PluginBase):
 
 		if len(self.blockAccess)>0:	 del self.blockAccess[0]
 
-		self.checkForBlockedClients()
 
 
 		if self.lastMinuteCheck != datetime.datetime.now().minute: 
@@ -4561,7 +4678,6 @@ class Plugin(indigo.PluginBase):
 		if self.quitNow == u"config changed":
 			self.resetDataStats()
 
-		indigo.server.log( u" stopping plugin due to:  ::::: " + unicode(self.quitNow) + u" :::::")
 		try:
 			for ll in range(len(self.SWsEnabled)):
 				self.trSWLog[unicode(ll)].join()
@@ -4581,16 +4697,13 @@ class Plugin(indigo.PluginBase):
 
 		self.saveupDownTimers()
 	
-		self.sleep(1)
-		serverPlugin = indigo.server.getPlugin(self.pluginId)
-		serverPlugin.restart(waitUntilDone=False)
 
 
 
 	####-----------------	 ---------
 	def saveupDownTimers(self):
 		try:
-			f = open(self.indigoConfigDir+"upDownTimers","w")
+			f = open(self.userIndigoPluginDir+"upDownTimers","w")
 			f.write(json.dumps(self.upDownTimers))
 			f.close()
 		except	Exception, e:
@@ -4599,7 +4712,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def readupDownTimers(self):
 		try:
-			f = open(self.indigoConfigDir+"upDownTimers","r")
+			f = open(self.userIndigoPluginDir+"upDownTimers","r")
 			self.upDownTimers = json.loads(f.read())
 			f.close()
 		except:
@@ -4688,6 +4801,8 @@ class Plugin(indigo.PluginBase):
 			if	self.countLoop < 10:					return
 			if time.time() - self.pluginStartTime < 70: return 
 			changed = False
+
+			self.checkcProfile()
 
 			self.getNVRIntoIndigo()
 			self.getCamerasIntoIndigo(periodCheck = True)
@@ -5091,7 +5206,7 @@ class Plugin(indigo.PluginBase):
 	def saveDataStats(self): 
 		if time.time() - 60	 < self.lastSaveDataStats: return 
 		self.lastSaveDataStats = time.time() 
-		f=open(self.indigoConfigDir+"dataStats","w")
+		f=open(self.userIndigoPluginDir+"dataStats","w")
 		f.write(json.dumps(self.dataStats, sort_keys=True, indent=2))
 		f.close()
 		
@@ -5099,7 +5214,7 @@ class Plugin(indigo.PluginBase):
 	def readDataStats(self):
 		self.lastSaveDataStats	= time.time() -60 
 		try:
-			f=open(self.indigoConfigDir+"dataStats","r")
+			f=open(self.userIndigoPluginDir+"dataStats","r")
 			self.dataStats= json.loads(f.read())
 			f.close()
 			if "tcpip" not in self.dataStats: 
@@ -5146,7 +5261,7 @@ class Plugin(indigo.PluginBase):
 			self.saveCameraEventsLastCheck = time.time()
 				
 		# save cameras to disk	  
-		f=open(self.indigoConfigDir+"CamerasStats","w")
+		f=open(self.userIndigoPluginDir+"CamerasStats","w")
 		f.write(json.dumps(self.cameras, sort_keys=True, indent=2))
 		f.close()
 		self.saveCameraEventsStatus = False
@@ -5154,7 +5269,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def readCamerasStats(self):
 		try:
-			f=open(self.indigoConfigDir+"CamerasStats","r")
+			f=open(self.userIndigoPluginDir+"CamerasStats","r")
 			self.cameras= json.loads(f.read())
 			f.close()
 			self.saveCameraEventsStatus = True
@@ -5414,10 +5529,10 @@ class Plugin(indigo.PluginBase):
 		if time.time() - 20	 < self.lastSaveMAC2INDIGO: return 
 		self.lastSaveMAC2INDIGO = time.time() 
 
-		f=open(self.indigoConfigDir+"MAC2INDIGO","w")
+		f=open(self.userIndigoPluginDir+"MAC2INDIGO","w")
 		f.write(  json.dumps( self.MAC2INDIGO, sort_keys=True, indent=2 ) )
 		f.close()
-		f=open(self.indigoConfigDir+"MACignorelist","w")
+		f=open(self.userIndigoPluginDir+"MACignorelist","w")
 		f.write(  json.dumps( self.MACignorelist) )
 		f.close()
 		
@@ -5425,13 +5540,13 @@ class Plugin(indigo.PluginBase):
 	def readMACdata(self):
 		self.lastSaveMAC2INDIGO	 = time.time() -21 
 		try:
-			f=open(self.indigoConfigDir+"MAC2INDIGO","r")
+			f=open(self.userIndigoPluginDir+"MAC2INDIGO","r")
 			self.MAC2INDIGO= json.loads(f.read())
 			f.close()
 		except: 
 			self.MAC2INDIGO= {"UN":{},u"GW":{},u"SW":{},u"AP":{},u"NB":{}}
 		try:
-			f=open(self.indigoConfigDir+"MACignorelist","r")
+			f=open(self.userIndigoPluginDir+"MACignorelist","r")
 			self.MACignorelist= json.loads(f.read())
 			f.close()
 		except: 
@@ -5454,7 +5569,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def writeSuspend(self): 
 		try:
-			f=open(self.indigoConfigDir+"suspended","w")
+			f=open(self.userIndigoPluginDir+"suspended","w")
 			f.write(  json.dumps( self.suspendedUnifiSystemDevicesIP, sort_keys=True, indent=2 ) )
 			f.close()
 		except: pass
@@ -5462,7 +5577,7 @@ class Plugin(indigo.PluginBase):
 	def readSuspend(self): 
 		self.suspendedUnifiSystemDevicesIP={}
 		try:
-			f=open(self.indigoConfigDir+"suspended","r")
+			f=open(self.userIndigoPluginDir+"suspended","r")
 			self.suspendedUnifiSystemDevicesIP = json.loads(f.read())
 			f.close()
 		except: pass
@@ -8346,7 +8461,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def manageLogfile(self, apDict, apNumb,unifiDeviceType):
 		try:
-				name = self.indigoConfigDir + u"dict-"+unifiDeviceType+u"#" + unicode(apNumb) 
+				name = self.userIndigoPluginDir + u"dict-"+unifiDeviceType+u"#" + unicode(apNumb) 
 				f = open(name+".txt", "w")
 				f.write(json.dumps(apDict, sort_keys=True, indent=2))
 				f.close()

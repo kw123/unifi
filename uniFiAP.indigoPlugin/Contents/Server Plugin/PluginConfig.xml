@@ -182,18 +182,18 @@
 
 
     <Field    id="unifiUserID"   type="textfield" defaultValue="" >
-        <Label>UserID of UniFi system devices:</Label>
+        <Label>UserID of UniFi system devices(for ssh to device):</Label>
     </Field>
 
     <Field    id="unifiPassWd"   type="textfield" defaultValue="" >
-        <Label>password of UniFi system devices:</Label>
+        <Label>password of UniFi system devices(for ssh to device):</Label>
     </Field>
 
 
 
     <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section........................................................:</Label>  </Field>
     <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
-        <Label>...read database dump every:</Label>
+        <Label>...read database dump of APs every:</Label>
         <List>
             <Option value="5"     > 5 seconds for testing</Option>
             <Option value="10"    >10 seconds for testing</Option>
@@ -220,7 +220,7 @@
         </List>
     </Field>
     <Field    id="apPrompt"   type="menu" defaultValue=":~" visibleBindingId="apON" visibleBindingValue="true">
-        <Label>...prompt when logging in:</Label>
+        <Label>...prompt when logging in(unix prompt):</Label>
         <List>
             <Option value="BZ.v"      >BZ.v</Option>
         </List>
@@ -245,7 +245,7 @@
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:...............................................................</Label>  </Field>
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-        <Label>...read database dump every:</Label>
+        <Label>...read UGA database dump every:</Label>
         <List>
             <Option value="5"     > 5 seconds for testing</Option>
             <Option value="10"    >10 seconds for testing</Option>
@@ -273,7 +273,7 @@
         </List>
     </Field>
     <Field    id="gwPrompt"   type="menu" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
-        <Label>...prompt when logging in:</Label>
+        <Label>...prompt (unix) when logging in:</Label>
         <List>
             <Option value=":~"      >:~</Option>
         </List>
@@ -284,7 +284,7 @@
     <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:..................................................</Label>  </Field>
 
     <Field    id="readDictEverySecondsSW"   type="menu" defaultValue="60" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-        <Label>...read database dump every:</Label>
+        <Label>...read database dump of SWs every:</Label>
         <List>
             <Option value="5"     > 5 seconds for testing</Option>
             <Option value="10"    >10 seconds for testing</Option>
@@ -313,7 +313,7 @@
         </List>
     </Field>
     <Field    id="swPrompt" type="menu"  defaultValue=":~"         visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW prompt:</Label>  
+    <Label>.. SW (unix)prompt:</Label>  
         <List>
             <Option value="US.v"      > US.v </Option>
         </List>
@@ -351,26 +351,26 @@
 
 
     <Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..UserID for UniFi VIDEO web login(empty=off):</Label>
+        <Label>..UserID for UniFi NVR web login(empty=off):</Label>
     </Field>
     <Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..Password for UniFi VIDEO web login:</Label>
+        <Label>..Password for UniFi NVR web login:</Label>
     </Field>
 
     <Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..UserID for UniFi VIDEO unix box(empty=off):</Label>
+        <Label>..UserID for UniFi NVR unix box(empty=off):</Label>
     </Field>
     <Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..Password for UniFi VIDEO unix box:</Label>
+        <Label>..Password for UniFi NVR unix box:</Label>
     </Field>
     <Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true" readonly="true">
         <Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
     </Field>
     <Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..Prompt for UniFi VIDEO unix box:</Label>
+        <Label>..Prompt for UniFi NVR unix box:</Label>
     </Field>
     <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
-       <Label>..ipNumber of your Video NVR:</Label>  
+       <Label>..ipNumber of your NVR:</Label>  
     </Field>
     <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
         <Label>.. get event images:</Label>  
@@ -472,7 +472,7 @@
     <Field    id="debugLogDetails"  type="checkbox"  defaultValue="false"   > <Label>... (3) ...  Details:</Label>  </Field>
     <Field    id="debugDict"        type="checkbox"  defaultValue="false"   > <Label>... (4) Dict Messages:</Label>  </Field>
     <Field    id="debugDictDetails" type="checkbox"  defaultValue="false"   > <Label>... (5) ...  Details:</Label>  </Field>
-    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) ssh connection to unifi devices..:</Label>  </Field>
+    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) connection to unifi devices..:</Label>  </Field>
     <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (7) Video...:</Label>  </Field>
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
     <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (9) BroadCast:</Label>  </Field>
@@ -482,10 +482,15 @@
     <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send logs to ..:</Label>
         <List>
             <Option value="standard" > no special unifi logfile, std indigo logfile</Option>
-            <Option value="user"     > ~/indigo/unifi/unifi.log                    </Option>
+            <Option value="user"     > ~/indigo/unifi/plugin.log                    </Option>
             <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
         </List>
     </Field>
+    <Field id="infoLabel227" type="label"> <Label>.                     for DETAILED time tracking set indigo variable "do_cProfile_uniFiAP"</Label>  </Field>
+    <Field    id="do_cProfile" type="textfield"  defaultValue="on/off/print"  readonly="yes"     > 
+        <Label>... enable or stop or  print intermediate results use on/off/print:</Label>  
+    </Field>
+
 
 
 </PluginConfig>
