@@ -34,7 +34,7 @@ dataVersion = 2.0
 
 ## Static parameters, not changed in pgm
 _GlobalConst_numberOfAP	 = 5
-_GlobalConst_numberOfSW	 = 11
+_GlobalConst_numberOfSW	 = 13
 
 _GlobalConst_numberOfGroups = 20
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
@@ -1390,7 +1390,7 @@ class Plugin(indigo.PluginBase):
 			
 			if payload !="":  payload['name']= dev.states["nameOnNVR"]
 			ret = self.executeCMDonNVR(payload, dev.states["apiKey"],  cmdType=cmdType)
-			self.fillCamerasIntoIndigo(ret)
+			self.fillCamerasIntoIndigo(ret, calledFrom="setupNVRcmd")
 			return "ok",ret
 		except	Exception, e:
 			self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -1477,7 +1477,6 @@ class Plugin(indigo.PluginBase):
 							return []
 						elif self.ML.decideMyLog(u"Video"):
 							self.ML.myLog( text="executeCMDonNVR requests "+unicode(jj["data"]) ,mType="Video")
-						self.fillCamerasIntoIndigo({"cameras":jj["data"]})
 						return jj["data"]
 				except	Exception, e:
 					self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -1703,12 +1702,15 @@ class Plugin(indigo.PluginBase):
 								##self.ML.myLog( text="getCamerasFromNVR user dict: "+unicode(user))
 								if "accountId" in user and ID == user["accountId"]:
 									##self.ML.myLog( text="getCamerasFromNVR accountId ok and id found:"+ID)
-									if "apiKey" in user and  "enableApiAccess" in user:
+									if "apiKey" in user and "enableApiAccess" in user:
 										##self.ML.myLog( text="getCamerasFromNVR apiKey found <<"+ user["apiKey"]+"<<    enableApiAccess>>"+unicode(user["enableApiAccess"]))
 										info["users"][ID]["apiKey"]			 = user["apiKey"]
 										info["users"][ID]["enableApiAccess"] = user["enableApiAccess"]
 									else:
-										self.ML.myLog( text="getCamerasFromNVR camera users   bad enableApiAccess / apiKey info for id:"+ str(ID)+"\n"+ unicode(USERs), mType="UNIFI error")
+										if "enableApiAccess" in user and user["enableApiAccess"]: # its enabled, but no api key 
+											self.ML.myLog( text="getCamerasFromNVR camera users   bad enableApiAccess / apiKey info for id:"+ str(ID)+"\n"+ unicode(USERs), mType="UNIFI error")
+										else:
+											if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getCamerasFromNVR camera users   enableApiAccess disabled info for id:"+ str(ID)+"\n"+ unicode(USERs), mType="UNIFI error")
 						else:
 										self.ML.myLog( text="getCamerasFromNVR camera ACCOUNT bad _id / username / name info:\n"+ unicode(ACCOUNTs), mType="UNIFI error")
 							
@@ -1720,7 +1722,7 @@ class Plugin(indigo.PluginBase):
 				info["cameras"]	 = self.executeCMDonNVR( {}, "",  cmdType="get")
 				if len(info["cameras"]) <1:
 					info["cameras"] = self.getMongoData(cmdstr[0]+"camera" +cmdstr[1])
-				if len(info["cameras"]) >0: self.fillCamerasIntoIndigo(info["cameras"])
+				if len(info["cameras"]) >0: self.fillCamerasIntoIndigo(info["cameras"], calledFrom="getCamerasFromNVR")
 
 
 			##self.ML.myLog( text=unicode(info))
@@ -3727,17 +3729,17 @@ class Plugin(indigo.PluginBase):
 				else:		  dataDict = json.dumps(data)
 				url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
-				if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=url +"  "+ dataDict,mType="Connection")
-				if startText !="":					   self.ML.myLog( text=startText ,mType="Connection")
+				if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text="requests: "+url +"  "+ dataDict,mType="Connection")
+				if startText !="":					   self.ML.myLog( text="requests: "+startText ,mType="Connection")
 				try:
 						if	 cmdType == "put":	 resp = self.unifiControllerSession.put(url,data = dataDict)
 						elif cmdType == "post":	 resp = self.unifiControllerSession.post(url,data = dataDict)
-						elif cmdType == "get":	 resp = self.unifiControllerSession.get(url,data = dataDict)
+						elif cmdType == "get":	 resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
 						else:					 resp = self.unifiControllerSession.put(url,data = dataDict)
 						jj = json.loads(resp.text)
 						if jj["meta"]["rc"] !="ok" :
 						   self.ML.myLog( text=u"error:>> "+ unicode(resp) ,mType="Reconnect")
-						if self.ML.decideMyLog(u"Connection"):	self.ML.myLog( text="executeCMDOnController resp.text:>>"+ resp.text+"<<" ,mType="Reconnect")
+						if self.ML.decideMyLog(u"Connection"):	self.ML.myLog( text="executeCMDOnController resp.text:>>"+ resp.text[0:500]+".... <<" ,mType="Reconnect")
 						if jj["meta"]["rc"] =="ok" and jsonAction=="print":
 							self.ML.myLog( text=u"executeCMDOnController info\n"+ json.dumps(jj["data"],sort_keys=True, indent=2),mType="Connection" )
 						elif jj["meta"]["rc"] =="ok" and jsonAction=="returnData":
@@ -5433,14 +5435,14 @@ class Plugin(indigo.PluginBase):
 				self.sleep(1)
 				info =self.getCamerasFromNVR(action=["cameras"])
 			
-			self.fillCamerasIntoIndigo(info["cameras"])
 		except	Exception, e:
 			if len(unicode(e)) > 5:
 				self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 	####-----------------	 ---------
-	def fillCamerasIntoIndigo(self,camJson): 
+	def fillCamerasIntoIndigo(self,camJson, calledFrom=""): 
 		try:
+			## self.ML.myLog( text=u"fillCamerasIntoIndigo called from: "+calledFrom) 
 			if len(camJson) < 1: return 
 			saveCam= False
 			for cam2 in camJson:
@@ -5449,7 +5451,21 @@ class Plugin(indigo.PluginBase):
 					MAC = c[0:2]+":"+c[2:4]+":"+c[4:6]+":"+c[6:8]+":"+c[8:10]+":"+c[10:12]
 					MAC = MAC.lower()
 
-					if MAC in self.MACignorelist: continue
+					skip = ""
+					if MAC in self.MACignorelist: 
+						skip = "MAC"
+					else:
+						if "authStatus" in cam2 and cam2["authStatus"] != "AUTHENTICATED":
+							skip += " not-authStatus;"
+						if "managed" in cam2 and not cam2["managed"]:
+							skip += " not managed;"
+						if "deleted" in cam2 and  cam2["deleted"]:
+							skip += " deleted"
+						if skip !="":
+							if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=u"skipping camera with MAC # "+MAC +"; because : "+ skip)
+					if skip !="":
+						continue
+						
 					found = False
 					for cam in self.cameras:
 						if MAC == cam:
