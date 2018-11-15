@@ -1408,14 +1408,14 @@ class Plugin(indigo.PluginBase):
 				url = "https://"+self.ipnumberOfNVR+ ":7443/api/2.0/camera/"+"?apiKey=" + self.nvrVIDEOapiKey
 
 			if self.unfiCurl.find("curl") > -1: 
-				cmdL  = self.unfiCurl+" --insecure -c /tmp/nvrCookie --data '"+json.dumps({"username":self.nvrWebUserID,"password":self.nvrWebPassWd})+"' https://"+self.ipnumberOfNVR+":7443/api/login"
+				cmdL  = self.unfiCurl+" --insecure -c /tmp/nvrCookie --data '"+json.dumps({"username":self.nvrWebUserID,"password":self.nvrWebPassWd})+"' 'https://"+self.ipnumberOfNVR+":7443/api/login'"
 				if data =={} or data =="": dataDict = ""
 				else:					   dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	  cmdTypeUse= " -X PUT "
 				elif cmdType == "post":	  cmdTypeUse= " -X post "
 				elif cmdType == "get":	  cmdTypeUse= "     "
 				else:					  cmdTypeUse= " "
-				cmdR = self.unfiCurl+" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + url
+				cmdR = self.unfiCurl+" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + "'" +url+ "'"
 
 				try:
 					try:
@@ -3666,14 +3666,14 @@ class Plugin(indigo.PluginBase):
 		
 			
 			if self.unfiCurl.find("curl") > -1:
-				cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"+json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd})+"' https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login"
+				cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"+json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
 				if data =={}: dataDict = ""
 				else:		  dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	  cmdTypeUse= " -X PUT "
 				elif cmdType == "post":	  cmdTypeUse= " -X post "
 				elif cmdType == "get":	  cmdTypeUse= " -X get "
 				else:					  cmdTypeUse= " "
-				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
+				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
 
 				if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmdL ,mType="Connection")
 				try:
@@ -3681,10 +3681,10 @@ class Plugin(indigo.PluginBase):
 						ret = subprocess.Popen(cmdL, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 						try: jj = json.loads(ret[0])
 						except:
-							self.ML.myLog( text="error no json object: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]),mType="Connection")
+							self.ML.myLog( text="executeCMDOnController error no json object: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]),mType="Connection")
 							return {}
 						if jj["meta"]["rc"] !="ok": 
-							self.ML.myLog( text=u"error: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]),mType="Connection")
+							self.ML.myLog( text=u"executeCMDOnController error: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]),mType="Connection")
 							return {}
 						elif self.ML.decideMyLog(u"Connection"):	 self.ML.myLog( text=ret[0] ,mType="Connection")
 						self.lastUnifiCookieCurl =time.time()
@@ -3709,9 +3709,9 @@ class Plugin(indigo.PluginBase):
 							return jj["data"]
 						return {}
 					except	Exception, e:
-						self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
+						self.ML.myLog( text=u"executeCMDOnController in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
 				except	Exception, e:
-					self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
+					self.ML.myLog( text=u"executeCMDOnController in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
 
 
 			############# does not work on OSX	el capitan ssl lib too old	##########
@@ -3746,11 +3746,11 @@ class Plugin(indigo.PluginBase):
 							return jj["data"]
 						return {}
 				except	Exception, e:
-					self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
+					self.ML.myLog( text=u"executeCMDOnController in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
 
 
 		except	Exception, e:
-			self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
+			self.ML.myLog( text=u"executeCMDOnController in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="Connection")
 		return {}
    
 
@@ -3758,13 +3758,13 @@ class Plugin(indigo.PluginBase):
 	def getSnapshotfromCamera(self, indigoCameraId, fileName):
 		try:
 			dev		= indigo.devices[int(indigoCameraId)]
-			cmdR	= "/usr/bin/curl  http://"+dev.states["ip"] +"/snap.jpeg"+" > "+ fileName
+			cmdR	= self.unfiCurl +" 'http://"+dev.states["ip"] +"/snap.jpeg' > "+ fileName
 			if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR with: "+cmdR,mType="Video")
 			ret 	= subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 			if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromCamera response: "+str(ret),mType="Video")
 			return "ok"
 		except	Exception, e:
-			self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.ML.myLog( text=u"getSnapshotfromCamera in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 			return "error:"+unicode(e) 
 		return " error"
    
@@ -3774,30 +3774,57 @@ class Plugin(indigo.PluginBase):
 	
 		try:
 			camApiKey = indigo.devices[int(indigoCameraId)].states["apiKey"]
-
-			session = requests.Session()
-
-			url			= "http://"+self.ipnumberOfNVR +":7080/api/2.0/login"
-			data = json.dumps({"username":self.nvrWebUserID,"password":self.nvrWebPassWd})
-			if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR login with: "+url+"; data: "+data ,mType="Video")
-			#resp		 = session.post(url, data = data, verify=False)
-			#if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR response: "+str(resp.status_code),mType="Video")
-
-
-			##http://192.168.1.60:7080/api/2.0/snapshot/camera/5aeb8e5437ccd7c4f78b3623?force=true&width=1024&apiKey=0yBmLfAzHw8C8TKHP0TQfz2QCi8ISvCP
-
 			url			= "http://"+self.ipnumberOfNVR +":7080/api/2.0/snapshot/camera/"+camApiKey+"?force=true&width="+str(width)+"&apiKey="+self.nvrVIDEOapiKey
-			if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR get with "+url ,mType="Video")
-			resp	= session.get(url, stream=True)
-			if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR response: "+str(resp.status_code)+";   %d"%(len(resp.content)/1024)+"[kB]" ,mType="Video")
-			if str(resp.status_code) == "200":
-				f = open(fileName,"wb")
-				f.write(resp.content)
-				f.close()
-				return "ok"
-			return "error "+str(resp.status_code)
+			if self.unfiCurl.find("curl") > -1:
+				cmdR	= self.unfiCurl+" -o '" + fileName +"'  '"+ url+"'"
+				try:
+					if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmdR ,mType="Video")
+					ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[1]
+					try: 
+						fs1	 = ""
+						fs	 = 0
+						fs0	 = ""
+						unit = ""
+						if ret.find("\r")> -1: ret = ret.split("\r")
+						else:                  ret = ret.split("\n")
+						fs0  = ret[-1] # last line 
+						fs1  = fs0.split()[-1] # last number
+						unit = fs1[-1] # strip last char
+						fs  = int(fs1.strip("k").strip("m").strip("M"))
+					except: fs = 0
+					if fs == 0:
+						self.ML.myLog( text=u"getSnapshotfromNVR has error, no file returned: \n"+unicode(ret[1])+"  "+cmdR , mType="UNIFI Video error")
+						return "error, no file returned"
+					return "ok, bytes transfered: "+str(fs)+unit
+				except	Exception, e:
+					self.ML.myLog( text=u"getSnapshotfromNVR in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e),mType="UNIFI Video error")
+				return "error:"+unicode(e) 
+
+			else:
+				session = requests.Session()
+
+				if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR login with: "+url,mType="Video")
+
+				resp	= session.get(url, stream=True)
+				if self.ML.decideMyLog(u"Video"): self.ML.myLog( text="getSnapshotfromNVR response: "+str(resp.status_code)+";   %d"%(len(resp.content)/1024)+"[kB]" ,mType="Video")
+				if str(resp.status_code) == "200":
+					f = open(fileName,"wb")
+					f.write(resp.content)
+					f.close()
+					unit=""
+					try:    
+						ll = int(len(resp.content))
+						if ll > 1024: 
+							ll /=1024
+							unit="k"
+							if ll > 1024:
+								ll /=1024
+								unit="M"
+					except: ll = ""
+					return "ok, bytes transfered: "+ str(ll)+unit
+				return "error "+str(resp.status_code)
 		except	Exception, e:
-			self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.ML.myLog( text=u"getSnapshotfromNVR in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return "error:"+unicode(e) 
    
    
@@ -8612,4 +8639,10 @@ class Plugin(indigo.PluginBase):
 		elif status == u"ON":		 return status.ljust(10)
 		else:						 return status.ljust(10)
 
+
+
+	####-----------------dummy method to kill error when called by indigo, dont know what this does  ---------
+	def actionControlSensor(self, action=None, filter="", typeId="", devId="")
+		return 
+	####-----------------dummy method to kill error when called by indigo, dont know what this does  ---------
 	

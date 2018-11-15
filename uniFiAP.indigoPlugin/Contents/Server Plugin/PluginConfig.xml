@@ -159,7 +159,7 @@
     <Field    id="unifiCONTROLLERPassWd"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
         <Label>...password cor UniFi CONTROLLER:</Label>
     </Field>
-    <Field    id="unifiCloudKeyIP"       type="textfield" defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..ipNumber of controller</Label>  </Field>
+    <Field    id="unifiCloudKeyIP"       type="textfield" defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>ipNumber of controller</Label>  </Field>
     <Field    id="unifiCloudKeyPort"     type="textfield" defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site name of unifi install:</Label>  </Field>
     <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
@@ -228,19 +228,19 @@
 
 
     <Field    id="ipON0" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"     > <Label>.. AP-0 active:</Label>  </Field>
-    <Field    id="ip0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" visibleBindingValue="true"> <Label>..ipNumber of AP-0:</Label>  </Field>
+    <Field    id="ip0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" visibleBindingValue="true"> <Label>ipNumber of AP-0:</Label>  </Field>
 
     <Field    id="ipON1" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-1 active:</Label>  </Field>
-    <Field    id="ip1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON1" visibleBindingValue="true"> <Label>..ipNumber of AP-1:</Label>  </Field>
+    <Field    id="ip1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON1" visibleBindingValue="true"> <Label>ipNumber of AP-1:</Label>  </Field>
 
     <Field    id="ipON2" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-2 active:</Label>  </Field>
-    <Field    id="ip2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON2" visibleBindingValue="true"> <Label>..ipNumber of AP-2:</Label>  </Field>
+    <Field    id="ip2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON2" visibleBindingValue="true"> <Label>ipNumber of AP-2:</Label>  </Field>
 
     <Field    id="ipON3" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label> AP-3 active:</Label>  </Field>
-    <Field    id="ip3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON3" visibleBindingValue="true"> <Label>..ipNumber of AP-3:</Label>  </Field>
+    <Field    id="ip3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON3" visibleBindingValue="true"> <Label>ipNumber of AP-3:</Label>  </Field>
 
     <Field    id="ipON4" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-4 active:</Label>  </Field>
-    <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>..ipNumber of AP-4:</Label>  </Field>
+    <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>ipNumber of AP-4:</Label>  </Field>
 
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:...............................................................</Label>  </Field>
@@ -258,7 +258,7 @@
         </List>
     </Field>
 
-    <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>..ipNumber of your USG:</Label>  </Field>
+    <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>ipNumber of your USG:</Label>  </Field>
     <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
     <Label>.. GW tail command(empty = off):</Label>  
         <List>
@@ -319,32 +319,32 @@
         </List>
     </Field>
 
-    <Field    id="ipSWON0" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 0 active:</Label>  </Field>
-    <Field    id="ipSW0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON0" visibleBindingValue="true" > <Label>..ipNumber of your unifi switch 0:</Label>  </Field>
-    <Field    id="ipSWON1" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 1 active:</Label>  </Field>
-    <Field    id="ipSW1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON1" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 1:</Label>  </Field>
-    <Field    id="ipSWON2" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 2 active:</Label>  </Field>
-    <Field    id="ipSW2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON2" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 2:</Label>  </Field>
-    <Field    id="ipSWON3" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 3 active:</Label>  </Field>
-    <Field    id="ipSW3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON3" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 3:</Label>  </Field>
-    <Field    id="ipSWON4" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 4 active:</Label>  </Field>
-    <Field    id="ipSW4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON4" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 4:</Label>  </Field>
-    <Field    id="ipSWON5" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 5 active:</Label>  </Field>
-    <Field    id="ipSW5"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON5" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 5:</Label>  </Field>
-    <Field    id="ipSWON6" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 6 active:</Label>  </Field>
-    <Field    id="ipSW6"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON6" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 6:</Label>  </Field>
-    <Field    id="ipSWON7" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 7 active:</Label>  </Field>
-    <Field    id="ipSW7"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON7" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 7:</Label>  </Field>
-    <Field    id="ipSWON8" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 8 active:</Label>  </Field>
-    <Field    id="ipSW8"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON8" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 8:</Label>  </Field>
-    <Field    id="ipSWON9" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 9 active:</Label>  </Field>
-    <Field    id="ipSW9"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 9:</Label>  </Field>
-    <Field    id="ipSWON10" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 10 active:</Label>  </Field>
-    <Field    id="ipSW10"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 10:</Label>  </Field>
-    <Field    id="ipSWON11" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 11 active:</Label>  </Field>
-    <Field    id="ipSW11"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 11:</Label>  </Field>
-    <Field    id="ipSWON12" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 12 active:</Label>  </Field>
-    <Field    id="ipSW12"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>..ipNumber of your unifi switch 12:</Label>  </Field>
+    <Field    id="ipSWON0" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:----------------</Label>  </Field>
+    <Field    id="ipSW0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON0"  visibleBindingValue="true" > <Label>ipNumber of unifi switch 0:</Label>  </Field>
+    <Field    id="ipSWON1" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  1 active:----------------</Label>  </Field>
+    <Field    id="ipSW1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON1"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  1:</Label>  </Field>
+    <Field    id="ipSWON2" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  2 active:----------------</Label>  </Field>
+    <Field    id="ipSW2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON2"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  2:</Label>  </Field>
+    <Field    id="ipSWON3" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  3 active:----------------</Label>  </Field>
+    <Field    id="ipSW3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON3"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  3:</Label>  </Field>
+    <Field    id="ipSWON4" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  4 active:----------------</Label>  </Field>
+    <Field    id="ipSW4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON4"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  4:</Label>  </Field>
+    <Field    id="ipSWON5" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  5 active:----------------</Label>  </Field>
+    <Field    id="ipSW5"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON5"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  5:</Label>  </Field>
+    <Field    id="ipSWON6" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  6 active:----------------</Label>  </Field>
+    <Field    id="ipSW6"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON6"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  6:</Label>  </Field>
+    <Field    id="ipSWON7" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  7 active:----------------</Label>  </Field>
+    <Field    id="ipSW7"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON7"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  7:</Label>  </Field>
+    <Field    id="ipSWON8" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  8 active:----------------</Label>  </Field>
+    <Field    id="ipSW8"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON8"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  8:</Label>  </Field>
+    <Field    id="ipSWON9" type="checkbox"  defaultValue="false"       visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  9 active:----------------</Label>  </Field>
+    <Field    id="ipSW9"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON9"  visibleBindingValue="true"> <Label>ipNumber of unifi switch  9:</Label>  </Field>
+    <Field    id="ipSWON10" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 10 active:----------------</Label>  </Field>
+    <Field    id="ipSW10"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>ipNumber of unifi switch 10:</Label>  </Field>
+    <Field    id="ipSWON11" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 11 active:----------------</Label>  </Field>
+    <Field    id="ipSW11"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>ipNumber of unifi switch 11:</Label>  </Field>
+    <Field    id="ipSWON12" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 12 active:----------------</Label>  </Field>
+    <Field    id="ipSW12"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>ipNumber of unifi switch 12:</Label>  </Field>
 
 
 
@@ -374,7 +374,7 @@
         <Label>..Prompt for UniFi NVR unix box:</Label>
     </Field>
     <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
-       <Label>..ipNumber of your NVR:</Label>  
+       <Label>ipNumber of your NVR:</Label>  
     </Field>
     <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
         <Label>.. get event images:</Label>  
