@@ -18,6 +18,7 @@ import random
 import versionCheck.versionCheck as VS
 import MACMAP.MAC2Vendor as M2Vclass
 import socket
+import getNumber.getNumber as GT
 
 import threading
 import copy
@@ -95,8 +96,8 @@ class Plugin(indigo.PluginBase):
 
 		self.MAChome					= os.path.expanduser(u"~")
 		self.userIndigoDir				= self.MAChome + "/indigo/"
-		self.userIndigoPluginDir		= self.userIndigoDir + u"unifi/"
-		self.userIndigoPluginDirOld		= self.MAChome + u"/documents/unifi/"
+		self.userIndigoPluginDir		= self.userIndigoDir + self.pluginShortName+"/"
+		self.userIndigoPluginDirOld		= self.MAChome + u"/documents/"+self.pluginShortName+"/"
 
 		self.pythonPath					= u"/usr/bin/python2.6"
 		if os.path.isfile(u"/usr/bin/python2.7"):
@@ -4515,7 +4516,7 @@ class Plugin(indigo.PluginBase):
 		except: 
 			self.cProfileVariableLoaded = 0
 			self.do_cProfile  			= "x"
-			self.timeTrVarName 			= "enableTimeTracking_"+self.pluginName
+			self.timeTrVarName 			= "enableTimeTracking_"+self.pluginShortName
 			indigo.server.log("testing if variable "+self.timeTrVarName+" is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)")
 
 		self.lastTimegetcProfileVariable = time.time()
@@ -7671,6 +7672,10 @@ class Plugin(indigo.PluginBase):
 			cpuPercent	= ""
 			memPercent	= ""
 			temperature = ""
+			temperature_Board_CPU 	= ""
+			temperature_Board_PHY 	= "" 
+			temperature_CPU 		= ""
+			temperature_PHY 		= ""
 			MAC			= ""
 			gateways	= ""
 			MAClan		= ""
@@ -7743,13 +7748,15 @@ class Plugin(indigo.PluginBase):
 						if type(sysStats["temps"]) == type({}):
 							try:
 								for key,value in sysStats["temps"].iteritems():
-									temperature +=key+":"+value+";"
-								temperature = temperature.replace(' C',"").replace(" ","").strip(";")+"[C]"
+									if   key =="Board (CPU)": 	temperature_Board_CPU 	= GT.getNumber(value)
+									elif key =="Board (PHY)":	temperature_Board_PHY 	= GT.getNumber(value) 
+									elif key =="CPU": 			temperature_CPU 		= GT.getNumber(value)
+									elif key =="PHY": 			temperature_PHY 		= GT.getNumber(value)
 								#self.ML.myLog( text="doGatewaydictSELF sysStats[temp]ok : "+temperature)
 							except:
 								self.ML.myLog( text="doGatewaydictSELF sysStats[temp]err : "+unicode(sysStats["temps"]))
 						else:
-							temperature	 = unicode(sysStats["temps"])
+							temperature	 = GT.getNumber(sysStats["temps"])
 							#self.ML.myLog( text="doGatewaydictSELF sysStats: empty "+unicode(sysStats))
 
 			if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
@@ -7803,9 +7810,13 @@ class Plugin(indigo.PluginBase):
 					if dev.states[u"wan"] != wanUP:										self.addToStatesUpdateList(unicode(dev.id),u"wan", wanUP)
 					if dev.states[u"MAC"] != MAC:										self.addToStatesUpdateList(unicode(dev.id),u"MAC", MAC)
 					if dev.states[u"model"] != model and model != "":					self.addToStatesUpdateList(unicode(dev.id),u"model", model)
-					if dev.states[u"temperature"] != temperature and temperature != "": self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
 					if dev.states[u"memPercent"] != cpuPercent and memPercent != "":	self.addToStatesUpdateList(unicode(dev.id),u"memPercent", memPercent)
 					if dev.states[u"cpuPercent"] != cpuPercent and cpuPercent != "":	self.addToStatesUpdateList(unicode(dev.id),u"cpuPercent", cpuPercent)
+					if dev.states[u"temperature"] != temperature and temperature != "": self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
+					if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(unicode(dev.id),u"temperature_Board_CPU", temperature_Board_CPU)
+					if dev.states[u"temperature_Board_PHY"] != temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(unicode(dev.id),u"temperature_Board_PHY", temperature_Board_PHY)
+					if dev.states[u"temperature_CPU"]		!= temperature_CPU 		 and temperature_CPU != "":		  self.addToStatesUpdateList(unicode(dev.id),u"temperature_CPU", temperature_CPU)
+					if dev.states[u"temperature_PHY"]		!= temperature_PHY 		 and temperature_PHY != "":		  self.addToStatesUpdateList(unicode(dev.id),u"temperature_PHY", temperature_PHY)
 
 					if dev.states[u"status"] != "up":									self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.ljust(30) + u" status up		   GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
@@ -7863,10 +7874,10 @@ class Plugin(indigo.PluginBase):
 			uptime = float(uptime)
 			xx = unicode(datetime.timedelta(seconds=uptime)).replace(" days","").split(",")
 			if len(xx) ==2:
-				wanUpTime = xx[0]+"d "
+				ret = xx[0]+"d "
 				yy = xx[1].split(":")
 				if len(yy) >1:
-					wanUpTime += yy[0]+"h " +yy[1]+"m"
+					ret += yy[0]+"h " +yy[1]+"m"
 			if len(xx) ==1:
 				yy = xx[0].split(":")
 				if len(yy) >1:
@@ -8024,7 +8035,7 @@ class Plugin(indigo.PluginBase):
 			temperature = "" 
 			if u"general_temperature" in theDict:
 				if unicode(theDict[u"general_temperature"]) !="0":
-					temperature = unicode(theDict[u"general_temperature"])+ u"[ºC]"
+					temperature = GT.getNumber(theDict[u"general_temperature"])
 			overHeating		= theDict[u"overheating"]
 			uptime			= unicode(theDict[u"uptime"])
 			portTable		= theDict[u"port_table"]
@@ -8176,7 +8187,7 @@ class Plugin(indigo.PluginBase):
 						self.addToStatesUpdateList(unicode(dev.id),u"model", model)
 					if uptime != self.MAC2INDIGO[xType][MAC][u"upTime"]:
 						self.MAC2INDIGO[xType][MAC][u"upTime"] =uptime
-					if "temperature" in dev.states and  temperature != dev.states[u"temperature"]:
+					if temperature !="" and "temperature" in dev.states and  temperature != dev.states[u"temperature"]:
 						self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
 					if "overHeating" in dev.states and overHeating != dev.states[u"overHeating"]:
 							self.addToStatesUpdateList(unicode(dev.id),u"overHeating", overHeating)
@@ -8225,7 +8236,8 @@ class Plugin(indigo.PluginBase):
 					self.setupStructures(xType, dev, MAC)
 					self.MAC2INDIGO[xType][MAC][u"upTime"] = uptime
 					self.addToStatesUpdateList(unicode(dev.id),u"model", model)
-					self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
+					if temperature !="" and "temperature" in dev.states and  temperature != dev.states[u"temperature"]:
+						self.addToStatesUpdateList(unicode(dev.id),u"temperature", temperature)
 					self.addToStatesUpdateList(unicode(dev.id),u"overHeating", overHeating)
 					self.addToStatesUpdateList(unicode(dev.id),u"hostname", hostname)
 					self.addToStatesUpdateList(unicode(dev.id),u"switchNo", apNumb)
@@ -8640,9 +8652,40 @@ class Plugin(indigo.PluginBase):
 		else:						 return status.ljust(10)
 
 
+	########################################
+	# General Action callback
+	######################
+	def actionControlUniversal(self, action, dev):
+		###### BEEP ######
+		if action.deviceAction == indigo.kUniversalAction.Beep:
+			# Beep the hardware module (dev) here:
+			# ** IMPLEMENT ME **
+			indigo.server.log(u"sent \"%s\" %s" % (dev.name, "beep request not implemented"))
 
-	####-----------------dummy method to kill error when called by indigo, dont know what this does  ---------
-	def actionControlSensor(self, action=None, filter="", typeId="", devId="")
-		return 
-	####-----------------dummy method to kill error when called by indigo, dont know what this does  ---------
-	
+		###### STATUS REQUEST ######
+		elif action.deviceAction == indigo.kUniversalAction.RequestStatus:
+			# Query hardware module (dev) for its current status here:
+			# ** IMPLEMENT ME **
+			indigo.server.log(u"sent \"%s\" %s" % (dev.name, "status request not implemented"))
+
+	####-----------------
+	########################################
+	# Sensor Action callback
+	######################
+	def actionControlSensor(self, action, dev):
+		###### TURN ON ######
+		if action.sensorAction == indigo.kSensorAction.TurnOn:
+			self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), iType=u"actionControlSensor",reason=u"TurnOn")
+
+		###### TURN OFF ######
+		elif action.sensorAction == indigo.kSensorAction.TurnOff:
+			self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), iType=u"actionControlSensor",reason=u"TurnOff")
+
+		###### TOGGLE ######
+		elif action.sensorAction == indigo.kSensorAction.Toggle:
+			if dev.onState: 
+				self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), iType=u"actionControlSensor",reason=u"toggle")
+			else:
+				self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), iType=u"actionControlSensor",reason=u"toggle")
+
+		self.executeUpdateStatesList()

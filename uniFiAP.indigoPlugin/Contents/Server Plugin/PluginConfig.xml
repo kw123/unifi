@@ -485,12 +485,12 @@
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
     <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send logs to ..:</Label>
         <List>
-            <Option value="standard" > no special unifi logfile, std indigo logfile</Option>
-            <Option value="user"     > ~/indigo/unifi/plugin.log                    </Option>
+            <Option value="standard" > no special UniFi logfile, std indigo logfile</Option>
+            <Option value="user"     > ~/indigo/UniFi/plugin.log                    </Option>
             <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
         </List>
     </Field>
-    <Field id="infoLabel227" type="label"> <Label>.                     for DETAILED time tracking set indigo variable "do_cProfile_uniFiAP"</Label>  </Field>
+    <Field id="infoLabel227" type="label"> <Label>.                     for DETAILED time tracking set indigo variable "enableTimeTracking_UniFi"</Label>  </Field>
     <Field    id="do_cProfile" type="textfield"  defaultValue="on/off/print"  readonly="yes"     > 
         <Label>... enable or stop or  print intermediate results use on/off/print:</Label>  
     </Field>

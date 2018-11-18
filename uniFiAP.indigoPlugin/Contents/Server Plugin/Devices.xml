@@ -480,9 +480,29 @@
 					<ControlPageLabel>memPercent</ControlPageLabel>
 			</State>
 			<State id="temperature">
-					<ValueType>String</ValueType>
+					<ValueType>number</ValueType>
 					<TriggerLabel>temperature</TriggerLabel>
 					<ControlPageLabel>temperature</ControlPageLabel>
+			</State>
+			<State id="temperature_CPU">
+					<ValueType>number</ValueType>
+					<TriggerLabel>temperature</TriggerLabel>
+					<ControlPageLabel>temperature</ControlPageLabel>
+			</State>
+			<State id="temperature_PHY">
+					<ValueType>number</ValueType>
+					<TriggerLabel>temperature_PHY</TriggerLabel>
+					<ControlPageLabel>temperature_PHY</ControlPageLabel>
+			</State>
+			<State id="temperature_Board_CPU">
+					<ValueType>number</ValueType>
+					<TriggerLabel>temperature_Board_CPU</TriggerLabel>
+					<ControlPageLabel>temperature_Board_CPU</ControlPageLabel>
+			</State>
+			<State id="temperature_Board_PHY">
+					<ValueType>number</ValueType>
+					<TriggerLabel>temperature_Board_PHY</TriggerLabel>
+					<ControlPageLabel>temperature_Board_PHY</ControlPageLabel>
 			</State>
 			<State id="model">
 					<ValueType>String</ValueType>
@@ -827,7 +847,7 @@
 					<ControlPageLabel>MAC</ControlPageLabel>
 				</State>
 				<State id="temperature">
-					<ValueType>String</ValueType>
+					<ValueType>number</ValueType>
 					<TriggerLabel>temperature</TriggerLabel>
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
@@ -1262,7 +1282,7 @@
 					<ControlPageLabel>MAC</ControlPageLabel>
 				</State>
 				<State id="temperature">
-					<ValueType>String</ValueType>
+					<ValueType>number</ValueType>
 					<TriggerLabel>temperature</TriggerLabel>
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
@@ -1566,7 +1586,7 @@
 					<ControlPageLabel>MAC</ControlPageLabel>
 				</State>
 				<State id="temperature">
-					<ValueType>String</ValueType>
+					<ValueType>number</ValueType>
 					<TriggerLabel>temperature</TriggerLabel>
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
@@ -1820,7 +1840,7 @@
 					<ControlPageLabel>MAC</ControlPageLabel>
 				</State>
 				<State id="temperature">
-					<ValueType>String</ValueType>
+					<ValueType>number</ValueType>
 					<TriggerLabel>temperature</TriggerLabel>
 					<ControlPageLabel>temperature</ControlPageLabel>
 				</State>
