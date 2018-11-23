@@ -261,6 +261,7 @@ class Plugin(indigo.PluginBase):
 		self.folderNameSystem			= self.pluginPrefs.get(u"folderNameSystem",	   "UNIFI_system")
 		self.fixExpirationTime			= self.pluginPrefs.get(u"fixExpirationTime",	True)
 		self.MACignorelist				= {}
+		self.MACSpecialIgnorelist		= {}
 		self.HANDOVER					= {}
 		self.lastUnifiCookieCurl		= 0
 		self.lastUnifiCookieRequests	= 0
@@ -398,7 +399,7 @@ class Plugin(indigo.PluginBase):
 			for dev in indigo.devices.iter(self.pluginId):
 				if u"displayStatus" not in dev.states: continue
 			
-				if "MAC" in dev.states and dev.deviceTypeId == u"UniFi" and dev.states[u"MAC"] in self.MACignorelist:
+				if "MAC" in dev.states and dev.deviceTypeId == u"UniFi" and self.testIgnoreMAC(dev.states[u"MAC"]):
 					if dev.states[u"displayStatus"].find(u"ignored") ==-1:
 						dev.updateStateOnServer("displayStatus",self.padDisplay(u"ignored")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
 						if unicode(dev.displayStateImageSel) !="PowerOff":
@@ -1077,7 +1078,7 @@ class Plugin(indigo.PluginBase):
 
 				if True:											line  = unicode(dev.id).ljust(12)+mac+"; "
 
-				if mac in self.MACignorelist:						line += ("IGNORED").rjust(7)+u"; "
+				if self.MACignorelist(mac):							line += ("IGNORED").rjust(7)+u"; "
 				elif u"status" in dev.states:						line += (dev.states[u"status"]).rjust(7)+u"; "
 				else:												line += (" ").rjust(7)+u"; "
 
@@ -2271,6 +2272,14 @@ class Plugin(indigo.PluginBase):
 		return sorted(xlist, key=lambda x: x[1])
 		
 	####-----------------  logging for specific MAC number	 ---------
+	####-----------------	 ---------
+	def filterMACspecialUNIgnore(self, filter="", valuesDict=None, typeId="", devId=""):
+		xlist = []
+		for MAC in self.MACSpecialIgnorelist:
+			xlist.append([MAC,MAC])
+		return sorted(xlist, key=lambda x: x[1])
+		
+	####-----------------  logging for specific MAC number	 ---------
 
 
 
@@ -2530,6 +2539,30 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 
 
+	####-----------------  Ignore special MAC info	 ---------
+	def buttonConfirmStartIgnoringSpecialMACCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		MAC = valuesDict[u"MACspecialIgnore"].split(":")
+		if len(MAC) !=6: 
+			valuesDict[u"MSG"] ="bad MAC.. must be 12:xx:23:xx:45:aa" 
+			return valuesDict
+		self.MACSpecialIgnorelist[valuesDict[u"MACspecialIgnore"]]=1
+		self.ML.myLog( text=u"start ignoring  MAC# "+valuesDict[u"MACspecialIgnore"])
+		self.saveMACdata(force=True)
+		valuesDict[u"MSG"] ="ok" 
+		return valuesDict
+	####-----------------  UN- Ignore special MAC info	 ---------
+	####----------------- ---------
+	def buttonConfirmStopIgnoringSpecialMACCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+
+		try: del self.MACSpecialIgnorelist[valuesDict[u"MACspecialUNIgnored"]]
+		except: pass
+		self.ML.myLog( text=u" stop ignoring  MAC# " +valuesDict[u"MACspecialUNIgnored"])
+		self.saveMACdata(force=True)
+		valuesDict[u"MSG"] ="ok" 
+		return valuesDict
+
+
+
 
 	####-----------------  Ignore MAC info	 ---------
 	def buttonConfirmStartIgnoringCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
@@ -2541,8 +2574,8 @@ class Plugin(indigo.PluginBase):
 					dev.updateStateOnServer(u"displayStatus",self.padDisplay(u"ignored")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
 					dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
 				dev.updateStateOnServer(u"status",value="ignored", uiValue=self.padDisplay(u"ignored")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
-		self.saveMACdata()
-		return 
+		self.saveMACdata(force=True)
+		return valuesDict
 	####-----------------  UN- Ignore MAC info	 ---------
 	####-----------------	 ---------
 	def buttonConfirmStopIgnoringCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
@@ -2556,9 +2589,9 @@ class Plugin(indigo.PluginBase):
 				dev.updateStateOnServer(u"onOffState",False,self.padDisplay(u"")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
 		try: del self.MACignorelist[valuesDict[u"MACdeviceIgnored"]]
 		except: pass
-		self.saveMACdata()
+		self.saveMACdata(force=True)
 		self.ML.myLog( text=u" stop ignoring  MAC# " +valuesDict[u"MACdeviceIgnored"])
-		return 
+		return valuesDict
 
 
 
@@ -4106,8 +4139,9 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------setup empty dicts for pointers	 type, mac --> indigop and indigo --> mac,	type ---------
 	def setupStructures(self, xType, dev, MAC,init=False):
+		devIds =""
 		try:
-			if xType == u"UN" and MAC in self.MACignorelist: 
+			if xType == u"UN" and self.testIgnoreMAC(MAC): 
 				if MAC in self.MAC2INDIGO[xType]:
 					del self.MAC2INDIGO[xType][MAC]
 				return 
@@ -4851,7 +4885,7 @@ class Plugin(indigo.PluginBase):
 					devid = unicode(dev.id)
 					
 					MAC		= dev.states[u"MAC"]
-					if dev.deviceTypeId == u"UniFi" and self.testIgnoreMAC(MAC,"priodCheck") : continue
+					if dev.deviceTypeId == u"UniFi" and self.testIgnoreMAC(MAC, fromSystem="periodCheck") : continue
 
 					if unicode(devid) not in self.xTypeMac: 
 						if dev.deviceTypeId == u"UniFi":
@@ -5480,7 +5514,7 @@ class Plugin(indigo.PluginBase):
 					MAC = MAC.lower()
 
 					skip = ""
-					if MAC in self.MACignorelist: 
+					if self.testIgnoreMAC(MAC): 
 						skip = "MAC"
 					else:
 						if "authStatus" in cam2 and cam2["authStatus"] != "AUTHENTICATED":
@@ -5569,8 +5603,8 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 -----------
 	### ----------- save read MAC2INDIGO
-	def saveMACdata(self): 
-		if time.time() - 20	 < self.lastSaveMAC2INDIGO: return 
+	def saveMACdata(self, force=False): 
+		if not force and  (time.time() - 20 < self.lastSaveMAC2INDIGO): return 
 		self.lastSaveMAC2INDIGO = time.time() 
 
 		f=open(self.userIndigoPluginDir+"MAC2INDIGO","w")
@@ -5578,6 +5612,9 @@ class Plugin(indigo.PluginBase):
 		f.close()
 		f=open(self.userIndigoPluginDir+"MACignorelist","w")
 		f.write(  json.dumps( self.MACignorelist) )
+		f.close()
+		f=open(self.userIndigoPluginDir+"MACSpecialIgnorelist","w")
+		f.write(  json.dumps( self.MACSpecialIgnorelist) )
 		f.close()
 		
 	####-----------------	 ---------
@@ -5595,6 +5632,12 @@ class Plugin(indigo.PluginBase):
 			f.close()
 		except: 
 			self.MACignorelist ={}
+		try:
+			f=open(self.userIndigoPluginDir+"MACSpecialIgnorelist","r")
+			self.MACSpecialIgnorelist= json.loads(f.read())
+			f.close()
+		except: 
+			self.MACSpecialIgnorelist ={}
 		return 
 	### ----------- save read MAC2INDIGO  
 	####-----------------	 -----------   END
@@ -5961,7 +6004,7 @@ class Plugin(indigo.PluginBase):
 				### update lastup for unifi devices	 
 				if xType in self.MAC2INDIGO:
 					for MAC in self.MAC2INDIGO[xType]:
-						if xType== u"UN" and self.testIgnoreMAC(MAC,"log"): continue
+						if xType== u"UN" and self.testIgnoreMAC(MAC, fromSystem="log"): continue
 						if ipNumber == self.MAC2INDIGO[xType][MAC][u"ipNumber"]:
 							self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 							break
@@ -6028,7 +6071,7 @@ class Plugin(indigo.PluginBase):
 
 				c = items[0].split("[")[1].strip("]").lower()
 				MAC = c[0:2]+":"+c[2:4]+":"+c[4:6]+":"+c[6:8]+":"+c[8:10]+":"+c[10:12]
-				if MAC in self.MACignorelist: continue
+				if self.testIgnoreMAC(MAC): continue
 
 				if items[1].find("type:") ==-1: 
 					if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=" no    type, line: "+line,mType = "MS-VD----")
@@ -6262,7 +6305,7 @@ class Plugin(indigo.PluginBase):
 				if len(items) != 2: continue
 
 				MAC = self.checkMAC(items[1])# fix a bug in hosts file
-				if self.testIgnoreMAC(MAC,"GW-msg"): continue
+				if self.testIgnoreMAC(MAC, fromSystem="GW-msg"): continue
 
 				new = True
 				if MAC in self.MAC2INDIGO[xType]:
@@ -6383,7 +6426,7 @@ class Plugin(indigo.PluginBase):
 					if len(tags) !=5: continue
 					MAC = tags[0]
 					if MAC.count(":") != 5:		 continue
-					if self.testIgnoreMAC(MAC,"AP-msg"): continue
+					if self.testIgnoreMAC(MAC, fromSystem="AP-msg"): continue
 
 					ipNumber = tags[4]	# new IP number of target AP 
 					self.HANDOVER[MAC] = {"tt":time.time(),"ipNumberNew":ipNumber, "ipNumberOld":tags[2]}
@@ -6424,7 +6467,7 @@ class Plugin(indigo.PluginBase):
 						self.ML.myLog( text=u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 						continue
 
-				if self.testIgnoreMAC(MAC,"AP-msg"): continue
+				if self.testIgnoreMAC(MAC, fromSystem="AP-msg"): continue
 				
 				
 				if MAC != "":
@@ -6874,7 +6917,7 @@ class Plugin(indigo.PluginBase):
 
 				for switchDevices in macTable:
 					MAC = switchDevices[u"mac"]
-					if self.testIgnoreMAC(MAC,"SW-Dict"): continue
+					if self.testIgnoreMAC(MAC, fromSystem="SW-Dict"): continue
 
 					if "age" in switchDevices:		age	   = switchDevices[u"age"]
 					else: age = ""
@@ -7069,7 +7112,7 @@ class Plugin(indigo.PluginBase):
 					if "ip" in item:  ip = item[u"ip"]
 					else:			  ip = ""
 					MAC					 = item[u"mac"]
-					if self.testIgnoreMAC(MAC,"GW-Dict"): continue
+					if self.testIgnoreMAC(MAC, fromSystem="GW-Dict"): continue
 					age					 = item[u"age"]
 					uptime				 = item[u"uptime"]
 					new					 = True
@@ -7216,7 +7259,7 @@ class Plugin(indigo.PluginBase):
 			  
 				new				= True
 				MAC				= unicode(adDict[ii][u"mac"])
-				if self.testIgnoreMAC(MAC,"WF-Dict"): continue
+				if self.testIgnoreMAC(MAC, fromSystem="WF-Dict"): continue
 				ip				= unicode(adDict[ii][u"ip"])
 				txRate			= unicode(adDict[ii][u"tx_rate"])
 				rxRate			= unicode(adDict[ii][u"rx_rate"])
@@ -8404,11 +8447,28 @@ class Plugin(indigo.PluginBase):
 		return 
 
 	####-----------------	 ---------
-	def testIgnoreMAC(self,MAC,fromSystem):
-		if MAC not in self.MACignorelist: return False
-		if self.ML.decideMyLog(u"Logic"):  self.ML.myLog( text=u"ignored: message for MAC:"+ MAC,mType=fromSystem) 
-		return True
+	def testIgnoreMAC(self, MAC,  fromSystem="") :
+		ignore = False
+		#self.ML.myLog( text=u"testIgnoreMAC testing: MAC "+MAC+";  called from: "+fromSystem )
+		if MAC in self.MACignorelist: 
+			if self.ML.decideMyLog(u"Logic"):  self.ML.myLog( text=u"ignored: message for MAC:"+ MAC,mType=fromSystem) 
+			return True
 		
+		if len(self.MACSpecialIgnorelist) == 0:
+			return False
+		
+		MACSplit = (MAC.lower()).split(":")
+		for MACsp in self.MACSpecialIgnorelist:
+			MACSPSplit = (MACsp.lower()).split(":")
+			ignore = True
+			for nn  in range(6):
+				if MACSPSplit[nn] !="xx" and MACSPSplit[nn] != MACSplit[nn]:
+					ignore = False
+					break
+			if ignore:
+				if True or self.ML.decideMyLog(u"Logic"):  self.ML.myLog( text=u"ignored: MAC:"+ MAC+"  due to  special ignore: "+MACsp, mType=fromSystem) 
+				return True
+		return False
 		
 	####-----------------	 ---------
 	def moveToUnifiSystem(self,dev,vendor):

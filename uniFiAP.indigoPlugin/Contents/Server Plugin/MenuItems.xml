@@ -57,7 +57,7 @@
 				<List class="self" filter="" method="filterUNIFIsystemDevice"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirm1" type="button" tooltip="" >
-				<Label>Click to	 </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintDevInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintDevInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator1" type="separator"/>
 
@@ -178,31 +178,55 @@
 				<List class="self" filter="" method="filterMAC"	 dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to	 START		Logging</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStartLoggingCALLBACK</CallbackMethod>
+				<Label>Click to  START     Logging</Label><Title>ADD</Title> <CallbackMethod>buttonConfirmStartLoggingCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirmStopLogging" type="button" tooltip="" >
-				<Label>Click to	 stop  ALL	Logging</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStopLoggingCALLBACK</CallbackMethod>
+				<Label>Click to  stop  ALL Logging</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopLoggingCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="ignoreMACs">
 		<Name>(UN)IGNORE UniFi clients with specific MAC</Name>
 		<ConfigUI>
-		<Field id="ignoreLabel" type="label"> <Label>select MACs to COMPLETELY ignore:</Label>	</Field>
+		<Field id="ignoreLabel" type="label"> <Label>select MACs to COMPLETELY ignore:</Label> </Field>
 			<Field	   id="MACdeviceSelected" type="menu" defaultValue="">
 				<Label>select which MAC # / device:</Label>
 				<List class="self" filter="" method="filterMACunifiAndCameraOnly"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to	 START	ignoring</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
+				<Label>Click to  START ignoring</Label><Title>IGNORE</Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
 			</Field>
 		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
 			<Field	   id="MACdeviceIgnored" type="menu" defaultValue="">
 				<Label>select which MAC # / device:</Label>
-				<List class="self" filter="" method="filterMACunifiIgnored"	 dynamicReload="false"/>
+				<List class="self" filter="" method="filterMACunifiIgnored"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
-				<Label>Click to	 STOP  ignoring</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
+				<Label>Click to  STOP  ignoring</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="ignoreMACspecial">
+		<Name>(UN)IGNORE UniFi clients with partial MAC</Name>
+		<ConfigUI>
+		<Field id="ignoreLabel" type="label"> <Label>set partial MAC to be ignored eg xx:AD:12:xx:56:xx 
+  would ignore MACs with any xx and AD 12 56 in the specified positions:</Label> </Field>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
+			<Field   id="MACspecialIgnore" type="textfield" defaultValue="">
+				<Label>set MAX #:</Label>
+			</Field>
+			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
+				<Label>Click to  START ignoring</Label><Title>ADD</Title> <CallbackMethod>buttonConfirmStartIgnoringSpecialMACCALLBACK</CallbackMethod>
+			</Field>
+		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
+			<Field	   id="MACspecialUNIgnored" type="menu" defaultValue="">
+				<Label>select which MAC # / device:</Label>
+				<List class="self" filter="" method="filterMACspecialUNIgnore"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
+				<Label>Click to  STOP  ignoring</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopIgnoringSpecialMACCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
