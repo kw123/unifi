@@ -141,10 +141,10 @@
     <Field id="simpleSeparatorCO" type="separator"/>
 
     <Field id="infoLabel217" type="label"> <Label>== Controller info (for controller commands):
-                    if Controller ip number is set, it will automatically detect new unifi system devices 
-                      and will populate sw ap gw settings automatically
-                      In most cases both (unifi system and controller) 
-                      userids and passwords are set to be the same</Label>  </Field>
+            if Controller ip number is set, it will automatically detect new unifi system devices 
+            and will populate sw ap gw settings automatically
+            In most cases both (unifi system and controller) userids and passwords are set to be the same.
+            == Try to avoid ' and " in your passwords ==</Label>  </Field>
     <Field    id="unifiCloudKeyMode"       type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
         <List>
             <Option value="ON"             >ON </Option>
@@ -164,7 +164,7 @@
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site name of unifi install:</Label>  </Field>
     <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
 
-    <Field    id="unifigetBlockedClients"       type="menu"  defaultValue="999999999"            > <Label>.. get (ub)blocked client info from Controller:</Label> 
+    <Field    id="unifigetBlockedClients"       type="menu"  defaultValue="999999999"            > <Label>.. get (un)blocked client info from Controller:</Label> 
         <List>
             <Option value="999999999" >off</Option>
             <Option value="20" >every 20 secs</Option>
@@ -219,7 +219,7 @@
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
-    <Field    id="apPrompt"   type="menu" defaultValue=":~" visibleBindingId="apON" visibleBindingValue="true">
+    <Field    id="apPrompt"   type="menu" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
         <Label>...prompt when logging in(unix prompt):</Label>
         <List>
             <Option value="BZ.v"      >BZ.v</Option>
@@ -227,20 +227,20 @@
     </Field>
 
 
-    <Field    id="ipON0" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"     > <Label>.. AP-0 active:</Label>  </Field>
+    <Field    id="ipON0" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-0 active:----------------</Label>  </Field>
     <Field    id="ip0"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" visibleBindingValue="true"> <Label>ipNumber of AP-0:</Label>  </Field>
 
-    <Field    id="ipON1" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-1 active:</Label>  </Field>
+    <Field    id="ipON1" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-1 active:----------------</Label>  </Field>
     <Field    id="ip1"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON1" visibleBindingValue="true"> <Label>ipNumber of AP-1:</Label>  </Field>
 
-    <Field    id="ipON2" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-2 active:</Label>  </Field>
+    <Field    id="ipON2" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-2 active:----------------</Label>  </Field>
     <Field    id="ip2"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON2" visibleBindingValue="true"> <Label>ipNumber of AP-2:</Label>  </Field>
 
-    <Field    id="ipON3" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label> AP-3 active:</Label>  </Field>
+    <Field    id="ipON3" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"      > <Label>.. AP-3 active:----------------</Label>  </Field>
     <Field    id="ip3"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON3" visibleBindingValue="true"> <Label>ipNumber of AP-3:</Label>  </Field>
 
-    <Field    id="ipON4" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-4 active:</Label>  </Field>
-    <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true"> <Label>ipNumber of AP-4:</Label>  </Field>
+    <Field    id="ipON4" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-4 active:----------------</Label>  </Field>
+    <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true" > <Label>ipNumber of AP-4:</Label>  </Field>
 
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:...............................................................</Label>  </Field>
@@ -312,7 +312,7 @@
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
-    <Field    id="swPrompt" type="menu"  defaultValue=":~"         visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Field    id="swPrompt" type="menu"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
     <Label>.. SW (unix)prompt:</Label>  
         <List>
             <Option value="US.v"      > US.v </Option>
@@ -350,22 +350,23 @@
 
 
 
-    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Enable Video  ..............................................................:</Label>  </Field>
+    <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section............................................................:</Label>  </Field>
     <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR:</Label>  </Field>
+    <Field id="enableVideoSwitch" type="checkbox"  defaultValue="false"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>Enable / disable Video/ camera .............................................:</Label>  </Field>
 
 
     <Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..UserID for UniFi NVR web login(empty=off):</Label>
     </Field>
     <Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..Password for UniFi NVR web login:</Label>
+        <Label>..Password for UniFi NVR web login, no " ' please:</Label>
     </Field>
 
     <Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..UserID for UniFi NVR unix box(empty=off):</Label>
     </Field>
     <Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
-        <Label>..Password for UniFi NVR unix box:</Label>
+        <Label>..Password for UniFi NVR unix box no, " ' please:</Label>
     </Field>
     <Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true" readonly="true">
         <Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
@@ -376,7 +377,7 @@
     <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>ipNumber of your NVR:</Label>  
     </Field>
-    <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
+    <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="vdON"    visibleBindingValue="true"> 
         <Label>.. get event images:</Label>  
             <List>
             <Option value="noImage"               > no image</Option>
@@ -385,7 +386,7 @@
             <Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
             </List>
     </Field>
-    <Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="swON"    visibleBindingValue="true"> 
+    <Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="vdON"    visibleBindingValue="true"> 
         <Label>.. get snapshot images:</Label>  
             <List>
             <Option value="noImage"               > no image</Option>
@@ -393,7 +394,7 @@
             <Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
             </List>
     </Field>
-    <Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="swON" visibleBindingValue="true"> 
+    <Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>..event/snapshot image width(# of pixels) if supported:</Label>  
             <List>
             <Option value="240"         > 240</Option>

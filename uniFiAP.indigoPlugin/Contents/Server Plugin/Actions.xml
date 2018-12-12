@@ -243,6 +243,7 @@
             <Field     id="widthOfImage" type="textfield" defaultValue="1024" >
                 <Label>width of image(pixels):</Label>
            </Field>
+
             <Field     id="fileNameOfImage" type="textfield" defaultValue="/users/" >
                 <Label>file name of image on MAC use .jpeg:</Label>
            </Field>

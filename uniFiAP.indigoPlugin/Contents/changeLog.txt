@@ -1,0 +1,8 @@
+changes in V 7.26.151  @ 2018-12-12 
+==================  
+
+1. encapsulated password in single quotes. Was not working with ( or ) in password  
+
+2. improved menus 
+
+3. fixed un-ignore device menu option

@@ -341,6 +341,7 @@ class Plugin(indigo.PluginBase):
 		self.nvrUNIXPassWd				= self.pluginPrefs.get(u"nvrUNIXPassWd", "")
 		self.nvrWebUserID				= self.pluginPrefs.get(u"nvrWebUserID", "")
 		self.nvrWebPassWd				= self.pluginPrefs.get(u"nvrWebPassWd", "")
+		self.enableVideoSwitch			= self.pluginPrefs.get(u"enableVideoSwitch", False)
 		  
 		try:	self.unifiVIDEONumerOfEvents = int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
 		except: self.unifiVIDEONumerOfEvents = 1000
@@ -349,15 +350,15 @@ class Plugin(indigo.PluginBase):
 
 		ip0 = self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
 
+		self.VIDEOEnabled  = False
+		self.ipnumberOfNVR = ""
 		self.VIDEOEnabled = False
-		if self.isValidIP(ip0) and self.nvrUNIXUserID != "" and self.nvrUNIXPassWd != "":
-			self.ipnumberOfNVR = ip0
-			self.VIDEOEnabled = True
-			self.VIDEOUP	  = time.time()
-		else:
-			self.ipnumberOfNVR = ""
-			self.VIDEOEnabled = False
-			self.VIDEOUP	  = 0
+		self.VIDEOUP	  = 0
+		if self.enableVideoSwitch:
+			if self.isValidIP(ip0) and self.nvrUNIXUserID != "" and self.nvrUNIXPassWd != "":
+				self.ipnumberOfNVR = ip0
+				self.VIDEOEnabled = True
+				self.VIDEOUP	  = time.time()
 
 		self.lastCheckForNVR = 0
 		
@@ -772,7 +773,7 @@ class Plugin(indigo.PluginBase):
 			ipNew[i]			 = ip0
 			if ac: acNew[i] = True
 			if acNew[i] != self.APsEnabled[i]:
-				rebootRequired	+= " enable/disable AP	changed; "
+				rebootRequired	+= " enable/disable AP changed; "
 			if ipNew[i] != self.ipNumbersOfAPs[i]:
 				rebootRequired	+= " Ap ipNumber  changed; "
 				self.APUP[ipNew[i]] = time.time()
@@ -790,7 +791,7 @@ class Plugin(indigo.PluginBase):
 			ipNew[i]			 = ip0
 			if ac: acNew[i] = True
 			if acNew[i] != self.SWsEnabled[i]:
-				rebootRequired	+= " enable/disable SW	 changed; "
+				rebootRequired	+= " enable/disable SW  changed; "
 			if ipNew[i] != self.ipNumbersOfSWs[i]:
 				rebootRequired	+= " SW ipNumber   changed; "
 				self.SWUP[ipNew[i]] = time.time()
@@ -807,7 +808,7 @@ class Plugin(indigo.PluginBase):
 		ac			= valuesDict[u"ipUGAON"]
 		if not self.isValidIP(ip0): ac = False
 		if self.UGAEnabled != ac:
-			rebootRequired	+= " enable/disable GW	 changed; "
+			rebootRequired	+= " enable/disable GW  changed; "
 
 		self.UGAEnabled	   = ac
 		self.ipnumberOfUGA = ip0
@@ -829,18 +830,20 @@ class Plugin(indigo.PluginBase):
 		self.vboxPath					= self.completePath(valuesDict["vboxPath"])
 		self.changedImagePath			= self.completePath(valuesDict[u"changedImagePath"])
 		self.vmDisk						= valuesDict["vmDisk"]
+		self.enableVideoSwitch			= valuesDict[u"enableVideoSwitch"]
 
 		ip0			= valuesDict[u"nvrIP"]
 		if self.ipnumberOfNVR != ip0:
-			rebootRequired	+= " VIDEO ipNumber	  changed; "
+			rebootRequired	+= " VIDEO ipNumber   changed; "
 
-		ac			= self.VIDEOEnabled
-		if not self.isValidIP(ip0) or self.nvrUNIXUserID == "" or self.nvrUNIXPassWd == "" : ac = False
+
+		ac = self.VIDEOEnabled
+		if not self.isValidIP(ip0) or self.nvrUNIXUserID == "" or self.nvrUNIXPassWd == "" or (not self.enableVideoSwitch): ac = False
 		if self.VIDEOEnabled != ac:
-			rebootRequired	+= " enable/disable VIDEO	changed; "
+			rebootRequired	+= " enable/disable VIDEO changed; "
 
-		self.VIDEOEnabled	 = ac
-		self.ipnumberOfNVR = ip0
+		self.VIDEOEnabled	= ac
+		self.ipnumberOfNVR	= ip0
 
 		if rebootRequired != "": 
 			self.ML.myLog( text=u"restart " + rebootRequired)
@@ -854,7 +857,7 @@ class Plugin(indigo.PluginBase):
 		if   self.logFileActive =="standard":	self.logFile = ""
 		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
 		else:									self.logFile = self.userIndigoPluginDir +"plugin.log"
-		self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile)
+		self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile, pluginSelf=self)
 
 	####-----------------	 ---------
 	def completePath(self,inPath):
@@ -1257,10 +1260,9 @@ class Plugin(indigo.PluginBase):
 			self.ML.myLog( text="Video Action : userid not set", mType="CameraInfo")
 			return 
 
-		cmd = "/usr/bin/expect	\"" + \
+		cmd = "/usr/bin/expect \"" + \
 			  self.pathToPlugin + "videoServerAction.exp\" " + \
-			  userid + " " + \
-			  passwd + " " + \
+			" '"+userid + "' '"+passwd + "' " + \
 			  self.ipnumberOfNVR + " " + \
 			  self.promptOnServer[uType] + cmdIN
 		if self.ML.decideMyLog(u"Video"): self.ML.myLog( text=cmd, mType="CameraInfo")
@@ -1376,6 +1378,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRgetSnapshotCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRgetSnapshotCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
+		indigo.server.log(self.imageSourceForSnapShot+"  "+unicode(valuesDict))
 		if   self.imageSourceForSnapShot == "imageFromNVR": 	valuesDict["retCodeCam"] = self.getSnapshotfromNVR(valuesDict["cameraDeviceSelected"], valuesDict["widthOfImage"], valuesDict["fileNameOfImage"] )
 		elif self.imageSourceForSnapShot == "imageFromCamera":	valuesDict["retCodeCam"] = self.getSnapshotfromCamera(valuesDict["cameraDeviceSelected"],                          valuesDict["fileNameOfImage"] )
 		return valuesDict
@@ -1388,7 +1391,7 @@ class Plugin(indigo.PluginBase):
 			if not self.isValidIP(self.ipnumberOfNVR): 		return "error IP",""
 			if not self.VIDEOEnabled:					 	return "error enabled",""
 			if not self.VIDEOEnabled:					 	return "error enabled",""
-			if len(self.nvrVIDEOapiKey) < 5:	return "error apikey",""
+			if len(self.nvrVIDEOapiKey) < 5:				return "error apikey",""
 			
 			if payload !="":  payload['name']= dev.states["nameOnNVR"]
 			ret = self.executeCMDonNVR(payload, dev.states["apiKey"],  cmdType=cmdType)
@@ -1807,8 +1810,7 @@ class Plugin(indigo.PluginBase):
 			
 			cmd = "/usr/bin/expect	'" + \
 				  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
-				  "'"+userid + "' " + \
-				  "'"+passwd + "' " + \
+				  "'"+userid + "' '"+passwd + "' " + \
 				  self.ipnumberOfNVR + " " + \
 				  self.promptOnServer[uType] + " " + \
 				  " XXXXsepXXXXX " + \
@@ -1960,8 +1962,7 @@ class Plugin(indigo.PluginBase):
 		dtype	 = ip_type[1]
 		cmd = "/usr/bin/expect "
 		cmd+= "'"+self.pathToPlugin + "rebootUNIFIdeviceAP.exp" + "' "
-		cmd+= "'"+self.unifiUserID + "' " 
-		cmd+= "'"+self.unifiPassWd + "' "
+		cmd+= "'"+self.unifiUserID + "' '"+self.unifiPassWd + "' "
 		cmd+= ipNumber + " "
 		cmd+= self.promptOnServer[dtype] + " &"
 		if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmd ,mType="REBOOT")
@@ -2586,7 +2587,7 @@ class Plugin(indigo.PluginBase):
 					dev.updateStateOnServer(u"displayStatus",self.padDisplay(u"")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
 					dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
 				dev.updateStateOnServer(u"status","")
-				dev.updateStateOnServer(u"onOffState",False,self.padDisplay(u"")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
+				dev.updateStateOnServer(u"onOffState", value=False, uiValue=self.padDisplay(u"")+datetime.datetime.now().strftime(u"%m-%d %H:%M:%S"))
 		try: del self.MACignorelist[valuesDict[u"MACdeviceIgnored"]]
 		except: pass
 		self.saveMACdata(force=True)
@@ -2675,8 +2676,7 @@ class Plugin(indigo.PluginBase):
 			cmd+= "'"+self.pathToPlugin + u"onPort.exp" + "' "
 		elif  onOffCycle =="OFF":
 			cmd+= "'"+self.pathToPlugin + u"offPort.exp" + "' "
-		cmd+= "'"+self.unifiUserID + u"' " 
-		cmd+= "'"+self.unifiPassWd + u"' "
+		cmd+= "'"+self.unifiUserID + u"' '"+self.unifiPassWd + u"' "
 		cmd+= ipNumber + " "
 		cmd+= port + u" "
 		cmd+= self.promptOnServer[dtype] +u" &"
@@ -3633,8 +3633,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			cmd = "/usr/bin/expect	'" + \
 				  self.pathToPlugin + self.expectCmdFile["GWctrl"] + "' " + \
-				  "'"+self.unifiUserID+ "' " + \
-				  "'"+self.unifiPassWd+ "' " + \
+				  "'"+self.unifiUserID+ "' '"+self.unifiPassWd+ "' " + \
 				  self.ipnumberOfUGA + " " + \
 				  self.promptOnServer["GWctrl"] + " " + \
 				  " XXXXsepXXXXX " + " " + \
@@ -4222,6 +4221,7 @@ class Plugin(indigo.PluginBase):
 		self.countLoop		= 0
 		self.upDownTimers	= {}
 		self.xTypeMac		= {}
+		self.broadcastIP	= "9.9.9.255"
 
 		self.writeJson(dataVersion, fName=self.userIndigoPluginDir + "dataVersion")
 
@@ -5909,8 +5909,7 @@ class Plugin(indigo.PluginBase):
 				if uType.find("dict")>-1:
 					cmd = "/usr/bin/expect	\"" + \
 						  self.pathToPlugin + self.expectCmdFile[uType] + "\" " + \
-						  userid + " " + \
-						  passwd + " " + \
+						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
 						  self.promptOnServer[uType] + " " + \
 						  self.endDictToken[uType]+ " " + \
@@ -5925,8 +5924,7 @@ class Plugin(indigo.PluginBase):
 				else:
 					cmd = "/usr/bin/expect	\"" + \
 						  self.pathToPlugin +self.expectCmdFile[uType] + "\" " + \
-						  userid + " " + \
-						  passwd + " " + \
+						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
 						  self.promptOnServer[uType]  +\
 						  " \""+self.commandOnServer[uType]+"\" "
@@ -5959,7 +5957,7 @@ class Plugin(indigo.PluginBase):
 			userid, passwd = self.getUidPasswd(uType)
 			if userid =="": return False
 
-			cmd = "/usr/bin/expect	'" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber 
+			cmd = "/usr/bin/expect '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber 
 			if self.ML.decideMyLog(u"Connection"): self.ML.myLog( text=cmd, mType=u"EXPECT")
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 			test = ret[0].lower()
@@ -8563,11 +8561,12 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def sendWakewOnLan(self, MAC, calledFrom=""):
-		data = ''.join(['FF' * 6, (MAC.upper()).replace(':', '') * 16])
-		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		sock.sendto(data.decode("hex"), (self.broadcastIP, 9))
-		if self.ML.decideMyLog(u"Ping"):  self.ML.myLog( text=u"sendWakewOnLan for "+MAC+";    called from "+calledFrom+";  bc ip: "+self.broadcastIP,mType=calledFrom) 
+		if self.broadcastIP !="9.9.9.255":
+			data = ''.join(['FF' * 6, (MAC.upper()).replace(':', '') * 16])
+			sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+			sock.sendto(data.decode("hex"), (self.broadcastIP, 9))
+			if self.ML.decideMyLog(u"Ping"):  self.ML.myLog( text=u"sendWakewOnLan for "+MAC+";    called from "+calledFrom+";  bc ip: "+self.broadcastIP,mType=calledFrom) 
 	####-----------------	 ---------
 	#### wake on lan and pings	END 
 	####-----------------	 ---------
@@ -8644,8 +8643,8 @@ class Plugin(indigo.PluginBase):
 				except: continue
 				if len( local[devId]) > 0:
 					dev =indigo.devices[int(devId)]
-					for key in	local[devId]:
-						value =	 local[devId][key]
+					for key in local[devId]:
+						value = local[devId][key]
 						if unicode(value) != unicode(dev.states[key]):
 							if devId not in changedOnly: changedOnly[devId]=[]
 							changedOnly[devId].append({u"key":key,u"value":value})
