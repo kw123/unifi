@@ -1,3 +1,10 @@
+changes in V 7.26.152  @ 2018-12-17
+==================  
+
+1. fixed manage groups, print group members
+
+   
+
 changes in V 7.26.151  @ 2018-12-12 
 ==================  
 
