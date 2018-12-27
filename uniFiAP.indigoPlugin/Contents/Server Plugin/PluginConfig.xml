@@ -164,16 +164,17 @@
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  </Field>
     <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
 
-    <Field    id="unifigetBlockedClients"       type="menu"  defaultValue="999999999"            > <Label>.. get (un)blocked client info from Controller:</Label> 
+    <Field    id="unifigetBlockedClientsDeltaTime"       type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
+		<Label>.. get all (un)blocked client info from Controller:</Label> 
         <List>
             <Option value="999999999" >off</Option>
-            <Option value="20" >every 20 secs</Option>
-            <Option value="30" >every 30 secs</Option>
-            <Option value="40" >every 40 secs</Option>
-            <Option value="50" >every 50 secs</Option>
-            <Option value="60" >every 60 secs</Option>
-            <Option value="90" >every 90 secs</Option>
-            <Option value="120" >every 120 secs</Option>
+            <Option value="30"  >every 30 secs -- only for testing </Option>
+            <Option value="60"  >every 60 secs</Option>
+            <Option value="90"  >every 90 secs</Option>
+            <Option value="120" >every 2 minutes</Option>
+            <Option value="180" >every 3 minutes</Option>
+            <Option value="240" >every 4 minutes</Option>
+            <Option value="300" >every 5 minutes</Option>
         </List>
     </Field>
 
@@ -191,7 +192,8 @@
 
 
 
-    <Field id="apON" type="checkbox"  defaultValue="true"    > <Label>Show AP section........................................................:</Label>  </Field>
+    <Field id="apON" type="checkbox"  defaultValue="true"   > 
+<Label>Show AP section........................................................:</Label>  </Field>
     <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump of APs every:</Label>
         <List>

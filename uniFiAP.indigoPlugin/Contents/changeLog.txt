@@ -1,3 +1,18 @@
+changes in V 7.26.153  @ 2018-12-27
+==================  
+
+1. Getting (un)blocked info from controller immediately after plugin sets / unsets block status (required controller to be set to ON or ON reports
+	Changed the timing interval for regular testing of (un)blocked to GT 60 sec. 
+	As this now only applies to getting changes set directly on the web page of the controller.
+	This check creates a big data data transfer (~60kBytes), hence doing it every 20 secs is not recommended, default is 3 minutes.
+
+2. The received controller dicts ( dict-Controller_xxx for  xxx=device, users, ...) is written to the unifi directory next to the AP, switches, etc dict files.
+	This is just FYI
+
+
+3. fixed : error=''dict' object is not callable' in print info 
+
+
 changes in V 7.26.152  @ 2018-12-17
 ==================  
 
