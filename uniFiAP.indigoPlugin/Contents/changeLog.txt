@@ -1,3 +1,9 @@
+changes in V 7.26.154  @ 2018-12-27
+==================  
+
+1. fixed Line '7019' has error='global name 'status' is not defined'
+
+
 changes in V 7.26.153  @ 2018-12-27
 ==================  
 

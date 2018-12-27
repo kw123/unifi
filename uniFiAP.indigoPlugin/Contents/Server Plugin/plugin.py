@@ -7002,7 +7002,7 @@ class Plugin(indigo.PluginBase):
 							if self.decideMyLog(u"Dict") or MAC in self.MACloglist: self.myLog( text=ipNDevice +" "+ MAC+" "+ dev.name+"; oldStatus:"+oldStatus+"; IP:"+ip+"; AGE:"+unicode(age)+"; newUp:"+unicode(newUp)+ "; oldUp:"+unicode(oldUp)+ "; nameSW:"+unicode(nameSW), mType=u"DC-SW-0")
 							if oldUp ==	 newUp and oldStatus =="up":
 								if "useupTimeforStatusSWITCH" in props and props[u"useupTimeforStatusSWITCH"] :
-									if "usePingDOWN" in props and props["usePingDOWN"]	 and status !="up" and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") == 0:
+									if "usePingDOWN" in props and props["usePingDOWN"]	and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") == 0:
 										if self.decideMyLog(u"DictDetails") or MAC in self.MACloglist: self.myLog( text=u" "+ MAC+ u" reset timer for status up  notuptime const	but answers ping", mType=u"DC-SW-1")
 										self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 									else:
@@ -7015,8 +7015,8 @@ class Plugin(indigo.PluginBase):
 										self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 
-							else:
-								if "usePingUP" in props and props["usePingUP"]	 and status !="up" and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
+							if oldUp != newUp:
+								if "usePingUP" in props and props["usePingUP"] and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
 									if self.decideMyLog(u"Dict") or MAC in self.MACloglist: self.myLog( text=u" "+  MAC+ u" SW DICT network_table , but does not answer ping, continue expiration timer", mType=u"DC-SW-5")
 								else:
 									self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
@@ -7490,7 +7490,7 @@ class Plugin(indigo.PluginBase):
 
 								elif "useWhatForStatusWiFi" in props and (props[u"useWhatForStatusWiFi"] == "UpTime" ):
 									if newUpTime == oldUpTime and oldStatus == "up":
-										if "usePingUP" in props and props["usePingUP"] and status !="up" and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doWiFiCLIENTSdict") == 0:
+										if "usePingUP" in props and props["usePingUP"] and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doWiFiCLIENTSdict") == 0:
 												if self.decideMyLog(u"Logic") or MAC in self.MACloglist: self.myLog( text=u" "+dev.states[u"MAC"]+" reset exptimer  , ping test ok" ,mType="DC-WF-UT")
 												self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 										#self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time() - self.getexpT(props)
