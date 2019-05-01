@@ -94,7 +94,7 @@ if "stop"  in action:
 
 if  "compress" in action:
     toLog(vmMachine+" compressing VM disk: "+vboxPath+"VBoxManage modifymedium disk  '"+vmDisk+"' --compact",)
-    subprocess.Popen(vboxPath+"VBoxManage modifymedium disk  '"+vmDisk+"' --compact", shell=True)
+    subprocess.Popen("'"+vboxPath+"VBoxManage' modifymedium disk  '"+vmDisk+"' --compact", shell=True)
 
     for ii in range(100):
         if len(subprocess.Popen("ps -ef | grep 'VBoxManage modifymedium disk' | grep -v grep",stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]) < 10:
@@ -124,7 +124,7 @@ if "start" in action:
         runningVMs = subprocess.Popen(vboxPath+"VBoxManage  list runningvms",stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
         if  vmMachine not in runningVMs:
             toLog(vmMachine+" restarting vbox "+vboxPath+"VBoxManage  startvm '"+vmMachine+"' --type headless &")
-            subprocess.Popen(vboxPath+"VBoxManage  startvm '"+vmMachine+"' --type headless &", shell=True)
+            subprocess.Popen("'"+vboxPath+"VBoxManage'  startvm '"+vmMachine+"' --type headless &", shell=True)
             time.sleep(20)
     time.sleep(25) # keep "vboxAction.py active for some seconds to enbale tests if still running.. to give vbox time to start
 

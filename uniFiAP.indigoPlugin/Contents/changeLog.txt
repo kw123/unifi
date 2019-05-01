@@ -1,7 +1,23 @@
+changes in V 7.26.162  @ 2019-05-01
+==================  
+
+1.added error handling for ErrNo=22, general read error 
+  will now restart listener, write ONE msg into plugin log. no error message 
+2. added timestamp for info logging 
+
+
+
+changes in V 7.26.155  @ 2018-12-27
+==================  
+
+1. added debug option "EXPECT", shows the raw expect command in log file (w passwords)
+
+
 changes in V 7.26.154  @ 2018-12-27
 ==================  
 
 1. fixed Line '7019' has error='global name 'status' is not defined'
+
 
 
 changes in V 7.26.153  @ 2018-12-27

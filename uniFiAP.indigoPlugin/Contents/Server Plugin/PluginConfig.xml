@@ -211,6 +211,8 @@
     <Field    id="APtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
     <Label>.. AP tail command:</Label>  
         <List>
+            <Option value="off"      > off </Option>
+            <Option value="/usr/bin/testxx -F /var/log/messages"      > test </Option>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
@@ -262,8 +264,10 @@
 
     <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>ipNumber of your USG:</Label>  </Field>
     <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
-    <Label>.. GW tail command(empty = off):</Label>  
+    <Label>.. GW tail command:</Label>  
         <List>
+            <Option value="off"      > off </Option>
+            <Option value="/usr/bin/testxx -F /var/log/messages"      > test </Option>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
@@ -301,15 +305,17 @@
             <Option value="300"   >5  minutes</Option>
         </List>
     </Field>
-    <Field    id="SWtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW tail command(empty = off):</Label>  
+    <Field    id="SWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Label>.. SW tail command:</Label>  
         <List>
+            <Option value="off"      > off </Option>
+            <Option value="/usr/bin/testxx -F /var/log/messages"      > test </Option>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
     <Field    id="SWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW dict command(empty = off):</Label>  
+    <Label>.. SW dict command:</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
@@ -480,16 +486,15 @@
     <Field    id="debugDict"        type="checkbox"  defaultValue="false"   > <Label>... (4) Dict Messages:</Label>  </Field>
     <Field    id="debugDictDetails" type="checkbox"  defaultValue="false"   > <Label>... (5) ...  Details:</Label>  </Field>
     <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) connection to unifi devices..:</Label>  </Field>
-    <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (7) Video...:</Label>  </Field>
-    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (8) Fing:</Label>  </Field>
-    <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (9) BroadCast:</Label>  </Field>
-    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (10) Ping WOL:</Label>  </Field>
-    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (11) Special debug for development:</Label>  </Field>
+    <Field    id="debugExpect"      type="checkbox"  defaultValue="false"   > <Label>... (7) Expect command...:</Label>  </Field>
+    <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (8) Video...:</Label>  </Field>
+    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (9) Fing:</Label>  </Field>
+    <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (10) BroadCast:</Label>  </Field>
+    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (11) Ping WOL:</Label>  </Field>
+    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (12) Special debug for development:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
-    <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send logs to ..:</Label>
+    <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
         <List>
-            <Option value="standard" > no special UniFi logfile, std indigo logfile</Option>
-            <Option value="user"     > ~/indigo/UniFi/plugin.log                    </Option>
             <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
         </List>
     </Field>

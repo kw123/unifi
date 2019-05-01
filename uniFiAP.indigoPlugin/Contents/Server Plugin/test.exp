@@ -8,7 +8,7 @@ expect {
     "(yes/no)? " {send "yes\r"  
         expect "assword" { send "$password\n"} 
     }
-    "assword:"    {  send "$password\r"
+    "assword"    {  send "$password\r"
         expect {
             ":"     { send "exit\r" 
                     }

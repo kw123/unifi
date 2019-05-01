@@ -28,18 +28,18 @@ class MAP2Vendor:
             self.filePath = pathToMACFiles
             if self.filePath[-1]!="/": self.filePath+="/"
             if not os.path.isdir(self.filePath):
-                os.system("mkdir "+self.filePath)
+                os.mkdir(self.filePath)
         else:
             self.filePath = self.MAChome+"indigo/mac2Vendor/"
             if not os.path.isdir(self.MAChome+"indigo"):
-                os.system("mkdir "+self.MAChome+"indigo")
+                os.mkdir(self.MAChome+"indigo")
             if not os.path.isdir(self.filePath):
-                os.system("mkdir "+self.filePath)
+                os.mkdir(self.filePath)
 
         self.refreshFromIeeAfterDays = refreshFromIeeAfterDays
 
         if not os.path.isdir(self.filePath):
-            os.system("mkdir "+self.filePath)
+            os.mkdir(self.filePath)
 
        
         if not self.isFileCurrent(self.filePath+"mac2Vendor.json", 700000): 
@@ -63,9 +63,9 @@ class MAP2Vendor:
         cmd +=  "rm "+self.filePath+"oui36"
         os.system(cmd)
 
-        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui/oui.csv      |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> "+self.filePath+"oui &")
-        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui28/mam.csv    |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> "+self.filePath+"mam &")
-        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui36/oui36.csv  |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> "+self.filePath+"oui36 &")
+        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui/oui.csv      |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"oui' &")
+        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui28/mam.csv    |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"mam' &")
+        os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui36/oui36.csv  |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"oui36' &")
 
 
         return 
