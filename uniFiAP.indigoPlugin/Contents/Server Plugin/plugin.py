@@ -3587,7 +3587,7 @@ class Plugin(indigo.PluginBase):
 
 					elif uType.find("usw") >-1:
 						for i in range(len(self.ipNumbersOfSWs)):
-							if	not self.isValidIP(self.pluginPrefs[u"ip"+unicode(i)] ):
+							if	not self.isValidIP(self.pluginPrefs[u"ipSW"+unicode(i)] ):
 								newDeviceFound.append("usw:	 , new "+ipNumber+"     existing: "+unicode(self.pluginPrefs[u"ipSW"+unicode(i)]) )
 								self.ipNumbersOfSWs[i]						= ipNumber
 								self.pluginPrefs[u"ipSW"+unicode(i)]		= ipNumber

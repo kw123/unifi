@@ -1,3 +1,11 @@
+changes in V 7.26.163  @ 2019-05-06
+==================  
+
+1. fixed: "key ipx not found in dict"
+
+
+
+
 changes in V 7.26.162  @ 2019-05-01
 ==================  
 
