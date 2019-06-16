@@ -1,9 +1,14 @@
-changes in V 7.26.163  @ 2019-05-06
+changes in V 7.26.163  @ 2019-05-16
 ==================  
 
 1. fixed: "key ipx not found in dict"
 
-
+2. reworked logic for adopting automatically new UNIF devices
+   no will adop / add an indigo device if
+   a sw / ap / gw slot (in config) is "disabled and the ip number is NOT a valid one"
+   it assumes that if there is a valid IP number and it is disabled it might be temporary setting by the user and will not chnage that
+   when editing the IP number in config, you MUST edit the field then click on another text field. otherwise it will not save that field (thats from indigo)
+     so when eg you edit the ip numebr and click on enable/disable, the ip textfield contents will not be saved.  
 
 
 changes in V 7.26.162  @ 2019-05-01
