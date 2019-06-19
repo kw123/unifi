@@ -1,12 +1,18 @@
-changes in V 7.26.165  @ 2019-05-16
+changes in V 7.26.167  @ 2019-05-18
+==================  
+
+1. added option to set read buffer for listeners.. for Mojave OSX 
+   default is 32767, seems to be ok, just in case reading runs into error 22
+   reduce to lower value 
+
 ==================  
 
 1. fixed: "key ipx not found in dict"
 
-2. reworked logic for adopting automatically new UNIF devices
-   no will adop / add an indigo device if
+2. reworked logic for adopting automatically new UNIFI devices
+   now will adopt / add an indigo device if
    a sw / ap / gw slot (in config) is "disabled and the ip number is NOT a valid one"
-   it assumes that if there is a valid IP number and it is disabled it might be temporary setting by the user and will not chnage that
+   it assumes that if there is a valid IP number and it is disabled it might be temporary setting by the user and will not change that
    when editing the IP number in config, you MUST edit the field then click on another text field. otherwise it will not save that field (thats from indigo)
      so when eg you edit the ip numebr and click on enable/disable, the ip textfield contents will not be saved.  
 

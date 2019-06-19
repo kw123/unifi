@@ -257,6 +257,8 @@ class Plugin(indigo.PluginBase):
 		self.unifiCloudKeyMode			= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
 		self.unifiCONTROLLERUserID		= self.pluginPrefs.get(u"unifiCONTROLLERUserID", "")
 		self.unifiCONTROLLERPassWd		= self.pluginPrefs.get(u"unifiCONTROLLERPassWd", "")
+		try: self.readBuffer			= int(self.pluginPrefs.get(u"readBuffer",32767))
+		except: self.readBuffer			= 32767
 		self.pluginPrefs[u"createUnifiDevicesCounter"] =	 int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))
 		self.unifigetBlockedClientsDeltaTime		 = int(self.pluginPrefs.get(u"unifigetBlockedClientsDeltaTime",999999999))
 		self.lastCheckForcheckForBlockedClients		= time.time()
@@ -704,6 +706,8 @@ class Plugin(indigo.PluginBase):
 		self.cameraEventWidth						= int(valuesDict[u"cameraEventWidth"])
 		self.imageSourceForEvent					= valuesDict[u"imageSourceForEvent"]
 		self.imageSourceForSnapShot					= valuesDict[u"imageSourceForSnapShot"]
+		try: self.readBuffer						= int(valuesDict[u"readBuffer"])
+		except: self.readBuffer						= 32767
 
 
 		if self.unifiUserID	 != valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
@@ -911,89 +915,90 @@ class Plugin(indigo.PluginBase):
 	def printConfigMenu(self,  valuesDict=None, typeId="", devId=0):
 		try:
 			self.myLog( text=u" ",mType=" ")
-			self.myLog( text=u"UniFi	 =============plugin config Parameters========",mType=" ")
+			self.myLog( text=u"UniFi   =============plugin config Parameters========",mType=" ")
 
-			self.myLog( text=u"debugLevel".ljust(40)						+	unicode(self.debugLevel).ljust(3))
-			self.myLog( text=u"logFile".ljust(40)							+	unicode(self.logFile))
-			self.myLog( text=u"enableFINGSCAN".ljust(40)					+	unicode(self.enableFINGSCAN))
-			self.myLog( text=u"enableBroadCastEvents".ljust(40)				+	unicode(self.enableBroadCastEvents))
+			self.myLog( text=u"debugLevel".ljust(40)						+	unicode(self.debugLevel).ljust(3) )
+			self.myLog( text=u"logFile".ljust(40)							+	unicode(self.logFile) )
+			self.myLog( text=u"enableFINGSCAN".ljust(40)					+	unicode(self.enableFINGSCAN) )
+			self.myLog( text=u"enableBroadCastEvents".ljust(40)				+	unicode(self.enableBroadCastEvents) )
 			self.myLog( text=u"ignoreNeighborForFing".ljust(40)				+	unicode(self.ignoreNeighborForFing))
-			self.myLog( text=u"expirationTime".ljust(40)					+	unicode(self.expirationTime).ljust(3)+u" [sec]")
-			self.myLog( text=u"sleep in main loop  ".ljust(40)				+	unicode(self.loopSleep).ljust(3)+u" [sec]")
-			self.myLog( text=u"use curl or request".ljust(40)				+			self.unfiCurl)
-			self.myLog( text=u"cpu used since restart: ".ljust(40) 			+self.getCPU(self.myPID))
+			self.myLog( text=u"expirationTime".ljust(40)					+	unicode(self.expirationTime).ljust(3)+u" [sec]" )
+			self.myLog( text=u"sleep in main loop  ".ljust(40)				+	unicode(self.loopSleep).ljust(3)+u" [sec]" )
+			self.myLog( text=u"use curl or request".ljust(40)				+	self.unfiCurl )
+			self.myLog( text=u"cpu used since restart: ".ljust(40) 			+	self.getCPU(self.myPID) )
 			self.myLog( text=u"" ,mType=" ")
-			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=" ")
-			self.myLog( text=u"UserID".ljust(40)							+			self.unifiUserID)
-			self.myLog( text=u"PassWd".ljust(40)							+			self.unifiPassWd)
-			self.myLog( text=u"promptOnServer -GW dict".ljust(40)			+			self.promptOnServer["GWdict"])
-			self.myLog( text=u"promptOnServer -AP dict".ljust(40)			+			self.promptOnServer["APdict"])
-			self.myLog( text=u"promptOnServer -SW dict".ljust(40)			+			self.promptOnServer["SWdict"])
-			self.myLog( text=u"promptOnServer -GW ctrl".ljust(40)			+			self.promptOnServer["GWctrl"])
-			self.myLog( text=u"promptOnServer -AP tail".ljust(40)			+			self.promptOnServer["APtail"])
-			self.myLog( text=u"promptOnServer -GW tail".ljust(40)			+			self.promptOnServer["GWtail"])
-			self.myLog( text=u"promptOnServer -SW tail".ljust(40)			+			self.promptOnServer["SWtail"])
-			self.myLog( text=u"GW tailCommand".ljust(40)					+			self.commandOnServer["GWtail"])
-			self.myLog( text=u"GW dictCommand".ljust(40)					+			self.commandOnServer["GWdict"])
-			self.myLog( text=u"SW tailCommand".ljust(40)					+			self.commandOnServer["SWtail"])
-			self.myLog( text=u"SW dictCommand".ljust(40)					+			self.commandOnServer["SWdict"])
-			self.myLog( text=u"AP tailCommand".ljust(40)					+			self.commandOnServer["APtail"])
-			self.myLog( text=u"AP dictCommand".ljust(40)					+			self.commandOnServer["APdict"])
-			self.myLog( text=u"read DB Dict every".ljust(40)				+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]")
-			self.myLog( text=u"restart listeners if NoMessage for".ljust(40)+unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]")
+			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=" " )
+			self.myLog( text=u"UserID".ljust(40)							+	self.unifiUserID)
+			self.myLog( text=u"PassWd".ljust(40)							+	self.unifiPassWd)
+			self.myLog( text=u"read buffer size ".ljust(40)					+	unicode(self.readBuffer) )
+			self.myLog( text=u"promptOnServer -GW dict".ljust(40)			+	self.promptOnServer["GWdict"] )
+			self.myLog( text=u"promptOnServer -AP dict".ljust(40)			+	self.promptOnServer["APdict"] )
+			self.myLog( text=u"promptOnServer -SW dict".ljust(40)			+	self.promptOnServer["SWdict"] )
+			self.myLog( text=u"promptOnServer -GW ctrl".ljust(40)			+	self.promptOnServer["GWctrl"] )
+			self.myLog( text=u"promptOnServer -AP tail".ljust(40)			+	self.promptOnServer["APtail"] )
+			self.myLog( text=u"promptOnServer -GW tail".ljust(40)			+	self.promptOnServer["GWtail"] )
+			self.myLog( text=u"promptOnServer -SW tail".ljust(40)			+	self.promptOnServer["SWtail"] )
+			self.myLog( text=u"GW tailCommand".ljust(40)					+	self.commandOnServer["GWtail"] )
+			self.myLog( text=u"GW dictCommand".ljust(40)					+	self.commandOnServer["GWdict"] )
+			self.myLog( text=u"SW tailCommand".ljust(40)					+	self.commandOnServer["SWtail"] )
+			self.myLog( text=u"SW dictCommand".ljust(40)					+	self.commandOnServer["SWdict"] )
+			self.myLog( text=u"AP tailCommand".ljust(40)					+	self.commandOnServer["APtail"] )
+			self.myLog( text=u"AP dictCommand".ljust(40)					+	self.commandOnServer["APdict"] )
+			self.myLog( text=u"read DB Dict every".ljust(40)				+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]" )
+			self.myLog( text=u"restart listeners if NoMessage for".ljust(40)+unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]" )
 			self.myLog( text=u"" ,mType=" ")
-			self.myLog( text=u"====== CONTROLLER WEB ACCESS , set parameters and reporting",mType=" ")
-			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------",mType=" ")
-			self.myLog( text=u"Mode: off, ON, reports only".ljust(40)		+			self.unifiCloudKeyMode)
-			self.myLog( text=u"WEB-UserID".ljust(40)						+			self.unifiCONTROLLERUserID)
-			self.myLog( text=u"WEB-PassWd".ljust(40)						+			self.unifiCONTROLLERPassWd)
-			self.myLog( text=u"Controller port#".ljust(40)					+			self.unifiCloudKeyPort)
-			self.myLog( text=u"Controller site Name#".ljust(40)				+			self.unifiCloudKeySiteName)
-			self.myLog( text=u"Controller API WebPage".ljust(40)			+			self.unifiApiWebPage)
-			self.myLog( text=u"get blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+"[sec]")
+			self.myLog( text=u"====== CONTROLLER WEB ACCESS , set parameters and reporting",mType=" " )
+			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------",mType=" " )
+			self.myLog( text=u"Mode: off, ON, reports only".ljust(40)		+	self.unifiCloudKeyMode )
+			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.unifiCONTROLLERUserID )
+			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.unifiCONTROLLERPassWd )
+			self.myLog( text=u"Controller port#".ljust(40)					+	self.unifiCloudKeyPort )
+			self.myLog( text=u"Controller site Name#".ljust(40)				+	self.unifiCloudKeySiteName )
+			self.myLog( text=u"Controller API WebPage".ljust(40)			+	self.unifiApiWebPage )
+			self.myLog( text=u"get blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+"[sec]" )
 			self.myLog( text=u"" ,mType=" ")
-			self.myLog( text=u"====== VIDEO / camera NVR stuff ----------------------",mType=" ")
-			self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=" ")
+			self.myLog( text=u"====== VIDEO / camera NVR stuff ----------------------",mType=" " )
+			self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=" " )
 			self.myLog( text=u"  ssh NVR-UNIXUserID@NVR-IP ",mType=" ")
-			self.myLog( text=u"NVR-VIDEO enabled".ljust(40)					+	unicode(self.VIDEOEnabled))
-			self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+			self.nvrUNIXUserID)
-			self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+			self.nvrUNIXPassWd)
-			self.myLog( text=u"promptOnServer -VD dict".ljust(40)			+			self.promptOnServer["VDdict"])
-			self.myLog( text=u"promptOnServer -VD tail".ljust(40)			+			self.promptOnServer["VDtail"])
-			self.myLog( text=u"VD tailCommand".ljust(40)					+			self.commandOnServer["VDtail"])
-			self.myLog( text=u"VD dictCommand".ljust(40)					+			self.commandOnServer["VDdict"])
-			self.myLog( text=u"= getting snapshots and reading and changing parameters",mType=" ")
-			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://NVR-IP#:  ....   for commands and read parameters ",mType=" ")
-			self.myLog( text=u"  requests(http://IP-NVR:7080/api/2.0/snapshot/camera/**camApiKey**?force=true&width=1024&apiKey=nvrAPIkey,stream=True)  for snap shots",mType=" ")
-			self.myLog( text=u"imageSourceForSnapShot".ljust(40)			+			self.imageSourceForSnapShot)
-			self.myLog( text=u"imageSourceForEvent".ljust(40)				+			self.imageSourceForEvent)
-			self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+			self.nvrWebUserID)
-			self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+			self.nvrWebPassWd)
-			self.myLog( text=u"NVR-API Key".ljust(40)						+			self.nvrVIDEOapiKey)
+			self.myLog( text=u"NVR-VIDEO enabled".ljust(40)					+	unicode(self.VIDEOEnabled) )
+			self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+	self.nvrUNIXUserID )
+			self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+	self.nvrUNIXPassWd )
+			self.myLog( text=u"promptOnServer -VD dict".ljust(40)			+	self.promptOnServer["VDdict"] )
+			self.myLog( text=u"promptOnServer -VD tail".ljust(40)			+	self.promptOnServer["VDtail"] )
+			self.myLog( text=u"VD tailCommand".ljust(40)					+	self.commandOnServer["VDtail"] )
+			self.myLog( text=u"VD dictCommand".ljust(40)					+	self.commandOnServer["VDdict"] )
+			self.myLog( text=u"= getting snapshots and reading and changing parameters",mType=" " )
+			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://NVR-IP#:  ....   for commands and read parameters ",mType=" " )
+			self.myLog( text=u"  requests(http://IP-NVR:7080/api/2.0/snapshot/camera/**camApiKey**?force=true&width=1024&apiKey=nvrAPIkey,stream=True)  for snap shots",mType=" " )
+			self.myLog( text=u"imageSourceForSnapShot".ljust(40)			+	self.imageSourceForSnapShot )
+			self.myLog( text=u"imageSourceForEvent".ljust(40)				+	self.imageSourceForEvent )
+			self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+	self.nvrWebUserID )
+			self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+	self.nvrWebPassWd )
+			self.myLog( text=u"NVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey )
 			self.myLog( text=u"",mType=" ")
 			self.myLog( text=u"AP ip#			  enabled / disabled")
 			for ll in range(len(self.ipNumbersOfAPs)):
-				self.myLog( text=self.ipNumbersOfAPs[ll].ljust(20) 			+		unicode(self.APsEnabled[ll]))
+				self.myLog( text=self.ipNumbersOfAPs[ll].ljust(20) 			+	unicode(self.APsEnabled[ll]) )
 
 
 			self.myLog( text=u"SW ip#")
 			for ll in range(len(self.ipNumbersOfSWs)):
-				self.myLog( text=self.ipNumbersOfSWs[ll].ljust(20) 			+		unicode(self.SWsEnabled[ll]))
+				self.myLog( text=self.ipNumbersOfSWs[ll].ljust(20) 			+	unicode(self.SWsEnabled[ll]) )
 			self.myLog( text=u"",mType=" ")
-			self.myLog( text=self.ipnumberOfUGA.ljust(20) 					+		unicode(self.UGAEnabled)+"  USG/UGA  gateway/router ")
+			self.myLog( text=self.ipnumberOfUGA.ljust(20) 					+	unicode(self.UGAEnabled)+"  USG/UGA  gateway/router " )
 
-			self.myLog( text=self.unifiCloudKeyIP.ljust(20) +	u"      Controller / cloud Key IP#")
-			self.myLog( text=self.ipnumberOfNVR.ljust(20)+								u"      Video NVR-IP#")
-			self.myLog( text=u"----------------------------------------------------",mType=" ")
+			self.myLog( text=self.unifiCloudKeyIP.ljust(20) 				+	u"      Controller / cloud Key IP#" )
+			self.myLog( text=self.ipnumberOfNVR.ljust(20)					+	u"      Video NVR-IP#" )
+			self.myLog( text=u"----------------------------------------------------",mType="  ")
 
 			self.myLog( text=u"")
 
-			self.myLog( text=u"UniFi	 =============plugin config Parameters========	END ", mType=" ")
+			self.myLog( text=u"UniFi    =============plugin config Parameters========  END ", mType=" " )
 			self.myLog( text=u" ", mType=" ")
 
 		except	Exception, e:
 			if len(unicode(e)) > 5:
-				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
 
 		return
 
@@ -5865,17 +5870,18 @@ class Plugin(indigo.PluginBase):
 
 				## here we actually read the stuff
 				try:
-					linesFromServer = os.read(ListenProcessFileHandle.stdout.fileno(),32767) ## = 32k
+					linesFromServer = os.read(ListenProcessFileHandle.stdout.fileno(),self.readBuffer) ## = 32k
 					msgSleep = 0.1 # fast read to follow
 				except	Exception, e:
 					if unicode(e).find("[Errno 35]") > -1:	 # "Errno 35" is the normal response if no data, if other error stop and restart
 						msgSleep = 0.4 # nothing new, can wait
 					else:
 						if len(unicode(e)) > 5:
-							out = "os.read(ListenProcessFileHandle.stdout.fileno(),32767)  in Line {} has error={}\n ip:{}  type: {}".format(sys.exc_traceback.tb_lineno, e, ipNumber,uType)
-							try: out+= "...stdout: {}...fileNo: {}".format(unicode(ListenProcessFileHandle.stdout), ListenProcessFileHandle.stdout.fileno() )
+							out = "os.read(ListenProcessFileHandle.stdout.fileno(),{})  in Line {} has error={}\n ip:{}  type: {}".format(self.readBuffer, sys.exc_traceback.tb_lineno, e, ipNumber,uType)
+							try: out+= "fileNo: {}".format(ListenProcessFileHandle.stdout.fileno() )
 							except: pass
-							if unicode(e).find("[Errno 22]") > -1:	 # "Errno 22" is  general read error "wrong parameter"
+							if unicode(e).find("[Errno 22]") > -1:  # "Errno 22" is  general read error "wrong parameter"
+								out+= " ..      try lowering read buffer parameter in config" 
 								self.indiLOG.log(30,out)
 							else:
 								self.indiLOG.log(40,out)
@@ -5891,7 +5897,8 @@ class Plugin(indigo.PluginBase):
 
 				if linesFromServer != "":
 					if self.decideMyLog(u"Special"):
-						self.indiLOG.log(20,"getMessage: data received from: "+ipNumber.ljust(15)+"  type: "+uType +": "+(unicode(linesFromServer).replace("\n","").replace("\r",""))[0:100]+"..." )
+						msgF = linesFromServer.replace("\n","").replace("\r","")
+						self.indiLOG.log(20,"getMessage: data recd from {:<14s},  type: {},  len: {:>5d}: {:<80s} ... {}".format(ipNumber, uType, len(linesFromServer), msgF[0:80],  msgF[-30:] ) )
 					self.dataStats["tcpip"][uType][ipNumber]["inMessageCount"]+=1
 					self.dataStats["tcpip"][uType][ipNumber]["inMessageBytes"]+=len(linesFromServer)
 					lastForcedRestartTimeStamp = time.time()
@@ -5903,10 +5910,10 @@ class Plugin(indigo.PluginBase):
 					pos3 = linesFromServer.find("Killed -9")
 					if (  pos1 >- 1 or pos2 >- 1 or pos3 > -1):
 						self.indiLOG.log(             30,"getMessage: {} {} returning: ".format(uType, ipNumber)  )
-						if pos1 >-1: self.indiLOG.log(30,"..."+unicode(linesFromServer[max(0,pos1 - 100):pos1 + 100]))
-						if pos2 >-1: self.indiLOG.log(30,"..."+unicode(linesFromServer[max(0,pos2 - 100):pos2 + 100]))
-						if pos3 >-1: self.indiLOG.log(30,"..."+unicode(linesFromServer[max(0,pos3 - 100):pos3 + 100]))
-						self.indiLOG.log(             30,"...: "+uType+" we should restart listener on server " )
+						if pos1 >-1: self.indiLOG.log(30,"...{}".format(linesFromServer[max(0,pos1 - 100):pos1 + 100]) )
+						if pos2 >-1: self.indiLOG.log(30,"...{}".format(linesFromServer[max(0,pos2 - 100):pos2 + 100]) )
+						if pos3 >-1: self.indiLOG.log(30,"...{}".format(linesFromServer[max(0,pos3 - 100):pos3 + 100]) )
+						self.indiLOG.log(             30,"...: {} we should restart listener on server ".format(uType) )
 						lastForcedRestartTimeStamp = time.time() - minWaitbeforeRestart +30 # dont do it immediately
 						continue
 					##self.myLog( text=unicode(r))
@@ -5959,10 +5966,10 @@ class Plugin(indigo.PluginBase):
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
 								except	Exception, e:
 									if len(unicode(e)) > 5:
+										msgF = total.replace("\n","").replace("\r","")
 										self.indiLOG.log(40,"in Line {} has error={},receiving DICTs for {};  check unifi logfile; if this happens to often increase DICT timeout ".format(sys.exc_traceback.tb_lineno, e,ipNumber))
-										self.indiLOG.log(40,"...{}  {} error in the JSON data".format(uType, ipNumber))
-										self.indiLOG.log(40,"..."+uType+" JSON-start="+unicode(  total[0:120]	 ).replace("\n","").replace("\r",""))
-										self.indiLOG.log(40,"..."+uType+" JSON-end  ="+unicode(  total[-min(len(total)-1,120):]  ).replace("\n","").replace("\r",""))
+										self.indiLOG.log(40,"... {}  {} error in the JSON data".format(uType, ipNumber))
+										self.indiLOG.log(40,"... JSON={:<100s} ... {}".format(msgF[0:100], msgF[:-40]) )
 										self.dataStats["tcpip"][uType][ipNumber]["inErrorCount"]+=1
 
 										errorCount+=1
@@ -5988,7 +5995,7 @@ class Plugin(indigo.PluginBase):
 			userid, passwd = self.getUidPasswd(uType)
 			if userid =="": return
 
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"startConnect: with IP: "+ipNumber.ljust(15)+";   uType: "+ uType+";   UID/PWD: "+userid+"/"+passwd)
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"startConnect: with IP: {:<15};   uType: {};   UID/PWD: {}/{}".format(ipNumber, uType, userid, passwd) )
 
 			if ipNumber not in self.listenStart:
 				self.listenStart[ipNumber] = {}
@@ -6020,13 +6027,13 @@ class Plugin(indigo.PluginBase):
 						  self.promptOnServer[uType]  +\
 						  " \""+self.commandOnServer[uType]+"\" "
 
-				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"startConnect: cmd "+cmd)
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"startConnect: cmd {}".format(cmd) )
 				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				##pid = ListenProcessFileHandle.pid
 				##self.myLog( text=u" pid= " + unicode(pid) )
 				msg = unicode(ListenProcessFileHandle.stderr)
 				if msg.find("open file") == -1:	# try this again
-					self.indiLOG.log(40,"uType "+uType +"; IP#: "+ ipNumber+"; error connecting " + msg)
+					self.indiLOG.log(40,"uType {}; IP#: {}; error connecting {}".formaat(uType, ipNumber, msg) )
 					self.sleep(20)
 					continue
 
@@ -6051,13 +6058,13 @@ class Plugin(indigo.PluginBase):
 			if userid =="": return False
 
 			cmd = "/usr/bin/expect '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"testServerIfOK: "+cmd)
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"testServerIfOK: {}".format(cmd) )
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 			test = ret[0].lower()
 			tags = ["welcome","unifi","debian","edge","busybox","ubiquiti","ubnt","login"]+[self.promptOnServer[uType]]
 			for tag in tags:
 				if tag in test:	 return True
-			self.indiLOG.log(20,"testServerIfOK: ==========="+ipNumber+"  ssh response, tags "+unicode(tags)+" not found : ==> \n"+ test)
+			self.indiLOG.log(20,"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, test) )
 		except	Exception, e:
 			if len(unicode(e)) > 5:
 				self.indiLOG.log(40,"testServerIfOK in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6076,7 +6083,7 @@ class Plugin(indigo.PluginBase):
 			tags = ["welcome","unifi","debian","edge","busybox","ubiquiti","ubnt","login"]+[self.promptOnServer[uType]]
 			for tag in tags:
 				if tag in test:	 return True
-			self.indiLOG.log(20,"\n==========="+ipNumber+"  ssh response, tags "+unicode(tags)+" not found : ==> "+ test)
+			self.indiLOG.log(20,"\n==========={}  ssh response, tags {} not found : ==> {}".format(ipNumber, tags, test) )
 		except	Exception, e:
 			if len(unicode(e)) > 5:
 				self.indiLOG.log(40,"setAccessToLog in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6091,7 +6098,7 @@ class Plugin(indigo.PluginBase):
 			userid = self.nvrUNIXUserID
 			passwd = self.nvrUNIXPassWd
 		if userid == "":
-			self.indiLOG.log(20,"Connection: "+uType+" login disabled, userid is empty")
+			self.indiLOG.log(20,"Connection: {} login disabled, userid is empty".format(Type) )
 		return userid, passwd
 
 
@@ -6109,7 +6116,7 @@ class Plugin(indigo.PluginBase):
 				xType			= item[4]
 
 				## update device-ap with new timestamp, it is up
-				if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS----- " +ipNumber+"    " + unicode(apN)+ "    " +uType+"  "+xType+"\n"+ unicode(lines))
+				if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS----- {}    {}   {}  {}\n{}".format(ipNumber, apN, uType, xType, lines) )
 
 				### update lastup for unifi devices
 				if xType in self.MAC2INDIGO:
@@ -6172,11 +6179,11 @@ class Plugin(indigo.PluginBase):
 
 				items= items[1].strip().split()
 				if len(items) < 5:
-					self.indiLOG.log(20,"MS-VD----  less than 3 items, line: "+line,mType = "MS-VD----")
+					self.indiLOG.log(20,"MS-VD----  less than 3 items, line: "+line)
 					continue
 
 				if items[0].find("Camera[") ==-1:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  no Camera[, line: "+line)
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  no Camera, line: {}".format(line) )
 					continue
 
 				c = items[0].split("[")[1].strip("]").lower()
@@ -6184,27 +6191,27 @@ class Plugin(indigo.PluginBase):
 				if self.testIgnoreMAC(MAC): continue
 
 				if items[1].find("type:") ==-1:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----   no    type, line: "+line)
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----   no    type, line: {}".format(line) )
 					continue
 
 				evType = items[1].split(":")[1]
 				if evType not in ["start","stop"]:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad eventType "+evType)
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad eventType {}".format(evType) )
 					continue
 
 
 
 				if items[2].find("event:") ==-1:
-					if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS-VD----  no event, line: "+line)
+					if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS-VD----  no event, line: {}".format(line) )
 					continue
 				try: evNo = int(items[2].split(":")[1])
 				except:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad int, line: "+line)
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad int, line:{}".format(line) )
 					continue
 
 				cameraName	 = " ".join(items[4:]).split(")")[0].split("(")[1].strip()
 
-				if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  parsed items: #%5d"%evNo+"  "+evType.ljust(5)+"    %13.1f"%timeSt+"  "+MAC+"  "+cameraName )
+				if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  parsed items: #{:5d}  {}    {:13.1f}  {} {}".format(evNo, evType, timeSt, MAC, cameraName) )
 
 
 				if MAC not in self.cameras:
@@ -6223,12 +6230,12 @@ class Plugin(indigo.PluginBase):
 							if int(evNo) - int(ev) > self.unifiVIDEONumerOfEvents:
 								delEvents[ev]=True
 						except:
-							self.indiLOG.log(40,u"doVDmessages error in ev# " +str(ev)+";	  evNo "+str(evNo)+";	 maxNumberOfEvents: "+str(self.unifiVIDEONumerOfEvents)+"\n to fix:  try to rest event count ")
+							self.indiLOG.log(40,u"doVDmessages error in ev# {};	  evNo {};	 maxNumberOfEvents: {}\n to fix:  try to rest event count ".format(ev, evNo, self.unifiVIDEONumerOfEvents) )
 
 
 
 					if len(delEvents) >0:
-						if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  "+cameraName+" number of events > "+str(self.unifiVIDEONumerOfEvents)+"; deleting "+str(len(delEvents))+" events")
+						if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  {} number of events > {}; deleting {} events".format(cameraName, self.unifiVIDEONumerOfEvents, len(delEvents)) )
 						for ev in delEvents:
 							del	 self.cameras[MAC]["events"][ev]
 

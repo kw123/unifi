@@ -503,6 +503,25 @@
         <Label>... enable or stop or  print intermediate results use on/off/print:</Label>  
     </Field>
 
+    <Field id="simpleSeparator230" type="separator"/>
+    <Field id="infoLabel228" type="label"> <Label>=== EXPERTs only
+  -- Readbuffer: </Label>  </Field>
+    <Field    id="readBuffer" type="menu"  defaultValue="32767"  > 
+        <Label>.. Size of buffer for reading input streams:</Label>  
+           <List>
+            <Option value="2048"  > 2048</Option>
+            <Option value="4096"  > 4096</Option>
+            <Option value="8192"  > 8192</Option>
+            <Option value="16384" > 16384</Option>
+            <Option value="32767" > 32767</Option>
+            <Option value="65536" > 65536</Option>
+        </List>
+    </Field>
+<Field id="infoLabel229" type="label"> <Label>.           For Mojave error 22: reduce buffer size until error disappears
+.           In general max value for best performance. 
+.           32k seems to cover 99% of packages. Each listener stream will use one of the buffers
+.           Small read buffer will do several reads when data is &gt; buffer size</Label>  </Field>
+
 
 
 </PluginConfig>
