@@ -1,9 +1,16 @@
+changes in V 7.26.168  @ 2019-06-26
+==================  
+
+1. the camera event logs from unifi have changed. Now handles also the new version
+
+
 changes in V 7.26.167  @ 2019-05-18
 ==================  
 
 1. added option to set read buffer for listeners.. for Mojave OSX 
    default is 32767, seems to be ok, just in case reading runs into error 22
    reduce to lower value 
+
 
 ==================  
 

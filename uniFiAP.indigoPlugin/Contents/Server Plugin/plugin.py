@@ -102,23 +102,23 @@ class Plugin(indigo.PluginBase):
 		self.indigo_log_handler.setLevel(logging.WARNING)
 		indigo.server.log("initializing	 ... ")
 
-		indigo.server.log(u"path To files:        =================")
-		indigo.server.log(u"indigo                "+self.indigoRootPath)
-		indigo.server.log(u"installFolder         "+self.indigoPath)
-		indigo.server.log(u"plugin.py             "+self.pathToPlugin)
-		indigo.server.log(u"Plugin params         "+self.indigoPreferencesPluginDir)
+		indigo.server.log(  u"path To files:          =================")
+		indigo.server.log(  u"indigo                  {}".format(self.indigoRootPath))
+		indigo.server.log(  u"installFolder           {}".format(self.indigoPath))
+		indigo.server.log(  u"plugin.py               {}".format(self.pathToPlugin))
+		indigo.server.log(  u"Plugin params           {}".format(self.indigoPreferencesPluginDir))
 
-		self.indiLOG.log( 0, "logger  enabled for   0 ==> TEST ONLY ")
-		self.indiLOG.log( 5, "logger  enabled for   THREADDEBUG    ==> TEST ONLY ")
-		self.indiLOG.log(10, "logger  enabled for   DEBUG          ==> TEST ONLY ")
-		self.indiLOG.log(20, "logger  enabled for   INFO           ==> TEST ONLY ")
-		self.indiLOG.log(30, "logger  enabled for   WARNING        ==> TEST ONLY ")
-		self.indiLOG.log(40, "logger  enabled for   ERROR          ==> TEST ONLY ")
-		self.indiLOG.log(50, "logger  enabled for   CRITICAL       ==> TEST ONLY ")
-		indigo.server.log(u"check                 "+self.PluginLogFile +"  <<<<    for detailed logging")
-		indigo.server.log(u"Plugin short Name     "+self.pluginShortName)
-		indigo.server.log(u"my PID                "+str(self.myPID))	 
-		indigo.server.log(u"set params 4 indigo V "+str(self.indigoVersion))	 
+		self.indiLOG.log( 0, "logger  enabled for     0 ==> TEST ONLY ")
+		self.indiLOG.log( 5, "logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
+		self.indiLOG.log(10, "logger  enabled for     DEBUG          ==> TEST ONLY ")
+		self.indiLOG.log(20, "logger  enabled for     INFO           ==> TEST ONLY ")
+		self.indiLOG.log(30, "logger  enabled for     WARNING        ==> TEST ONLY ")
+		self.indiLOG.log(40, "logger  enabled for     ERROR          ==> TEST ONLY ")
+		self.indiLOG.log(50, "logger  enabled for     CRITICAL       ==> TEST ONLY ")
+		indigo.server.log(  u"check                   {}  <<<<    for detailed logging".format(self.PluginLogFile))
+		indigo.server.log(  u"Plugin short Name       {}".format(self.pluginShortName))
+		indigo.server.log(  u"my PID                  {}".format(self.myPID))	 
+		indigo.server.log(  u"set params for indigo V {}".format(self.indigoVersion))	 
 
 ####
 
@@ -1404,7 +1404,6 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRgetSnapshotCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRgetSnapshotCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		indigo.server.log(self.imageSourceForSnapShot+"  "+unicode(valuesDict))
 		if   self.imageSourceForSnapShot == "imageFromNVR": 	valuesDict["retCodeCam"] = self.getSnapshotfromNVR(valuesDict["cameraDeviceSelected"], valuesDict["widthOfImage"], valuesDict["fileNameOfImage"] )
 		elif self.imageSourceForSnapShot == "imageFromCamera":	valuesDict["retCodeCam"] = self.getSnapshotfromCamera(valuesDict["cameraDeviceSelected"],                          valuesDict["fileNameOfImage"] )
 		return valuesDict
@@ -3528,14 +3527,12 @@ class Plugin(indigo.PluginBase):
 			newDeviceFound =[]
 
 			deviceDict =		self.executeCMDOnController(data={}, pageString="/stat/device/", jsonAction="returnData")
-			#indigo.server.log("checkForNewUnifiSystemDevices deviceDict " +unicode(deviceDict)[0:100])
 			if deviceDict =={}: return
 			for item in deviceDict:
 				ipNumber = ""
 				MAC		 = ""
 				if "type"   not in item: continue
 				uType	 = item["type"]
-				#indigo.server.log("checkForNewUnifiSystemDevices ipNumber:"+ipNumber+" MAC:"+MAC+" uType:"+uType	)
 
 				if uType == "ugw":
 					if "network_table" in item:
@@ -4578,7 +4575,7 @@ class Plugin(indigo.PluginBase):
 			if pri !="": pick = pri
 			else:		 pick = 'cumtime'
 			outFile		= self.indigoPreferencesPluginDir+"timeStats"
-			indigo.server.log(" print time track stats to: "+outFile+".dump / txt  with option: "+pick)
+			indigo.server.log(" print time track stats to: {}.dump / txt  with option:{} ".format(outFile, pick) )
 			self.pr.dump_stats(outFile+".dump")
 			sys.stdout 	= open(outFile+".txt", "w")
 			stats 		= pstats.Stats(outFile+".dump")
@@ -4610,7 +4607,7 @@ class Plugin(indigo.PluginBase):
 			self.cProfileVariableLoaded = 0
 			self.do_cProfile  			= "x"
 			self.timeTrVarName 			= "enableTimeTracking_"+self.pluginShortName
-			indigo.server.log("testing if variable "+self.timeTrVarName+" is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)")
+			indigo.server.log("testing if variable {} is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)".format(self.timeTrVarName))
 
 		self.lastTimegetcProfileVariable = time.time()
 
@@ -4655,7 +4652,7 @@ class Plugin(indigo.PluginBase):
 
 		self.sleep(1)
 		if self.quitNow !="":
-			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: " + self.quitNow + " :::::")
+			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: {} :::::".format(self.quitNow))
 			serverPlugin = indigo.server.getPlugin(self.pluginId)
 			serverPlugin.restart(waitUntilDone=False)
 		return
@@ -5359,7 +5356,7 @@ class Plugin(indigo.PluginBase):
 		self.dataStats["updates"]={"devs":0,"states":0,"startTime":time.time()}
 	####-----------------	 ---------
 	def resetDataStats(self, calledFrom=""):
-		indigo.server.log(" resetDataStats called from "+calledFrom)
+		indigo.server.log(" resetDataStats called from {}".format(calledFrom) )
 		self.dataStats={"tcpip":{},"updates":{"devs":0,"states":0,"startTime":time.time()}}
 		self.saveDataStats()
 
@@ -6163,53 +6160,72 @@ class Plugin(indigo.PluginBase):
 				##if self.decideMyLog(u"Video"):	 self.myLog( text="msg: "+line,mType = "MS-VD----")
 				#self.myLog( text=ipNumber+"     "+ line, mType = "MS-VD----")
 				## this is an event tring:
-###1524837857.747 2018-04-27 09:04:17.747/CDT: INFO	  Camera[F09FC2C1967B] type:start event:105 clock:58199223 (UVC G3 Micro) in ApplicationEvtBus-15
-###1524837862.647 2018-04-27 09:04:22.647/CDT: INFO	  Camera[F09FC2C1967B] type:stop event:105 clock:58204145 (UVC G3 Micro) in ApplicationEvtBus-18
+# logversion 1:
+###1524837857.747 2018-04-27 09:04:17.747/CDT: INFO   Camera[F09FC2C1967B] type:start event:105 clock:58199223 (UVC G3 Micro) in ApplicationEvtBus-15
+###1524837862.647 2018-04-27 09:04:22.647/CDT: INFO   Camera[F09FC2C1967B] type:stop event:105 clock:58204145 (UVC G3 Micro) in ApplicationEvtBus-18
+## new format logVersion 2:
+#1561518324.741 2019-06-25 22:05:24.741/CDT: INFO   [uv.analytics.motion] [AnalyticsService] [FCECDA1F1532|LivingRoom-Window-Flex] MotionEvent type:start event:1049 clock:111842854 in AnalyticsEvtBus-0
 
-				items = (line.strip()).split(" INFO ")
-				if len(items)< 2:
+				itemsRaw = (line.strip()).split(" INFO ")
+				if len(itemsRaw) < 2:
 					#self.myLog( text=" INFO not found ",mType = "MS-VD----")
 					continue
 
 
-				try: timeSt= float(items[0].split()[0])
+				try: timeSt= float(itemsRaw[0].split()[0])
 				except:
 					if self.decideMyLog(u"Video"):  self.indiLOG.log(20,"MS-VD----  bad float")
 					continue
 
-				items= items[1].strip().split()
+				items= itemsRaw[1].strip().split()
 				if len(items) < 5:
-					self.indiLOG.log(20,"MS-VD----  less than 3 items, line: "+line)
+					self.indiLOG.log(20,"MS-VD----  less than 5 items, line: "+line)
 					continue
 
-				if items[0].find("Camera[") ==-1:
+				logVersion = 0
+				if items[0].find("Camera[") >-1: 			logVersion = 1
+				elif itemsRaw[1].find("MotionEvent") >-1:	logVersion = 2
+				else:
 					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  no Camera, line: {}".format(line) )
 					continue
 
-				c = items[0].split("[")[1].strip("]").lower()
-				MAC = c[0:2]+":"+c[2:4]+":"+c[4:6]+":"+c[6:8]+":"+c[8:10]+":"+c[10:12]
-				if self.testIgnoreMAC(MAC): continue
+				if logVersion == 1:
+					#Camera[F09FC2C1967B]
+					c = items[0].split("[")[1].strip("]").lower()
+					# clock:58199223 (UVC G3 Micro) in 
+					cameraName	 = " ".join(items[4:]).split("(")[1].split(")")[0].strip()
+				if logVersion == 2:
+					# [mac|name]
+					# [FCECDA1F1532|LivingRoom-Window-Flex] 
+					xx = items[2].split("|")
+					cameraName = xx[1].strip("]")
+					c = xx[0].strip("[").lower()
 
-				if items[1].find("type:") ==-1:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----   no    type, line: {}".format(line) )
+				if len(c) < 12:
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad data, line: {}".format(line) )
 					continue
 
-				evType = items[1].split(":")[1]
+				MAC = c[0:2]+":"+c[2:4]+":"+c[4:6]+":"+c[6:8]+":"+c[8:10]+":"+c[10:12]
+
+				if self.testIgnoreMAC(MAC): continue
+
+				evType = itemsRaw[1].split("type:")
+				if len(evType) !=2: 
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----   no    type, line: {}".format(line) )
+					continue
+				evType = evType[1].split()[0]
+
 				if evType not in ["start","stop"]:
 					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad eventType {}".format(evType) )
 					continue
 
 
-
-				if items[2].find("event:") ==-1:
-					if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS-VD----  no event, line: {}".format(line) )
+				event = itemsRaw[1].split("event:")
+				if len(event) !=2: 
+					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----   no    event, line: {}".format(line) )
 					continue
-				try: evNo = int(items[2].split(":")[1])
-				except:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  bad int, line:{}".format(line) )
-					continue
+				evNo = int(event[1].split()[0])
 
-				cameraName	 = " ".join(items[4:]).split(")")[0].split("(")[1].strip()
 
 				if self.decideMyLog(u"Video"): self.indiLOG.log(20,"MS-VD----  parsed items: #{:5d}  {}    {:13.1f}  {} {}".format(evNo, evType, timeSt, MAC, cameraName) )
 
@@ -6222,8 +6238,6 @@ class Plugin(indigo.PluginBase):
 
 
 				if len(self.cameras[MAC]["events"]) > self.unifiVIDEONumerOfEvents:
-
-
 					delEvents={}
 					for ev in self.cameras[MAC]["events"]:
 						try:
@@ -8830,13 +8844,13 @@ class Plugin(indigo.PluginBase):
 		if action.deviceAction == indigo.kUniversalAction.Beep:
 			# Beep the hardware module (dev) here:
 			# ** IMPLEMENT ME **
-			indigo.server.log(u"sent \"%s\" %s" % (dev.name, "beep request not implemented"))
+			indigo.server.log(u"sent \"{}\" beep request not implemented".format(dev.name) )
 
 		###### STATUS REQUEST ######
 		elif action.deviceAction == indigo.kUniversalAction.RequestStatus:
 			# Query hardware module (dev) for its current status here:
 			# ** IMPLEMENT ME **
-			indigo.server.log(u"sent \"%s\" %s" % (dev.name, "status request not implemented"))
+			indigo.server.log(u"sent \"{}\" status request not implemented".format(dev.name) )
 
 	####-----------------
 	########################################
