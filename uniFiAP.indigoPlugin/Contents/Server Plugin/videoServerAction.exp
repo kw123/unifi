@@ -19,16 +19,19 @@ expect {
 expect $promptOnServer
 sleep 0.1
 set timeout 10
-sleep 0.1
-send "$cmd  \r"
+send "su \r"
 expect {
     "assword" {
         send "$password\n"
     }
 }
-set timeout 2
 expect $promptOnServer
-sleep 0.1
+set timeout 10
+send "$cmd  \r"
+expect $promptOnServer
+sleep 3
+send "exit\r"
+sleep 1
 send "exit\r"
 sleep 0.1
 expect eof

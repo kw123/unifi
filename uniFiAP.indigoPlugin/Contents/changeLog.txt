@@ -1,3 +1,12 @@
+changes in V 7.26.169  @ 2019-12-03
+==================  
+
+1. added option for gateway devices to select which MAC number to be used for reports
+   gateways have several MAC numbers, and depending on version the query has to pick the proper MAC number for querries in the controller
+   in device edit you can pick the mAC number (MAC or MAClan)
+
+
+
 changes in V 7.26.168  @ 2019-06-26
 ==================  
 

@@ -130,6 +130,30 @@ class Plugin(indigo.PluginBase):
 
 	####----------------- @ startup set global parameters, create directories etc ---------
 	def startup(self):
+		if self.pathToPlugin.find("/"+self.pluginName+".indigoPlugin/")==-1:
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"The pluginname is not correct, please reinstall or rename")
+				self.errorLog(u"It should be   /Libray/....../Plugins/"+self.pluginName+".indigPlugin")
+				p=max(0,self.pathToPlugin.find("/Contents/Server"))
+				self.errorLog(u"It is: "+self.pathToPlugin[:p])
+				self.errorLog(u"please check your download folder, delete old *.indigoPlugin files or this will happen again during next update")
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
+				self.sleep(100000)
+				self.quitNOW="wrong plugin name"
+				return
 
 		if not self.checkPluginPath(self.pluginName,  self.pathToPlugin):
 			exit()
@@ -1071,7 +1095,7 @@ class Plugin(indigo.PluginBase):
 			for dd in self.MAC2INDIGO[u"SW"]:
 				self.myLog( text=unicode(self.MAC2INDIGO[u"SW"][dd]), mType="SWITCH    "+dd)
 			for dd in self.MAC2INDIGO[u"GW"]:
-				self.myLog( text=unicode(self.MAC2INDIGO[u"GW"][dd]), mType="GAETWAY "+dd)
+				self.myLog( text=unicode(self.MAC2INDIGO[u"GW"][dd]), mType="GATEWAY "+dd)
 			for dd in self.MAC2INDIGO[u"NB"]:
 				self.myLog( text=unicode(self.MAC2INDIGO[u"NB"][dd]), mType="NEIGHB    "+dd)
 
@@ -2799,6 +2823,10 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmGetAPDevInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		for dev in indigo.devices.iter("props.isAP"):
 			MAC = dev.states["MAC"]
+			if "MAClan" in dev.states: 
+				props = dev.pluginProps
+				if "useWhichMAC" in props and props["useWhichMAC"] == "MAClan":
+					MAC = dev.states["MAClan"]
 			self.indiLOG.log(20,"unifi-Report getting _id for AP "+dev.name+ "  "+"/stat/device/"+MAC )
 			jData= self.executeCMDOnController(data={}, pageString="/stat/device/"+MAC, jsonAction="returnData")
 			for dd in jData:
@@ -2814,12 +2842,21 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	####-----------------	 ---------
 	def buttonConfirmPrintDevInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={}, pageString="/stat/device/"+valuesDict["MACdeviceSelectedsys"], jsonAction="print",startText="== Device print: /stat/device/"+valuesDict["MACdeviceSelectedsys"]+" ==")
+		MAC = valuesDict["MACdeviceSelectedsys"]
+		for dev in indigo.devices.iter("props.isAP,props.isSwitch,props.isGateway"):
+			if "MAC" in dev.states and dev.states[u"MAC"] != MAC: continue
+			if "MAClan" in dev.states and dev.states[u"MAClan"] != MAC:
+				props = dev.pluginProps
+				if "useWhichMAC" in props and props["useWhichMAC"] == "MAClan":
+					MAC = dev.states["MAClan"]
+			break	
+		self.executeCMDOnController(data={}, pageString="/stat/device/"+MAC, jsonAction="print",startText="== Device print: /stat/device/"+MAC+" ==")
 		return
 
 	####-----------------	 ---------
 	def buttonConfirmPrintClientInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={}, pageString="/stat/sta/"+valuesDict["MACdeviceSelectedclient"], jsonAction="print",startText="== Client print: /stat/sta/"+valuesDict["MACdeviceSelectedclient"]+" ==")
+		MAC = valuesDict["MACdeviceSelectedclient"]
+		self.executeCMDOnController(data={}, pageString="/stat/sta/"+MAC, jsonAction="print",startText="== Client print: /stat/sta/"+MAC+" ==")
 		return
 
 ######## reports all devcies
@@ -5603,12 +5640,12 @@ class Plugin(indigo.PluginBase):
 
 					skip = ""
 					if self.testIgnoreMAC(MAC):
-						skip = "MAC"
+						skip = "MAC in ignored List"
 					else:
 						if "authStatus" in cam2 and cam2["authStatus"] != "AUTHENTICATED":
-							skip += " not-authStatus;"
+							skip += "authStatus: !=AUTHENTICATED;"
 						if "managed" in cam2 and not cam2["managed"]:
-							skip += " not managed;"
+							skip += " .. != managed;"
 						if "deleted" in cam2 and  cam2["deleted"]:
 							skip += " deleted"
 						if skip !="":
@@ -5930,7 +5967,7 @@ class Plugin(indigo.PluginBase):
 						errorCount = 0
 						if linesFromServer.find("ThisIsTheAliveTestFromUnifiToPlugin") > -1:
 							self.dataStats["tcpip"][uType][ipNumber]["aliveTestCount"]+=1
-							if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
+							if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
 							continue
 						self.logQueue.put((linesFromServer,ipNumber,apN, uType,unifiDeviceType))
 						self.updateIndigoWithLogData()	#####################  here we call method to do something with the data

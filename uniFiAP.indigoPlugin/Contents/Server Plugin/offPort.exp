@@ -4,7 +4,7 @@ set ipNumber [lindex $argv 2 ]
 set port [lindex $argv 3]
 set endToken [lindex $argv 4]
 
-set timeout 10
+set timeout 20
 spawn  ssh $userID@$ipNumber
 expect {
     "(yes/no)? " {

@@ -8,7 +8,7 @@ set mcatimeout [lindex $argv 6]
 set cmd [lindex $argv 7]
 set logfile [lindex $argv 8]
 
-set timeout 10
+set timeout 20
 spawn  ssh $userID@$ipNumber
 expect {
     "(yes/no)? " {

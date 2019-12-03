@@ -435,6 +435,16 @@
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
+
+			<Field	 id="useWhichMAC"	 type="menu"  defaultValue="MAClan" tooltip="gateways have diferent MACs decide which to use for controller querries" >
+				<Label>:send broadcasts to other plugins for status up/x changes</Label>
+				<List>
+					<Option value="mac"    >use MAC  </Option>
+					<Option value="MAClan" >use MAClan for controller querries</Option>
+				</List>
+			</Field>
+
+
 			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
 				<Label>:send broadcasts to other plugins for status up/x changes</Label>
 				<List>
