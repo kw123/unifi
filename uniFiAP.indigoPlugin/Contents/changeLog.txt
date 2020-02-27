@@ -1,3 +1,51 @@
+changes in V 7.28.184  @ 2019-02-27
+==================  
+
+1. fixed uniFiAP Error in Line 3909 has error=local variable 'ret' r
+
+
+
+
+changes in V 7.28.183  @ 2019-02-25
+==================  
+
+1. fine tuning of web log pulling
+2. fixed # of ports and rstrip(/) of backup dir
+3. fixed false --> False
+
+
+
+changes in V 7.28.178  @ 2019-02-24
+==================  
+
+1. added web log pull for AP up / down info 
+
+
+
+changes in V 7.28.177  @ 2019-02-24
+==================  
+
+1. added config options to copy backup files from controller.
+   will run after midnight, can also be invoked in menu 
+      "Copy controller backup files to indigo server pref dir"
+    backupfiles will be in 
+      /Library/Application Support/Perceptive Automation/Indigo x.x/Preferences/Plugins/com.karlwachs.uniFiAP/backup/
+
+changes in V 7.28.176  @ 2019-02-24
+==================  
+
+1. added config options UDM debug
+2. added support for UDM switch v3
+3. added UDM w 5 ports
+
+
+changes in V 7.28.169  @ 2019-02-22
+==================  
+
+1. added config options for UDM-(pro) 
+
+
+
 changes in V 7.27.169  @ 2019-02-09
 ==================  
 

@@ -1763,6 +1763,216 @@
 
 
 
+	<Device type="sensor" id="Device-SW-11">
+			<Name>Device-SW-11</Name>
+			<UiDisplayStateId>displayStatus</UiDisplayStateId>
+			<ConfigUI>
+				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
+
+				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
+				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
+				<Field	  id="expirationTime"		type="menu"	 defaultValue="90"	 tooltip=" overwrites common expiration time set in config ">
+					<Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
+					<List>
+						<Option value="1"	 > 1  seconds (for testing)</Option>
+						<Option value="10"	 >10  seconds (for testing)</Option>
+						<Option value="20"	 >20  seconds (for testing)</Option>
+						<Option value="30"	 >30  seconds</Option>
+						<Option value="40"	 >40  seconds</Option>
+						<Option value="60"	 >60  seconds</Option>
+						<Option value="75"	 >75  seconds</Option>
+						<Option value="90"	 >90  seconds (default)</Option>
+						<Option value="120"	 > 2  minutes</Option>
+						<Option value="180"	 > 3  minutes</Option>
+						<Option value="240"	 > 4  minutes</Option>
+						<Option value="300"	 > 5  minutes</Option>
+						<Option value="360"	 > 6  minutes</Option>
+						<Option value="420"	 > 7  minutes</Option>
+						<Option value="490"	 > 8  minutes</Option>
+						<Option value="540"	 > 9  minutes</Option>
+						<Option value="600"	 >10  minutes</Option>
+						<Option value="-1"	 >use common expiration time</Option>
+					</List>
+				</Field>
+			<Field id="unifi-sep-03" type="separator"/>
+
+			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+				<Label>:send broadcasts to other plugins for status up/x changes</Label>
+				<List>
+					<Option value="0" >NO </Option>
+					<Option value="1" >YES send BC, must be enabled in config  </Option>
+				</List>
+			</Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
+			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
+			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+
+			</ConfigUI>
+
+
+			<States>
+				<State id="status">
+					<ValueType>String</ValueType>
+					<TriggerLabel>status</TriggerLabel>
+					<ControlPageLabel>status</ControlPageLabel>
+				</State>
+				<State id="displayStatus">
+					<ValueType>String</ValueType>
+					<TriggerLabel>displayStatus</TriggerLabel>
+					<ControlPageLabel>displayStatus</ControlPageLabel>
+				</State> 
+				<State id="groupMember">
+					<ValueType>String</ValueType>
+					<TriggerLabel>groupMember</TriggerLabel>
+					<ControlPageLabel>groupMember</ControlPageLabel>
+				</State>
+				<State id="MAC">
+					<ValueType>String</ValueType>
+					<TriggerLabel>MAC</TriggerLabel>
+					<ControlPageLabel>MAC</ControlPageLabel>
+				</State>
+				<State id="temperature">
+					<ValueType>number</ValueType>
+					<TriggerLabel>temperature</TriggerLabel>
+					<ControlPageLabel>temperature</ControlPageLabel>
+				</State>
+				<State id="overHeating">
+					<ValueType>boolean</ValueType>
+					<TriggerLabel>overHeating</TriggerLabel>
+					<ControlPageLabel>overHeating</ControlPageLabel>
+				</State>
+				<State id="model">
+					<ValueType>String</ValueType>
+					<TriggerLabel>model</TriggerLabel>
+					<ControlPageLabel>model</ControlPageLabel>
+				</State>
+				<State id="upSince">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upSince</TriggerLabel>
+					<ControlPageLabel>upSince</ControlPageLabel>
+				</State>
+				<State id="ipNumber">
+					<ValueType>String</ValueType>
+					<TriggerLabel>ipNumber</TriggerLabel>
+					<ControlPageLabel>ipNumber</ControlPageLabel>
+				</State>
+				<State id="created">
+					<ValueType>String</ValueType>
+					<TriggerLabel>created</TriggerLabel>
+					<ControlPageLabel>created</ControlPageLabel>
+				</State>
+				<State id="hostname">
+					<ValueType>String</ValueType>
+					<TriggerLabel>hostname</TriggerLabel>
+					<ControlPageLabel>hostname</ControlPageLabel>
+				</State>
+				<State id="lastStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastStatusChange</TriggerLabel>
+					<ControlPageLabel>lastStatusChange</ControlPageLabel>
+				</State>
+				<State id="vendor">
+					<ValueType>String</ValueType>
+					<TriggerLabel>vendor</TriggerLabel>
+					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+
+				<State id="port_01">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_01</TriggerLabel>
+					<ControlPageLabel>port_01</ControlPageLabel>
+				</State>
+				<State id="port_02">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_02</TriggerLabel>
+					<ControlPageLabel>port_02</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_04">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_04</TriggerLabel>
+					<ControlPageLabel>port_04</ControlPageLabel>
+				</State>
+				<State id="port_05">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_05</TriggerLabel>
+					<ControlPageLabel>port_05</ControlPageLabel>
+				</State>
+				<State id="port_06">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_06</TriggerLabel>
+					<ControlPageLabel>port_06</ControlPageLabel>
+				</State>
+				<State id="port_07">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_07</TriggerLabel>
+					<ControlPageLabel>port_07</ControlPageLabel>
+				</State>
+				<State id="port_08">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_08</TriggerLabel>
+					<ControlPageLabel>port_08</ControlPageLabel>
+				</State>
+				<State id="port_09">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_09</TriggerLabel>
+					<ControlPageLabel>port_09</ControlPageLabel>
+				</State>
+				<State id="port_10">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_10</TriggerLabel>
+					<ControlPageLabel>port_10</ControlPageLabel>
+				</State>
+				<State id="port_11">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_11</TriggerLabel>
+					<ControlPageLabel>port_11</ControlPageLabel>
+				</State>
+
+				<State id="upDownSetting">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upDownSetting</TriggerLabel>
+					<ControlPageLabel>upDownSetting</ControlPageLabel>
+				</State>
+				<State id="switchNo">
+					<ValueType>String</ValueType>
+					<TriggerLabel>switchNo</TriggerLabel>
+					<ControlPageLabel>switchNo</ControlPageLabel>
+				</State>
+
+			</States>
+	</Device>
+
+
+
+
 	<Device type="sensor" id="Device-SW-10">
 			<Name>Device-SW-10</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
@@ -2135,6 +2345,181 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>port_08</TriggerLabel>
 					<ControlPageLabel>port_08</ControlPageLabel>
+				</State>
+
+				<State id="upDownSetting">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upDownSetting</TriggerLabel>
+					<ControlPageLabel>upDownSetting</ControlPageLabel>
+				</State>
+
+				<State id="switchNo">
+					<ValueType>String</ValueType>
+					<TriggerLabel>switchNo</TriggerLabel>
+					<ControlPageLabel>switchNo</ControlPageLabel>
+				</State>
+				<State id="upSince">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upSince</TriggerLabel>
+					<ControlPageLabel>upSince</ControlPageLabel>
+				</State>
+
+			</States>
+	</Device>
+
+
+
+	<Device type="sensor" id="Device-SW-5">
+			<Name>Device-SW-5</Name>
+			<UiDisplayStateId>displayStatus</UiDisplayStateId>
+			<ConfigUI>
+				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
+
+				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
+				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
+				<Field	  id="expirationTime"		type="menu"	 defaultValue="90"	 tooltip=" overwrites common expiration time set in config ">
+					<Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
+					<List>
+						<Option value="1"	 > 1  seconds (for testing)</Option>
+						<Option value="10"	 >10  seconds (for testing)</Option>
+						<Option value="20"	 >20  seconds (for testing)</Option>
+						<Option value="30"	 >30  seconds</Option>
+						<Option value="40"	 >40  seconds</Option>
+						<Option value="60"	 >60  seconds</Option>
+						<Option value="75"	 >75  seconds</Option>
+						<Option value="90"	 >90  seconds (default)</Option>
+						<Option value="120"	 > 2  minutes</Option>
+						<Option value="180"	 > 3  minutes</Option>
+						<Option value="240"	 > 4  minutes</Option>
+						<Option value="300"	 > 5  minutes</Option>
+						<Option value="360"	 > 6  minutes</Option>
+						<Option value="420"	 > 7  minutes</Option>
+						<Option value="490"	 > 8  minutes</Option>
+						<Option value="540"	 > 9  minutes</Option>
+						<Option value="600"	 >10  minutes</Option>
+						<Option value="-1"	 >use common expiration time</Option>
+					</List>
+				</Field>
+			<Field id="unifi-sep-03" type="separator"/>
+
+			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
+				<Label>:send broadcasts to other plugins for status up/x changes</Label>
+				<List>
+					<Option value="0" >NO </Option>
+					<Option value="1" >YES send BC, must be enabled in config  </Option>
+				</List>
+			</Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
+			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
+			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
+			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
+			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
+			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
+			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
+			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
+			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
+			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
+			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+
+			</ConfigUI>
+
+
+			<States>
+				<State id="status">
+					<ValueType>String</ValueType>
+					<TriggerLabel>status</TriggerLabel>
+					<ControlPageLabel>status</ControlPageLabel>
+				</State>
+				<State id="displayStatus">
+					<ValueType>String</ValueType>
+					<TriggerLabel>displayStatus</TriggerLabel>
+					<ControlPageLabel>displayStatus</ControlPageLabel>
+				</State> 
+				<State id="groupMember">
+					<ValueType>String</ValueType>
+					<TriggerLabel>groupMember</TriggerLabel>
+					<ControlPageLabel>groupMember</ControlPageLabel>
+				</State>
+				<State id="MAC">
+					<ValueType>String</ValueType>
+					<TriggerLabel>MAC</TriggerLabel>
+					<ControlPageLabel>MAC</ControlPageLabel>
+				</State>
+				<State id="overHeating">
+					<ValueType>boolean</ValueType>
+					<TriggerLabel>overHeating</TriggerLabel>
+					<ControlPageLabel>overHeating</ControlPageLabel>
+				</State>
+				<State id="model">
+					<ValueType>String</ValueType>
+					<TriggerLabel>model</TriggerLabel>
+					<ControlPageLabel>model</ControlPageLabel>
+				</State>
+				<State id="ipNumber">
+					<ValueType>String</ValueType>
+					<TriggerLabel>ipNumber</TriggerLabel>
+					<ControlPageLabel>ipNumber</ControlPageLabel>
+				</State>
+				<State id="created">
+					<ValueType>String</ValueType>
+					<TriggerLabel>created</TriggerLabel>
+					<ControlPageLabel>created</ControlPageLabel>
+				</State>
+				<State id="hostname">
+					<ValueType>String</ValueType>
+					<TriggerLabel>hostname</TriggerLabel>
+					<ControlPageLabel>hostname</ControlPageLabel>
+				</State>
+				<State id="lastStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastStatusChange</TriggerLabel>
+					<ControlPageLabel>lastStatusChange</ControlPageLabel>
+				</State>
+				<State id="vendor">
+					<ValueType>String</ValueType>
+					<TriggerLabel>vendor</TriggerLabel>
+					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+
+				<State id="port_01">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_01</TriggerLabel>
+					<ControlPageLabel>port_01</ControlPageLabel>
+				</State>
+				<State id="port_02">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_02</TriggerLabel>
+					<ControlPageLabel>port_02</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_04">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_04</TriggerLabel>
+					<ControlPageLabel>port_04</ControlPageLabel>
+				</State>
+				<State id="port_05">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_05</TriggerLabel>
+					<ControlPageLabel>port_05</ControlPageLabel>
 				</State>
 
 				<State id="upDownSetting">

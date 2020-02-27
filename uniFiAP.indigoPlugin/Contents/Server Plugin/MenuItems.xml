@@ -231,7 +231,6 @@
 		</ConfigUI>
 	</MenuItem>
 
-
 	<MenuItem id="CameraActions">
 		<Name>CAMERA Info and Settings, actions</Name>
 		<ConfigUI>
@@ -627,6 +626,11 @@
 
 
 	<MenuItem id="dAC"> <Name>-------------Actions	 ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
+	<MenuItem id="getBackupFilesFromControllerid">
+		<Name>Copy controller backup files to indigo server pref dir</Name>
+		<CallbackMethod>getBackupFilesFromController</CallbackMethod>
+	</MenuItem>
+
 	<MenuItem id="setDevicesOptimized">
 		<Name>SET ALL  UniFi devices PROPS to .... </Name>
 		<ConfigUI>

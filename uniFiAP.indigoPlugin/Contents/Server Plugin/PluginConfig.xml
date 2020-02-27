@@ -145,6 +145,7 @@
             and will populate sw ap gw settings automatically
             In most cases both (unifi system and controller) userids and passwords are set to be the same.
             == Try to avoid ' and " in your passwords ==</Label>  </Field>
+
     <Field    id="unifiCloudKeyMode"       type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
         <List>
             <Option value="ON"             >ON </Option>
@@ -152,17 +153,44 @@
             <Option value="ONreportsOnly"  >ON, reports Only</Option>
         </List>
     </Field>
-    <Field    id="unifiCONTROLLERUserID"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
+ 
+    <Field    id="unifiControllerType"       type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+		<Label>.. controller Type:</Label> 
+        <List>
+            <Option value="std"   	>std  USG / UGA </Option>
+            <Option value="UDM"     >UDM     use switch #12 and AP#4</Option>
+            <Option value="UDMPro"  >UDM-pro use switch #12 and AP#4</Option>
+        </List>
+    </Field>
+
+
+
+   <Field    id="unifiCONTROLLERUserID"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
         <Label>... UserID for UniFi CONTROLLER:</Label>
     </Field>
 
     <Field    id="unifiCONTROLLERPassWd"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
         <Label>...password cor UniFi CONTROLLER:</Label>
     </Field>
+
+
     <Field    id="unifiCloudKeyIP"       type="textfield" defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>ipNumber of controller</Label>  </Field>
     <Field    id="unifiCloudKeyPort"     type="textfield" defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
     <Field    id="unifiCloudKeySiteName" type="textfield" defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  </Field>
-    <Field    id="unifiApiWebPage"       type="textfield" defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  readonly="True" > <Label>..unifi api web page:</Label>  </Field>
+    <Field    id="unifiApiWebPage"       type="menu"  defaultValue="/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+		<Label>.. unifi Api Web Page:</Label> 
+        <List>
+            <Option value="/api/s/"   	           >/api/s/ </Option>
+            <Option value="/proxy/network/api/s/"  >/proxy/network/api/s/ for UMD-xx</Option>
+        </List>
+    </Field>
+    <Field    id="unifiApiLoginPath"       type="menu"  defaultValue="/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+		<Label>.. unifi Api Login Path:</Label> 
+        <List>
+            <Option value="/api/login"   	 >/api/login </Option>
+            <Option value="/api/auth/login"  >/api/auth/login for UDM-xx</Option>
+        </List>
+    </Field>
 
     <Field    id="unifigetBlockedClientsDeltaTime"       type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
 		<Label>.. get all (un)blocked client info from Controller:</Label> 
@@ -191,6 +219,18 @@
     </Field>
 
 
+    <Field id="unifiControllerBackupON" type="checkbox"  defaultValue="true"   > 
+<Label>Backup of controller files - once a day ...............................:</Label>  </Field>
+    <Field    id="ControllerBackupPath"   type="textfield" defaultValue="/usr/lib/unifi/data/backup/autobackup" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
+        <Label>path to backup files on controller:</Label>
+    </Field>
+    <Field id="infoLabelbackup" type="label" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>couldKey: /usr/lib/unifi/data/backup/autobackup
+UDM: /data/unifi/data/backup/autobackup
+all files will be copied to 
+  ... /Preferences/Plugins/com.karlwachs.uniFiAP/backup 
+directory</Label>  </Field>
+
 
     <Field id="apON" type="checkbox"  defaultValue="true"   > 
 <Label>Show AP section........................................................:</Label>  </Field>
@@ -212,7 +252,6 @@
     <Label>.. AP tail command:</Label>  
         <List>
             <Option value="off"      > off </Option>
-            <Option value="/usr/bin/testxx -F /var/log/messages"      > test </Option>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
@@ -245,7 +284,20 @@
 
     <Field    id="ipON4" type="checkbox"  defaultValue="false"  visibleBindingId="apON" visibleBindingValue="true"       > <Label>.. AP-4 active:----------------</Label>  </Field>
     <Field    id="ip4"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" visibleBindingValue="true" > <Label>ipNumber of AP-4:</Label>  </Field>
-
+   <Field id="ipON4Label" type="label" visibleBindingId="ipON4" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>This is used as AP device part of a UDM system. Instead of listening to a logfile, the data is retrieved once wvery xx secs from the UDM</Label>  </Field>
+    <Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipON4" visibleBindingValue="true" > 
+        <Label>...read controller web page event log for UDM devices every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds</Option>
+            <Option value="10"    >10 seconds </Option>
+            <Option value="20"    >20 seconds</Option>
+            <Option value="30"    >30 seconds</Option>
+            <Option value="40"    >40 seconds</Option>
+            <Option value="60"    >1  minute</Option>
+            <Option value="-1"    >off</Option>
+        </List>
+    </Field>
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG active:...............................................................</Label>  </Field>
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
@@ -353,6 +405,8 @@
     <Field    id="ipSW11"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>ipNumber of unifi switch 11:</Label>  </Field>
     <Field    id="ipSWON12" type="checkbox"  defaultValue="false"       visibleBindingId="swON"    visibleBindingValue="true"> <Label>.. Switch 12 active:----------------</Label>  </Field>
     <Field    id="ipSW12"  type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>ipNumber of unifi switch 12:</Label>  </Field>
+    <Field id="ipSWON12Label" type="label" visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>This is used as switch device part of a UDM system</Label>  </Field>
 
 
 
@@ -491,7 +545,8 @@
     <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (9) Fing:</Label>  </Field>
     <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (10) BroadCast:</Label>  </Field>
     <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (11) Ping WOL:</Label>  </Field>
-    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (12) Special debug for development:</Label>  </Field>
+    <Field    id="debugUDM"         type="checkbox"  defaultValue="false"   > <Label>... (12) UDM:</Label>  </Field>
+    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (19) Special debug for development:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
     <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
         <List>
