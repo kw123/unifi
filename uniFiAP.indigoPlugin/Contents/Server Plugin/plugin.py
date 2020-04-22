@@ -2701,18 +2701,27 @@ class Plugin(indigo.PluginBase):
 		for port in range(99):
 			if u"port_%02d"%port not in dev.states: continue
 			if	dev.states[u"port_%02d"%port].find("poe") >-1:
+				name  = ""
 				if	dev.states[u"port_%02d"%port].find("poeX") >-1:
 					name = " - empty"
 				else:
-					name =""
+					name = ""
 					for dev2 in indigo.devices.iter("props.isUniFi"):
 						if "SW_Port" in dev2.states and len(dev2.states["SW_Port"]) > 2:
+							if not dev2.enabled: continue
 							sw	 = dev2.states["SW_Port"].split(":")
 							if sw[0] == snNo:
-								if sw[1].find("poe") >-1:
+								if sw[1].find("poe") >-1 and dev.states["status"] != "expired":
 									if unicode(port) == sw[1].split("-")[0]:
 										name = " - "+dev2.name
 										break
+								elif dev.states["status"] != "expired":
+									if unicode(port) == sw[1].split("-")[0]:
+										name = " - "+dev2.name
+										break
+								else:
+									if unicode(port) == sw[1].split("-")[0]:
+										name = " - "+dev2.name
 				xList.append([port,u"port#"+unicode(port)+name])
 		return xList
 
@@ -2726,6 +2735,7 @@ class Plugin(indigo.PluginBase):
 				if sw[1].find("poe") >-1:
 					port = sw[1].split("-")[0]
 					xList.append([sw[0]+"-"+port,u"sw"+sw[0]+"-"u"port#"+unicode(port)+" - "+dev2.name])
+		xList.sort(key = lambda x: x[1]) 
 		return xList
 
 
@@ -3834,15 +3844,15 @@ class Plugin(indigo.PluginBase):
 						ret = subprocess.Popen(cmdL, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 						try: jj = json.loads(ret[0])
 						except:
-							self.indiLOG.log(40,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1])+" Connection")
+							self.indiLOG.log(40,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
 						if self.unifiControllerType.find("UDM") >-1:
 							if 'username' not in jj:
-								self.indiLOG.log(40,u"UNIFI executeCMDOnController error: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1])+" Connection")
+								self.indiLOG.log(40,u"UNIFI executeCMDOnController error: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 						elif jj["meta"]["rc"] !="ok":
-							self.indiLOG.log(40,u"UNIFI executeCMDOnController error: (wrong UID/passwd, ip number?) ...>>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1])+" Connection")
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController error: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
-						elif self.decideMyLog(u"Connection"):	 self.indiLOG.log(20,"Connection: "+ret[0] )
+						elif self.decideMyLog(u"Connection"):	 self.indiLOG.log(20,"Connection-{}: {}".format(self.unifiCloudKeyIP,ret[0]) )
 						self.lastUnifiCookieCurl =time.time()
 
 						
@@ -3854,17 +3864,17 @@ class Plugin(indigo.PluginBase):
 						try:
 							jj = json.loads(ret[0])
 						except :
-							self.indiLOG.log(40,"UNIFI executeCMDOnController has error, no json object returned: " + unicode(ret))
+							self.indiLOG.log(40,"UNIFI executeCMDOnController to {} has error, no json object returned: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
 
 						if jj["meta"]["rc"] !="ok":
-							self.indiLOG.log(40,u" Connection error: >>"+ unicode(ret[0]) +"<<\n"+unicode(ret[1]))
+							self.indiLOG.log(40,u" Connection error: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
 
-						if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection: "+ret[0] )
+						if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection to {}: returns >>{}<<".format(self.unifiCloudKeyIP,ret[0]) )
 
 						if  jsonAction=="print":
-							self.indiLOG.log(20,u" Connection  info\n"+ json.dumps(jj["data"],sort_keys=True, indent=2))
+							self.indiLOG.log(20,u" Connection to:{} info\n{}".format(self.unifiCloudKeyIP, json.dumps(jj["data"],sort_keys=True, indent=2)))
 							return []
 
 						if  jsonAction=="returnData":
@@ -7426,15 +7436,18 @@ class Plugin(indigo.PluginBase):
 						if self.decideMyLog(u"Dict") or MAC in self.MACloglist: self.indiLOG.log(20,u"DC-SW-00   "+useIP +" "+ MAC+" "+ dev.name+"; IP:"+ip+"; AGE:"+unicode(age)+"; newUp:"+unicode(newUp)+ "; nameSW:"+unicode(nameSW))
 
 
-						if not ( isUpLink or isDownLink ):	# only the direct switch can change the switch:port #s
-							poe=""
-							if len(dev.states[u"AP"]) < 5: # do not look for POE for wifi devices
-								if MACSW in self.MAC2INDIGO["SW"]:	# do we know the switch
-									if portN in self.MAC2INDIGO["SW"][MACSW][u"ports"]: # is the port in the switch
-										if u"poe" in self.MAC2INDIGO["SW"][MACSW][u"ports"][portN] and self.MAC2INDIGO["SW"][MACSW][u"ports"][portN][u"poe"]  !="": # if empty dont add "-"
+						if not ( isUpLink or isDownLink ): # this is not for up or downlink 
+							poe = ""
+							if MACSW in self.MAC2INDIGO["SW"]:  # do we know the switch
+								if portN in self.MAC2INDIGO["SW"][MACSW][u"ports"]: # is the port in the switch
+									if  "nClients" in self.MAC2INDIGO["SW"][MACSW][u"ports"][portN] and  self.MAC2INDIGO["SW"][MACSW][u"ports"][portN][u"nClients"] == 1: 
+										if u"poe" in self.MAC2INDIGO["SW"][MACSW][u"ports"][portN] and self.MAC2INDIGO["SW"][MACSW][u"ports"][portN][u"poe"]  != "": # if empty dont add "-"
 											poe = "-"+self.MAC2INDIGO["SW"][MACSW][u"ports"][portN][u"poe"]
+										if len(dev.states[u"AP"]) > 5: # fix if direct connect and poe is one can not have wifi for this MAC, must be ethernet, set wifi to "-"
+											self.addToStatesUpdateList(dev.id,u"AP", "-")
 
 							newPort = swN+":"+portN+poe
+							#self.indiLOG.log(20,u"portInfo   MACSW: "+MACSW +"   hostnameSW:"+hostnameSW+"  "+useIP +" "+ MAC+"  portN:"+portN+" MACSW-poe:"+ self.MAC2INDIGO["SW"][MACSW][u"ports"][portN]["poe"]+"; nameSW:"+unicode(nameSW)+"  poe:"+poe+"  newPort:"+newPort)
 
 							if dev.states[u"SW_Port"] != newPort:
 								self.addToStatesUpdateList(dev.id,u"SW_Port", newPort)
@@ -8880,7 +8893,7 @@ class Plugin(indigo.PluginBase):
 								if port[u"poe_enable"]:
 									if (u"poe_good" in port and port[u"poe_good"])	:
 										poe="poe1"
-									elif (u"poe_mode" in port and port[u"poe_mode"] =="passthrough") :
+									elif (u"poe_mode" in port and port[u"poe_mode"] == "passthrough") :
 										poe="poeP"
 									else:
 										poe="poe0"

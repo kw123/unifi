@@ -1,3 +1,12 @@
+changes in V 7.28.186  @ 2019-04-22
+==================  
+
+1. minor format chnages
+2.  added clean up of POE list when power cycling poe port 
+    in cases where devices moved around or were disconnected and the 
+    history has several devices connected to the same POE port
+
+
 changes in V 7.28.185  @ 2019-02-27
 ==================  
 

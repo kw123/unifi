@@ -166,11 +166,11 @@
 
 
    <Field    id="unifiCONTROLLERUserID"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
-        <Label>... UserID for UniFi CONTROLLER:</Label>
+        <Label>... UserID for UniFi CONTROLLER (http:..):</Label>
     </Field>
 
     <Field    id="unifiCONTROLLERPassWd"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
-        <Label>...password cor UniFi CONTROLLER:</Label>
+        <Label>...password for UniFi CONTROLLER (http:..):</Label>
     </Field>
 
 
