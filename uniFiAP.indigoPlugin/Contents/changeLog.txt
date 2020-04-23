@@ -1,3 +1,12 @@
+changes in V 7.29.187  @ 2019-04-23
+==================  
+
+1.  added debug options for unfi devices
+    log all  message and dicts from specific unifi device ie switches, gateway, ap
+2.  fixed video ip number check in config, any safe when video enabled required a restart.
+    if managing properly now, no plugin restart done if noc hange. 
+
+
 changes in V 7.29.186  @ 2019-04-23
 ==================  
 

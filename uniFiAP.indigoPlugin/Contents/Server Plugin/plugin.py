@@ -347,9 +347,11 @@ class Plugin(indigo.PluginBase):
 		self.logCount					= {}
 		self.ipNumbersOfAPs				= ["" for nn in range(_GlobalConst_numberOfAP)]
 		self.APsEnabled					= [False for nn in range(_GlobalConst_numberOfAP)]
+		self.debugAPs					= [False for nn in range(_GlobalConst_numberOfAP)]
 
 		self.ipNumbersOfSWs				= ["" for nn in range(_GlobalConst_numberOfSW)]
 		self.SWsEnabled					= [False for nn in range(_GlobalConst_numberOfSW)]
+		self.debugSWs					= [False for nn in range(_GlobalConst_numberOfSW)]
 
 		self.devNeedsUpdate				= []
 
@@ -373,9 +375,11 @@ class Plugin(indigo.PluginBase):
 		for i in range(_GlobalConst_numberOfAP):
 			ip0 = self.pluginPrefs.get(u"ip"+unicode(i), "")
 			ac	= self.pluginPrefs.get(u"ipON"+unicode(i), "")
+			deb	= self.pluginPrefs.get(u"debAP"+unicode(i), "")
 			if not self.isValidIP(ip0): ac = False
-			self.APUP[ip0]=time.time()
-			self.ipNumbersOfAPs[i]=ip0
+			self.APUP[ip0] = time.time()
+			self.ipNumbersOfAPs[i] = ip0
+			self.debugAPs[i] = deb
 			if ac:
 				self.APsEnabled[i]=True
 				self.NumberOFActiveAP += 1
@@ -386,9 +390,11 @@ class Plugin(indigo.PluginBase):
 		for i in range(_GlobalConst_numberOfSW):
 			ip0 = self.pluginPrefs.get(u"ipSW" + unicode(i), "")
 			ac = self.pluginPrefs.get(u"ipSWON" + unicode(i), "")
+			deb	= self.pluginPrefs.get(u"debSW"+unicode(i), "")
 			if not self.isValidIP(ip0): ac = False
 			self.SWUP[ip0] = time.time()
 			self.ipNumbersOfSWs[i] = ip0
+			self.debugSWs[i] = deb
 			if ac:
 				self.SWsEnabled[i] = True
 				self.NumberOFActiveSW += 1
@@ -396,6 +402,7 @@ class Plugin(indigo.PluginBase):
 		#####  check UGA parameters
 		ip0 = self.pluginPrefs.get(u"ipUGA",  "")
 		ac	= self.pluginPrefs.get(u"ipUGAON",False)
+		self.debugGW = self.pluginPrefs.get(u"debGW",False)
 
 		if self.isValidIP(ip0) and ac:
 			self.ipnumberOfUGA = ip0
@@ -410,7 +417,7 @@ class Plugin(indigo.PluginBase):
 		self.nvrUNIXPassWd				= self.pluginPrefs.get(u"nvrUNIXPassWd", "")
 		self.nvrWebUserID				= self.pluginPrefs.get(u"nvrWebUserID", "")
 		self.nvrWebPassWd				= self.pluginPrefs.get(u"nvrWebPassWd", "")
-		self.enableVideoSwitch			= self.pluginPrefs.get(u"enableVideoSwitch", False)
+		enableVideoSwitch				= self.pluginPrefs.get(u"enableVideoSwitch", False)
 
 		try:	self.unifiVIDEONumerOfEvents = int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
 		except: self.unifiVIDEONumerOfEvents = 1000
@@ -418,14 +425,11 @@ class Plugin(indigo.PluginBase):
 		self.saveCameraEventsStatus			 = False
 
 		ip0 = self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
-
+		self.ipnumberOfNVR = ip0
 		self.VIDEOEnabled  = False
-		self.ipnumberOfNVR = ""
-		self.VIDEOEnabled = False
 		self.VIDEOUP	  = 0
-		if self.enableVideoSwitch:
+		if enableVideoSwitch:
 			if self.isValidIP(ip0) and self.nvrUNIXUserID != "" and self.nvrUNIXPassWd != "":
-				self.ipnumberOfNVR = ip0
 				self.VIDEOEnabled = True
 				self.VIDEOUP	  = time.time()
 
@@ -731,213 +735,220 @@ class Plugin(indigo.PluginBase):
 	####-----------------  set the geneeral config parameters---------
 	def validatePrefsConfigUi(self, valuesDict):
 
+		try:
+			rebootRequired								= ""
+			self.lastUnifiCookieCurl					= 0
+			self.lastUnifiCookieRequests				= 0
 
-		rebootRequired								= ""
-		self.lastUnifiCookieCurl					= 0
-		self.lastUnifiCookieRequests				= 0
-
-		self.lastNVRCookie							= 0
-		self.checkforUnifiSystemDevicesState		= "validateConfig"
-		self.enableFINGSCAN							= valuesDict[u"enableFINGSCAN"]
-		self.enableBroadCastEvents					= valuesDict[u"enableBroadCastEvents"]
-		self.sendBroadCastEventsList				= []
-		self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
-		self.loopSleep								= float(valuesDict[u"loopSleep"])
-		self.unifiCONTROLLERUserID					= valuesDict[u"unifiCONTROLLERUserID"]
-		self.unifiCONTROLLERPassWd					= valuesDict[u"unifiCONTROLLERPassWd"]
-		self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
-		self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
-
-
-		try:	self.unifigetBlockedClientsDeltaTime =  int(valuesDict[u"unifigetBlockedClientsDeltaTime"])
-		except: self.unifigetBlockedClientsDeltaTime = 999999999
-		self.cameraEventWidth						= int(valuesDict[u"cameraEventWidth"])
-		self.imageSourceForEvent					= valuesDict[u"imageSourceForEvent"]
-		self.imageSourceForSnapShot					= valuesDict[u"imageSourceForSnapShot"]
-		try: self.readBuffer						= int(valuesDict[u"readBuffer"])
-		except: self.readBuffer						= 32767
+			self.lastNVRCookie							= 0
+			self.checkforUnifiSystemDevicesState		= "validateConfig"
+			self.enableFINGSCAN							= valuesDict[u"enableFINGSCAN"]
+			self.enableBroadCastEvents					= valuesDict[u"enableBroadCastEvents"]
+			self.sendBroadCastEventsList				= []
+			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
+			self.loopSleep								= float(valuesDict[u"loopSleep"])
+			self.unifiCONTROLLERUserID					= valuesDict[u"unifiCONTROLLERUserID"]
+			self.unifiCONTROLLERPassWd					= valuesDict[u"unifiCONTROLLERPassWd"]
+			self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
+			self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
 
 
-		if self.unifiUserID	 	!= valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
-		if self.unifiPassWd	 	!= valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
-		if self.unifiUserIDUDM	 != valuesDict[u"unifiUserIDUDM"]:			rebootRequired += " unifiUserIDUDM changed;"
-		if self.unifiPassWdUDM	 != valuesDict[u"unifiPassWdUDM"]:			rebootRequired += " unifiPassWdUDM changed;"
-
-		self.unifiUserIDUDM							= valuesDict[u"unifiUserIDUDM"]
-		self.unifiPassWdUDM							= valuesDict[u"unifiPassWdUDM"]
-		self.unifiUserID							= valuesDict[u"unifiUserID"]
-		self.unifiPassWd							= valuesDict[u"unifiPassWd"]
-		self.unfiCurl								= valuesDict[u"unfiCurl"]
+			try:	self.unifigetBlockedClientsDeltaTime =  int(valuesDict[u"unifigetBlockedClientsDeltaTime"])
+			except: self.unifigetBlockedClientsDeltaTime = 999999999
+			self.cameraEventWidth						= int(valuesDict[u"cameraEventWidth"])
+			self.imageSourceForEvent					= valuesDict[u"imageSourceForEvent"]
+			self.imageSourceForSnapShot					= valuesDict[u"imageSourceForSnapShot"]
+			try: self.readBuffer						= int(valuesDict[u"readBuffer"])
+			except: self.readBuffer						= 32767
 
 
-		self.unifiCloudKeyIP						= valuesDict[u"unifiCloudKeyIP"]
-		self.unifiCloudKeyPort						= valuesDict[u"unifiCloudKeyPort"]
-		self.unifiCloudKeyMode						= valuesDict[u"unifiCloudKeyMode"]
-		self.unifiCloudKeySiteName					= valuesDict[u"unifiCloudKeySiteName"]
-		self.ignoreNeighborForFing					= valuesDict[u"ignoreNeighborForFing"]
-		self.updateDescriptions						= valuesDict[u"updateDescriptions"]
-		self.folderNameCreated						= valuesDict[u"folderNameCreated"]
-		self.folderNameNeighbors					= valuesDict[u"folderNameNeighbors"]
-		self.folderNameSystem						= valuesDict[u"folderNameSystem"]
-		self.getFolderId()
-		if self.enableMACtoVENDORlookup != valuesDict[u"enableMACtoVENDORlookup"] and self.enableMACtoVENDORlookup == "0":
-			rebootRequired							+= " MACVendor lookup changed; "
-		self.enableMACtoVENDORlookup				= valuesDict[u"enableMACtoVENDORlookup"]
+			if self.unifiUserID	 	!= valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
+			if self.unifiPassWd	 	!= valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
+			if self.unifiUserIDUDM	 != valuesDict[u"unifiUserIDUDM"]:			rebootRequired += " unifiUserIDUDM changed;"
+			if self.unifiPassWdUDM	 != valuesDict[u"unifiPassWdUDM"]:			rebootRequired += " unifiPassWdUDM changed;"
 
-#new for UDM-pro
-		self.unifiControllerType					= valuesDict[u"unifiControllerType"]
-		self.unifiApiWebPage						= valuesDict[u"unifiApiWebPage"]
-		self.unifiApiLoginPath						= valuesDict[u"unifiApiLoginPath"]
-		try: 	self.controllerWebEventReadON		= int(valuesDict[u"controllerWebEventReadON"])
-		except: self.controllerWebEventReadON		= -1
-
-		xx											= unicode(int(valuesDict[u"timeoutDICT"]))
-		if xx != self.timeoutDICT:
-			rebootRequired	+= " timeoutDICT  changed; "
-			self.timeoutDICT						= xx
-
-		##
-		self.debugLevel = []
-		for d in _debugAreas:
-			if valuesDict[u"debug"+d]: self.debugLevel.append(d)
-		self.setLogfile(unicode(valuesDict[u"logFileActive2"]))
-
-		for TT in[u"AP",u"GW",u"SW"]:
-			try:	xx			 = unicode(int(valuesDict[u"readDictEverySeconds"+TT]))
-			except: xx			 = u"120"
-			if xx != self.readDictEverySeconds[TT]:
-				self.readDictEverySeconds[TT]				  = xx
-				valuesDict[u"readDictEverySeconds"+TT]		  = xx
-				rebootRequired	+= " readDictEverySeconds  changed; "
+			self.unifiUserIDUDM							= valuesDict[u"unifiUserIDUDM"]
+			self.unifiPassWdUDM							= valuesDict[u"unifiPassWdUDM"]
+			self.unifiUserID							= valuesDict[u"unifiUserID"]
+			self.unifiPassWd							= valuesDict[u"unifiPassWd"]
+			self.unfiCurl								= valuesDict[u"unfiCurl"]
 
 
-		try:	xx			 = int(valuesDict[u"restartIfNoMessageSeconds"])
-		except: xx			 = 500
-		if xx != self.restartIfNoMessageSeconds:
-			self.restartIfNoMessageSeconds					 = xx
-			valuesDict[u"restartIfNoMessageSeconds"]		 = xx
+			self.unifiCloudKeyIP						= valuesDict[u"unifiCloudKeyIP"]
+			self.unifiCloudKeyPort						= valuesDict[u"unifiCloudKeyPort"]
+			self.unifiCloudKeyMode						= valuesDict[u"unifiCloudKeyMode"]
+			self.unifiCloudKeySiteName					= valuesDict[u"unifiCloudKeySiteName"]
+			self.ignoreNeighborForFing					= valuesDict[u"ignoreNeighborForFing"]
+			self.updateDescriptions						= valuesDict[u"updateDescriptions"]
+			self.folderNameCreated						= valuesDict[u"folderNameCreated"]
+			self.folderNameNeighbors					= valuesDict[u"folderNameNeighbors"]
+			self.folderNameSystem						= valuesDict[u"folderNameSystem"]
+			self.getFolderId()
+			if self.enableMACtoVENDORlookup != valuesDict[u"enableMACtoVENDORlookup"] and self.enableMACtoVENDORlookup == "0":
+				rebootRequired							+= " MACVendor lookup changed; "
+			self.enableMACtoVENDORlookup				= valuesDict[u"enableMACtoVENDORlookup"]
 
-		try:	self.expirationTime					= int(valuesDict[u"expirationTime"])
-		except: self.expirationTime					= 120
-		valuesDict[u"expirationTime"]				= self.expirationTime
-		try:	self.expTimeMultiplier				= int(valuesDict[u"expTimeMultiplier"])
-		except: self.expTimeMultiplier				= 2.
-		valuesDict[u"expTimeMultiplier"]			= self.expTimeMultiplier
+	#new for UDM-pro
+			self.unifiControllerType					= valuesDict[u"unifiControllerType"]
+			self.unifiApiWebPage						= valuesDict[u"unifiApiWebPage"]
+			self.unifiApiLoginPath						= valuesDict[u"unifiApiLoginPath"]
+			try: 	self.controllerWebEventReadON		= int(valuesDict[u"controllerWebEventReadON"])
+			except: self.controllerWebEventReadON		= -1
 
-		self.fixExpirationTime						= valuesDict[u"fixExpirationTime"]
+			xx											= unicode(int(valuesDict[u"timeoutDICT"]))
+			if xx != self.timeoutDICT:
+				rebootRequired	+= " timeoutDICT  changed; "
+				self.timeoutDICT						= xx
+
+			##
+			self.debugLevel = []
+			for d in _debugAreas:
+				if valuesDict[u"debug"+d]: self.debugLevel.append(d)
+
+			for TT in[u"AP",u"GW",u"SW"]:
+				try:	xx			 = unicode(int(valuesDict[u"readDictEverySeconds"+TT]))
+				except: xx			 = u"120"
+				if xx != self.readDictEverySeconds[TT]:
+					self.readDictEverySeconds[TT]				  = xx
+					valuesDict[u"readDictEverySeconds"+TT]		  = xx
+					rebootRequired	+= " readDictEverySeconds  changed; "
 
 
+			try:	xx			 = int(valuesDict[u"restartIfNoMessageSeconds"])
+			except: xx			 = 500
+			if xx != self.restartIfNoMessageSeconds:
+				self.restartIfNoMessageSeconds					 = xx
+				valuesDict[u"restartIfNoMessageSeconds"]		 = xx
 
-		self.promptOnServer["GWtail"], rebootRequired		= self.getNewValusDictField("gwPrompt",		 valuesDict, self.promptOnServer["GWtail"], rebootRequired)
-		self.promptOnServer["APtail"], rebootRequired		= self.getNewValusDictField("apPrompt",		 valuesDict, self.promptOnServer["APtail"], rebootRequired)
-		self.promptOnServer["SWtail"], rebootRequired		= self.getNewValusDictField("swPrompt",		 valuesDict, self.promptOnServer["SWtail"], rebootRequired)
-		self.promptOnServer["VDtail"], rebootRequired		= self.getNewValusDictField("vdPrompt",		 valuesDict, self.promptOnServer["VDtail"], rebootRequired)
+			try:	self.expirationTime					= int(valuesDict[u"expirationTime"])
+			except: self.expirationTime					= 120
+			valuesDict[u"expirationTime"]				= self.expirationTime
+			try:	self.expTimeMultiplier				= int(valuesDict[u"expTimeMultiplier"])
+			except: self.expTimeMultiplier				= 2.
+			valuesDict[u"expTimeMultiplier"]			= self.expTimeMultiplier
 
-		self.promptOnServer["GWdict"] = self.promptOnServer["GWtail"]
-		self.promptOnServer["APdict"] = self.promptOnServer["APtail"]
-		self.promptOnServer["SWdict"] = self.promptOnServer["SWtail"]
-		self.promptOnServer["VDdict"] = self.promptOnServer["VDtail"]
-		self.promptOnServer["GWctrl"] = self.promptOnServer["GWtail"]
-
-		self.commandOnServer["GWtailCommand"], rebootRequired = self.getNewValusDictField("GWtailCommand", valuesDict, self.commandOnServer["GWtail"], rebootRequired)
-		self.commandOnServer["GWdictCommand"], rebootRequired = self.getNewValusDictField("GWdictCommand", valuesDict, self.commandOnServer["GWdict"], rebootRequired)
-		self.commandOnServer["SWtailCommand"], rebootRequired = self.getNewValusDictField("SWtailCommand", valuesDict, self.commandOnServer["SWtail"], rebootRequired)
-		self.commandOnServer["SWdictCommand"], rebootRequired = self.getNewValusDictField("SWdictCommand", valuesDict, self.commandOnServer["SWdict"], rebootRequired)
-		self.commandOnServer["APtailCommand"], rebootRequired = self.getNewValusDictField("APtailCommand", valuesDict, self.commandOnServer["APtail"], rebootRequired)
-		self.commandOnServer["APdictCommand"], rebootRequired = self.getNewValusDictField("APdictCommand", valuesDict, self.commandOnServer["APdict"], rebootRequired)
-		self.commandOnServer["VDtailCommand"], rebootRequired = self.getNewValusDictField("VDtailCommand", valuesDict, self.commandOnServer["VDtail"], rebootRequired)
-		self.commandOnServer["VDdictCommand"], rebootRequired = self.getNewValusDictField("VDdictCommand", valuesDict, self.commandOnServer["VDdict"], rebootRequired)
+			self.fixExpirationTime						= valuesDict[u"fixExpirationTime"]
 
 
 
+			self.promptOnServer["GWtail"], rebootRequired		= self.getNewValusDictField("gwPrompt",		 valuesDict, self.promptOnServer["GWtail"], rebootRequired)
+			self.promptOnServer["APtail"], rebootRequired		= self.getNewValusDictField("apPrompt",		 valuesDict, self.promptOnServer["APtail"], rebootRequired)
+			self.promptOnServer["SWtail"], rebootRequired		= self.getNewValusDictField("swPrompt",		 valuesDict, self.promptOnServer["SWtail"], rebootRequired)
+			self.promptOnServer["VDtail"], rebootRequired		= self.getNewValusDictField("vdPrompt",		 valuesDict, self.promptOnServer["VDtail"], rebootRequired)
 
-		## AP parameters
-		acNew = [False for i in range(_GlobalConst_numberOfAP)]
-		ipNew = ["" for i in range(_GlobalConst_numberOfAP)]
-		for i in range(_GlobalConst_numberOfAP):
-			ip0 = valuesDict[u"ip"+unicode(i)]
-			ac	= valuesDict[u"ipON"+unicode(i)]
+			self.promptOnServer["GWdict"] = self.promptOnServer["GWtail"]
+			self.promptOnServer["APdict"] = self.promptOnServer["APtail"]
+			self.promptOnServer["SWdict"] = self.promptOnServer["SWtail"]
+			self.promptOnServer["VDdict"] = self.promptOnServer["VDtail"]
+			self.promptOnServer["GWctrl"] = self.promptOnServer["GWtail"]
+
+			self.commandOnServer["GWtailCommand"], rebootRequired = self.getNewValusDictField("GWtailCommand", valuesDict, self.commandOnServer["GWtail"], rebootRequired)
+			self.commandOnServer["GWdictCommand"], rebootRequired = self.getNewValusDictField("GWdictCommand", valuesDict, self.commandOnServer["GWdict"], rebootRequired)
+			self.commandOnServer["SWtailCommand"], rebootRequired = self.getNewValusDictField("SWtailCommand", valuesDict, self.commandOnServer["SWtail"], rebootRequired)
+			self.commandOnServer["SWdictCommand"], rebootRequired = self.getNewValusDictField("SWdictCommand", valuesDict, self.commandOnServer["SWdict"], rebootRequired)
+			self.commandOnServer["APtailCommand"], rebootRequired = self.getNewValusDictField("APtailCommand", valuesDict, self.commandOnServer["APtail"], rebootRequired)
+			self.commandOnServer["APdictCommand"], rebootRequired = self.getNewValusDictField("APdictCommand", valuesDict, self.commandOnServer["APdict"], rebootRequired)
+			self.commandOnServer["VDtailCommand"], rebootRequired = self.getNewValusDictField("VDtailCommand", valuesDict, self.commandOnServer["VDtail"], rebootRequired)
+			self.commandOnServer["VDdictCommand"], rebootRequired = self.getNewValusDictField("VDdictCommand", valuesDict, self.commandOnServer["VDdict"], rebootRequired)
+
+
+
+
+			## AP parameters
+			acNew = [False for i in range(_GlobalConst_numberOfAP)]
+			ipNew = ["" for i in range(_GlobalConst_numberOfAP)]
+			for i in range(_GlobalConst_numberOfAP):
+				ip0 = valuesDict[u"ip"+unicode(i)]
+				ac	= valuesDict[u"ipON"+unicode(i)]
+				self.debugAPs[i] = valuesDict[u"debAP"+unicode(i)]
+				if not self.isValidIP(ip0): ac = False
+				acNew[i]			 = ac
+				ipNew[i]			 = ip0
+				if ac: acNew[i] = True
+				if acNew[i] != self.APsEnabled[i]:
+					rebootRequired	+= " enable/disable AP changed; "
+				if ipNew[i] != self.ipNumbersOfAPs[i]:
+					rebootRequired	+= " Ap ipNumber  changed; "
+					self.APUP[ipNew[i]] = time.time()
+			self.ipNumbersOfAPs = copy.copy(ipNew)
+			self.APsEnabled		= copy.copy(acNew)
+
+			## SWitch parameters
+			acNew = [False for i in range(_GlobalConst_numberOfSW)]
+			ipNew = ["" for i in range(_GlobalConst_numberOfSW)]
+			for i in range(_GlobalConst_numberOfSW):
+				ip0 = valuesDict[u"ipSW"+unicode(i)]
+				ac	= valuesDict[u"ipSWON"+unicode(i)]
+				self.debugSWs[i] = valuesDict[u"debSW"+unicode(i)]
+				if not self.isValidIP(ip0): ac = False
+				acNew[i]			 = ac
+				ipNew[i]			 = ip0
+				if ac: acNew[i] = True
+				if acNew[i] != self.SWsEnabled[i]:
+					rebootRequired	+= " enable/disable SW  changed; "
+				if ipNew[i] != self.ipNumbersOfSWs[i]:
+					rebootRequired	+= " SW ipNumber   changed; "
+					self.SWUP[ipNew[i]] = time.time()
+			self.ipNumbersOfSWs = copy.copy(ipNew)
+			self.SWsEnabled		= copy.copy(acNew)
+
+
+
+			## UGA parameters
+			ip0			= valuesDict[u"ipUGA"]
+			if self.ipnumberOfUGA != ip0:
+				rebootRequired	+= " GW ipNumber   changed; "
+
+			ac			= valuesDict[u"ipUGAON"]
 			if not self.isValidIP(ip0): ac = False
-			acNew[i]			 = ac
-			ipNew[i]			 = ip0
-			if ac: acNew[i] = True
-			if acNew[i] != self.APsEnabled[i]:
-				rebootRequired	+= " enable/disable AP changed; "
-			if ipNew[i] != self.ipNumbersOfAPs[i]:
-				rebootRequired	+= " Ap ipNumber  changed; "
-				self.APUP[ipNew[i]] = time.time()
-		self.ipNumbersOfAPs = copy.copy(ipNew)
-		self.APsEnabled		= copy.copy(acNew)
+			if self.UGAEnabled != ac:
+				rebootRequired	+= " enable/disable GW  changed; "
 
-		## SWitch parameters
-		acNew = [False for i in range(_GlobalConst_numberOfSW)]
-		ipNew = ["" for i in range(_GlobalConst_numberOfSW)]
-		for i in range(_GlobalConst_numberOfSW):
-			ip0 = valuesDict[u"ipSW"+unicode(i)]
-			ac	= valuesDict[u"ipSWON"+unicode(i)]
-			if not self.isValidIP(ip0): ac = False
-			acNew[i]			 = ac
-			ipNew[i]			 = ip0
-			if ac: acNew[i] = True
-			if acNew[i] != self.SWsEnabled[i]:
-				rebootRequired	+= " enable/disable SW  changed; "
-			if ipNew[i] != self.ipNumbersOfSWs[i]:
-				rebootRequired	+= " SW ipNumber   changed; "
-				self.SWUP[ipNew[i]] = time.time()
-		self.ipNumbersOfSWs = copy.copy(ipNew)
-		self.SWsEnabled		= copy.copy(acNew)
+			self.UGAEnabled	   	= ac
+			self.ipnumberOfUGA 	= ip0
+			self.debugGW 		= valuesDict[u"debGW"]
 
 
 
-		## UGA parameters
-		ip0			= valuesDict[u"ipUGA"]
-		if self.ipnumberOfUGA != ip0:
-			rebootRequired	+= " GW ipNumber   changed; "
+			## video parameters
+			if self.nvrUNIXUserID	 != valuesDict[u"nvrUNIXUserID"]:	  rebootRequired += " nvrUNIXUserID changed;"
+			if self.nvrUNIXPassWd	 != valuesDict[u"nvrUNIXPassWd"]:	  rebootRequired += " nvrUNIXPassWd changed;"
 
-		ac			= valuesDict[u"ipUGAON"]
-		if not self.isValidIP(ip0): ac = False
-		if self.UGAEnabled != ac:
-			rebootRequired	+= " enable/disable GW  changed; "
+			self.unifiVIDEONumerOfEvents	= int(valuesDict[u"unifiVIDEONumerOfEvents"])
+			self.nvrUNIXUserID				= valuesDict[u"nvrUNIXUserID"]
+			self.nvrUNIXPassWd				= valuesDict[u"nvrUNIXPassWd"]
+			self.nvrWebUserID				= valuesDict[u"nvrWebUserID"]
+			self.nvrWebPassWd				= valuesDict[u"nvrWebPassWd"]
+			self.vmMachine					= valuesDict["vmMachine"]
+			self.mountPathVM				= valuesDict[u"mountPathVM"]
+			self.videoPath					= self.completePath(valuesDict[u"videoPath"])
+			self.vboxPath					= self.completePath(valuesDict["vboxPath"])
+			self.changedImagePath			= self.completePath(valuesDict[u"changedImagePath"])
+			self.vmDisk						= valuesDict["vmDisk"]
+			enableVideoSwitch				= valuesDict[u"enableVideoSwitch"]
+			ip0								= valuesDict[u"nvrIP"]
 
-		self.UGAEnabled	   = ac
-		self.ipnumberOfUGA = ip0
+			if self.ipnumberOfNVR != ip0 :
+				rebootRequired	+= " VIDEO ipNumber changed;"
+				self.indiLOG.log(20,u"IP# old:{}, new:{}" +unicode(self.ipnumberOfNVR, ip0) )
 
+			if self.VIDEOEnabled != enableVideoSwitch:
+				rebootRequired	+= " video enabled/disabled;"
 
+			self.VIDEOEnabled	= enableVideoSwitch
+			self.ipnumberOfNVR	= ip0
 
-		## video parameters
-		if self.nvrUNIXUserID	 != valuesDict[u"nvrUNIXUserID"]:	  rebootRequired += " nvrUNIXUserID changed;"
-		if self.nvrUNIXPassWd	 != valuesDict[u"nvrUNIXPassWd"]:	  rebootRequired += " nvrUNIXPassWd changed;"
+			if rebootRequired != "":
+				self.indiLOG.log(30,u"restart " + rebootRequired)
+				self.quitNow = u"config changed"
 
-		self.unifiVIDEONumerOfEvents	= int(valuesDict[u"unifiVIDEONumerOfEvents"])
-		self.nvrUNIXUserID				= valuesDict[u"nvrUNIXUserID"]
-		self.nvrUNIXPassWd				= valuesDict[u"nvrUNIXPassWd"]
-		self.nvrWebUserID				= valuesDict[u"nvrWebUserID"]
-		self.nvrWebPassWd				= valuesDict[u"nvrWebPassWd"]
-		self.vmMachine					= valuesDict["vmMachine"]
-		self.mountPathVM				= valuesDict[u"mountPathVM"]
-		self.videoPath					= self.completePath(valuesDict[u"videoPath"])
-		self.vboxPath					= self.completePath(valuesDict["vboxPath"])
-		self.changedImagePath			= self.completePath(valuesDict[u"changedImagePath"])
-		self.vmDisk						= valuesDict["vmDisk"]
-		self.enableVideoSwitch			= valuesDict[u"enableVideoSwitch"]
+			self.setLogfile(unicode(valuesDict[u"logFileActive2"]),config=True)
 
-		ip0			= valuesDict[u"nvrIP"]
-		if self.ipnumberOfNVR != ip0:
-			rebootRequired	+= " VIDEO ipNumber   changed; "
-
-
-		ac = self.VIDEOEnabled
-		if not self.isValidIP(ip0) or self.nvrUNIXUserID == "" or self.nvrUNIXPassWd == "" or (not self.enableVideoSwitch): ac = False
-		if self.VIDEOEnabled != ac:
-			rebootRequired	+= " enable/disable VIDEO changed; "
-
-		self.VIDEOEnabled	= ac
-		self.ipnumberOfNVR	= ip0
-
-		if rebootRequired != "":
-			self.indiLOG.log(30,u"restart " + rebootRequired)
-			self.quitNow = u"config changed"
-		return True, valuesDict
+			return True, valuesDict
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
+			return (False, valuesDict, valuesDict)
 
 
 
@@ -989,8 +1000,8 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=" " )
 			self.myLog( text=u"UserID-ssh".ljust(40)						+	self.unifiUserID)
 			self.myLog( text=u"PassWd-ssh".ljust(40)						+	self.unifiPassWd)
-			self.myLog( text=u"UserID-ssh-UDM".ljust(40)					+	self.unifiUserID)
-			self.myLog( text=u"PassWd-ssh-UDM".ljust(40)					+	self.unifiPassWd)
+			self.myLog( text=u"UserID-ssh-UDM".ljust(40)					+	self.unifiUserIDUDM)
+			self.myLog( text=u"PassWd-ssh-UDM".ljust(40)					+	self.unifiPassWdUDM)
 			self.myLog( text=u"read buffer size ".ljust(40)					+	unicode(self.readBuffer) )
 			self.myLog( text=u"promptOnServer -GW dict".ljust(40)			+	self.promptOnServer["GWdict"] )
 			self.myLog( text=u"promptOnServer -AP dict".ljust(40)			+	self.promptOnServer["APdict"] )
@@ -1013,6 +1024,7 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"Mode: off, ON, reports only".ljust(40)		+	self.unifiCloudKeyMode )
 			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.unifiCONTROLLERUserID )
 			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.unifiCONTROLLERPassWd )
+			self.myLog( text=u"Controller Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType )
 			self.myLog( text=u"Controller port#".ljust(40)					+	self.unifiCloudKeyPort )
 			self.myLog( text=u"Controller site Name#".ljust(40)				+	self.unifiCloudKeySiteName )
 			self.myLog( text=u"Controller API WebPage".ljust(40)			+	self.unifiApiWebPage )
@@ -4574,7 +4586,7 @@ class Plugin(indigo.PluginBase):
 		self.trVDLog = ""
 		if self.VIDEOEnabled:
 			self.indiLOG.log(20,u"..starting threads for VIDEO NVR log event capture")
-			self.trVDLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfNVR,u"VD",u"VDtail",500,))
+			self.trVDLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfNVR,0,u"VDtail",500,))
 			self.trVDLog.start()
 			self.sleep(0.2)
 
@@ -4626,10 +4638,10 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,u"..starting threads for GW (MSG-log and db-DICT)")
 			self.broadcastIP = self.ipnumberOfUGA
 			if self.commandOnServer["GWtail"].find("off") ==-1: 
-				self.trGWLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,u"GW",u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
+				self.trGWLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
 				self.trGWLog.start()
 				self.sleep(1)
-			self.trGWDict = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,u"GW",u"GWdict",float(self.readDictEverySeconds[u"GW"])*2,))
+			self.trGWDict = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWdict",float(self.readDictEverySeconds[u"GW"])*2,))
 			self.trGWDict.start()
 
 
@@ -6074,6 +6086,8 @@ class Plugin(indigo.PluginBase):
 			testServerCount				= -3  # not for the first 3 rounds
 			connectErrorCount			= 0
 			msgSleep					= 1
+			restartCount				= -1
+			lastMSG						= ""
 			if repeatRead < 0:
 				minWaitbeforeRestart 	= 9999999999999999
 			else:
@@ -6100,8 +6114,9 @@ class Plugin(indigo.PluginBase):
 
 				if ( (time.time()- lastForcedRestartTimeStamp) > minWaitbeforeRestart) or lastForcedRestartTimeStamp <0: # init comm
 							if lastForcedRestartTimeStamp> 0:
+								restartCount +=1
 								if self.decideMyLog(u"Expect"):
-									self.indiLOG.log(40,"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message{}".format(self.expectCmdFile[uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp))  )
+									self.indiLOG.log(40,"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.expectCmdFile[uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
 								self.dataStats["tcpip"][uType][ipNumber]["restarts"]+=1
 							else:
 								self.indiLOG.log(20,u"getMessages: launching listener for: {}  @ {}".format(uType, ipNumber) )
@@ -6195,6 +6210,7 @@ class Plugin(indigo.PluginBase):
 					return
 
 				if linesFromServer != "":
+					lastMSG = linesFromServer
 					if self.decideMyLog(u"Special"):
 						msgF = linesFromServer.replace("\n","").replace("\r","")
 						self.indiLOG.log(20,"getMessage: data recd from {:<14s},  type: {},  len: {:>5d}: {:<80s} ... {}".format(ipNumber, uType, len(linesFromServer), msgF[0:80],  msgF[-30:] ) )
@@ -6466,11 +6482,18 @@ class Plugin(indigo.PluginBase):
 				lines			= item[0].split("\r\n")
 				ipNumber		= item[1]
 				apN				= item[2]
+				try: 	apNint	= int(item[2])
+				except: apNint	= -1
 				uType			= item[3]
 				xType			= item[4]
 
 				## update device-ap with new timestamp, it is up
 				if self.decideMyLog(u"Log"): self.indiLOG.log(20,"MS-----    {}    {}   {}  {} .. {}".format(ipNumber, apN, uType, xType, lines) )
+
+				if ( (uType.find("SW") > -1 and apNint >= 0 and apNint < len(self.debugSWs) and self.debugSWs[apNint]) or
+				     (uType.find("AP") > -1 and apNint >= 0 and apNint < len(self.debugAPs) and self.debugAPs[apNint]) or 
+				     (uType.find("GW") > -1  and self.debugGW) ): 
+					self.indiLOG.log(20,"DEVdebug   {} dev #:{:2d} uType:{}, xType{}, logmessage:\n{}".format(ipNumber, apNint, uType, xType, "\n".join(lines)) )
 
 				### update lastup for unifi devices
 				if xType in self.MAC2INDIGO:
@@ -6929,7 +6952,7 @@ class Plugin(indigo.PluginBase):
 					if len(line) < 2: continue
 					tags = line.split()
 					MAC = ""
-					if self.decideMyLog(u"Log"): self.indiLOG.log(20,u"MS-AP----  "+unicode(ipNumberAP)+"-"+unicode(apN) + "  " + line)
+					if self.decideMyLog(u"Log"): self.indiLOG.log(20,u"MS-AP----  {}-{}  {}".format(ipNumberAP, apN,line) )
 
 					ll = line.find("[HANDOVER]") + 10 +1 ## len of [HANDOVER] + one space
 					if ll  > 30:
@@ -7169,9 +7192,16 @@ class Plugin(indigo.PluginBase):
 
 			apNumbSW = apNumb
 			apNumbAP = apNumb
+			try:	apNint	= int(apNumb)
+			except: apNint	= -1
 			doSW 	 = False
 			doAP 	 = False
 
+			if ( (uType.find("SW") > -1 and apNumb >= 0 and apNumb < len(self.debugSWs) and self.debugSWs[apNumb]) or
+			     (uType.find("AP") > -1 and apNumb >= 0 and apNumb < len(self.debugAPs) and self.debugAPs[apNumb]) or
+				 (uType.find("GW") > -1  and self.debugGW) ): 
+				dd = unicode(apDict)
+				self.indiLOG.log(20,"DEVdebug   {} dev #:{:2d} uType:{}, dictmessage:\n{}    ..\n{}".format(ipNumber, apNint, uType, dd[:300], dd[-300:] ) )
 
 			if unifiDeviceType =="GW":
 			### gateway
@@ -9568,12 +9598,14 @@ class Plugin(indigo.PluginBase):
 ########################################
 
 	####----------------- ---------
-	def setLogfile(self, lgFile):
+	def setLogfile(self, lgFile, config=False):
 		self.logFileActive =lgFile
 		if   self.logFileActive =="standard":	self.logFile = ""
 		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
 		else:									self.logFile = self.indigoPreferencesPluginDir +"plugin.log"
-		self.myLog( text="myLogSet setting parameters -- logFileActive= "+ unicode(self.logFileActive) + "; logFile= "+ unicode(self.logFile)+ ";  debugLevel= "+ unicode(self.debugLevel), destination="standard")
+		self.myLog( text="myLogSet setting parameters -- logFileActive= {}; logFile= {};  debugLevel= {}".format(self.logFileActive, self.logFile, self.debugLevel), destination="standard")
+		if config:
+			self.myLog( text="... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( unicode(self.debugGW).replace("True","T").replace("False","F"), unicode(self.debugAPs).replace("True","T").replace("False","F"), unicode(self.debugSWs).replace("True","T").replace("False","F")), destination="standard")
 
 
 
