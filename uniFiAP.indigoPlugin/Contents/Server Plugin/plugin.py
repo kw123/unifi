@@ -64,8 +64,8 @@ class Plugin(indigo.PluginBase):
 		major, minor, release 			= map(int, indigo.server.version.split("."))
 		self.indigoRelease				= release
 		self.indigoVersion 				= float(major)+float(minor)/10.
-		if self.indigoVersion < 7.3:
-			import versionCheck as VS
+
+
 
 		self.pluginVersion				= pluginVersion
 		self.pluginId					= pluginId
@@ -309,6 +309,8 @@ class Plugin(indigo.PluginBase):
 		self.listenStart				= {}
 		self.unifiUserID				= self.pluginPrefs.get(u"unifiUserID", "")
 		self.unifiPassWd				= self.pluginPrefs.get(u"unifiPassWd", "")
+		self.unifiUserIDUDM				= self.pluginPrefs.get(u"unifiUserIDUDM", "")
+		self.unifiPassWdUDM				= self.pluginPrefs.get(u"unifiPassWdUDM", "")
 		self.unifiControllerSession		= ""
 
 		self.unfiCurl					= self.pluginPrefs.get(u"unfiCurl", "/usr/bin/curl")
@@ -756,9 +758,13 @@ class Plugin(indigo.PluginBase):
 		except: self.readBuffer						= 32767
 
 
-		if self.unifiUserID	 != valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
-		if self.unifiPassWd	 != valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
+		if self.unifiUserID	 	!= valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
+		if self.unifiPassWd	 	!= valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
+		if self.unifiUserIDUDM	 != valuesDict[u"unifiUserIDUDM"]:			rebootRequired += " unifiUserIDUDM changed;"
+		if self.unifiPassWdUDM	 != valuesDict[u"unifiPassWdUDM"]:			rebootRequired += " unifiPassWdUDM changed;"
 
+		self.unifiUserIDUDM							= valuesDict[u"unifiUserIDUDM"]
+		self.unifiPassWdUDM							= valuesDict[u"unifiPassWdUDM"]
 		self.unifiUserID							= valuesDict[u"unifiUserID"]
 		self.unifiPassWd							= valuesDict[u"unifiPassWd"]
 		self.unfiCurl								= valuesDict[u"unfiCurl"]
@@ -981,8 +987,10 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"cpu used since restart: ".ljust(40) 			+	self.getCPU(self.myPID) )
 			self.myLog( text=u"" ,mType=" ")
 			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=" " )
-			self.myLog( text=u"UserID".ljust(40)							+	self.unifiUserID)
-			self.myLog( text=u"PassWd".ljust(40)							+	self.unifiPassWd)
+			self.myLog( text=u"UserID-ssh".ljust(40)						+	self.unifiUserID)
+			self.myLog( text=u"PassWd-ssh".ljust(40)						+	self.unifiPassWd)
+			self.myLog( text=u"UserID-ssh-UDM".ljust(40)					+	self.unifiUserID)
+			self.myLog( text=u"PassWd-ssh-UDM".ljust(40)					+	self.unifiPassWd)
 			self.myLog( text=u"read buffer size ".ljust(40)					+	unicode(self.readBuffer) )
 			self.myLog( text=u"promptOnServer -GW dict".ljust(40)			+	self.promptOnServer["GWdict"] )
 			self.myLog( text=u"promptOnServer -AP dict".ljust(40)			+	self.promptOnServer["APdict"] )
@@ -1334,7 +1342,7 @@ class Plugin(indigo.PluginBase):
 
 	def execVideoAction(self,cmdIN,returnCmd=False):
 		uType = "VDdict"
-		userid, passwd =  self.getUidPasswd(uType)
+		userid, passwd =  self.getUidPasswd(uType,self.ipnumberOfNVR)
 		if userid == "":
 			self.indiLOG.log(20,"CameraInfo  Video Action : userid not set")
 			return
@@ -1881,7 +1889,7 @@ class Plugin(indigo.PluginBase):
 	def getMongoData(self, cmdstr, uType="VDdict"):
 		ret =["",""]
 		try:
-			userid, passwd =  self.getUidPasswd(uType)
+			userid, passwd =  self.getUidPasswd(uType,self.ipnumberOfNVR)
 			if userid == "": return {}
 
 			cmd = "/usr/bin/expect	'" + \
@@ -4932,8 +4940,8 @@ class Plugin(indigo.PluginBase):
 
 				if self.lastHourCheck != datetime.datetime.now().hour:
 					self.lastHourCheck = datetime.datetime.now().hour
-					if self.indigoVersion < 7.3:
-						VC.versionCheck(self.pluginId,self.pluginVersion,indigo,13,45,printToLog="log")
+
+
 					self.addFirstSeenToStates()
 					self.saveupDownTimers()
 					if self.lastHourCheck ==1: # recycle at midnight
@@ -6283,7 +6291,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def startConnect(self, ipNumber, uType):
 		try:
-			userid, passwd = self.getUidPasswd(uType)
+			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return
 
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"startConnect: with IP: {:<15};   uType: {};   UID/PWD: {}/{}".format(ipNumber, uType, userid, passwd) )
@@ -6345,12 +6353,19 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def testServerIfOK(self, ipNumber, uType):
 		try:
-			userid, passwd = self.getUidPasswd(uType)
+			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return False
 
 			cmd = "/usr/bin/expect '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"testServerIfOK: {}".format(cmd) )
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+
+			## check if we need to fix unknown host in .ssh/known_hosts
+			if len(ret[1]) > 0:
+				ret, ok = self.fixHostsFile(ret,ipNumber)
+				if not ok: 
+					ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+
 			test = ret[0].lower()
 			tags = ["welcome","unifi","debian","edge","busybox","ubiquiti","ubnt","login"]+[self.promptOnServer[uType]]
 			for tag in tags:
@@ -6360,10 +6375,48 @@ class Plugin(indigo.PluginBase):
 			if len(unicode(e)) > 5:
 				self.indiLOG.log(40,"testServerIfOK in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return False
+
+####-------------------------------------------------------------------------####
+	def fixHostsFile(self, ret, ipNumber):
+		try:
+			if ret[0].find(u".ssh/known_hosts:") > -1:
+				if (subprocess.Popen(u"/usr/bin/csrutil status" , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].find(u"enabled")) >-1:
+					self.indiLOG.log(40,u'ERROR can not update hosts known_hosts file,    "/usr/bin/csrutil status" shows system enabled SIP; please edit manually with \n"nano {}/.ssh/known_hosts"\n and delete line starting with {}'.format(self.MAChome, ipNumber) )
+					self.indiLOG.log(40,u"trying to fix from within plugin, if it happens again you need to do it manually")
+					try:
+						f = open(self.MAChome+u'/.ssh/known_hosts',u"r")
+						lines = f.readlines()
+						f.close()
+						f = open(self.MAChome+u'/.ssh/known_hosts',u"w")
+						for line in lines:
+							if line.find(ipNumber) >-1: continue
+							if len(line) < 10: continue
+							f.write(line+u"\n")
+						f.close()
+					except Exception, e:
+						self.indiLOG.log(40,"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+					return ["",""], False
+
+				fix1 = ret[0].split(u"Offending RSA key in ")
+				if len(fix1) > 1:
+					fix2 = fix1[1].split(u"\n")[0].strip(u"\n").strip(u"\n")
+					fix3 = fix2.split(u":")
+					if len(fix3) > 1:
+						fixcode = u"/usr/bin/perl -pi -e 's/\Q$_// if ($. == " + fix3[1] + ");' " + fix3[0]
+						self.indiLOG.log(40, u"wrong RSA key, trying to fix with: {}".format(fixcode) )
+						p = subprocess.Popen(fixcode, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+						ret = p.communicate()
+ 
+		except Exception, e:
+			self.indiLOG.log(40,"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return ret, True
+
+
 	####-----------------	 ---------
 	def setAccessToLog(self, ipNumber, uType):
 		try:
-			userid, passwd = self.getUidPasswd(uType)
+			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return False
 
 			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " " +self.promptOnServer[uType]
@@ -6381,13 +6434,23 @@ class Plugin(indigo.PluginBase):
 		return False
 
 	####-----------------	 ---------
-	def getUidPasswd(self, uType):
-		if uType.find("VD") == -1:
-			userid = self.unifiUserID
-			passwd = self.unifiPassWd
-		else:
+	def getUidPasswd(self, uType, ipNumber):
+
+		if uType.find("VD") > -1:
 			userid = self.nvrUNIXUserID
 			passwd = self.nvrUNIXPassWd
+
+		else:
+			if self.unifiControllerType.find("UDM") >-1 and (
+				( uType.find("AP") > -1 and ipNumber == self.ipNumbersOfAPs[self.apNumberForUDMconfig]) or
+				( uType.find("SW") > -1 and ipNumber == self.ipNumbersOfSWs[self.swNumberForUDMconfig]) or
+				( uType.find("GW") > -1 ) ):
+				userid = self.unifiUserIDUDM
+				passwd = self.unifiPassWdUDM
+			else:	
+				userid = self.unifiUserID
+				passwd = self.unifiPassWd
+
 		if userid == "":
 			self.indiLOG.log(20,"Connection: {} login disabled, userid is empty".format(Type) )
 		return userid, passwd

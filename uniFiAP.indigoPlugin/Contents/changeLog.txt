@@ -1,7 +1,17 @@
+changes in V 7.29.186  @ 2019-04-23
+==================  
+
+1.  added addition userid/passwd for UDM devices
+    UDM devices have diufferent userid for ssh than AP and switches.
+2.  add auto fix for "unknown hosts".
+    fixes situations where userid.. gets changed on ssh devices. 
+    will delete the ip# line in userid/.ssh/known_hosts
+
+
 changes in V 7.28.186  @ 2019-04-22
 ==================  
 
-1. minor format chnages
+1. minor format changes
 2.  added clean up of POE list when power cycling poe port 
     in cases where devices moved around or were disconnected and the 
     history has several devices connected to the same POE port

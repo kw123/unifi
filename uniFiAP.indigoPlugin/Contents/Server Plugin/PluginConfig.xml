@@ -210,6 +210,15 @@
     <Field id="infoLabel215" type="label"> <Label>== Changes in the following section will restart the plugin:</Label>  </Field>
 
 
+    <Field    id="unifiUserIDUDM"   type="textfield" defaultValue="" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro">
+        <Label>UDM UserID (for ssh to device):</Label>
+    </Field>
+
+    <Field    id="unifiPassWdUDM"   type="textfield" defaultValue="" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro">
+        <Label>UDM password (for ssh to device):</Label>
+    </Field>
+
+
     <Field    id="unifiUserID"   type="textfield" defaultValue="" >
         <Label>UserID of UniFi system devices(for ssh to device):</Label>
     </Field>
