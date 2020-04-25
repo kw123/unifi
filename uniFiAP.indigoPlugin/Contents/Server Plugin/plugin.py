@@ -245,8 +245,8 @@ class Plugin(indigo.PluginBase):
 		self.promptOnServer["GWtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
 		self.promptOnServer["GWdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
 
-		self.promptOnServer["UDtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
-		self.promptOnServer["UDdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+		self.promptOnServer["UDtail"]  = self.pluginPrefs.get(u"udPrompt",u"#")
+		self.promptOnServer["UDdict"]  = self.pluginPrefs.get(u"udPrompt",u"#")
 
 		self.promptOnServer["VDdict"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
 		self.promptOnServer["VDtail"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
@@ -439,13 +439,12 @@ class Plugin(indigo.PluginBase):
 		ip0 = self.pluginPrefs.get(u"ipUDM",  "")
 		ac	= self.pluginPrefs.get(u"ipUDMON",False)
 		self.debugUD = self.pluginPrefs.get(u"debUD",False)
+		self.ipnumberOfUDM = ip0
 
 		if self.isValidIP(ip0) and ac:
-			self.ipnumberOfUDM = ip0
 			self.UDMEnabled = True
 			self.UDUP[ip0] = time.time()
 		else:
-			self.ipnumberOfUDM = ""
 			self.UDMEnabled = False
 
 
