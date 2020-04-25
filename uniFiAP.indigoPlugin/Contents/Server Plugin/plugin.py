@@ -190,47 +190,64 @@ class Plugin(indigo.PluginBase):
 
 		self.expectCmdFile	= {	  "APtail": "execLog.exp",
 					 "GWtail": "execLog.exp",
+					 "UDtail": "execLog.exp",
 					 "SWtail": "execLog.exp",
 					 "VDtail": "execLogVideo.exp",
 					 "GWdict": "dictLoop.exp",
+					 "UDdict": "dictLoop.exp",
 					 "SWdict": "dictLoop.exp",
 					 "APdict": "dictLoop.exp",
 					 "GWctrl": "simplecmd.exp",
+					 "UDctrl": "simplecmd.exp",
 					 "VDdict": "simplecmd.exp"}
 		self.commandOnServer= {	  "APtail": "/usr/bin/tail -F /var/log/messages",
 					 "GWtail": "/usr/bin/tail -F /var/log/messages",
+					 "UDtail": "/usr/bin/tail -F /var/log/messages",
 					 "SWtail": "/usr/bin/tail -F /var/log/messages",
 					 "VDtail": "/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
 					 "VDdict": "not implemented ",
 					 "GWdict": "mca-dump | sed -e 's/^ *//'",
+					 "UDdict": "mca-dump | sed -e 's/^ *//'",
 					 "SWdict": "mca-dump | sed -e 's/^ *//'",
 					 "GWctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
+					 "UDctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 					 "APdict": "mca-dump | sed -e 's/^ *//'"}
 		self.promptOnServer = {	  "APtail": "BZ.v",
 					 "GWtail": ":~",
 					 "GWctrl": ":~",
+					 "UDtail": "#",
+					 "UDctrl": "#",
 					 "SWtail": "US.v",
 					 "VDtail": "VirtualBox",
 					 "VDdict": "VirtualBox",
 					 "GWdict": ":~",
+					 "UDdict": ":~",
 					 "SWdict": "US.v",
 					 "APdict": "BZ.v"}
 		self.startDictToken = {	  "APtail": "x",
 					 "GWtail": "x",
+					 "UDtail": "x",
 					 "SWtail": "x",
 					 "VDtail": "x",
 					 "GWdict": "mca-dump | sed -e 's/^ *//'",
+					 "UDdict": "mca-dump | sed -e 's/^ *//'",
 					 "SWdict": "mca-dump | sed -e 's/^ *//'",
 					 "APdict": "mca-dump | sed -e 's/^ *//'"}
 		self.endDictToken	= {	  "APtail": "x",
 					 "GWtail": "x",
+					 "UDtail": "x",
 					 "VDtail": "x",
 					 "GWdict": "xxxThisIsTheEndTokenxxx",
+					 "UDdict": "xxxThisIsTheEndTokenxxx",
 					 "SWdict": "xxxThisIsTheEndTokenxxx",
 					 "APdict": "xxxThisIsTheEndTokenxxx"}
 
 		self.promptOnServer["GWtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
 		self.promptOnServer["GWdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+
+		self.promptOnServer["UDtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+		self.promptOnServer["UDdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+
 		self.promptOnServer["VDdict"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
 		self.promptOnServer["VDtail"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
 
@@ -240,25 +257,28 @@ class Plugin(indigo.PluginBase):
 		self.commandOnServer["GWtail"]	= self.pluginPrefs.get(u"GWtailCommand",  self.commandOnServer["GWtail"])
 		self.commandOnServer["GWdict"]	= self.pluginPrefs.get(u"GWdictCommand",  self.commandOnServer["GWdict"])
 
+		self.commandOnServer["UDtail"]	= self.pluginPrefs.get(u"UDtailCommand",  self.commandOnServer["UDtail"])
+		self.commandOnServer["UDdict"]	= self.pluginPrefs.get(u"UDdictCommand",  self.commandOnServer["UDdict"])
+
 		self.commandOnServer["APtail"]	= self.pluginPrefs.get(u"APtailCommand",  self.commandOnServer["APtail"])
 		self.commandOnServer["APdict"]	= self.pluginPrefs.get(u"APdictCommand",  self.commandOnServer["APdict"])
 
 		self.commandOnServer["SWtail"]	= self.pluginPrefs.get(u"SWtailCommand",  self.commandOnServer["SWtail"])
 		self.commandOnServer["SWdict"]	= self.pluginPrefs.get(u"SWdictCommand",  self.commandOnServer["SWdict"])
 
-		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    "/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", "/Users/karlwachs/indio/unifi/"))
-		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    "/Volumes/data4TB/Users/karlwachs/video/"))
+		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indio/unifi/"))
+		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
 		self.unifiNVRSession			= ""
 		self.nvrVIDEOapiKey				= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
 
 
 		self.vmMachine					= self.pluginPrefs.get(u"vmMachine",  "")
-		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    "/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.vmDisk						= self.pluginPrefs.get(u"vmDisk",  "/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
-		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", "/Users/karlwachs/indigo/unifi/"))
+		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+		self.vmDisk						= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
+		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indigo/unifi/"))
 		self.mountPathVM				= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
-		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    "/Volumes/data4TB/Users/karlwachs/video/"))
+		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
 		self.unifiNVRSession			= ""
 
 
@@ -280,6 +300,7 @@ class Plugin(indigo.PluginBase):
 		self.updateDescriptions			= self.pluginPrefs.get(u"updateDescriptions", True)
 		self.ignoreNeighborForFing		= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
 		self.ignoreNewNeighbors			= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
+		self.ignoreNewClients			= self.pluginPrefs.get(u"ignoreNewClients", False)
 		self.enableFINGSCAN				= self.pluginPrefs.get(u"enableFINGSCAN", False)
 		self.sendUpdateToFingscanList	= {}
 		self.enableBroadCastEvents		= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
@@ -311,6 +332,7 @@ class Plugin(indigo.PluginBase):
 		self.unifiPassWd				= self.pluginPrefs.get(u"unifiPassWd", "")
 		self.unifiUserIDUDM				= self.pluginPrefs.get(u"unifiUserIDUDM", "")
 		self.unifiPassWdUDM				= self.pluginPrefs.get(u"unifiPassWdUDM", "")
+		self.useStrictToLogin			= self.pluginPrefs.get(u"useStrictToLogin", False)
 		self.unifiControllerSession		= ""
 
 		self.unfiCurl					= self.pluginPrefs.get(u"unfiCurl", "/usr/bin/curl")
@@ -411,6 +433,22 @@ class Plugin(indigo.PluginBase):
 		else:
 			self.ipnumberOfUGA = ""
 			self.UGAEnabled = False
+
+
+		#####  check UGA parameters
+		ip0 = self.pluginPrefs.get(u"ipUDM",  "")
+		ac	= self.pluginPrefs.get(u"ipUDMON",False)
+		self.debugUD = self.pluginPrefs.get(u"debUD",False)
+
+		if self.isValidIP(ip0) and ac:
+			self.ipnumberOfUDM = ip0
+			self.UDMEnabled = True
+			self.UDUP[ip0] = time.time()
+		else:
+			self.ipnumberOfUDM = ""
+			self.UDMEnabled = False
+
+
 
 		#####  check video parameters
 		self.nvrUNIXUserID				= self.pluginPrefs.get(u"nvrUNIXUserID", "")
@@ -746,6 +784,7 @@ class Plugin(indigo.PluginBase):
 			self.enableBroadCastEvents					= valuesDict[u"enableBroadCastEvents"]
 			self.sendBroadCastEventsList				= []
 			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
+			self.ignoreNewClients						= valuesDict[u"ignoreNewClients"]
 			self.loopSleep								= float(valuesDict[u"loopSleep"])
 			self.unifiCONTROLLERUserID					= valuesDict[u"unifiCONTROLLERUserID"]
 			self.unifiCONTROLLERPassWd					= valuesDict[u"unifiCONTROLLERPassWd"]
@@ -769,6 +808,8 @@ class Plugin(indigo.PluginBase):
 
 			self.unifiUserIDUDM							= valuesDict[u"unifiUserIDUDM"]
 			self.unifiPassWdUDM							= valuesDict[u"unifiPassWdUDM"]
+			self.useStrictToLogin						= valuesDict[u"useStrictToLogin"]
+
 			self.unifiUserID							= valuesDict[u"unifiUserID"]
 			self.unifiPassWd							= valuesDict[u"unifiPassWd"]
 			self.unfiCurl								= valuesDict[u"unfiCurl"]
@@ -832,11 +873,13 @@ class Plugin(indigo.PluginBase):
 
 
 			self.promptOnServer["GWtail"], rebootRequired		= self.getNewValusDictField("gwPrompt",		 valuesDict, self.promptOnServer["GWtail"], rebootRequired)
+			self.promptOnServer["UDtail"], rebootRequired		= self.getNewValusDictField("udPrompt",		 valuesDict, self.promptOnServer["UDtail"], rebootRequired)
 			self.promptOnServer["APtail"], rebootRequired		= self.getNewValusDictField("apPrompt",		 valuesDict, self.promptOnServer["APtail"], rebootRequired)
 			self.promptOnServer["SWtail"], rebootRequired		= self.getNewValusDictField("swPrompt",		 valuesDict, self.promptOnServer["SWtail"], rebootRequired)
 			self.promptOnServer["VDtail"], rebootRequired		= self.getNewValusDictField("vdPrompt",		 valuesDict, self.promptOnServer["VDtail"], rebootRequired)
 
 			self.promptOnServer["GWdict"] = self.promptOnServer["GWtail"]
+			self.promptOnServer["UDdict"] = self.promptOnServer["UDtail"]
 			self.promptOnServer["APdict"] = self.promptOnServer["APtail"]
 			self.promptOnServer["SWdict"] = self.promptOnServer["SWtail"]
 			self.promptOnServer["VDdict"] = self.promptOnServer["VDtail"]
@@ -844,6 +887,8 @@ class Plugin(indigo.PluginBase):
 
 			self.commandOnServer["GWtailCommand"], rebootRequired = self.getNewValusDictField("GWtailCommand", valuesDict, self.commandOnServer["GWtail"], rebootRequired)
 			self.commandOnServer["GWdictCommand"], rebootRequired = self.getNewValusDictField("GWdictCommand", valuesDict, self.commandOnServer["GWdict"], rebootRequired)
+			self.commandOnServer["UDtailCommand"], rebootRequired = self.getNewValusDictField("UDtailCommand", valuesDict, self.commandOnServer["UDtail"], rebootRequired)
+			self.commandOnServer["UDdictCommand"], rebootRequired = self.getNewValusDictField("UDdictCommand", valuesDict, self.commandOnServer["UDdict"], rebootRequired)
 			self.commandOnServer["SWtailCommand"], rebootRequired = self.getNewValusDictField("SWtailCommand", valuesDict, self.commandOnServer["SWtail"], rebootRequired)
 			self.commandOnServer["SWdictCommand"], rebootRequired = self.getNewValusDictField("SWdictCommand", valuesDict, self.commandOnServer["SWdict"], rebootRequired)
 			self.commandOnServer["APtailCommand"], rebootRequired = self.getNewValusDictField("APtailCommand", valuesDict, self.commandOnServer["APtail"], rebootRequired)
@@ -907,6 +952,21 @@ class Plugin(indigo.PluginBase):
 			self.UGAEnabled	   	= ac
 			self.ipnumberOfUGA 	= ip0
 			self.debugGW 		= valuesDict[u"debGW"]
+
+
+			## UDM parameters
+			ip0			= valuesDict[u"ipUDM"]
+			if self.ipnumberOfUDM != ip0:
+				rebootRequired	+= " UDM ipNumber   changed; "
+
+			ac			= valuesDict[u"ipUDMON"]
+			if not self.isValidIP(ip0): ac = False
+			if self.UDMEnabled != ac:
+				rebootRequired	+= " enable/disable UDM changed; "
+
+			self.UDMEnabled	   	= ac
+			self.ipnumberOfUDM 	= ip0
+			self.debugUD 		= valuesDict[u"debUD"]
 
 
 
@@ -1025,6 +1085,7 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.unifiCONTROLLERUserID )
 			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.unifiCONTROLLERPassWd )
 			self.myLog( text=u"Controller Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType )
+			self.myLog( text=u"use strict:true for web login".ljust(40)		+	unicode(self.useStrictToLogin)[0] )
 			self.myLog( text=u"Controller port#".ljust(40)					+	self.unifiCloudKeyPort )
 			self.myLog( text=u"Controller site Name#".ljust(40)				+	self.unifiCloudKeySiteName )
 			self.myLog( text=u"Controller API WebPage".ljust(40)			+	self.unifiApiWebPage )
@@ -3846,7 +3907,7 @@ class Plugin(indigo.PluginBase):
 			if self.unfiCurl.find("curl") > -1:
 				#cmdL  = curl  --insecure -c /tmp/unifiCookie -H "Content-Type: application/json"  --data '{"username":"karlwachs","password":"457654aA.unifi"}' https://192.168.1.2:8443/api/login
 				#cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
-				cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+"'"
+				cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({"username":self.unifiCONTROLLERUserID,"password":self.unifiCONTROLLERPassWd,"strict":self.useStrictToLogin})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+"'"
 				if data =={}: dataDict = ""
 				else:		  dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	 						cmdTypeUse= " -X PUT "
@@ -3913,7 +3974,7 @@ class Plugin(indigo.PluginBase):
 				if self.unifiControllerSession =="" or (time.time() - self.lastUnifiCookieRequests) > 60: # every 60 secs refresh cert
 					self.unifiControllerSession	 = requests.Session()
 					url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
-					dataLogin = json.dumps({"username":self.unifiUserID,"password":self.unifiPassWd})
+					dataLogin = json.dumps({"username":self.unifiUserID,"password":self.unifiPassWd,"strict":self.useStrictToLogin})
 					resp  = self.unifiControllerSession.post(url, data = dataLogin, verify=False)
 					if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: "+ resp.text)
 					self.lastUnifiCookieRequests =time.time()
@@ -4586,22 +4647,10 @@ class Plugin(indigo.PluginBase):
 		self.trVDLog = ""
 		if self.VIDEOEnabled:
 			self.indiLOG.log(20,u"..starting threads for VIDEO NVR log event capture")
-			self.trVDLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfNVR,0,u"VDtail",500,))
+			self.trVDLog  = threading.Thread(name=u'getMessages-VD-log', target=self.getMessages, args=(self.ipnumberOfNVR,0,u"VDtail",500,))
 			self.trVDLog.start()
 			self.sleep(0.2)
 
-
-
-		try:
-			self.trWebEventlog  = ""
-			if self.controllerWebEventReadON > 0:
-				self.trWebEventlog = threading.Thread(name=u'self.controllerWeblog', target=self.controllerWeblog, args=(0, ))
-				self.trWebEventlog.start()
-		except	Exception, e:
-			if len(unicode(e)) > 5:
-				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-			self.quitNow = u"stop"
-			return False
 
 
 		try:
@@ -4609,7 +4658,7 @@ class Plugin(indigo.PluginBase):
 			self.trAPDict = {}
 			nsleep= 1
 			if self.NumberOFActiveAP > 0:
-				self.indiLOG.log(20,u"..starting threads for %d APs %d sec apart (MSG-log and db-DICT)" %(self.NumberOFActiveAP,nsleep) )
+				self.indiLOG.log(20,u"..starting threads for {} APs,  {} sec apart (MSG-log and db-DICT)".format(self.NumberOFActiveAP,nsleep) )
 				for ll in range(_GlobalConst_numberOfAP):
 					if self.APsEnabled[ll]:
 						if (self.unifiControllerType.find("UDM") > -1 or self.controllerWebEventReadON > 0) and ll == self.apNumberForUDMconfig: continue
@@ -4617,10 +4666,10 @@ class Plugin(indigo.PluginBase):
 						self.broadcastIP = ipn
 						if self.decideMyLog(u"Logic"): self.indiLOG.log(20,u"START: AP Thread # {}   {}".format(ll, ipn) )
 						if self.commandOnServer["APtail"].find("off") ==-1: 
-							self.trAPLog[unicode(ll)] = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(ipn,ll,u"APtail",float(self.readDictEverySeconds[u"AP"])*2,))
+							self.trAPLog[unicode(ll)] = threading.Thread(name=u'getMessages-AP-log-'+str(ll), target=self.getMessages, args=(ipn,ll,u"APtail",float(self.readDictEverySeconds[u"AP"])*2,))
 							self.trAPLog[unicode(ll)].start()
 							self.sleep(nsleep)
-						self.trAPDict[unicode(ll)] = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(ipn,ll,u"APdict",float(self.readDictEverySeconds[u"AP"])*2,))
+						self.trAPDict[unicode(ll)] = threading.Thread(name=u'getMessages-AP-dict-'+str(ll), target=self.getMessages, args=(ipn,ll,u"APdict",float(self.readDictEverySeconds[u"AP"])*2,))
 						self.trAPDict[unicode(ll)].start()
 						self.sleep(nsleep)
 
@@ -4638,11 +4687,33 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,u"..starting threads for GW (MSG-log and db-DICT)")
 			self.broadcastIP = self.ipnumberOfUGA
 			if self.commandOnServer["GWtail"].find("off") ==-1: 
-				self.trGWLog  = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
+				self.trGWLog  = threading.Thread(name=u'getMessages-UGA-log', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
 				self.trGWLog.start()
 				self.sleep(1)
-			self.trGWDict = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWdict",float(self.readDictEverySeconds[u"GW"])*2,))
+			self.trGWDict = threading.Thread(name=u'getMessages-UGA-dict', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWdict",float(self.readDictEverySeconds[u"GW"])*2,))
 			self.trGWDict.start()
+
+
+		### for UDM devices..
+		#1.   
+		if self.UDMEnabled:
+			self.indiLOG.log(20,u"..starting threads for UDM  (MSG-log and db-DICT)")
+			self.broadcastIP = self.ipnumberOfUDM
+			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"UDdict",float(self.readDictEverySeconds[u"UD"])*2,))
+			self.trUDDict.start()
+		# 2.  this works runs every xx secs 
+		try:
+			self.trWebEventlog  = ""
+			if self.controllerWebEventReadON > 0:
+				self.trWebEventlog = threading.Thread(name=u'controllerWeblog', target=self.controllerWeblog, args=(0, ))
+				self.trWebEventlog.start()
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+			self.quitNow = u"stop"
+			return False
+
+
 
 
 		try:
@@ -4666,7 +4737,7 @@ class Plugin(indigo.PluginBase):
 						if self.decideMyLog(u"Logic"): self.indiLOG.log(20,u"START SW Thread tr # {}   {}".format(ll, ipn))
 	 #					 self.trSWLog[unicode(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds[u"SW"]*2,))
 	 #					 self.trSWLog[unicode(ll)].start()
-						self.trSWDict[unicode(ll)] = threading.Thread(name=u'self.getMessages', target=self.getMessages, args=(ipn, ll, u"SWdict",minCheck,))
+						self.trSWDict[unicode(ll)] = threading.Thread(name=u'getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, u"SWdict",minCheck,))
 						self.trSWDict[unicode(ll)].start()
 						if self.NumberOFActiveSW > 1: self.sleep(nsleep)
 
@@ -6000,6 +6071,7 @@ class Plugin(indigo.PluginBase):
 									break
 
 						#self.indiLOG.log(20,u"passed 4 ip:{};  apN:{}".format(ipNumberAP, apN))
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblog  data from UDM for AP:{}".format(line))
 						self.doAPmessages([line], ipNumberAP, apN, webLog = True)
 
 				except	Exception, e:
@@ -6251,6 +6323,7 @@ class Plugin(indigo.PluginBase):
 							if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
 							continue
 						self.logQueue.put((linesFromServer,ipNumber,apN, uType,unifiDeviceType))
+						linesFromServer = ""
 						self.updateIndigoWithLogData()	#####################  here we call method to do something with the data
 
 
@@ -6276,6 +6349,10 @@ class Plugin(indigo.PluginBase):
 									elif  unifiDeviceType == "SW":
 										self.SWUP[ipNumber] = time.time()
 									elif  unifiDeviceType == "GW":
+										self.GWUP[ipNumber] = time.time()
+									elif  unifiDeviceType == "UD":
+										self.SWUP[ipNumber] = time.time()
+										self.UDUP[ipNumber] = time.time()
 										self.GWUP[ipNumber] = time.time()
 									self.logQueueDict.put((theDict,ipNumber,apN,uType, unifiDeviceType))
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
@@ -6848,7 +6925,7 @@ class Plugin(indigo.PluginBase):
 
 					#break
 
-				if new:
+				if new and not self.ignoreNewClients:
 					try:
 						dev = indigo.device.create(
 							protocol=indigo.kProtocol.Plugin,
@@ -7107,7 +7184,7 @@ class Plugin(indigo.PluginBase):
 								dev.replaceOnServer()
 
 
-					if new:
+					if new and not self.ignoreNewClients:
 						try:
 
 							dev = indigo.device.create(
@@ -7196,6 +7273,7 @@ class Plugin(indigo.PluginBase):
 			except: apNint	= -1
 			doSW 	 = False
 			doAP 	 = False
+			doGW 	 = False
 
 			if ( (uType.find("SW") > -1 and apNumb >= 0 and apNumb < len(self.debugSWs) and self.debugSWs[apNumb]) or
 			     (uType.find("AP") > -1 and apNumb >= 0 and apNumb < len(self.debugAPs) and self.debugAPs[apNumb]) or
@@ -7203,8 +7281,13 @@ class Plugin(indigo.PluginBase):
 				dd = unicode(apDict)
 				self.indiLOG.log(20,"DEVdebug   {} dev #:{:2d} uType:{}, dictmessage:\n{}    ..\n{}".format(ipNumber, apNint, uType, dd[:300], dd[-300:] ) )
 
-			if unifiDeviceType =="GW":
-			### gateway
+
+			if unifiDeviceType == "UD":
+				doSW 	 = True
+				doGW 	 = False
+
+			if unifiDeviceType =="GW" or doGW:
+				### gateway
 				self.doGatewaydictSELF(apDict, ipNumber)
 				if self.unifiControllerType.find("UDM") >-1: 
 					self.doGWDvi_stats(apDict, ipNumber)
@@ -7222,7 +7305,7 @@ class Plugin(indigo.PluginBase):
 
 
 
-			elif unifiDeviceType == "SW" or doSW:
+			if unifiDeviceType == "SW" or doSW:
 				if "mac"		 not in apDict: return
 				if u"port_table" not in apDict: return
 				if u"hostname"	 not in apDict: return
@@ -7238,7 +7321,7 @@ class Plugin(indigo.PluginBase):
 				#################  now update the devices on switch
 				self.doSWITCHdictClients(apDict, apNumbSW, ipNDevice, MAC, hostname, ipNumber)
 
-			elif unifiDeviceType == "AP" or doAP:
+			if unifiDeviceType == "AP" or doAP:
 				if "mac"		 not in apDict: return
 				if u"vap_table"	 not in apDict: return
 				if u"ip"		 not in apDict: return
@@ -7597,7 +7680,7 @@ class Plugin(indigo.PluginBase):
 
 						#break
 
-					if new:
+					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
 								protocol=indigo.kProtocol.Plugin,
@@ -7765,7 +7848,7 @@ class Plugin(indigo.PluginBase):
 									dev.replaceOnServer()
 
 
-					if new:
+					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
 								protocol=indigo.kProtocol.Plugin,
@@ -7932,7 +8015,7 @@ class Plugin(indigo.PluginBase):
 									dev.replaceOnServer()
 
 
-					if new:
+					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
 								protocol=indigo.kProtocol.Plugin,
@@ -8247,7 +8330,7 @@ class Plugin(indigo.PluginBase):
 
 							#break
 
-				if new:
+				if new and not self.ignoreNewClients:
 					try:
 						dev = indigo.device.create(
 							protocol=indigo.kProtocol.Plugin,

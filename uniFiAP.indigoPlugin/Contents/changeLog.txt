@@ -1,3 +1,15 @@
+changes in V 7.30.187  @ 2019-04-25
+==================  
+
+1.  added option for UDM as its own section
+    will not start individual message logs/dicts for AP and SW as they come from the same device
+    .. not fully tested yet
+
+2.  added option "strict:true" for web login. this seems to be neeed fro some UDM / configs, sys, if it currently works keep false
+
+3.  added option to ignore all new devices in config
+
+
 changes in V 7.29.187  @ 2019-04-23
 ==================  
 
