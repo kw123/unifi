@@ -908,6 +908,7 @@ class Plugin(indigo.PluginBase):
 			## AP parameters
 			acNew = [False for i in range(_GlobalConst_numberOfAP)]
 			ipNew = ["" for i in range(_GlobalConst_numberOfAP)]
+			self.NumberOFActiveAP = 0
 			for i in range(_GlobalConst_numberOfAP):
 				ip0 = valuesDict[u"ip"+unicode(i)]
 				ac	= valuesDict[u"ipON"+unicode(i)]
@@ -915,7 +916,9 @@ class Plugin(indigo.PluginBase):
 				if not self.isValidIP(ip0): ac = False
 				acNew[i]			 = ac
 				ipNew[i]			 = ip0
-				if ac: acNew[i] = True
+				if ac: 
+					acNew[i] = True
+					self.NumberOFActiveAP 	+= 1
 				if acNew[i] != self.APsEnabled[i]:
 					rebootRequired	+= " enable/disable AP changed; "
 				if ipNew[i] != self.ipNumbersOfAPs[i]:
@@ -927,6 +930,7 @@ class Plugin(indigo.PluginBase):
 			## SWitch parameters
 			acNew = [False for i in range(_GlobalConst_numberOfSW)]
 			ipNew = ["" for i in range(_GlobalConst_numberOfSW)]
+			self.NumberOFActiveSW = 0
 			for i in range(_GlobalConst_numberOfSW):
 				ip0 = valuesDict[u"ipSW"+unicode(i)]
 				ac	= valuesDict[u"ipSWON"+unicode(i)]
@@ -934,7 +938,10 @@ class Plugin(indigo.PluginBase):
 				if not self.isValidIP(ip0): ac = False
 				acNew[i]			 = ac
 				ipNew[i]			 = ip0
-				if ac: acNew[i] = True
+				if ac: 
+					acNew[i] = True
+					self.NumberOFActiveSW 	+= 1
+
 				if acNew[i] != self.SWsEnabled[i]:
 					rebootRequired	+= " enable/disable SW  changed; "
 				if ipNew[i] != self.ipNumbersOfSWs[i]:
@@ -973,6 +980,14 @@ class Plugin(indigo.PluginBase):
 			self.UDMEnabled	   	= ac
 			self.ipnumberOfUDM 	= ip0
 			self.debugUD 		= valuesDict[u"debUD"]
+			if self.UDMEnabled:
+				self.ipNumbersOfSWs[self.swNumberForUDMconfig]	= ip0
+				self.ipNumbersOfAPs[self.apNumberForUDMconfig]	= ip0
+				self.ipnumberOfUGA 							  	= ip0
+				self.SWsEnabled[self.swNumberForUDMconfig] 		= True
+				self.APsEnabled[self.swNumberForUDMconfig] 		= True
+				self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
+				self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
 
 
 

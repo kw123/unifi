@@ -182,18 +182,18 @@
     <Field    id="unifiCloudKeyIP"       type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>ipNumber of controller</Label>  </Field>
     <Field    id="unifiCloudKeyPort"     type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
     <Field    id="unifiCloudKeySiteName" type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  </Field>
-    <Field    id="unifiApiWebPage"       type="menu"  		defaultValue="/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+    <Field    id="unifiApiWebPage"       type="menu"  		defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
 		<Label>.. unifi Api Web Page:</Label> 
         <List>
             <Option value="/api/s/"   	           >/api/s/ </Option>
-            <Option value="/proxy/network/api/s/"  >/proxy/network/api/s/ for UMD-xx</Option>
+            <Option value="/proxy/network/api/s/"  >/proxy/network/api/s/ for UMD-PRO</Option>
         </List>
     </Field>
     <Field    id="unifiApiLoginPath"       type="menu"  defaultValue="/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
 		<Label>.. unifi Api Login Path:</Label> 
         <List>
             <Option value="/api/login"   	 >/api/login </Option>
-            <Option value="/api/auth/login"  >/api/auth/login for UDM-xx</Option>
+            <Option value="/api/auth/login"  >/api/auth/login for UDM-PRO</Option>
         </List>
     </Field>
 

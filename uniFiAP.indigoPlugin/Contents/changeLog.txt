@@ -1,3 +1,11 @@
+changes in V 7.30.190  @ 2019-04-26
+==================  
+
+1.  clarified config lables for UDM vs UDM-pro
+2.  updated parameters properly when editing config, was done correctly during restart
+
+
+
 changes in V 7.30.189  @ 2019-04-25
 ==================  
 
