@@ -179,305 +179,312 @@ class Plugin(indigo.PluginBase):
 			if self.pluginPrefs.get(u"debug"+d, False): self.debugLevel.append(d)
 
 
-		self.logFile		 = ""
-		self.logFileActive	 = self.pluginPrefs.get("logFileActive2", "standard")
-		self.maxLogFileSize	 = 1*1024*1024
-		self.lastCheckLogfile= time.time()
+		self.logFile		 	= ""
+		self.logFileActive	 	= self.pluginPrefs.get("logFileActive2", "standard")
+		self.maxLogFileSize	 	= 1*1024*1024
+		self.lastCheckLogfile	= time.time()
 		self.setLogfile(unicode(self.pluginPrefs.get("logFileActive2", "standard")))
 
 
 		self.varExcludeSQLList = ["Unifi_New_Device","Unifi_With_IPNumber_Change","Unifi_With_Status_Change"]
 
-		self.expectCmdFile	= {	  "APtail": "execLog.exp",
-					 "GWtail": "execLog.exp",
-					 "UDtail": "execLog.exp",
-					 "SWtail": "execLog.exp",
-					 "VDtail": "execLogVideo.exp",
-					 "GWdict": "dictLoop.exp",
-					 "UDdict": "dictLoop.exp",
-					 "SWdict": "dictLoop.exp",
-					 "APdict": "dictLoop.exp",
-					 "GWctrl": "simplecmd.exp",
-					 "UDctrl": "simplecmd.exp",
-					 "VDdict": "simplecmd.exp"}
-		self.commandOnServer= {	  "APtail": "/usr/bin/tail -F /var/log/messages",
-					 "GWtail": "/usr/bin/tail -F /var/log/messages",
-					 "UDtail": "/usr/bin/tail -F /var/log/messages",
-					 "SWtail": "/usr/bin/tail -F /var/log/messages",
-					 "VDtail": "/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
-					 "VDdict": "not implemented ",
-					 "GWdict": "mca-dump | sed -e 's/^ *//'",
-					 "UDdict": "mca-dump | sed -e 's/^ *//'",
-					 "SWdict": "mca-dump | sed -e 's/^ *//'",
-					 "GWctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
-					 "UDctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
-					 "APdict": "mca-dump | sed -e 's/^ *//'"}
-		self.promptOnServer = {	  "APtail": "BZ.v",
-					 "GWtail": ":~",
-					 "GWctrl": ":~",
-					 "UDtail": "#",
-					 "UDctrl": "#",
-					 "SWtail": "US.v",
-					 "VDtail": "VirtualBox",
-					 "VDdict": "VirtualBox",
-					 "GWdict": ":~",
-					 "UDdict": ":~",
-					 "SWdict": "US.v",
-					 "APdict": "BZ.v"}
-		self.startDictToken = {	  "APtail": "x",
-					 "GWtail": "x",
-					 "UDtail": "x",
-					 "SWtail": "x",
-					 "VDtail": "x",
-					 "GWdict": "mca-dump | sed -e 's/^ *//'",
-					 "UDdict": "mca-dump | sed -e 's/^ *//'",
-					 "SWdict": "mca-dump | sed -e 's/^ *//'",
-					 "APdict": "mca-dump | sed -e 's/^ *//'"}
+		self.expectCmdFile	= {	  							"APtail": "execLog.exp",
+															"GWtail": "execLog.exp",
+															"UDtail": "execLog.exp",
+															"SWtail": "execLog.exp",
+															"VDtail": "execLogVideo.exp",
+															"GWdict": "dictLoop.exp",
+															"UDdict": "dictLoop.exp",
+															"SWdict": "dictLoop.exp",
+															"APdict": "dictLoop.exp",
+															"GWctrl": "simplecmd.exp",
+															"UDctrl": "simplecmd.exp",
+															"VDdict": "simplecmd.exp"}
+		self.commandOnServer= {	  							"APtail": "/usr/bin/tail -F /var/log/messages",
+															"GWtail": "/usr/bin/tail -F /var/log/messages",
+															"UDtail": "/usr/bin/tail -F /var/log/messages",
+															"SWtail": "/usr/bin/tail -F /var/log/messages",
+															"VDtail": "/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
+															"VDdict": "not implemented ",
+															"GWdict": "mca-dump | sed -e 's/^ *//'",
+															"UDdict": "mca-dump | sed -e 's/^ *//'",
+															"SWdict": "mca-dump | sed -e 's/^ *//'",
+															"GWctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
+															"UDctrl": "mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
+															"APdict": "mca-dump | sed -e 's/^ *//'"}
+		self.promptOnServer = {	  							"APtail": "BZ.v",
+															"GWtail": ":~",
+															"GWctrl": ":~",
+															"UDtail": "#",
+															"UDctrl": "#",
+															"SWtail": "US.v",
+															"VDtail": "VirtualBox",
+															"VDdict": "VirtualBox",
+															"GWdict": ":~",
+															"UDdict": ":~",
+															"SWdict": "US.v",
+															"APdict": "BZ.v"}
+		self.startDictToken = {	  							"APtail": "x",
+															"GWtail": "x",
+															"UDtail": "x",
+															"SWtail": "x",
+															"VDtail": "x",
+															"GWdict": "mca-dump | sed -e 's/^ *//'",
+															"UDdict": "mca-dump | sed -e 's/^ *//'",
+															"SWdict": "mca-dump | sed -e 's/^ *//'",
+															"APdict": "mca-dump | sed -e 's/^ *//'"}
 		self.endDictToken	= {	  "APtail": "x",
-					 "GWtail": "x",
-					 "UDtail": "x",
-					 "VDtail": "x",
-					 "GWdict": "xxxThisIsTheEndTokenxxx",
-					 "UDdict": "xxxThisIsTheEndTokenxxx",
-					 "SWdict": "xxxThisIsTheEndTokenxxx",
-					 "APdict": "xxxThisIsTheEndTokenxxx"}
+															"GWtail": "x",
+															"UDtail": "x",
+															"VDtail": "x",
+															"GWdict": "xxxThisIsTheEndTokenxxx",
+															"UDdict": "xxxThisIsTheEndTokenxxx",
+															"SWdict": "xxxThisIsTheEndTokenxxx",
+															"APdict": "xxxThisIsTheEndTokenxxx"}
 
-		self.promptOnServer["GWtail"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
-		self.promptOnServer["GWdict"]  = self.pluginPrefs.get(u"gwPrompt",u":~")
+		self.promptOnServer["GWtail"]						= self.pluginPrefs.get(u"gwPrompt",u":~")
+		self.promptOnServer["GWdict"]						= self.pluginPrefs.get(u"gwPrompt",u":~")
 
-		self.promptOnServer["UDtail"]  = self.pluginPrefs.get(u"udPrompt",u"#")
-		self.promptOnServer["UDdict"]  = self.pluginPrefs.get(u"udPrompt",u"#")
+		self.promptOnServer["UDtail"]						= self.pluginPrefs.get(u"udPrompt",u"#")
+		self.promptOnServer["UDdict"]						= self.pluginPrefs.get(u"udPrompt",u"#")
 
-		self.promptOnServer["VDdict"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
-		self.promptOnServer["VDtail"]  = self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
+		self.promptOnServer["VDdict"]						= self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
+		self.promptOnServer["VDtail"]						= self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
 
-		self.commandOnServer["VDtail"]	= self.pluginPrefs.get(u"VDtailCommand",  self.commandOnServer["VDtail"])
-		self.commandOnServer["VDdict"]	= self.pluginPrefs.get(u"VDdictCommand",  self.commandOnServer["VDdict"])
+		self.commandOnServer["VDtail"]						= self.pluginPrefs.get(u"VDtailCommand",  self.commandOnServer["VDtail"])
+		self.commandOnServer["VDdict"]						= self.pluginPrefs.get(u"VDdictCommand",  self.commandOnServer["VDdict"])
 
-		self.commandOnServer["GWtail"]	= self.pluginPrefs.get(u"GWtailCommand",  self.commandOnServer["GWtail"])
-		self.commandOnServer["GWdict"]	= self.pluginPrefs.get(u"GWdictCommand",  self.commandOnServer["GWdict"])
+		self.commandOnServer["GWtail"]						= self.pluginPrefs.get(u"GWtailCommand",  self.commandOnServer["GWtail"])
+		self.commandOnServer["GWdict"]						= self.pluginPrefs.get(u"GWdictCommand",  self.commandOnServer["GWdict"])
 
-		self.commandOnServer["UDtail"]	= self.pluginPrefs.get(u"UDtailCommand",  self.commandOnServer["UDtail"])
-		self.commandOnServer["UDdict"]	= self.pluginPrefs.get(u"UDdictCommand",  self.commandOnServer["UDdict"])
+		self.commandOnServer["UDtail"]						= self.pluginPrefs.get(u"UDtailCommand",  self.commandOnServer["UDtail"])
+		self.commandOnServer["UDdict"]						= self.pluginPrefs.get(u"UDdictCommand",  self.commandOnServer["UDdict"])
 
-		self.commandOnServer["APtail"]	= self.pluginPrefs.get(u"APtailCommand",  self.commandOnServer["APtail"])
-		self.commandOnServer["APdict"]	= self.pluginPrefs.get(u"APdictCommand",  self.commandOnServer["APdict"])
+		self.commandOnServer["APtail"]						= self.pluginPrefs.get(u"APtailCommand",  self.commandOnServer["APtail"])
+		self.commandOnServer["APdict"]						= self.pluginPrefs.get(u"APdictCommand",  self.commandOnServer["APdict"])
 
-		self.commandOnServer["SWtail"]	= self.pluginPrefs.get(u"SWtailCommand",  self.commandOnServer["SWtail"])
-		self.commandOnServer["SWdict"]	= self.pluginPrefs.get(u"SWdictCommand",  self.commandOnServer["SWdict"])
+		self.commandOnServer["SWtail"]						= self.pluginPrefs.get(u"SWtailCommand",  self.commandOnServer["SWtail"])
+		self.commandOnServer["SWdict"]						= self.pluginPrefs.get(u"SWdictCommand",  self.commandOnServer["SWdict"])
 
-		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indio/unifi/"))
-		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
-		self.unifiNVRSession			= ""
-		self.nvrVIDEOapiKey				= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
-
-
-		self.vmMachine					= self.pluginPrefs.get(u"vmMachine",  "")
-		self.vboxPath					= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.vmDisk						= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
-		self.changedImagePath			= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indigo/unifi/"))
-		self.mountPathVM				= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
-		self.videoPath					= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
-		self.unifiNVRSession			= ""
+		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indio/unifi/"))
+		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
+		self.unifiNVRSession								= ""
+		self.nvrVIDEOapiKey									= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
 
 
-		self.menuXML					= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
-		self.pluginPrefs["menuXML"]		= json.dumps(self.menuXML)
-		self.restartRequest				= {}
+		self.vmMachine										= self.pluginPrefs.get(u"vmMachine",  "")
+		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+		self.vmDisk											= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
+		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indigo/unifi/"))
+		self.mountPathVM									= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
+		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
+		self.unifiNVRSession								= ""
 
-		self.blockAccess = []
-		self.waitForMAC2vendor = False
-		self.enableMACtoVENDORlookup	= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
+
+		self.menuXML										= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
+		self.pluginPrefs["menuXML"]							= json.dumps(self.menuXML)
+		self.restartRequest									= {}
+
+		self.blockAccess 									= []
+		self.waitForMAC2vendor 								= False
+		self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
 		if self.enableMACtoVENDORlookup != "0":
-			self.M2V = MAC2Vendor.MAP2Vendor(refreshFromIeeAfterDays = self.enableMACtoVENDORlookup )
-			self.waitForMAC2vendor = self.M2V.makeFinalTable()
+			self.M2V 										= MAC2Vendor.MAP2Vendor(refreshFromIeeAfterDays = self.enableMACtoVENDORlookup )
+			self.waitForMAC2vendor 							= self.M2V.makeFinalTable()
 
 
-		self.pluginPrefs[u"createUnifiDevicesCounter"]	= int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))
-		self.unifigetBlockedClientsDeltaTime		 	= int(self.pluginPrefs.get(u"unifigetBlockedClientsDeltaTime",999999999))
-		self.lastCheckForcheckForBlockedClients			= time.time()
-		self.updateDescriptions			= self.pluginPrefs.get(u"updateDescriptions", True)
-		self.ignoreNeighborForFing		= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
-		self.ignoreNewNeighbors			= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
-		self.ignoreNewClients			= self.pluginPrefs.get(u"ignoreNewClients", False)
-		self.enableFINGSCAN				= self.pluginPrefs.get(u"enableFINGSCAN", False)
-		self.sendUpdateToFingscanList	= {}
-		self.enableBroadCastEvents		= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
-		self.sendBroadCastEventsList	= []
-		self.unifiCloudKeySiteName		= self.pluginPrefs.get(u"unifiCloudKeySiteName", "default")
-		self.unifiCloudKeyIP			= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
-		self.apNumberForUDMconfig		= 4 
-		self.swNumberForUDMconfig		= 12 
-		self.unifiControllerType		= self.pluginPrefs.get(u"unifiControllerType", "std")
-		self.unifiApiWebPage			= self.pluginPrefs.get(u"unifiApiWebPage", "/api/s/")
-		self.unifiApiLoginPath			= self.pluginPrefs.get(u"unifiApiLoginPath", "/api/login")
-		self.unifiCloudKeyPort			= self.pluginPrefs.get(u"unifiCloudKeyPort", "8443")
-		self.unifiCloudKeyMode			= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
-		self.unifiCONTROLLERUserID		= self.pluginPrefs.get(u"unifiCONTROLLERUserID", "")
-		self.unifiCONTROLLERPassWd		= self.pluginPrefs.get(u"unifiCONTROLLERPassWd", "")
-		self.unifiControllerBackupON	= self.pluginPrefs.get(u"unifiControllerBackupON", False)
-		self.ControllerBackupPath		= self.pluginPrefs.get(u"ControllerBackupPath", "")
+		self.pluginPrefs[u"createUnifiDevicesCounter"]		= int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))
+		self.unifigetBlockedClientsDeltaTime		 		= int(self.pluginPrefs.get(u"unifigetBlockedClientsDeltaTime",999999999))
+		self.lastCheckForcheckForBlockedClients				= time.time()
+		self.updateDescriptions								= self.pluginPrefs.get(u"updateDescriptions", True)
+		self.ignoreNeighborForFing							= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
+		self.ignoreNewNeighbors								= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
+		self.ignoreNewClients								= self.pluginPrefs.get(u"ignoreNewClients", False)
+		self.enableFINGSCAN									= self.pluginPrefs.get(u"enableFINGSCAN", False)
+		self.sendUpdateToFingscanList						= {}
+		self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
+		self.sendBroadCastEventsList						= []
+		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", "default")
+		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
+		self.apNumberForUDMconfig							= 4 
+		self.swNumberForUDMconfig							= 12 
+		self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", "std")
+		self.unifiApiWebPage								= self.pluginPrefs.get(u"unifiApiWebPage", "/api/s/")
+		self.unifiApiLoginPath								= self.pluginPrefs.get(u"unifiApiLoginPath", "/api/login")
+		self.unifiCloudKeyPort								= self.pluginPrefs.get(u"unifiCloudKeyPort", "8443")
+		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
+		self.unifiCONTROLLERUserID							= self.pluginPrefs.get(u"unifiCONTROLLERUserID", "")
+		self.unifiCONTROLLERPassWd							= self.pluginPrefs.get(u"unifiCONTROLLERPassWd", "")
+		self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
+		self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
 
-		try: self.readBuffer			= int(self.pluginPrefs.get(u"readBuffer",32767))
-		except: self.readBuffer			= 32767
-		self.lastCheckForCAMERA			= 0
-		self.saveCameraEventsLastCheck	= 0
-		self.cameraEventWidth			= int(self.pluginPrefs.get(u"cameraEventWidth", "720"))
-		self.imageSourceForEvent		= self.pluginPrefs.get(u"imageSourceForEvent", "noImage")
-		self.imageSourceForSnapShot		= self.pluginPrefs.get(u"imageSourceForSnapShot", "noImage")
+		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer",32767))
+		except: self.readBuffer								= 32767
+		self.lastCheckForCAMERA								= 0
+		self.saveCameraEventsLastCheck						= 0
+		self.cameraEventWidth								= int(self.pluginPrefs.get(u"cameraEventWidth", "720"))
+		self.imageSourceForEvent							= self.pluginPrefs.get(u"imageSourceForEvent", "noImage")
+		self.imageSourceForSnapShot							= self.pluginPrefs.get(u"imageSourceForSnapShot", "noImage")
 
-		self.listenStart				= {}
-		self.unifiUserID				= self.pluginPrefs.get(u"unifiUserID", "")
-		self.unifiPassWd				= self.pluginPrefs.get(u"unifiPassWd", "")
-		self.unifiUserIDUDM				= self.pluginPrefs.get(u"unifiUserIDUDM", "")
-		self.unifiPassWdUDM				= self.pluginPrefs.get(u"unifiPassWdUDM", "")
-		self.useStrictToLogin			= self.pluginPrefs.get(u"useStrictToLogin", False)
-		self.unifiControllerSession		= ""
+		self.listenStart									= {}
+		self.unifiUserID									= self.pluginPrefs.get(u"unifiUserID", "")
+		self.unifiPassWd									= self.pluginPrefs.get(u"unifiPassWd", "")
+		self.unifiUserIDUDM									= self.pluginPrefs.get(u"unifiUserIDUDM", "")
+		self.unifiPassWdUDM									= self.pluginPrefs.get(u"unifiPassWdUDM", "")
+		self.useStrictToLogin								= self.pluginPrefs.get(u"useStrictToLogin", False)
+		self.unifiControllerSession							= ""
 
-		self.unfiCurl					= self.pluginPrefs.get(u"unfiCurl", "/usr/bin/curl")
+		self.unfiCurl										= self.pluginPrefs.get(u"unfiCurl", "/usr/bin/curl")
 		if self.unfiCurl == "curl" or len(self.unfiCurl) < 4:
-			self.unfiCurl = "/usr/bin/curl"
-			self.pluginPrefs["unfiCurl"] = self.unfiCurl
+			self.unfiCurl									= "/usr/bin/curl"
+			self.pluginPrefs["unfiCurl"] 					= self.unfiCurl
 
-		self.restartIfNoMessageSeconds	= int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 600))
-		self.expirationTime				= int(self.pluginPrefs.get(u"expirationTime", 120) )
-		self.expTimeMultiplier			= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
+		self.restartIfNoMessageSeconds						= int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 600))
+		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
+		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
-		self.loopSleep					= float(self.pluginPrefs.get(u"loopSleep", 4))
-		self.timeoutDICT				= unicode(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
-		self.folderNameCreated			= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
-		self.folderNameNeighbors		= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
-		self.folderNameSystem			= self.pluginPrefs.get(u"folderNameSystem",	   "UNIFI_system")
-		self.fixExpirationTime			= self.pluginPrefs.get(u"fixExpirationTime",	True)
-		self.MACignorelist				= {}
-		self.MACSpecialIgnorelist		= {}
-		self.HANDOVER					= {}
-		self.lastUnifiCookieCurl		= 0
-		self.lastUnifiCookieRequests	= 0
-		self.lastNVRCookie				= 0
-		self.pendingCommand				= []
-		self.groupStatusList			= {"Group"+str(i):{"members":{},"allHome":False,"allAway":False,"oneHome":False,"oneAway":False,"nHome":0,"nAway":0} for i in range(_GlobalConst_numberOfGroups )}
-		self.groupStatusListALL			= {"nHome":0,"nAway":0,"anyChange":False}
+		self.loopSleep										= float(self.pluginPrefs.get(u"loopSleep", 4))
+		self.timeoutDICT									= unicode(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
+		self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
+		self.folderNameNeighbors							= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
+		self.folderNameSystem								= self.pluginPrefs.get(u"folderNameSystem",	   "UNIFI_system")
+		self.fixExpirationTime								= self.pluginPrefs.get(u"fixExpirationTime",	True)
+		self.MACignorelist									= {}
+		self.MACSpecialIgnorelist							= {}
+		self.HANDOVER										= {}
+		self.lastUnifiCookieCurl							= 0
+		self.lastUnifiCookieRequests						= 0
+		self.lastNVRCookie									= 0
+		self.pendingCommand									= []
+		self.groupStatusList								= {"Group"+str(i):{"members":{},"allHome":False,"allAway":False,"oneHome":False,"oneAway":False,"nHome":0,"nAway":0} for i in range(_GlobalConst_numberOfGroups )}
+		self.groupStatusListALL								= {"nHome":0,"nAway":0,"anyChange":False}
 
-		self.triggerList				= []
-		self.statusChanged				= 0
-		self.msgListenerActive			= {}
+		self.triggerList									= []
+		self.statusChanged									= 0
+		self.msgListenerActive								= {}
 
 
-		self.updateStatesList			= {}
-		self.logCount					= {}
-		self.ipNumbersOfAPs				= ["" for nn in range(_GlobalConst_numberOfAP)]
-		self.APsEnabled					= [False for nn in range(_GlobalConst_numberOfAP)]
-		self.debugAPs					= [False for nn in range(_GlobalConst_numberOfAP)]
+		self.updateStatesList								= {}
+		self.logCount										= {}
+		self.ipNumbersOfAPs									= ["" for nn in range(_GlobalConst_numberOfAP)]
+		self.APsEnabled										= [False for nn in range(_GlobalConst_numberOfAP)]
+		self.debugAPs										= [False for nn in range(_GlobalConst_numberOfAP)]
 
-		self.ipNumbersOfSWs				= ["" for nn in range(_GlobalConst_numberOfSW)]
-		self.SWsEnabled					= [False for nn in range(_GlobalConst_numberOfSW)]
-		self.debugSWs					= [False for nn in range(_GlobalConst_numberOfSW)]
+		self.ipNumbersOfSWs									= ["" for nn in range(_GlobalConst_numberOfSW)]
+		self.SWsEnabled										= [False for nn in range(_GlobalConst_numberOfSW)]
+		self.debugSWs										= [False for nn in range(_GlobalConst_numberOfSW)]
 
-		self.devNeedsUpdate				= []
+		self.devNeedsUpdate									= []
 
-		self.MACloglist					= {}
+		self.MACloglist										= {}
 
-		self.readDictEverySeconds={}
-		self.readDictEverySeconds[u"AP"]= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 120) ))
-		self.readDictEverySeconds[u"GW"]= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
-		self.readDictEverySeconds[u"SW"]= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
-		self.devStateChangeList			= {}
-		self.APUP						= {}
-		self.SWUP						= {}
-		self.GWUP						= {}
-		self.VDUP						= {}
+		self.readDictEverySeconds							= {}
+		self.readDictEverySeconds[u"AP"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 120) ))
+		self.readDictEverySeconds[u"GW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
+		self.readDictEverySeconds[u"SW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
+		self.devStateChangeList								= {}
+		self.APUP											= {}
+		self.SWUP											= {}
+		self.GWUP											= {}
+		self.VDUP											= {}
 
-		self.version			 = self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
+		self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
 
 
 		#####  check AP parameters
 		self.NumberOFActiveAP =0
 		for i in range(_GlobalConst_numberOfAP):
-			ip0 = self.pluginPrefs.get(u"ip"+unicode(i), "")
-			ac	= self.pluginPrefs.get(u"ipON"+unicode(i), "")
-			deb	= self.pluginPrefs.get(u"debAP"+unicode(i), "")
-			if not self.isValidIP(ip0): ac = False
-			self.APUP[ip0] = time.time()
-			self.ipNumbersOfAPs[i] = ip0
-			self.debugAPs[i] = deb
+			ip0 											= self.pluginPrefs.get(u"ip"+unicode(i), "")
+			ac												= self.pluginPrefs.get(u"ipON"+unicode(i), "")
+			deb												= self.pluginPrefs.get(u"debAP"+unicode(i), "")
+			if not self.isValidIP(ip0): ac 					= False
+			self.APUP[ip0] 									= time.time()
+			self.ipNumbersOfAPs[i] 							= ip0
+			self.debugAPs[i] 								= deb
 			if ac:
-				self.APsEnabled[i]=True
-				self.NumberOFActiveAP += 1
-		self.controllerWebEventReadON = int(self.pluginPrefs.get("controllerWebEventReadON","-1"))
+				self.APsEnabled[i]							= True
+				self.NumberOFActiveAP 						+= 1
+		self.controllerWebEventReadON 						= int(self.pluginPrefs.get("controllerWebEventReadON","-1"))
  
 		#####  check switch parameters
-		self.NumberOFActiveSW =0
+		self.NumberOFActiveSW								= 0
 		for i in range(_GlobalConst_numberOfSW):
-			ip0 = self.pluginPrefs.get(u"ipSW" + unicode(i), "")
-			ac = self.pluginPrefs.get(u"ipSWON" + unicode(i), "")
-			deb	= self.pluginPrefs.get(u"debSW"+unicode(i), "")
-			if not self.isValidIP(ip0): ac = False
-			self.SWUP[ip0] = time.time()
-			self.ipNumbersOfSWs[i] = ip0
-			self.debugSWs[i] = deb
+			ip0												= self.pluginPrefs.get(u"ipSW" + unicode(i), "")
+			ac												= self.pluginPrefs.get(u"ipSWON" + unicode(i), "")
+			deb												= self.pluginPrefs.get(u"debSW"+unicode(i), "")
+			if not self.isValidIP(ip0): ac 					= False
+			self.SWUP[ip0] 									= time.time()
+			self.ipNumbersOfSWs[i] 							= ip0
+			self.debugSWs[i] 								= deb
 			if ac:
-				self.SWsEnabled[i] = True
-				self.NumberOFActiveSW += 1
+				self.SWsEnabled[i] 							= True
+				self.NumberOFActiveSW 						+= 1
 
 		#####  check UGA parameters
-		ip0 = self.pluginPrefs.get(u"ipUGA",  "")
-		ac	= self.pluginPrefs.get(u"ipUGAON",False)
-		self.debugGW = self.pluginPrefs.get(u"debGW",False)
+		ip0 												= self.pluginPrefs.get(u"ipUGA",  "")
+		ac													= self.pluginPrefs.get(u"ipUGAON",False)
+		self.debugGW 										= self.pluginPrefs.get(u"debGW",False)
 
 		if self.isValidIP(ip0) and ac:
-			self.ipnumberOfUGA = ip0
-			self.UGAEnabled = True
-			self.GWUP[ip0] = time.time()
+			self.ipnumberOfUGA 								= ip0
+			self.UGAEnabled 								= True
+			self.GWUP[ip0] 									= time.time()
 		else:
-			self.ipnumberOfUGA = ""
-			self.UGAEnabled = False
+			self.ipnumberOfUGA 								= ""
+			self.UGAEnabled									= False
 
 
-		#####  check UGA parameters
-		ip0 = self.pluginPrefs.get(u"ipUDM",  "")
-		ac	= self.pluginPrefs.get(u"ipUDMON",False)
-		self.debugUD = self.pluginPrefs.get(u"debUD",False)
-		self.ipnumberOfUDM = ip0
+		#####  check UDM parameters
+		ip0 												= self.pluginPrefs.get(u"ipUDM",  "")
+		ac													= self.pluginPrefs.get(u"ipUDMON",False)
+		self.debugUD 										= self.pluginPrefs.get(u"debUD",False)
+		self.ipnumberOfUDM 									= ip0
+		self.UDUP									 		= time.time()
 
 		if self.isValidIP(ip0) and ac:
-			self.UDMEnabled = True
-			self.UDUP[ip0] = time.time()
+			self.UDMEnabled 								= True
+			self.ipNumbersOfSWs[self.swNumberForUDMconfig]	= ip0
+			self.ipNumbersOfAPs[self.apNumberForUDMconfig]	= ip0
+			self.ipnumberOfUGA 							  	= ip0
+			self.SWsEnabled[self.swNumberForUDMconfig] 		= True
+			self.APsEnabled[self.swNumberForUDMconfig] 		= True
+			self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
+			self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
 		else:
 			self.UDMEnabled = False
 
 
 
 		#####  check video parameters
-		self.nvrUNIXUserID				= self.pluginPrefs.get(u"nvrUNIXUserID", "")
-		self.nvrUNIXPassWd				= self.pluginPrefs.get(u"nvrUNIXPassWd", "")
-		self.nvrWebUserID				= self.pluginPrefs.get(u"nvrWebUserID", "")
-		self.nvrWebPassWd				= self.pluginPrefs.get(u"nvrWebPassWd", "")
-		enableVideoSwitch				= self.pluginPrefs.get(u"enableVideoSwitch", False)
+		self.nvrUNIXUserID									= self.pluginPrefs.get(u"nvrUNIXUserID", "")
+		self.nvrUNIXPassWd									= self.pluginPrefs.get(u"nvrUNIXPassWd", "")
+		self.nvrWebUserID									= self.pluginPrefs.get(u"nvrWebUserID", "")
+		self.nvrWebPassWd									= self.pluginPrefs.get(u"nvrWebPassWd", "")
+		enableVideoSwitch									= self.pluginPrefs.get(u"enableVideoSwitch", False)
 
-		try:	self.unifiVIDEONumerOfEvents = int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
-		except: self.unifiVIDEONumerOfEvents = 1000
-		self.cameras						 = {}
-		self.saveCameraEventsStatus			 = False
+		try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
+		except: self.unifiVIDEONumerOfEvents				= 1000
+		self.cameras						 				= {}
+		self.saveCameraEventsStatus			 				= False
 
-		ip0 = self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
-		self.ipnumberOfNVR = ip0
-		self.VIDEOEnabled  = False
-		self.VIDEOUP	  = 0
+		ip0 												= self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
+		self.ipnumberOfNVR 									= ip0
+		self.VIDEOEnabled  									= False
+		self.VIDEOUP										= 0
 		if enableVideoSwitch:
 			if self.isValidIP(ip0) and self.nvrUNIXUserID != "" and self.nvrUNIXPassWd != "":
-				self.VIDEOEnabled = True
-				self.VIDEOUP	  = time.time()
+				self.VIDEOEnabled 							= True
+				self.VIDEOUP	 							= time.time()
 
-		self.lastCheckForNVR = 0
+		self.lastCheckForNVR 								= 0
 
 		self.getFolderId()
 
 		self.readSuspend()
 
-		self.stop = []
-		self.stopCTRLC = False
+		self.stop 											= []
+		self.stopCTRLC 										= False
 
 
 		for ll in range(len(self.ipNumbersOfAPs)):
@@ -493,10 +500,10 @@ class Plugin(indigo.PluginBase):
 		self.readMACdata()
 		self.checkDisplayStatus()
 
-		self.pluginStartTime = time.time()+150
+		self.pluginStartTime 								= time.time()+150
 
 
-		self.checkforUnifiSystemDevicesState = "start"
+		self.checkforUnifiSystemDevicesState 				= "start"
 
 		self.killIfRunning("", "")
 		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
@@ -6351,7 +6358,7 @@ class Plugin(indigo.PluginBase):
 										self.GWUP[ipNumber] = time.time()
 									elif  unifiDeviceType == "UD":
 										self.SWUP[ipNumber] = time.time()
-										self.UDUP[ipNumber] = time.time()
+										self.UDUP			= time.time()
 										self.GWUP[ipNumber] = time.time()
 									self.logQueueDict.put((theDict,ipNumber,apN,uType, unifiDeviceType))
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
