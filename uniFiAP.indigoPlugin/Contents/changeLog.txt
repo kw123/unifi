@@ -1,3 +1,9 @@
+changes in V 7.30.191  @ 2019-04-26
+==================  
+
+1.  fixed error in Line 989 has error=list assignment index out of range
+	for UDM settings in config
+
 changes in V 7.30.190  @ 2019-04-26
 ==================  
 

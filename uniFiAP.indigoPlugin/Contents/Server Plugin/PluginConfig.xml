@@ -303,6 +303,8 @@ directory</Label>  </Field>
     <Field    id="ipON4" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-4 active:----------------</Label>  </Field>
     <Field    id="ip4"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>ipNumber of AP-4:</Label>  </Field>
     <Field    id="debAP4"  	type="checkbox"  defaultValue="false" 		visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>debug msg from this dev</Label>  </Field>
+    <Field id="ipAPON4Label" type="label" 								visibleBindingId="ipSWON12"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>This is used as AP device part of a UDM system</Label>  </Field>
 
 
 

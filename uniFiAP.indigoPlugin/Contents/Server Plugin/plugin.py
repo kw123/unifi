@@ -383,6 +383,7 @@ class Plugin(indigo.PluginBase):
 		self.readDictEverySeconds[u"AP"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 120) ))
 		self.readDictEverySeconds[u"GW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
 		self.readDictEverySeconds[u"SW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
+		self.readDictEverySeconds[u"UD"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 120) ))
 		self.devStateChangeList								= {}
 		self.APUP											= {}
 		self.SWUP											= {}
@@ -448,7 +449,7 @@ class Plugin(indigo.PluginBase):
 			self.ipNumbersOfAPs[self.apNumberForUDMconfig]	= ip0
 			self.ipnumberOfUGA 							  	= ip0
 			self.SWsEnabled[self.swNumberForUDMconfig] 		= True
-			self.APsEnabled[self.swNumberForUDMconfig] 		= True
+			self.APsEnabled[self.apNumberForUDMconfig] 		= True
 			self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
 			self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
 		else:
@@ -484,11 +485,12 @@ class Plugin(indigo.PluginBase):
 		self.readSuspend()
 
 		self.stop 											= []
-		self.stopCTRLC 										= False
 
 
 		for ll in range(len(self.ipNumbersOfAPs)):
 			self.killIfRunning(self.ipNumbersOfAPs[ll],u"")
+		for ll in range(len(self.ipNumbersOfSWs)):
+			self.killIfRunning(self.ipNumbersOfSWs[ll],u"")
 		self.killIfRunning(self.ipnumberOfUGA, "")
 
 
@@ -985,7 +987,7 @@ class Plugin(indigo.PluginBase):
 				self.ipNumbersOfAPs[self.apNumberForUDMconfig]	= ip0
 				self.ipnumberOfUGA 							  	= ip0
 				self.SWsEnabled[self.swNumberForUDMconfig] 		= True
-				self.APsEnabled[self.swNumberForUDMconfig] 		= True
+				self.APsEnabled[self.apNumberForUDMconfig] 		= True
 				self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
 				self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
 
@@ -4704,10 +4706,10 @@ class Plugin(indigo.PluginBase):
 
 
 
-		if self.UGAEnabled:
+		if self.UGAEnabled and not self.UDMEnabled:
 			self.indiLOG.log(20,u"..starting threads for GW (MSG-log and db-DICT)")
 			self.broadcastIP = self.ipnumberOfUGA
-			if self.commandOnServer["GWtail"].find("off") ==-1: 
+			if self.commandOnServer["GWtail"].find("off") == -1: 
 				self.trGWLog  = threading.Thread(name=u'getMessages-UGA-log', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
 				self.trGWLog.start()
 				self.sleep(1)
@@ -4716,13 +4718,13 @@ class Plugin(indigo.PluginBase):
 
 
 		### for UDM devices..
-		#1.   
+		#1. get mca dump dict   
 		if self.UDMEnabled:
-			self.indiLOG.log(20,u"..starting threads for UDM  (MSG-log and db-DICT)")
+			self.indiLOG.log(20,u"..starting threads for UDM  (db-DICT)")
 			self.broadcastIP = self.ipnumberOfUDM
 			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"UDdict",float(self.readDictEverySeconds[u"UD"])*2,))
 			self.trUDDict.start()
-		# 2.  this works runs every xx secs 
+		# 2.  this  runs every xx secs  http get data 
 		try:
 			self.trWebEventlog  = ""
 			if self.controllerWebEventReadON > 0:
@@ -6550,24 +6552,29 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getUidPasswd(self, uType, ipNumber):
 
-		if uType.find("VD") > -1:
-			userid = self.nvrUNIXUserID
-			passwd = self.nvrUNIXPassWd
+		try:
+			if uType.find("VD") > -1:
+				userid = self.nvrUNIXUserID
+				passwd = self.nvrUNIXPassWd
 
-		else:
-			if self.unifiControllerType.find("UDM") >-1 and (
-				( uType.find("AP") > -1 and ipNumber == self.ipNumbersOfAPs[self.apNumberForUDMconfig]) or
-				( uType.find("SW") > -1 and ipNumber == self.ipNumbersOfSWs[self.swNumberForUDMconfig]) or
-				( uType.find("GW") > -1 ) ):
-				userid = self.unifiUserIDUDM
-				passwd = self.unifiPassWdUDM
-			else:	
-				userid = self.unifiUserID
-				passwd = self.unifiPassWd
+			else:
+				if self.unifiControllerType.find("UDM") >-1 and (
+					( uType.find("AP") > -1 and ipNumber == self.ipNumbersOfAPs[self.apNumberForUDMconfig]) or
+					( uType.find("SW") > -1 and ipNumber == self.ipNumbersOfSWs[self.swNumberForUDMconfig]) or
+					( uType.find("GW") > -1 ) ):
+					userid = self.unifiUserIDUDM
+					passwd = self.unifiPassWdUDM
+				else:	
+					userid = self.unifiUserID
+					passwd = self.unifiPassWd
 
-		if userid == "":
-			self.indiLOG.log(20,"Connection: {} login disabled, userid is empty".format(Type) )
-		return userid, passwd
+			if userid == "":
+				self.indiLOG.log(20,"Connection: {} login disabled, userid is empty".format(uType) )
+			return userid, passwd
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				self.indiLOG.log(40,"setAccessToLog in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return "",""
 
 
 
@@ -7305,7 +7312,7 @@ class Plugin(indigo.PluginBase):
 
 			if unifiDeviceType == "UD":
 				doSW 	 = True
-				doGW 	 = False
+				doGW 	 = True
 
 			if unifiDeviceType =="GW" or doGW:
 				### gateway
