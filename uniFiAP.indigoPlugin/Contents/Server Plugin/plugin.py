@@ -3134,7 +3134,7 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrint5MinutesInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 43200000 # 86400000/2 = 1/2 day
-		data = self.(executeCMDOnController)(data={"attrs": ["bytes", "num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/5minutes.ap", jsonAction="returnData", cmdType="get)
+		data = self.executeCMDOnController(data={"attrs": ["bytes", "num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/5minutes.ap", jsonAction="returnData", cmdType="get")
 
 		out ="== 5 minutes AP stst report =="+"\n"
 		out+= "##".ljust(4)
@@ -3173,21 +3173,21 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrint48HourInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 2*86400000
-		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/hourly.site", jsonAction="returnData", cmdType="get)
+		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/hourly.site", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport2(data,"== 48 HOUR report ==")
 
 	####-----------------	 ---------
 	def buttonConfirmPrint7DayInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 7*86400000
-		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/daily.site", jsonAction="returnData", cmdType="get)
+		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/daily.site", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport2(data,"== 7 DAY report ==")
 
 
 
 	####-----------------	 ---------
 	def buttonConfirmPrintWlanConfInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		data = self.executeCMDOnController(data={}, pageString="list/wlanconf", jsonAction="returnData", cmdType="get)
+		data = self.executeCMDOnController(data={}, pageString="list/wlanconf", jsonAction="returnData", cmdType="get")
 		out ="==WLan Report =="+"\n"
 		out+=" ".ljust(4+20+6+20)+"bc_filter...".ljust(6+15) +"dtim .......".ljust(8+3+3)+"MAC_filter ........".ljust(6+20+8)+" ".ljust(15+8)+"wpa......".ljust(6+6)+"\n"
 		out+= "##".ljust(4)
