@@ -1,7 +1,12 @@
+changes in V 7.30.193  @ 2019-04-29
+==================  
+
+1.  fixed error message for UGM 
+
 changes in V 7.30.192  @ 2019-04-29
 ==================  
 
-1.  chenged -PUT to -GET for several http commands to support UDM
+1.  changed -PUT to -GET for several http commands to support UDM
 
 
 changes in V 7.30.191  @ 2019-04-26
