@@ -1,19 +1,28 @@
 <?xml version="1.0"?>
 <PluginConfig>
 
-    <Field id="infoLabel1" type="label"> <Label>Ubiquity  UniFi AP-Switch-Gateway plugin  Developed by Karl Wachs</Label>  </Field>
+    <Field id="infoLabel1" 				type="label"> 
+		<Label>Ubiquity  UniFi AP-Switch-Gateway plugin  Developed by Karl Wachs</Label>  
+	</Field>
 
-    <Field id="simpleSeparator22" type="separator"/>
-    <Field id="infoLabel22" type="label"> <Label>== General Parameters for Plugin </Label>  </Field>
-    <Field id="infoLabel23" type="label"> <Label>.   userids and passwords are used with quotes: 'userid' when calling external programs</Label>  </Field>
-    <Field id="infoLabel24" type="label"> <Label>  </Label>  </Field>
+    <Field id="simpleSeparator22" 		type="separator"/>
 
-    <Field    id="updateDescriptions"   type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
+    <Field id="infoLabel22" 			type="label"> 
+		<Label>== General Parameters for Plugin </Label>  
+	</Field>
+
+    <Field id="infoLabel23" 			type="label"> 
+		<Label>.   userids and passwords are used with quotes: 'userid' when calling external programs</Label>  
+	</Field>
+
+    <Field id="infoLabel24" 			type="label"> <Label>  </Label>  </Field>
+
+    <Field    id="updateDescriptions"  	type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
         <Label>update notes/description field (every time data received)</Label>
     </Field>
 
 
-    <Field    id="expirationTime"   type="menu" defaultValue="120" tooltip="this is the general parameter can be overwritten for each device individually">
+    <Field    id="expirationTime"   		type="menu" defaultValue="120" tooltip="this is the general parameter can be overwritten for each device individually">
         <Label>UP to DOWN if no message after:</Label>
         <List>
             <Option value="10"   >10 seconds (for testing only)</Option>
@@ -32,9 +41,12 @@
             <Option value="600"  >10 minutes</Option>
          </List>
     </Field>
-    <Field    id="fixExpirationTime" type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the device expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
-     <Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  </Field>
-   <Field    id="expTimeMultiplier"   type="menu" defaultValue="2" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
+
+    <Field    id="fixExpirationTime" 		type="checkbox"  defaultValue="true"       tooltip="when read time of eg switch dict is larger than the device expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
+    	<Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  
+	</Field>
+ 
+  <Field    id="expTimeMultiplier"   		type="menu" defaultValue="2" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
         <Label>Status goes from DOWN 2 EXP after x times UP 2 DOWN time:</Label>
         <List>
             <Option value="1.5" > 1.5</Option>
@@ -49,12 +61,19 @@
         </List>
    </Field>
 
-    <Field    id="ignoreNewClients"    type="checkbox"  defaultValue="false"    > <Label>Ignore NEW clients:</Label>   </Field>
+    <Field    id="ignoreNewClients"    		type="checkbox"  defaultValue="false"    > 
+		<Label>Ignore NEW clients:</Label>   
+	</Field>
 
-    <Field    id="ignoreNewNeighbors"    type="checkbox"  defaultValue="false"    > <Label>Ignore NEW neighbor wifi router devices:</Label>   </Field>
-    <Field    id="ignoreNeighborForFing" type="checkbox"  defaultValue="true"     > <Label>Ignore neighbor changes for FINGscan:</Label>   </Field>
+    <Field    id="ignoreNewNeighbors"    	type="checkbox"  defaultValue="false"    > 
+		<Label>Ignore NEW neighbor wifi router devices:</Label>   
+	</Field>
 
-    <Field    id="enableBroadCastEvents" type="menu"  defaultValue="false" tooltip="if enabled any change of status of a up/down devices will send indigo broadcast  to read the status and use it to determine home or away events">
+    <Field    id="ignoreNeighborForFing" 	type="checkbox"  defaultValue="true"     > 
+		<Label>Ignore neighbor changes for FINGscan:</Label>   
+	</Field>
+
+    <Field    id="enableBroadCastEvents" 	type="menu"  defaultValue="false" tooltip="if enabled any change of status of a up/down devices will send indigo broadcast  to read the status and use it to determine home or away events">
         <List>
             <Option value="0"          >disable</Option>
             <Option value="all"        >ENABLE ALL:   for all devices that have an up/ down status</Option>
@@ -64,10 +83,11 @@
     </Field>
 
 
-    <Field    id="enableFINGSCAN" type="checkbox"  defaultValue="false" tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
-        <Label>Trigger FINGSCAN:</Label></Field>
+    <Field    id="enableFINGSCAN" 			type="checkbox"  defaultValue="false" tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
+        <Label>Trigger FINGSCAN:</Label>
+	</Field>
 
-    <Field    id="loopSleep"   type="menu" defaultValue="8" tooltip="how long should the plugin pause in each loop">
+    <Field    id="loopSleep"   				type="menu" defaultValue="8" tooltip="how long should the plugin pause in each loop">
         <Label>sleep parameter in loop:</Label>
         <List>
             <Option value="0.5"  >1/2 second for testing</Option>
@@ -78,7 +98,8 @@
             <Option value="15"   >15 seconds</Option>
         </List>
     </Field>
-    <Field    id="timeoutDICT"   type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
+
+    <Field    id="timeoutDICT"   			type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
         <Label>timeout for expect DICT:</Label>
         <List>
             <Option value="5"     >5 seconds </Option>
@@ -94,7 +115,7 @@
         </List>
     </Field>
 
-    <Field    id="restartIfNoMessageSeconds"   type="menu" defaultValue="180" tooltip="if no message for xx time,  the  message tracking /  db dump   commands will be re-issued">
+    <Field    id="restartIfNoMessageSeconds"	type="menu" defaultValue="180" tooltip="if no message for xx time,  the  message tracking /  db dump   commands will be re-issued">
         <Label>restart connection to Unifi Device if no message for:</Label>
         <List>
             <Option value="20"    >20 seconds (for testing only)</Option>
@@ -109,7 +130,7 @@
         </List>
     </Field>
 
-    <Field defaultValue="21" id="enableMACtoVENDORlookup" type="menu" alignText="right">
+    <Field  id="enableMACtoVENDORlookup" 	type="menu" defaultValue="21"  alignText="right">
                 <List>
                 <Option value="0"  >disable </Option>
                 <Option value="7"  >enable, refresh every  7 days </Option>
@@ -121,7 +142,7 @@
     </Field>
 
 
-    <Field    id="unfiCurl"              type="menu" defaultValue="/usr/bin/curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+    <Field    id="unfiCurl"              	type="menu" defaultValue="/usr/bin/curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
     <Label>Use curl or python-requests for web page access:</Label> 
         <List>
             <Option value="/usr/bin/curl"			>/usr/bin/curl  (std install)</Option>
@@ -131,73 +152,128 @@
     </Field>
 
 
-    <Field id="simpleSeparatorFN" type="separator"/>
-    <Field id="infoLabelNames" type="label"> <Label>== Names for Folders (they can all be the same)</Label>  </Field>
+    <Field id="simpleSeparatorFN" 			type="separator"/>
 
-    <Field    id="folderNameCreated"       type="textfield"  defaultValue="UNIFI_created"      > <Label> .. new clients (regular devices):</Label>  </Field>
-    <Field    id="folderNameSystem"        type="textfield"  defaultValue="UNIFI_system"       > <Label> .. new system devices (AP,SW,GW):</Label>  </Field>
-    <Field    id="folderNameNeighbors"     type="textfield"  defaultValue="UNIFI_neighbors"    > <Label> .. new neighbors:</Label>  </Field>
+    <Field id="infoLabelNames" 				type="label"> 
+		<Label>== Names for Folders (they can all be the same)</Label>  
+	</Field>
+
+    <Field id="folderNameCreated"       	type="textfield"  defaultValue="UNIFI_created"      > 
+		<Label> .. new clients (regular devices):</Label>  
+	</Field>
+
+    <Field id="folderNameSystem"        	type="textfield"  defaultValue="UNIFI_system"       > 
+		<Label> .. new system devices (AP,SW,GW):</Label>  
+	</Field>
+
+    <Field id="folderNameNeighbors"     	type="textfield"  defaultValue="UNIFI_neighbors"    > 
+		<Label> .. new neighbors:</Label>  
+	</Field>
+
+    <Field id="simpleSeparatorUIDs" 			type="separator"/>
+    <Field id="infoLabelUID" 				type="label"> 
+		<Label>== user IDs for systems (leave empty if not used), try to avoid ' and " in your passwords </Label>  
+	</Field>
+  <Field    id="unifiCONTROLLERUserID"   	type="textfield" defaultValue="" >
+        <Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
+    </Field>
+
+    <Field    id="unifiCONTROLLERPassWd"   	type="textfield" 	defaultValue="" >
+        <Label>...  password:</Label>
+    </Field>
+
+    <Field    id="useStrictToLogin"       	type="checkbox"  	defaultValue="false"  > 
+		<Label>... Use strict:true option for login to CONTROLLER webpage</Label>
+	 </Field>
+
+    <Field id="infoLabelstrict" 			type="label" 			visibleBindingId="unifiCloudKeyMode"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>This option might be needed for UDM non pro depending on config/setup/version</Label>  
+	</Field>
 
 
-    <Field id="simpleSeparatorCO" type="separator"/>
+    <Field    id="unifiUserID"   			type="textfield" defaultValue="" >
+        <Label>2. .............................. ssh unix UserID of AP,SW,GW - not UDM:</Label>
+    </Field>
 
-    <Field id="infoLabel217" type="label"> <Label>== Controller info (for controller commands):
-            if Controller ip number is set, it will automatically detect new unifi system devices 
+    <Field    id="unifiPassWd"   			type="textfield" defaultValue="" >
+        <Label>..  password:</Label>
+    </Field>
+
+
+    <Field    id="unifiUserIDUDM"   		type="textfield" defaultValue="" >
+        <Label>3. ............................................................. ssh unix UDM UserID:</Label>
+    </Field>
+
+    <Field    id="unifiPassWdUDM"   		type="textfield" defaultValue="" >
+        <Label>..  password:</Label>
+    </Field>
+
+    <Field id="simpleSeparatorCO" 			type="separator"/>
+
+    <Field id="infoLabel217" 				type="label"> 
+		<Label>== Controller info (for controller commands):
+            when Controller ip number is set, it will automatically detect new unifi system devices 
             and will populate sw ap gw settings automatically
-            In most cases both (unifi system and controller) userids and passwords are set to be the same.
-            == Try to avoid ' and " in your passwords ==</Label>  </Field>
+</Label>  
+	</Field>
 
-    <Field    id="unifiCloudKeyMode"       type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
+    <Field    id="unifiCloudKeyMode"  		type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
         <List>
-            <Option value="ON"             >ON </Option>
+            <Option value="ON"             >ON (needed for UDM-xx)</Option>
             <Option value="off"            >off</Option>
             <Option value="ONreportsOnly"  >ON, reports Only</Option>
         </List>
     </Field>
  
-    <Field    id="unifiControllerType"       type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+    <Field    id="unifiControllerType"  	type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
 		<Label>.. controller Type:</Label> 
         <List>
-            <Option value="std"   	>std  USG / UGA </Option>
-            <Option value="UDM"     >UDM     use switch #12 and AP#4</Option>
-            <Option value="UDMPro"  >UDM-pro use switch #12 and AP#4</Option>
+            <Option value="std"   	>unifi controller mac, rpi, cloud key </Option>
+            <Option value="UDM"     >UDM     will use switch #12 and AP#4</Option>
+            <Option value="UDMPro"  >UDM-pro will use switch #12 and AP#4</Option>
         </List>
     </Field>
 
 
 
-   <Field    id="unifiCONTROLLERUserID"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
-        <Label>... UserID for UniFi CONTROLLER/UDM (http:..):</Label>
+ 
+    <Field    id="unifiCloudKeyIP"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+		<Label>..ipNumber of controller</Label>  
+	</Field>
+
+    <Field    id="unifiCloudKeyPort"     	type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+		<Label>..port number of controller:</Label>  
+	</Field>
+
+    <Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+		<Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  
+	</Field>
+
+    <Field    id="unifiApiWebPage"       	type="textfield"	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+		<Label>.. http: Api Web Page:</Label> 
     </Field>
 
-    <Field    id="unifiCONTROLLERPassWd"   type="textfield" defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly">
-        <Label>...password for UniFi CONTROLLER/UDM (http:..):</Label>
-    </Field>
-    <Field    id="useStrictToLogin"       type="checkbox"  defaultValue="false"   visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" > 
-	<Label>... Use strict:true option for login to controller webpage</Label>  </Field>
-    <Field id="infoLabelstrict" type="label" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-	<Label>This option might be needed for UDM non pro depending on config/setup/version</Label>  </Field>
+    <Field    id="apiwebpage1"   			type="textfield" 	defaultValue="/api/s/"                visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+		<Label>options:</Label> 
+	</Field>
 
+    <Field    id="apiwebpage2"   			type="textfield" 	defaultValue="/proxy/network/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+		<Label>options:</Label>  
+	</Field>
 
-    <Field    id="unifiCloudKeyIP"       type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>ipNumber of controller</Label>  </Field>
-    <Field    id="unifiCloudKeyPort"     type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..port number of controller:</Label>  </Field>
-    <Field    id="unifiCloudKeySiteName" type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> <Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  </Field>
-    <Field    id="unifiApiWebPage"       type="menu"  		defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
-		<Label>.. unifi Api Web Page:</Label> 
-        <List>
-            <Option value="/api/s/"   	           >/api/s/ </Option>
-            <Option value="/proxy/network/api/s/"  >/proxy/network/api/s/ for UMD-PRO</Option>
-        </List>
+    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+		<Label>.. http: Api Login page:</Label> 
     </Field>
-    <Field    id="unifiApiLoginPath"       type="menu"  defaultValue="/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
-		<Label>.. unifi Api Login Path:</Label> 
-        <List>
-            <Option value="/api/login"   	 >/api/login </Option>
-            <Option value="/api/auth/login"  >/api/auth/login for UDM-PRO</Option>
-        </List>
-    </Field>
+ 
+   <Field    id="apiloginpage1"   			type="textfield" 	defaultValue="/api/login"            visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+		<Label>options:</Label>  
+	</Field>
 
-    <Field    id="unifigetBlockedClientsDeltaTime"       type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
+    <Field    id="apiloginpage2"  			type="textfield" 	defaultValue="/api/auth/login"      visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+		<Label>options:</Label>  
+	</Field>
+
+    <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
 		<Label>.. get all (un)blocked client info from Controller:</Label> 
         <List>
             <Option value="999999999" >off</Option>
@@ -211,44 +287,105 @@
         </List>
     </Field>
 
-    <Field id="simpleSeparator215" type="separator"/>
-    <Field id="infoLabel215" type="label"> <Label>== Changes in the following section will restart the plugin:</Label>  </Field>
 
 
-    <Field    id="unifiUserIDUDM"   type="textfield" defaultValue="" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro">
-        <Label>UDM UserID (for ssh to device):</Label>
+    <Field id="unifiControllerBackupON" 	type="checkbox"  defaultValue="true"   > 
+      <Label>Backup of controller files - once a day ...............................:</Label>  
+	</Field>
+
+    <Field    id="ControllerBackupPath" 	type="textfield"  defaultValue="/usr/lib/unifi/data/backup/autobackup"  	  visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
+        <Label>Path to backup files on controller:</Label>
     </Field>
 
-    <Field    id="unifiPassWdUDM"   type="textfield" defaultValue="" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro">
-        <Label>UDM password (for ssh to device):</Label>
+    <Field id="infoLabelbackup1"  			type="textfield" defaultValue="/usr/lib/unifi/data/backup/autobackup"           readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>.. on UDM:</Label>  
+	</Field>
+
+    <Field id="infoLabelbackup2"  			type="textfield" defaultValue="/data/unifi/data/backup/autobackup"               readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+		<Label>..couldKey:</Label>  
+	</Field>
+
+    <Field id="infoLabelbackup3" 			type="textfield" defaultValue="/Preferences/Plugins/com.karlwachs.uniFiAP/backup"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+		<Label>..destination of backupfiles:</Label>  
+	</Field>
+
+
+
+
+    <Field id="simpleSeparator215" 			type="separator"/>
+
+
+
+
+    <Field    id="ipUDMON" 					type="checkbox"  defaultValue="false"      > <Label>UDM active:...............................................................</Label>  </Field>
+   <Field     id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="yes"> 
+		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
+	</Field>
+
+    <Field    id="readDictEverySecondsUD"   type="menu" defaultValue="60" visibleBindingId="ipUDMON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
+        <Label>...read UDM database dump every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds for testing</Option>
+            <Option value="10"    >10 seconds for testing</Option>
+            <Option value="20"    >20 seconds for testing</Option>
+            <Option value="30"    >30 seconds  for testing</Option>
+            <Option value="40"    >40 seconds </Option>
+            <Option value="60"    >1  minutes, default</Option>
+            <Option value="90"    >90 seconds</Option>
+            <Option value="120"   >2  minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="ipUDM"   					type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUDMON" visibleBindingValue="true"> 
+		<Label>ipNumber of your UDM:</Label>  
+	</Field>
+
+    <Field    id="UDtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
+		<Label>.. UDM tail command:</Label>  
+		<List>
+            <Option value="off"      > off </Option>
+            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
+            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
+		</List>
+    </Field>
+
+    <Field    id="UDdictCommand" 			type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
+    	<Label>.. UDM dict command(empty = off):</Label>  
+        <List>
+            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
+        </List>
+    </Field>
+
+    <Field    id="udPrompt"   				type="menu" defaultValue="#" visibleBindingId="ipUDMON" visibleBindingValue="true">
+        <Label>...prompt (unix) when logging in:</Label>
+        <List>
+            <Option value="#"      >#</Option>
+        </List>
+    </Field>
+    <Field    id="debUD"  					type="checkbox"  defaultValue="false" 		visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
+		<Label>debug msg from this dev</Label>  
+	</Field>
+
+    <Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipUDMON" visibleBindingValue="true" > 
+        <Label>...read UDM controller web page event log for tracking wifi devices every:</Label>
+        <List>
+            <Option value="5"     > 5 seconds for testing</Option>
+            <Option value="10"    >10 seconds </Option>
+            <Option value="20"    >20 seconds</Option>
+            <Option value="30"    >30 seconds</Option>
+            <Option value="40"    >40 seconds</Option>
+            <Option value="60"    >1  minute</Option>
+            <Option value="-1"    >off</Option>
+        </List>
     </Field>
 
 
-    <Field    id="unifiUserID"   type="textfield" defaultValue="" >
-        <Label>UserID of UniFi system devices(for ssh to device):</Label>
-    </Field>
 
-    <Field    id="unifiPassWd"   type="textfield" defaultValue="" >
-        <Label>password of UniFi system devices(for ssh to device):</Label>
-    </Field>
+    <Field id="apON" 						type="checkbox"  defaultValue="true"   > 
+		<Label>Show AP section........................................................:</Label>  
+	</Field>
 
-
-    <Field id="unifiControllerBackupON" type="checkbox"  defaultValue="true"   > 
-<Label>Backup of controller files - once a day ...............................:</Label>  </Field>
-    <Field    id="ControllerBackupPath"   type="textfield" defaultValue="/usr/lib/unifi/data/backup/autobackup" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
-        <Label>path to backup files on controller:</Label>
-    </Field>
-    <Field id="infoLabelbackup" type="label" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-	<Label>couldKey: /usr/lib/unifi/data/backup/autobackup
-UDM: /data/unifi/data/backup/autobackup
-all files will be copied to 
-  ... /Preferences/Plugins/com.karlwachs.uniFiAP/backup 
-directory</Label>  </Field>
-
-
-    <Field id="apON" type="checkbox"  defaultValue="true"   > 
-<Label>Show AP section........................................................:</Label>  </Field>
-    <Field id="readDictEverySecondsAP"   type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
+    <Field id="readDictEverySecondsAP"   	type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read database dump of APs every:</Label>
         <List>
             <Option value="5"     > 5 seconds for testing</Option>
@@ -262,7 +399,7 @@ directory</Label>  </Field>
         </List>
     </Field>
 
-    <Field    id="APtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
+    <Field    id="APtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
     <Label>.. AP tail command:</Label>  
         <List>
             <Option value="off"      > off </Option>
@@ -270,13 +407,15 @@ directory</Label>  </Field>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
-    <Field    id="APdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
+
+    <Field    id="APdictCommand" 			type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
     <Label>.. AP dict command:</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
-    <Field    id="apPrompt"   type="menu" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
+
+    <Field    id="apPrompt"   				type="menu" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
         <Label>...prompt when logging in(unix prompt):</Label>
         <List>
             <Option value="BZ.v"      >BZ.v</Option>
@@ -304,11 +443,15 @@ directory</Label>  </Field>
     <Field    id="ip4"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>ipNumber of AP-4:</Label>  </Field>
     <Field    id="debAP4"  	type="checkbox"  defaultValue="false" 		visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>debug msg from this dev</Label>  </Field>
     <Field id="ipAPON4Label" type="label" 								visibleBindingId="ipSWON12"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-	<Label>This is used as AP device part of a UDM system</Label>  </Field>
+		<Label>This is used as AP device part of a UDM system</Label>  
+	</Field>
 
 
 
-    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > <Label>USG/A active:...............................................................</Label>  </Field>
+    <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > 
+		<Label>USG/A active:...............................................................</Label>  
+	</Field>
+
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read UGA database dump every:</Label>
         <List>
@@ -323,7 +466,10 @@ directory</Label>  </Field>
         </List>
     </Field>
 
-    <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> <Label>ipNumber of your USG:</Label>  </Field>
+    <Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> 
+		<Label>ipNumber of your USG:</Label>  
+	</Field>
+
     <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
     <Label>.. GW tail command:</Label>  
         <List>
@@ -332,75 +478,25 @@ directory</Label>  </Field>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
     </Field>
+
     <Field    id="GWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
     <Label>.. GW dict command(empty = off):</Label>  
         <List>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
+
     <Field    id="gwPrompt"   type="menu" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
         <Label>...prompt (unix) when logging in:</Label>
         <List>
             <Option value=":~"      >:~</Option>
         </List>
     </Field>
-    <Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> <Label>debug msg from this dev</Label>  </Field>
 
+    <Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+		<Label>debug msg from this dev</Label>  
+	</Field>
 
-
-
-
-
-    <Field    id="ipUDMON" type="checkbox"  defaultValue="false"      > <Label>UDM active:...............................................................</Label>  </Field>
-    <Field    id="readDictEverySecondsUD"   type="menu" defaultValue="60" visibleBindingId="ipUDMON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-        <Label>...read UDM database dump every:</Label>
-        <List>
-            <Option value="5"     > 5 seconds for testing</Option>
-            <Option value="10"    >10 seconds for testing</Option>
-            <Option value="20"    >20 seconds for testing</Option>
-            <Option value="30"    >30 seconds  for testing</Option>
-            <Option value="40"    >40 seconds </Option>
-            <Option value="60"    >1  minutes, default</Option>
-            <Option value="90"    >90 seconds</Option>
-            <Option value="120"   >2  minutes</Option>
-        </List>
-    </Field>
-
-    <Field    id="ipUDM"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUDMON" visibleBindingValue="true"> <Label>ipNumber of your UDM:</Label>  </Field>
-    <Field    id="UDtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
-    <Label>.. UDM tail command:</Label>  
-        <List>
-            <Option value="off"      > off </Option>
-            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
-            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
-        </List>
-    </Field>
-    <Field    id="UDdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
-    <Label>.. UDM dict command(empty = off):</Label>  
-        <List>
-            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
-        </List>
-    </Field>
-    <Field    id="udPrompt"   type="menu" defaultValue="#" visibleBindingId="ipUDMON" visibleBindingValue="true">
-        <Label>...prompt (unix) when logging in:</Label>
-        <List>
-            <Option value="#"      >#</Option>
-        </List>
-    </Field>
-    <Field    id="debUD"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUDMON" 	visibleBindingValue="true"> <Label>debug msg from this dev</Label>  </Field>
-
-    <Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipUDMON" visibleBindingValue="true" > 
-        <Label>...read UDM controller web page event log for tracking wifi devices every:</Label>
-        <List>
-            <Option value="5"     > 5 seconds for testing</Option>
-            <Option value="10"    >10 seconds </Option>
-            <Option value="20"    >20 seconds</Option>
-            <Option value="30"    >30 seconds</Option>
-            <Option value="40"    >40 seconds</Option>
-            <Option value="60"    >1  minute</Option>
-            <Option value="-1"    >off</Option>
-        </List>
-    </Field>
 
 
 
@@ -429,7 +525,6 @@ directory</Label>  </Field>
     <Label>.. SW tail command:</Label>  
         <List>
             <Option value="off"      > off </Option>
-            <Option value="/usr/bin/testxx -F /var/log/messages"      > test </Option>
             <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
             <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
         </List>
@@ -493,6 +588,7 @@ directory</Label>  </Field>
 
 
 
+    <Field id="simpleSeparatorvideo0" 			type="separator"/>
     <Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section............................................................:</Label>  </Field>
     <Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR:</Label>  </Field>
     <Field id="enableVideoSwitch" type="checkbox"  defaultValue="false"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>Enable / disable Video/ camera .............................................:</Label>  </Field>

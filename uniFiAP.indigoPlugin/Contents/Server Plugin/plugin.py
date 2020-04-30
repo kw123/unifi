@@ -82,7 +82,6 @@ class Plugin(indigo.PluginBase):
 		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
 
-
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
 						logging.DEBUG:       "%(asctime)s %(msg)s",
 						logging.INFO:        "%(asctime)s %(msg)s",
@@ -452,6 +451,12 @@ class Plugin(indigo.PluginBase):
 			self.APsEnabled[self.apNumberForUDMconfig] 		= True
 			self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
 			self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
+			self.pluginPrefs[u"ip"+str(self.apNumberForUDMconfig)] = ip0
+			self.pluginPrefs[u"ipSW"+str(self.swNumberForUDMconfig)] = ip0
+			self.pluginPrefs[u"ipON"] 						= True
+			self.pluginPrefs[u"ipSWON"] 					= True
+			ip0												= self.pluginPrefs.get(u"ipSW" + unicode(i), "")
+			ac												= self.pluginPrefs.get(u"ipSWON" + unicode(i), "")
 		else:
 			self.UDMEnabled = False
 
@@ -983,14 +988,22 @@ class Plugin(indigo.PluginBase):
 			self.ipnumberOfUDM 	= ip0
 			self.debugUD 		= valuesDict[u"debUD"]
 			if self.UDMEnabled:
-				self.ipNumbersOfSWs[self.swNumberForUDMconfig]	= ip0
-				self.ipNumbersOfAPs[self.apNumberForUDMconfig]	= ip0
-				self.ipnumberOfUGA 							  	= ip0
-				self.SWsEnabled[self.swNumberForUDMconfig] 		= True
-				self.APsEnabled[self.apNumberForUDMconfig] 		= True
-				self.NumberOFActiveSW 							= max(1,self.NumberOFActiveSW )
-				self.NumberOFActiveAP 							= max(1,self.NumberOFActiveAP )
+				self.ipNumbersOfSWs[self.swNumberForUDMconfig]		= ip0
+				valuesDict[u"ipsw"+str(self.swNumberForUDMconfig)]	= ip0
+				valuesDict[u"ipSWON"+str(self.swNumberForUDMconfig)]= True
+				self.SWsEnabled[self.swNumberForUDMconfig] 			= True
+				self.NumberOFActiveSW 								= max(1,self.NumberOFActiveSW )
 
+				self.ipnumberOfUGA 							  		= ip0
+				valuesDict[u"ipnumberOfUGA"]						= ip0
+				valuesDict[u"ipUGAON"]								= True
+
+				self.ipNumbersOfAPs[self.apNumberForUDMconfig]		= ip0
+				valuesDict[u"ip"+str(self.apNumberForUDMconfig)]	= ip0
+				valuesDict[u"ipON"+str(self.apNumberForUDMconfig)]	= True
+				valuesDict[u"ipnumberOfUGA"]						= ip0
+				self.APsEnabled[self.apNumberForUDMconfig] 			= True
+				self.NumberOFActiveAP 								= max(1,self.NumberOFActiveAP )
 
 
 			## video parameters
@@ -3031,7 +3044,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmPrintuserInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId="", cmdType="get"):
-		data = self.executeCMDOnController(data={}, pageString="/list/user/", jsonAction="returnData")
+		data = self.executeCMDOnController(data={}, pageString="/list/user/", jsonAction="returnData", cmdType=cmdType)
 		self.unifsystemReport3(data, "== USER report ==")
 
 ####   general reports
@@ -3111,7 +3124,7 @@ class Plugin(indigo.PluginBase):
 			ltype = "Skipping"
 			useLimit = 5*limit
 
-		data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData")
+		data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport1(data,False,"     ==EVENTs ..;  last "+str(limit)+" events ;     -- "+ltype+" login events ==",limit,PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
 		self.addToMenuXML(valuesDict)
 
@@ -6044,7 +6057,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					nrecRequest = int(self.controllerWebEventReadON *1.5)
 					lastRead = time.time()
-					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":nrecRequest}, pageString="/stat/event/", jsonAction="returnData")
+					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":nrecRequest}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
 					nrecs = len(data)
 					macs =[]
 					ii = 0
