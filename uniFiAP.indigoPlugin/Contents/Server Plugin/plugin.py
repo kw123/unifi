@@ -3691,7 +3691,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def checkForBlockedClients(self, force= False):
 		try:
-			if self.unifiCloudKeyMode.find("ON") == -1:																	   return
+			if self.unifiCloudKeyMode.find("ON") == -1 and not self.UDMEnabled:											   return
 			if time.time() - self.lastCheckForcheckForBlockedClients < self.unifigetBlockedClientsDeltaTime and not force: return
 			self.lastCheckForcheckForBlockedClients = time.time()
 			listOfBlockedClients={}
@@ -3937,7 +3937,7 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			if not self.isValidIP(self.unifiCloudKeyIP): return {}
-			if self.unifiCloudKeyMode.find("ON")   ==-1: return {}
+			if self.unifiCloudKeyMode.find("ON") and not self.UDMEnabled: return {}
 
 
 			if self.unfiCurl.find("curl") > -1:
@@ -5933,23 +5933,23 @@ class Plugin(indigo.PluginBase):
 					if not devFound:
 						try:
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name = "Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC ,
-								description="",
-								pluginId=self.pluginId,
-								deviceTypeId="camera",
-								props={"isCamera":True},
-								folder=self.folderNameIDSystemID
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name 			= "Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC ,
+								description		="",
+								pluginId		=self.pluginId,
+								deviceTypeId	="camera",
+								props			={"isCamera":True},
+								folder			=self.folderNameIDSystemID
 								)
 							indigo.variable.updateValue("Unifi_New_Device",dev.name+"/"+MAC+"/"+cam2["host"])
 						except	Exception, e:
 							if unicode(e).find("NameNotUniqueError") >-1:
-								dev = indigo.devices["Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC]
-								props = dev.pluginProps
-								props["isCamera"] = True
+								dev 				= indigo.devices["Camera_"+self.cameras[MAC]["nameOnNVR"]+"_"+MAC]
+								props 				= dev.pluginProps
+								props["isCamera"] 	= True
 								dev.replacePluginPropsOnServer()
-								dev = indigo.devices[dev.id]
+								dev 				= indigo.devices[dev.id]
 							else:
 								if len(unicode(e)) > 5:
 									self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6119,14 +6119,14 @@ class Plugin(indigo.PluginBase):
 		return 
 
 
+	####----------------- thsi is for UDM devices only	 ---------
 	def createAPdeviceIfNeeded(self, MAC, line, fromTo):
-		if MAC == "": return False
-		if MAC in self.MAC2INDIGO["AP"]:  
-			return True
+		if MAC == "": 									return False
+		if MAC in self.MAC2INDIGO["AP"]:				return True
+		if self.unifiControllerType.find("UDM") == -1: 	return False
 
-		self.indiLOG.log(40,"mac :{}  not in self.MAC2INDIGO[AP] ".format(MAC, self.MAC2INDIGO["AP"]))
+		self.indiLOG.log(40,"new UDM device, mac :{}  not in self.MAC2INDIGO[AP] ".format(MAC, self.MAC2INDIGO["AP"]))
 
-		if self.unifiControllerType.find("UDM") == -1: return False
 		hostname	= "-UDM-AP"
 		model		= "UDM-AP"
 		tx_power	= "-99"
@@ -6135,6 +6135,8 @@ class Plugin(indigo.PluginBase):
 		channel		= ""
 		radio 		= ""
 		nStations	= ""
+		devName		= "UDM-AP"
+		xType		= "AP"
 		if "radio"+fromTo in line: radio = line["radio"+fromTo]
 		if "essid"+fromTo in line: essid = line["ssid"+fromTo]
 		if "channel"+fromTo in line: 
@@ -6144,14 +6146,14 @@ class Plugin(indigo.PluginBase):
 		try:
 			ipNDevice = self.ipNumbersOfAPs[self.apNumberForUDMconfig]
 			dev = indigo.device.create(
-				protocol=indigo.kProtocol.Plugin,
-				address=MAC,
-				name= "AP_" + MAC,
-				description=self.fixIP(ipNDevice) + hostname,
-				pluginId=self.pluginId,
-				deviceTypeId="Device-AP",
-				folder=self.folderNameIDCreated,
-				props={u"useWhatForStatus":"",isType:True})
+				protocol		= indigo.kProtocol.Plugin,
+				address 		= MAC,
+				name 			= devName+"_" + MAC,
+				description		= self.fixIP(ipNDevice) + hostname,
+				pluginId 		= self.pluginId,
+				deviceTypeId	= "Device-AP",
+				folder			= self.folderNameIDCreated,
+				props			= {u"useWhatForStatus":"",isType:True})
 			self.setupStructures("AP", dev, MAC)
 			self.setupBasicDeviceStates(dev, MAC, "AP", ipNDevice,"", "", u" status up            AP DICT  new AP", u"STATUS-AP")
 			self.addToStatesUpdateList(dev.id,u"essid_" + GHz, essid)
@@ -6770,14 +6772,14 @@ class Plugin(indigo.PluginBase):
 				if not devFound:
 					try:
 						dev = indigo.device.create(
-							protocol=indigo.kProtocol.Plugin,
-							address=MAC,
-							name = "Camera_"+cameraName+"_"+MAC ,
-							description="",
-							pluginId=self.pluginId,
-							deviceTypeId="camera",
-							props={"isCamera":True},
-							folder=self.folderNameIDCreated,
+							protocol		=indigo.kProtocol.Plugin,
+							address			=MAC,
+							name 			= "Camera_"+cameraName+"_"+MAC ,
+							description		="",
+							pluginId		=self.pluginId,
+							deviceTypeId	="camera",
+							props			={"isCamera":True},
+							folder			=self.folderNameIDCreated,
 							)
 						dev.updateStateOnServer("MAC", MAC)
 						dev.updateStateOnServer("eventNumber", -1)
@@ -6966,14 +6968,14 @@ class Plugin(indigo.PluginBase):
 				if new and not self.ignoreNewClients:
 					try:
 						dev = indigo.device.create(
-							protocol=indigo.kProtocol.Plugin,
-							address=MAC,
-							name=devName+"_" + MAC,
-							description=self.fixIP(ip),
-							pluginId=self.pluginId,
-							deviceTypeId=devType,
-							folder=self.folderNameIDCreated,
-							props={u"useWhatForStatus":"DHCP","useAgeforStatusDHCP":"-1",isType:True})
+							protocol		=indigo.kProtocol.Plugin,
+							address			=MAC,
+							name			=devName+"_" + MAC,
+							description		=self.fixIP(ip),
+							pluginId		=self.pluginId,
+							deviceTypeId	=devType,
+							folder			=self.folderNameIDCreated,
+							props			={u"useWhatForStatus":"DHCP","useAgeforStatusDHCP":"-1",isType:True})
 					except	Exception, e:
 						if len(unicode(e)) > 5:
 							self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -7226,14 +7228,14 @@ class Plugin(indigo.PluginBase):
 						try:
 
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName+"_" + MAC,
-								description="",
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameIDCreated,
-								props={u"useWhatForStatus":"WiFi","useWhatForStatusWiFi":"Expiration",isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName+"_" + MAC,
+								description		="",
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameIDCreated,
+								props			={u"useWhatForStatus":"WiFi","useWhatForStatusWiFi":"Expiration",isType:True})
 						except Exception, e:
 							if len(unicode(e)) > 5:
 								self.indiLOG.log(40,"in Line {} has error={}   trying to create: {}_{}".format(sys.exc_traceback.tb_lineno, e, devName,MAC) )
@@ -7721,14 +7723,14 @@ class Plugin(indigo.PluginBase):
 					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName+ "_" + MAC,
-								description=ipx + "-" + nameSW,
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameIDCreated,
-								props={u"useWhatForStatus":"SWITCH","useupTimeforStatusSWITCH":"",isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName+ "_" + MAC,
+								description		=ipx + "-" + nameSW,
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameIDCreated,
+								props			={u"useWhatForStatus":"SWITCH","useupTimeforStatusSWITCH":"",isType:True})
 
 						except	Exception, e:
 							if len(unicode(e)) > 5:
@@ -7889,14 +7891,14 @@ class Plugin(indigo.PluginBase):
 					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName + "_" + MAC,
-								description=self.fixIP(ip),
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameIDCreated,
-								props={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName + "_" + MAC,
+								description		=self.fixIP(ip),
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameIDCreated,
+								props			={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
 						except	Exception, e:
 							if len(unicode(e)) > 5:
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8056,14 +8058,14 @@ class Plugin(indigo.PluginBase):
 					if new and not self.ignoreNewClients:
 						try:
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName + "_" + MAC,
-								description=self.fixIP(ip),
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameIDCreated,
-								props={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName + "_" + MAC,
+								description		=self.fixIP(ip),
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameIDCreated,
+								props			={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
 						except	Exception, e:
 							if len(unicode(e)) > 5:
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8371,14 +8373,14 @@ class Plugin(indigo.PluginBase):
 				if new and not self.ignoreNewClients:
 					try:
 						dev = indigo.device.create(
-							protocol=indigo.kProtocol.Plugin,
-							address=MAC,
-							name=devName + u"_" + MAC,
-							description=ipx + u"-" + nameCl+"=Wifi",
-							pluginId=self.pluginId,
-							deviceTypeId=devType,
-							folder=self.folderNameIDCreated,
-							props={u"useWhatForStatus":u"WiFi", u"useWhatForStatusWiFi":u"Expiration",isType:True})
+							protocol		=indigo.kProtocol.Plugin,
+							address			=MAC,
+							name=			devName + u"_" + MAC,
+							description		=ipx + u"-" + nameCl+"=Wifi",
+							pluginId		=self.pluginId,
+							deviceTypeId	=devType,
+							folder			=self.folderNameIDCreated,
+							props			={u"useWhatForStatus":u"WiFi", u"useWhatForStatusWiFi":u"Expiration",isType:True})
 					except	Exception, e:
 						if len(unicode(e)) > 5:
 							self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8386,14 +8388,14 @@ class Plugin(indigo.PluginBase):
 							devName += u"_"+( unicode(time.time() - int(time.time())) ).split(".")[1] # create random name
 							self.indiLOG.log(30,u"trying again to create device with differnt name "+devName)
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName + u"_" + MAC,
-								description=ipx + u"-" + nameCl+"=Wifi",
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameIDCreated,
-								props={u"useWhatForStatus":u"WiFi", u"useWhatForStatusWiFi":u"Expiration",isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName + u"_" + MAC,
+								description		=ipx + u"-" + nameCl+"=Wifi",
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameIDCreated,
+								props			={u"useWhatForStatus":u"WiFi", u"useWhatForStatusWiFi":u"Expiration",isType:True})
 						except	Exception, e:
 							if len(unicode(e)) > 5:
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8506,14 +8508,14 @@ class Plugin(indigo.PluginBase):
 				if new:
 					try:
 						dev = indigo.device.create(
-							protocol=indigo.kProtocol.Plugin,
-							address=MAC,
-							name=devName + "_" + MAC,
-							description=self.fixIP(ipNDevice) + "-" + hostname,
-							pluginId=self.pluginId,
-							deviceTypeId=devType,
-							folder=self.folderNameIDCreated,
-							props={u"useWhatForStatus":"",isType:True})
+							protocol		=indigo.kProtocol.Plugin,
+							address			=MAC,
+							name			=devName + "_" + MAC,
+							description		=self.fixIP(ipNDevice) + "-" + hostname,
+							pluginId		=self.pluginId,
+							deviceTypeId	=devType,
+							folder			=self.folderNameIDCreated,
+							props			={u"useWhatForStatus":"",isType:True})
 						self.setupStructures(xType, dev, MAC)
 						self.setupBasicDeviceStates(dev, MAC, "AP", ipNDevice,"", "", u" status up            AP DICT  new AP", u"STATUS-AP")
 						self.addToStatesUpdateList(dev.id,u"essid_" + GHz, essid)
@@ -8775,14 +8777,14 @@ class Plugin(indigo.PluginBase):
 			if new:
 				try:
 					dev = indigo.device.create(
-						protocol = indigo.kProtocol.Plugin,
-						address = MAC,
-						name = devName+"_" + MAC,
-						description = self.fixIP(ipNDevice),
-						pluginId = self.pluginId,
-						deviceTypeId =devType,
-						folder = self.folderNameIDCreated,
-						props = {u"useWhatForStatus":"",isType:True})
+						protocol		= indigo.kProtocol.Plugin,
+						address 		= MAC,
+						name 			= devName+"_" + MAC,
+						description 	= self.fixIP(ipNDevice),
+						pluginId 		= self.pluginId,
+						deviceTypeId 	=devType,
+						folder 			= self.folderNameIDCreated,
+						props 			= {u"useWhatForStatus":"",isType:True})
 					self.setupStructures(xType, dev, MAC)
 					self.addToStatesUpdateList(dev.id,u"MAC",			MAC)
 					self.addToStatesUpdateList(dev.id,u"MAClan",		MAClan)
@@ -8917,14 +8919,14 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"new: neighbor  " +MAC)
 						try:
 							dev = indigo.device.create(
-								protocol=indigo.kProtocol.Plugin,
-								address=MAC,
-								name=devName + "_" + MAC,
-								description="Channel= " + channel.rjust(2).replace(" ", "0") + " - SID= " + essid,
-								pluginId=self.pluginId,
-								deviceTypeId=devType,
-								folder=self.folderNameNeighbors,
-								props={u"useWhatForStatus":"",isType:True})
+								protocol		=indigo.kProtocol.Plugin,
+								address			=MAC,
+								name			=devName + "_" + MAC,
+								description		="Channel= " + channel.rjust(2).replace(" ", "0") + " - SID= " + essid,
+								pluginId		=self.pluginId,
+								deviceTypeId	=devType,
+								folder			=self.folderNameNeighbors,
+								props			={u"useWhatForStatus":"",isType:True})
 						except	Exception, e:
 							if len(unicode(e)) > 5:
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -9182,14 +9184,14 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,"creatung new unifi switch device:{};  MAC:{};  IP#in dict:{}; ip# proc:{}; Model:{}; devType:{};  nports:{}".format(newName, MAC, ipNDevice, ipNumber, model, devType, nports) )
 				try:
 					dev = indigo.device.create(
-						protocol = indigo.kProtocol.Plugin,
-						address = MAC,
-						name = newName,
-						description = self.fixIP(useIP) + "-" + hostname,
-						pluginId = self.pluginId,
-						deviceTypeId = devType,
-						folder = self.folderNameIDCreated,
-						props = {u"useWhatForStatus":"",isType:True})
+						protocol 		= indigo.kProtocol.Plugin,
+						address 		= MAC,
+						name 			= newName,
+						description 	= self.fixIP(useIP) + "-" + hostname,
+						pluginId 		= self.pluginId,
+						deviceTypeId 	= devType,
+						folder 			= self.folderNameIDCreated,
+						props 			= {u"useWhatForStatus":"",isType:True})
 					self.setupStructures(xType, dev, MAC)
 					self.MAC2INDIGO[xType][MAC][u"upTime"] = uptime
 					self.addToStatesUpdateList(dev.id,u"model", model)

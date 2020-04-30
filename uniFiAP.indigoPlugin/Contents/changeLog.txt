@@ -1,3 +1,9 @@
+changes in V 7.30.196  @ 2019-04-29
+==================  
+
+1.  fixed device cretaion for UDM devcies
+2. controller ON not needed anymore for UDM active
+
 changes in V 7.30.195  @ 2019-04-29
 ==================  
 
