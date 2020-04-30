@@ -1,3 +1,8 @@
+changes in V 7.30.195  @ 2019-04-29
+==================  
+
+1.  fixed devName not defined 
+
 changes in V 7.30.194  @ 2019-04-29
 ==================  
 

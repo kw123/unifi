@@ -6146,7 +6146,7 @@ class Plugin(indigo.PluginBase):
 			dev = indigo.device.create(
 				protocol=indigo.kProtocol.Plugin,
 				address=MAC,
-				name=devName + "_" + MAC,
+				name= "AP_" + MAC,
 				description=self.fixIP(ipNDevice) + hostname,
 				pluginId=self.pluginId,
 				deviceTypeId="Device-AP",
