@@ -1,3 +1,8 @@
+changes in V 7.30.197  @ 2019-05-01
+==================  
+
+1.  fixed isType not defined
+
 changes in V 7.30.196  @ 2019-04-29
 ==================  
 

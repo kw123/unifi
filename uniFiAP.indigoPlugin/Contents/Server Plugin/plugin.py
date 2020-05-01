@@ -6125,7 +6125,7 @@ class Plugin(indigo.PluginBase):
 		if MAC in self.MAC2INDIGO["AP"]:				return True
 		if self.unifiControllerType.find("UDM") == -1: 	return False
 
-		self.indiLOG.log(40,"new UDM device, mac :{}  not in self.MAC2INDIGO[AP] ".format(MAC, self.MAC2INDIGO["AP"]))
+		self.indiLOG.log(30,"==> new UDM device to be created, mac :{}  not in self.MAC2INDIGO[AP]{} ".format(MAC, self.MAC2INDIGO["AP"]))
 
 		hostname	= "-UDM-AP"
 		model		= "UDM-AP"
@@ -6137,6 +6137,7 @@ class Plugin(indigo.PluginBase):
 		nStations	= ""
 		devName		= "UDM-AP"
 		xType		= "AP"
+		isType 		= "isAP"
 		if "radio"+fromTo in line: radio = line["radio"+fromTo]
 		if "essid"+fromTo in line: essid = line["ssid"+fromTo]
 		if "channel"+fromTo in line: 
