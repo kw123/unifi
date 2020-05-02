@@ -221,7 +221,7 @@
         <List>
             <Option value="ON"             >ON (needed for UDM-xx)</Option>
             <Option value="off"            >off</Option>
-            <Option value="ONreportsOnly"  >ON, reports Only</Option>
+            <Option value="UDM"            >UDM mode (included in ON)</Option>
         </List>
     </Field>
  
@@ -237,39 +237,42 @@
 
 
  
-    <Field    id="unifiCloudKeyIP"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+    <Field    id="unifiCloudKeyIP"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..ipNumber of controller</Label>  
 	</Field>
 
-    <Field    id="unifiCloudKeyPort"     	type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+    <Field    id="unifiCloudKeyPort"     	type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..port number of controller:</Label>  
 	</Field>
+   <Field id="unifiCloudKeyPort1"  			type="textfield" defaultValue="443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>for UDM-PRO:</Label>  
+	</Field>
 
-    <Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"> 
+    <Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  
 	</Field>
 
-    <Field    id="unifiApiWebPage"       	type="textfield"	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+    <Field    id="unifiApiWebPage"       	type="textfield"	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
 		<Label>.. http: Api Web Page:</Label> 
     </Field>
 
-    <Field    id="apiwebpage1"   			type="textfield" 	defaultValue="/api/s/"                visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+    <Field    id="apiwebpage1"   			type="textfield" 	defaultValue="/api/s/"                visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
 		<Label>options:</Label> 
 	</Field>
 
-    <Field    id="apiwebpage2"   			type="textfield" 	defaultValue="/proxy/network/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+    <Field    id="apiwebpage2"   			type="textfield" 	defaultValue="/proxy/network/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
 		<Label>options:</Label>  
 	</Field>
 
-    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
 		<Label>.. http: Api Login page:</Label> 
     </Field>
  
-   <Field    id="apiloginpage1"   			type="textfield" 	defaultValue="/api/login"            visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+   <Field    id="apiloginpage1"   			type="textfield" 	defaultValue="/api/login"            visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
 		<Label>options:</Label>  
 	</Field>
 
-    <Field    id="apiloginpage2"  			type="textfield" 	defaultValue="/api/auth/login"      visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly" readonly="yes"> 
+    <Field    id="apiloginpage2"  			type="textfield" 	defaultValue="/api/auth/login"      visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
 		<Label>options:</Label>  
 	</Field>
 

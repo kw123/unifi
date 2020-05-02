@@ -3937,7 +3937,7 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			if not self.isValidIP(self.unifiCloudKeyIP): return {}
-			if self.unifiCloudKeyMode.find("ON") and not self.UDMEnabled: return {}
+			if  self.unifiCloudKeyMode.find("ON") == -1 and self.unifiCloudKeyMode.find("UDM") == -1: return {}
 
 
 			if self.unfiCurl.find("curl") > -1:
@@ -4738,7 +4738,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			self.trWebEventlog  = ""
 			if self.controllerWebEventReadON > 0:
-				self.trWebEventlog = threading.Thread(name=u'controllerWeblog', target=self.controllerWeblog, args=(0, ))
+				self.trWebEventlog = threading.Thread(name=u'controllerWeblogForUDM', target=self.controllerWeblogForUDM, args=(0, ))
 				self.trWebEventlog.start()
 		except	Exception, e:
 			if len(unicode(e)) > 5:
@@ -6040,27 +6040,27 @@ class Plugin(indigo.PluginBase):
 
 
 
-	### here we do the work, setup the logfiles listening and read the logfiles and check if everything is running, if not restart
+	### here we do the work, setup the logfiles listening and read the logfiles and check if everything is running
+
+	### UDM log tracking
 	####-----------------	 ---------
-	def controllerWeblog(self, dummy):
+	def controllerWeblogForUDM(self, dummy):
 
 
-		nrecRequest = int(self.controllerWebEventReadON *1.5)
 		try:
 			lastRecord = {}
-			self.indiLOG.log(20,u"controllerWeblog: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
+			self.indiLOG.log(20,u"controllerWeblogForUDM: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
 			while self.pluginState != "stop":
 				time.sleep(0.5)
 				try:
-					nrecRequest = int(self.controllerWebEventReadON *1.5)
 					lastRead = time.time()
-					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":nrecRequest}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
+					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
 					nrecs = len(data)
 					macs =[]
 					ii = 0
 					for item in data:
 						ii += 1
-						#self.indiLOG.log(20,u"doing req#:{};  reqs:{}; nrecsReturned:{}".format(ii, nrecRequest, nrecs) )
+						#self.indiLOG.log(20,u"doing req#:{};  reqs:{}; nrecsReturned:{}".format(ii, int(self.controllerWebEventReadON *1.5), nrecs) )
 						#self.indiLOG.log(20,u"item:{}".format(item) )
 						if "key" not in item: continue
 						if item["key"].lower().find("login") >-1: continue
@@ -6080,22 +6080,22 @@ class Plugin(indigo.PluginBase):
 						if "ap" in item: 
 							fromTo = ""
 							MAC_AP_Active = item["ap"+fromTo]
-							if not self.createAPdeviceIfNeeded(MAC_AP_Active, line,   fromTo): continue
+							if not self.createAPdeviceIfNeededForUDM(MAC_AP_Active, line,   fromTo): continue
 							line["IP_from"]	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
 						if "ap_from" in item: 
 							fromTo = "_from"
 							MAC_AP_from	= item["ap"+fromTo]
-							if not self.createAPdeviceIfNeeded(MAC_AP_from, line,   fromTo): continue
+							if not self.createAPdeviceIfNeededForUDM(MAC_AP_from, line,   fromTo): continue
 							line["IP_from"]	= self.MAC2INDIGO["AP"][MAC_AP_from]["ipNumber"]
 						if "ap_to" in item: 
 							fromTo = "_to"
 							MAC_AP_Active = item["ap"+fromTo]
-							if not self.createAPdeviceIfNeeded(MAC_AP_Active, line, fromTo):   continue
+							if not self.createAPdeviceIfNeededForUDM(MAC_AP_Active, line, fromTo):   continue
 							line["IP_to"] 	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
 
 						#self.indiLOG.log(20,u"passed 3 ")
 						if MAC_AP_Active == "":
-							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblog  mac:{}  is diconnected  no AP given".format(MAC))
+							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblogForUDM  mac:{}  is disconnected  no AP given".format(MAC))
 						else:
 							ipNumberAP = self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
 							for nn in range(_GlobalConst_numberOfAP):
@@ -6104,7 +6104,7 @@ class Plugin(indigo.PluginBase):
 									break
 
 						#self.indiLOG.log(20,u"passed 4 ip:{};  apN:{}".format(ipNumberAP, apN))
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblog  data from UDM for AP:{}".format(line))
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblogForUDM  data from UDM for AP:{}".format(line))
 						self.doAPmessages([line], ipNumberAP, apN, webLog = True)
 
 				except	Exception, e:
@@ -6113,14 +6113,14 @@ class Plugin(indigo.PluginBase):
 					if self.pluginState == "stop": break
 					time.sleep(1)
 					if time.time() - lastRead > self.controllerWebEventReadON: break
-			self.indiLOG.log(20,u"controllerWeblog: exiting plugin state = stop" )
+			self.indiLOG.log(20,u"controllerWeblogForUDM: exiting plugin state = stop" )
 		except	Exception, e:
 			self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return 
 
 
 	####----------------- thsi is for UDM devices only	 ---------
-	def createAPdeviceIfNeeded(self, MAC, line, fromTo):
+	def createAPdeviceIfNeededForUDM(self, MAC, line, fromTo):
 		if MAC == "": 									return False
 		if MAC in self.MAC2INDIGO["AP"]:				return True
 		if self.unifiControllerType.find("UDM") == -1: 	return False
@@ -7049,7 +7049,7 @@ class Plugin(indigo.PluginBase):
 					if line["key"].lower().find("Disconnected") >-1:
 						token = "DISCONNECTED"
 						up = False
-					elif line["key"].lower().find("roam") >-1:
+					elif line["key"].lower().find("roam") >-1 and "IP_to" in line and "IP_from" in line:
 						self.HANDOVER[MAC] = {"tt":time.time(),"ipNumberNew": line["IP_to"], "ipNumberOld": line["IP_from"]}
 						token = "roam"
 						up = True

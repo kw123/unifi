@@ -1,3 +1,9 @@
+changes in V 7.30.198  @ 2019-05-02
+==================  
+
+1.  added some more config checks for UDM
+
+
 changes in V 7.30.197  @ 2019-05-01
 ==================  
 
