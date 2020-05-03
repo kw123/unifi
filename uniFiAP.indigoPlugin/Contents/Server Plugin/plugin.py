@@ -4440,7 +4440,7 @@ class Plugin(indigo.PluginBase):
 
 			try:	self.MAC2INDIGO[xType][MAC][u"lastUp"] == float(self.MAC2INDIGO[xType][MAC][u"lastUp"])
 			except: self.MAC2INDIGO[xType][MAC][u"lastUp"] =0.
-
+			if u"lastAPMessage" not in self.MAC2INDIGO[xType][MAC]: self.MAC2INDIGO[xType][MAC][u"lastAPMessage"]=0
 
 		except	Exception, e:
 			self.indiLOG.log(40,"in Line {} has error={}\n{}    {}     {}   {}".format(sys.exc_traceback.tb_lineno, e, unicode(xType), devIds, unicode(MAC), unicode(self.MAC2INDIGO)) )
@@ -6047,60 +6047,51 @@ class Plugin(indigo.PluginBase):
 	def controllerWeblogForUDM(self, dummy):
 
 		try:
-			lastRecord = {}
+			lastRecordTime	= 0
+			lastRead   		= 0
 			self.indiLOG.log(20,u"controllerWeblogForUDM: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
-			lastTimeStamp = 0 # the time stamp from UFNI is in msecs
+			lastTimeStamp = time.time() - 100  # keep the last 100 secs from the log
 			while self.pluginState != "stop":
 				time.sleep(0.5)
 				try:
+					eventLogList = self.executeCMDOnController(data={"_sort":"+time", "within":50,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
 					lastRead = time.time()
-					eventLogList = self.executeCMDOnController(data={"_sort":"+time", "within":9,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
-					#self.indiLOG.log(20,u"data type:{} {}\n{}".format(type(eventLogList), unicode(eventLogList), unicode(eventLogList[::-1])) )
-					if len(eventLogList) <2: continue
+
 					for logEntry in eventLogList[::-1]:
-						#self.indiLOG.log(20,u"next  logEntry:{}".format(unicode(logEntry)[0:100]) )
-						if "time" in logEntry and logEntry["time"] < lastTimeStamp: 
-							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry timestamps: {}  {}, t?:{}".format(logEntry["time"], lastTimeStamp, logEntry["time"] < lastTimeStamp) )
-							continue
+
+						## filter out non AP info entries
+						if "time" not in logEntry: 									continue 
+						logEntry["time"] /= 1000. # the time stamp from UFNI is in msecs
+						if logEntry["time"] < lastTimeStamp:						continue
 						lastTimeStamp = logEntry["time"]
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed time" )
-						if "key" not in logEntry: continue
-						if logEntry["key"].lower().find("login") >-1: continue
-						if "user" not in logEntry: 
-							continue
-							#if "guest" in logEntry: 
-							#	logEntry["user"] = copy.copy(logEntry["guest"])
+						if "key" not in logEntry: 									continue
+						if logEntry["key"].lower().find("login") >-1:				continue
+						if "user" not in logEntry: 									continue
 						#
-						line = copy.copy(logEntry)
 						MAC = logEntry["user"]
-						if MAC in lastRecord and lastRecord[MAC] >= logEntry["time"]: 
-							#self.indiLOG.log(20,u"doing rej  MAC:{} time old:{}, time new:{}".format(MAC, lastRecord[MAC], logEntry["time"]) )
-							continue
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed MAC test" )
-						#self.indiLOG.log(20,u"passed 2 ")
-						lastRecord[MAC] = logEntry["time"]
-						apN 		= self.apNumberForUDMconfig
-						ipNumberAP	= self.ipNumbersOfAPs[apN]
-						MAC_AP_Active = ""
-						MAC_AP_from = ""
+						if  lastRecordTime >= logEntry["time"]: 					continue #  don't use old event records
+
+						lastRecordTime	= logEntry["time"]
+						apN 			= self.apNumberForUDMconfig
+						ipNumberAP		= self.ipNumbersOfAPs[apN]
+						MAC_AP_Active 	= ""
+						MAC_AP_from 	= ""
 						if "ap" in logEntry: 
 							fromTo = ""
 							MAC_AP_Active = logEntry["ap"+fromTo]
-							if not self.createAPdeviceIfNeededForUDM(MAC_AP_Active, line,   fromTo): continue
-							line["IP_from"]	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
+							self.createAPdeviceIfNeededForUDM(MAC_AP_Active, logEntry,   fromTo)
+							if self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"] != self.ipNumbersOfSWs[self.swNumberForUDMconfig]: continue  # ignore non UDM log entries 
 						if "ap_from" in logEntry: 
 							fromTo = "_from"
 							MAC_AP_from	= logEntry["ap"+fromTo]
-							if not self.createAPdeviceIfNeededForUDM(MAC_AP_from, line,   fromTo): continue
-							line["IP_from"]	= self.MAC2INDIGO["AP"][MAC_AP_from]["ipNumber"]
+							self.createAPdeviceIfNeededForUDM(MAC_AP_from, logEntry,   fromTo)
+							logEntry["IP_from"]	= self.MAC2INDIGO["AP"][MAC_AP_from]["ipNumber"]
 						if "ap_to" in logEntry: 
 							fromTo = "_to"
 							MAC_AP_Active = logEntry["ap"+fromTo]
-							if not self.createAPdeviceIfNeededForUDM(MAC_AP_Active, line, fromTo):   continue
-							line["IP_to"] 	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed AP test" )
+							self.createAPdeviceIfNeededForUDM(MAC_AP_Active, logEntry, fromTo)
+							logEntry["IP_to"] 	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
 
-						#self.indiLOG.log(20,u"passed 3 ")
 						if MAC_AP_Active == "":
 							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblogForUDM  mac:{}  is disconnected  no AP given".format(MAC))
 						else:
@@ -6109,10 +6100,7 @@ class Plugin(indigo.PluginBase):
 								if ipNumberAP == self.ipNumbersOfAPs[nn]: 
 									apN	= nn
 									break
-
-						#self.indiLOG.log(20,u"passed 4 ip:{};  apN:{}".format(ipNumberAP, apN))
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"controllerWeblogForUDM  data from UDM for AP:{}".format(line))
-						self.doAPmessages([line], ipNumberAP, apN, webLog=True)
+						self.doAPmessages([logEntry], ipNumberAP, apN, webLog=True)
 
 				except	Exception, e:
 					self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -7059,10 +7047,10 @@ class Plugin(indigo.PluginBase):
 						up = False
 					elif line["key"].lower().find("roam") >-1 and "IP_to" in line and "IP_from" in line:
 						if self.decideMyLog(u"UDM"):self.indiLOG.log(20,"weblog doAPmessages (-1)  MAC:{};  ipNumberAP:{}; roam message, but 'IP_to' ..  missing; inData:{}; ".format( MAC, ipNumberAP, line))
-						self.HANDOVER[MAC] = {"tt":time.time(),"ipNumberNew": line["IP_to"], "ipNumberOld": line["IP_from"]}
+						self.HANDOVER[MAC] = {"tt":line["time"],"ipNumberNew": line["IP_to"], "ipNumberOld": line["IP_from"]}
 						token = "roam"
 					elif line["key"].lower().find("roam") >-1 :
-						self.HANDOVER[MAC] = {"tt":time.time(),"ipNumberNew": line["IP_to"], "ipNumberOld": line["IP_from"]}
+						self.HANDOVER[MAC] = {"tt":line["time"],"ipNumberNew": line["IP_to"], "ipNumberOld": line["IP_from"]}
 					else:
 						pass
 
@@ -7071,7 +7059,8 @@ class Plugin(indigo.PluginBase):
 						if int(line["channel"])    >= 12:	GHz = "5"
 					elif "channel_to" in line:
 						if int(line["channel_to"]) >= 12:	GHz = "5"
-					if self.decideMyLog(u"UDM"):self.indiLOG.log(20,"weblog doAPmessages (0)  MAC:{};  ipNumberAP:{};  GHz:{}; up:{} token:{}; inData:{}; ".format( MAC, ipNumberAP, GHz, up, token, line))
+					timeOfMSG = line["time"]
+					if self.decideMyLog(u"UDM"):self.indiLOG.log(20,"weblog doAPmessages (0)  MAC:{};  ipNumberAP:{};  GHz:{}; up:{} token:{}, dTime:{:.1f}; inData:{}; ".format( MAC, ipNumberAP, GHz, up, token, time.time()-timeOfMSG, line))
 
 				else: # regular ap message
 					if len(line) < 2: continue
@@ -7141,7 +7130,7 @@ class Plugin(indigo.PluginBase):
 						up = False
 					if line.find("ath0:") > -1: GHz = "5"
 					if line.find("ath1:") > -1: GHz = "2"
-
+					timeOfMSG = time.time()
 
 				if self.decideMyLog(u"UDM"):self.indiLOG.log(20,"weblog doAPmessages (2)   MAC:{};  ipNumberAP:{};  GHz:{}; up:{} token:{}".format( MAC, ipNumberAP, GHz, up, token, line))
 
@@ -7170,6 +7159,7 @@ class Plugin(indigo.PluginBase):
 								self.MAC2INDIGO[xType][MAC]={}
 								self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 								self.MAC2INDIGO[xType][MAC][u"devId"] = dev.id
+								self.MAC2INDIGO[xType][MAC][u"lastAPMessage"] = timeOfMSG
 								new = False
 								break
 
@@ -7178,6 +7168,11 @@ class Plugin(indigo.PluginBase):
 						devId = unicode(dev.id)
 						if devId not in self.upDownTimers:
 							self.upDownTimers[devId] = {"down": 0, "up": 0}
+
+						if u"lastAPMessage" not in self.MAC2INDIGO[xType][MAC]: self.MAC2INDIGO[xType][MAC][u"lastAPMessage"] = 0
+						if timeOfMSG - self.MAC2INDIGO[xType][MAC][u"lastAPMessage"] < -2: 
+							if self.decideMyLog(u"LogDetails") or MAC in self.MACloglist: self.indiLOG.log(20,"MS-AP-WF-0 AP message  ignore msg, older than last AP message; lastMSG:{:.1f}, thisMSG:{:.1f}".format(self.MAC2INDIGO[xType][MAC][u"lastAPMessage"],timeOfMSG ) )
+							continue
 
 						oldIP = dev.states[u"AP"]
 						if ipNumberAP !="" and ipNumberAP != oldIP.split("-")[0]:
