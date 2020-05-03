@@ -4734,17 +4734,17 @@ class Plugin(indigo.PluginBase):
 			self.broadcastIP = self.ipnumberOfUDM
 			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipnumberOfUGA,0,u"UDdict",float(self.readDictEverySeconds[u"UD"])*2,))
 			self.trUDDict.start()
-		# 2.  this  runs every xx secs  http get data 
-		try:
-			self.trWebEventlog  = ""
-			if self.controllerWebEventReadON > 0:
-				self.trWebEventlog = threading.Thread(name=u'controllerWeblogForUDM', target=self.controllerWeblogForUDM, args=(0, ))
-				self.trWebEventlog.start()
-		except	Exception, e:
-			if len(unicode(e)) > 5:
-				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-			self.quitNow = u"stop"
-			return False
+			# 2.  this  runs every xx secs  http get data 
+			try:
+				self.trWebEventlog  = ""
+				if self.controllerWebEventReadON > 0:
+					self.trWebEventlog = threading.Thread(name=u'controllerWeblogForUDM', target=self.controllerWeblogForUDM, args=(0, ))
+					self.trWebEventlog.start()
+			except	Exception, e:
+				if len(unicode(e)) > 5:
+					self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+				self.quitNow = u"stop"
+				return False
 
 
 
@@ -6054,9 +6054,10 @@ class Plugin(indigo.PluginBase):
 				time.sleep(0.5)
 				try:
 					lastRead = time.time()
-					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get").reverse()
-					#self.indiLOG.log(20,u"data :{}".format(unicode(data)[0:100]) )
-					for logEntry in data:
+					eventLogList = self.executeCMDOnController(data={"_sort":"+time", "within":9,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
+					#self.indiLOG.log(20,u"data type:{} {}\n{}".format(type(eventLogList), unicode(eventLogList), unicode(eventLogList[::-1])) )
+					if len(eventLogList) <2: continue
+					for logEntry in eventLogList[::-1]:
 						#self.indiLOG.log(20,u"next  logEntry:{}".format(unicode(logEntry)[0:100]) )
 						if "time" in logEntry and logEntry["time"] < lastTimeStamp: 
 							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry timestamps: {}  {}, t?:{}".format(logEntry["time"], lastTimeStamp, logEntry["time"] < lastTimeStamp) )

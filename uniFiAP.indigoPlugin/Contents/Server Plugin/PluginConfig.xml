@@ -219,7 +219,7 @@
 
     <Field    id="unifiCloudKeyMode"  		type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
         <List>
-            <Option value="ON"             >ON (needed for UDM-xx)</Option>
+            <Option value="ON"             >ON </Option>
             <Option value="off"            >off</Option>
             <Option value="UDM"            >UDM mode (included in ON)</Option>
         </List>
