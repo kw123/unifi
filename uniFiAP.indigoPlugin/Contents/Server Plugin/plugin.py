@@ -6046,25 +6046,23 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def controllerWeblogForUDM(self, dummy):
 
-
 		try:
 			lastRecord = {}
 			self.indiLOG.log(20,u"controllerWeblogForUDM: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
-			lastTimeStamp = int(time.time()*1000)-500 # the time stamp from UFNI is in msecs
+			lastTimeStamp = 0 # the time stamp from UFNI is in msecs
 			while self.pluginState != "stop":
 				time.sleep(0.5)
 				try:
 					lastRead = time.time()
-					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
-					nrecs = len(data)
-					macs =[]
-					ii = 0
+					data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":int(self.controllerWebEventReadON *1.5)}, pageString="/stat/event/", jsonAction="returnData", cmdType="get").reverse()
+					#self.indiLOG.log(20,u"data :{}".format(unicode(data)[0:100]) )
 					for logEntry in data:
-						ii += 1
-						if "time" in logEntry and logEntry["time"] < lastTimeStamp: continue
+						#self.indiLOG.log(20,u"next  logEntry:{}".format(unicode(logEntry)[0:100]) )
+						if "time" in logEntry and logEntry["time"] < lastTimeStamp: 
+							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry timestamps: {}  {}, t?:{}".format(logEntry["time"], lastTimeStamp, logEntry["time"] < lastTimeStamp) )
+							continue
 						lastTimeStamp = logEntry["time"]
-						#self.indiLOG.log(20,u"doing req#:{};  reqs:{}; nrecsReturned:{}".format(ii, int(self.controllerWebEventReadON *1.5), nrecs) )
-						#self.indiLOG.log(20,u"logEntry:{}".format(logEntry) )
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed time" )
 						if "key" not in logEntry: continue
 						if logEntry["key"].lower().find("login") >-1: continue
 						if "user" not in logEntry: 
@@ -6077,6 +6075,7 @@ class Plugin(indigo.PluginBase):
 						if MAC in lastRecord and lastRecord[MAC] >= logEntry["time"]: 
 							#self.indiLOG.log(20,u"doing rej  MAC:{} time old:{}, time new:{}".format(MAC, lastRecord[MAC], logEntry["time"]) )
 							continue
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed MAC test" )
 						#self.indiLOG.log(20,u"passed 2 ")
 						lastRecord[MAC] = logEntry["time"]
 						apN 		= self.apNumberForUDMconfig
@@ -6098,6 +6097,7 @@ class Plugin(indigo.PluginBase):
 							MAC_AP_Active = logEntry["ap"+fromTo]
 							if not self.createAPdeviceIfNeededForUDM(MAC_AP_Active, line, fromTo):   continue
 							line["IP_to"] 	= self.MAC2INDIGO["AP"][MAC_AP_Active]["ipNumber"]
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"... logEntry passed AP test" )
 
 						#self.indiLOG.log(20,u"passed 3 ")
 						if MAC_AP_Active == "":

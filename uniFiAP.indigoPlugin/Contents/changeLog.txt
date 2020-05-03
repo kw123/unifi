@@ -1,9 +1,11 @@
-changes in V 7.30.200  @ 2019-05-02
+changes in V 7.30.206  @ 2019-05-02
 ==================  
 
 1.  added debug statements for UDM
 2.  added time cutoff for weblog data (only look at fresh data, do not loop though previous data returned from web log)
 3.  added back check if username not in login for UDM-pro OR  meta not in ret and meta !=ok: error connection login
+4.  had to reverse web levent log 
+
 
 changes in V 7.30.198  @ 2019-05-02
 ==================  
