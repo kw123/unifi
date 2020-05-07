@@ -2,7 +2,7 @@ changes in V 7.30.216  @ 2019-05-07
 ==================  
 
 1.  added logging statements in case userid/passwd ip number are wrong
-
+2.  added UDM dict analysis
 
 changes in V 7.30.215  @ 2019-05-06
 ==================  
