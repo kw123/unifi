@@ -209,30 +209,36 @@
     </Field>
 
     <Field id="simpleSeparatorCO" 			type="separator"/>
-
-    <Field id="infoLabel217" 				type="label"> 
-		<Label>== Controller info (for controller commands):
-            when Controller ip number is set, it will automatically detect new unifi system devices 
-            and will populate sw ap gw settings automatically
-</Label>  
-	</Field>
-
-    <Field    id="unifiCloudKeyMode"  		type="menu"  defaultValue="ONreportsOnly"            > <Label>.. use controler info:</Label> 
-        <List>
-            <Option value="ON"             >ON </Option>
-            <Option value="off"            >off</Option>
-            <Option value="UDM"            >UDM mode (included in ON)</Option>
-        </List>
-    </Field>
  
-    <Field    id="unifiControllerType"  	type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+ 
+    <Field id="infoLabel217" 				type="label"> 
+		<Label>== Controller info (for controller commands and UDM WiFi info):  </Label>  
+	</Field>
+  <Field    id="unifiControllerType"  	type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
 		<Label>.. controller Type:</Label> 
         <List>
-            <Option value="std"   	>unifi controller mac, rpi, cloud key </Option>
-            <Option value="UDM"     >UDM     will use switch #12 and AP#4</Option>
-            <Option value="UDMPro"  >UDM-pro will use switch #12 and AP#4</Option>
+            <Option value="std"   	>unifi controller: mac, rpi, cloud key </Option>
+            <Option value="UDM"     >UDM     </Option>
+            <Option value="UDMPro"  >UDM-pro </Option>
         </List>
     </Field>
+   <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>selecting UDM(pro) will automatically: 
+1. activate (w. same IP#) SW#14, AP#4, USG, 
+2. set controller info to ON or UDM</Label>  
+	</Field>
+     <Field    id="unifiCloudKeyMode"  		type="menu"  defaultValue="ONreportsOnly"            > 
+		<Label>.. use controler info:</Label> 
+        <List>
+            <Option value="ONreportsOnly"  >only manual reports</Option>
+            <Option value="ON"             >ON  = all functions</Option>
+            <Option value="UDM"            >UDM mode for WiFi, no reports (included in ON)</Option>
+        </List>
+    </Field>
+   <Field id="unifiCloudKeyModeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>When Controller is set to ON, it will automatically detect new unifi system devices and will populate sw ap gw settings automatically</Label>  
+	</Field>
+
 
 
 
@@ -277,7 +283,7 @@
 	</Field>
 
     <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
-		<Label>.. get all (un)blocked client info from Controller:</Label> 
+		<Label>.. get (un)blocked client info from Controller:</Label> 
         <List>
             <Option value="999999999" >off</Option>
             <Option value="30"  >every 30 secs -- only for testing </Option>
@@ -287,6 +293,18 @@
             <Option value="180" >every 3 minutes</Option>
             <Option value="240" >every 4 minutes</Option>
             <Option value="300" >every 5 minutes</Option>
+        </List>
+    </Field>
+
+    <Field    id="unifigetLastSeenDeltaTime"  type="menu"  defaultValue="999999999"   tooltip=""  > 
+		<Label>.. get last seen client info from Controller to control up state (UDM):</Label> 
+        <List>
+            <Option value="999999999" >off</Option>
+            <Option value="20"  >every 20 secs  </Option>
+            <Option value="30"  >every 30 secs  </Option>
+            <Option value="60"  >every 60 secs</Option>
+            <Option value="90"  >every 90 secs</Option>
+            <Option value="120" >every 2 minutes</Option>
         </List>
     </Field>
 

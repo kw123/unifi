@@ -1,3 +1,46 @@
+changes in V 7.30.216  @ 2019-05-07
+==================  
+
+1.  added logging statements in case userid/passwd ip number are wrong
+
+
+changes in V 7.30.215  @ 2019-05-06
+==================  
+
+1.  added usage of mca dump dict to feed wifi dict analysis
+2.  added option for last seen  from API alluser data report for expiration
+
+
+changes in V 7.30.214  @ 2019-05-05
+==================  
+
+1.  added check if we have continuous records read fro UDm event dump
+    if not re-read with 3x numebr of reacords requested
+
+2.  optimize the numebr of records to read depening on how often to run UDM evnt request
+
+3.  added check for _id# skip if already processed
+
+
+
+changes in V 7.30.213  @ 2019-05-04
+==================  
+
+1.  removed not UDM filter
+
+changes in V 7.30.212  @ 2019-05-04
+==================  
+
+1.  added debug statements for UDM  tracking 
+2.  cleaned up some code
+
+
+changes in V 7.30.211  @ 2019-05-03
+==================  
+
+1.  added debug statements for UDM for disconnect
+
+
 changes in V 7.30.210  @ 2019-05-03
 ==================  
 
