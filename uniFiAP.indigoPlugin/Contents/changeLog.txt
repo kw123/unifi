@@ -1,4 +1,4 @@
-changes in V 7.30.216  @ 2019-05-07
+changes in V 7.30.217  @ 2019-05-08
 ==================  
 
 1.  added logging statements in case userid/passwd ip number are wrong
