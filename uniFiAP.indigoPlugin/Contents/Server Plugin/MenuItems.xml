@@ -14,7 +14,7 @@
 
 				<Field id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
 					<Label>Print All info for all MAC numbers</Label>
-					<Title>CONFIRM</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
+					<Title>CONFIRM </Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
 				</Field>
 
 				<Field id="simpleSeparator2" type="separator"/>
@@ -33,7 +33,7 @@
 				</Field>
 				<Field id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
 					<Label>Click to	 PRINT </Label>
-					<Title>CONFIRM</Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
+					<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
 				</Field>
 
 		</ConfigUI>
@@ -47,7 +47,7 @@
 			<Field id="simpleSeparatorS" type="separator"/>
 
 			<Field	  id="confirm0" type="button" tooltip="" >
-				<Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator0" type="separator"/>
 
@@ -57,7 +57,7 @@
 				<List class="self" filter="" method="filterUNIFIsystemDevice"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirm1" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintDevInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintDevInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator1" type="separator"/>
 
@@ -67,7 +67,7 @@
 				<List class="self" filter="" method="filterMACunifiOnlyUP"	dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirm2" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintClientInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintClientInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	id="Label21" type="label"> 
@@ -77,31 +77,31 @@
 
 			<Field	id="Label3" type="label"> <Label>Print HEALTH info:</Label> </Field>
 			<Field	  id="confirm3" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintHealthInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintHealthInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator3" type="separator"/>
 
 			<Field	id="Label4" type="label"> <Label>Print PortForward info:</Label> </Field>
 			<Field	  id="confirm4" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintPortForWardInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintPortForWardInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator4" type="separator"/>
 
 			<Field	id="Label5" type="label"> <Label>Print user info:</Label> </Field>
 			<Field	  id="confirm5" type="button" tooltip="active users / clients" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintuserInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintuserInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator5" type="separator"/>
 
 			<Field	id="Label51" type="label"> <Label>Print all user info:</Label> </Field>
 			<Field	  id="confirm51" type="button" tooltip="includes expired users / clients" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintalluserInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintalluserInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator51" type="separator"/>
 
 			<Field	id="Label6" type="label"> <Label>Print Alarm info:</Label> </Field>
 			<Field	  id="confirm6" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintAlarmInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintAlarmInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator6" type="separator"/>
 
@@ -126,35 +126,35 @@
 			<Field	  id="PrintEventInfoLoginEvents" type="checkbox"  defaultValue="false"	> <Label>.. print LOGIN events:</Label>	 </Field>
 			
 			<Field	  id="confirm7" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintEventInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintEventInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator7" type="separator"/>
 
 			<Field	id="Label8" type="label"> <Label>Print 7 day stats:</Label> </Field>
 			<Field	  id="confirm8" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint7DayInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint7DayInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	id="Label9" type="label"> <Label>Print 48 hour stats:</Label> </Field>
 			<Field	  id="confirm9" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint48HourInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HourInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	id="Label91" type="label"> <Label>Print 5 Minutes stats:</Label> </Field>
 			<Field	  id="confirm91" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrint5MinutesInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint5MinutesInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			
 			<Field id="simpleSeparator101" type="separator"/>
 			<Field	id="Label10" type="label"> <Label>Print W-lan Config (passwords will be printed!!):</Label> </Field>
 			<Field	  id="confirm10" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintWlanConfInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintWlanConfInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="simpleSeparator111" type="separator"/>
 			<Field	id="Label11" type="label"> <Label>Print UGA setup parameters:</Label> </Field>
 			<Field	  id="confirm11" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT</Title> <CallbackMethod>executeMCAconfigDumpOnGW</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>executeMCAconfigDumpOnGW</CallbackMethod>
 			</Field>
 
 		</ConfigUI>
@@ -173,15 +173,22 @@
 	<MenuItem id="logMACs">
 		<Name>TRACK info for specific MAC in logfile</Name>
 		<ConfigUI>
+			<Field	   id="keepMAClogList" type="menu" defaultValue="0">
+				<Label>keep / delete MAC numbers after restart:</Label>
+				 <List>
+					<Option value="0"	  >delete</Option>
+					<Option value="1"	  >keep</Option>
+				 </List>
+			</Field>
 			<Field	   id="MACdeviceSelected" type="menu" defaultValue="">
 				<Label>select which MAC # / device:</Label>
 				<List class="self" filter="" method="filterMAC"	 dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to  START     Logging</Label><Title>ADD</Title> <CallbackMethod>buttonConfirmStartLoggingCALLBACK</CallbackMethod>
+				<Label>Click to  START     Logging</Label><Title>ADD </Title> <CallbackMethod>buttonConfirmStartLoggingCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirmStopLogging" type="button" tooltip="" >
-				<Label>Click to  stop  ALL Logging</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopLoggingCALLBACK</CallbackMethod>
+				<Label>Click to  stop  ALL Logging</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopLoggingCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -194,7 +201,7 @@
 				<List class="self" filter="" method="filterMACunifiAndCameraOnly"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to  START ignoring</Label><Title>IGNORE</Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
+				<Label>Click to  START ignoring</Label><Title>IGNORE </Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
 			</Field>
 		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
 			<Field	   id="MACdeviceIgnored" type="menu" defaultValue="">
@@ -202,7 +209,7 @@
 				<List class="self" filter="" method="filterMACunifiIgnored"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
-				<Label>Click to  STOP  ignoring</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
+				<Label>Click to  STOP  ignoring</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -218,7 +225,7 @@
 				<Label>set MAX #:</Label>
 			</Field>
 			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to  START ignoring</Label><Title>ADD</Title> <CallbackMethod>buttonConfirmStartIgnoringSpecialMACCALLBACK</CallbackMethod>
+				<Label>Click to  START ignoring</Label><Title>ADD </Title> <CallbackMethod>buttonConfirmStartIgnoringSpecialMACCALLBACK</CallbackMethod>
 			</Field>
 		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
 			<Field	   id="MACspecialUNIgnored" type="menu" defaultValue="">
@@ -226,7 +233,7 @@
 				<List class="self" filter="" method="filterMACspecialUNIgnore"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
-				<Label>Click to  STOP  ignoring</Label><Title>REMOVE</Title> <CallbackMethod>buttonConfirmStopIgnoringSpecialMACCALLBACK</CallbackMethod>
+				<Label>Click to  STOP  ignoring</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopIgnoringSpecialMACCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -250,17 +257,17 @@
 				 </List>
 			</Field>
 			<Field	  id="confirmSprint" type="button" tooltip="" >
-				<Label>Click to</Label><Title>PRINT</Title><CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
+				<Label>Click to</Label><Title>PRINT </Title><CallbackMethod>buttonprintCameraEventsCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="printCamarasysinfo" type="button" tooltip="" >
-				<Label>... Camera + NVR server info       Click to </Label><Title>PRINT</Title><CallbackMethod>buttonPrintCameraSystemCALLBACK</CallbackMethod>
+				<Label>... Camera + NVR server info       Click to </Label><Title>PRINT </Title><CallbackMethod>buttonPrintCameraSystemCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator2" type="separator"/>
 			<Field id="resetCameventsLab1" type="label"> <Label>Reset stored camera event # to 0, ie if yo have replaced </Label>  </Field>
 
 
 			<Field	  id="resetCamevents" type="button" tooltip="" >
-				<Label>or initialized a camera:            Click to </Label><Title>RESET</Title><CallbackMethod>buttonresetCameraEventsCALLBACK</CallbackMethod>
+				<Label>or initialized a camera:            Click to </Label><Title>RESET </Title><CallbackMethod>buttonresetCameraEventsCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator50" type="separator"/>
 
@@ -328,7 +335,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendrecordtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to</Label><Title>SET Recording</Title><CallbackMethod>buttonSendCommandToNVRRecordCALLBACK</CallbackMethod>
+				<Label>--- Click to</Label><Title>SET Recording </Title><CallbackMethod>buttonSendCommandToNVRRecordCALLBACK</CallbackMethod>
 			</Field>
 			<Field	   id="camSounds" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
 				<Label>=== System Sounds                 Enabled:</Label>
@@ -338,7 +345,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendsoundstoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>SET SOUND</Title><CallbackMethod>buttonSendCommandToNVRSoundsCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>SET SOUND </Title><CallbackMethod>buttonSendCommandToNVRSoundsCALLBACK</CallbackMethod>
 			</Field>
 			<Field	   id="enableSpeaker" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
 				<Label>=== Speaker                         ... Enabled:</Label>
@@ -364,7 +371,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendenableSpeakertoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>SET SPEAKER</Title><CallbackMethod>buttonSendCommandToNVRenableSpeakerCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>SET SPEAKER </Title><CallbackMethod>buttonSendCommandToNVRenableSpeakerCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	   id="micVolume" type="menu" defaultValue="0" visibleBindingId="cameraCmd" visibleBindingValue="true" >
@@ -383,7 +390,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendmicVolumetoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>SET Mic Vol</Title><CallbackMethod>buttonSendCommandToNVRmicVolumeCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>SET Mic Vol </Title><CallbackMethod>buttonSendCommandToNVRmicVolumeCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	   id="enableExternalIr" type="menu" defaultValue="0" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
@@ -403,7 +410,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendIRtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>SET IR</Title><CallbackMethod>buttonSendCommandToNVRIRCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>SET IR </Title><CallbackMethod>buttonSendCommandToNVRIRCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="videoStreamingLabel" type="label" visibleBindingId="cameraCmd" visibleBindingValue="true">
@@ -439,7 +446,7 @@
 				 </List>
 			</Field>
 			<Field	  id="sendvdsteramingtoNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>SET Stream</Title><CallbackMethod>buttonSendCommandToNVRvideostreamingCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>SET Stream </Title><CallbackMethod>buttonSendCommandToNVRvideostreamingCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="snapShotLabel" type="label" visibleBindingId="cameraCmd" visibleBindingValue="true">
@@ -464,7 +471,7 @@
 				<Label> ...     file name of image on MAC use .jpeg:</Label>
 		   </Field>
 			<Field	  id="getSnapshotFRomNVR" type="button" tooltip="" visibleBindingId="cameraCmd" visibleBindingValue="true">
-				<Label>--- Click to </Label><Title>Get Snapshot</Title><CallbackMethod>buttonSendCommandToNVRgetSnapshotCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>Get Snapshot </Title><CallbackMethod>buttonSendCommandToNVRgetSnapshotCALLBACK</CallbackMethod>
 			</Field>
 
 
@@ -472,32 +479,32 @@
 			<Field id="simpleSeparator30" type="separator"/>
 			<Field id="refreshCamconfigLab1" type="label" fontSize="large"> <Label>(Re)-load config from NVR into indigo:</Label>  </Field>
 			<Field	  id="refreshCamconfig" type="button" tooltip="" >
-				<Label>Click to </Label><Title>REFRESH</Title><CallbackMethod>buttonrefreshCameraSystemCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>REFRESH </Title><CallbackMethod>buttonrefreshCameraSystemCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator31" type="separator"/>
 			<Field id="simpleSeparator32" type="separator"/>
 			<Field id="UNIXLab1" type="label" fontSize="large"> <Label>Commands for the unix box and virtual system if installed:</Label>  </Field>
 			<Field	  id="stopVideoservice" type="button" tooltip="sends   service unifi-video stop	 to unix box" >
-					<Label>Video service on unix box ==></Label><Title>STOP</Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
+					<Label>Video service on unix box ==></Label><Title>STOP </Title><CallbackMethod>buttonstopVideoServiceCALLBACK</CallbackMethod>
 			 </Field>
 			<Field	  id="startVideoservice" type="button" tooltip="sends	service unifi-video start  to unix box" >
-					<Label>Video service on unix box ==></Label><Title>START</Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
+					<Label>Video service on unix box ==></Label><Title>START </Title><CallbackMethod>buttonstartVideoServiceCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="mountOSXpath" type="button" tooltip="sends   sudo mount -t vboxsf -o uid=unifi-video,gid=unifi-video video (mount-path)	 to unix box" >
-					<Label>Mount Video path/drive on unix box</Label><Title>MOUNT</Title><CallbackMethod>buttonMountOSXDriveOnVboxCALLBACK</CallbackMethod>
+					<Label>Mount Video path/drive on unix box</Label><Title>MOUNT </Title><CallbackMethod>buttonMountOSXDriveOnVboxCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparatorVD1" type="separator"/>
 			<Field	  id="VboxActionStartCALLBACK" type="button" tooltip="this will start vm box if not running; with	VBoxManage controlvm (vmMachine)  acpipowerbutton  " >
-					<Label>VirtualMachine box</Label><Title>START</Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
+					<Label>VirtualMachine box</Label><Title>START </Title><CallbackMethod>buttonVboxActionStartCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="VboxActionStopCALLBACK" type="button" tooltip="this will start vm box if not running; with   VBoxManage startvm (vmMachine)	--type headless	 " >
-					<Label>VirtualMachine box</Label><Title>STOP</Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
+					<Label>VirtualMachine box</Label><Title>STOP </Title><CallbackMethod>buttonVboxActionStopCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="VboxActionCompressCALLBACK" type="button" tooltip=" this will stop, VBoxManage modifymedium disk	(vmDisk) --compact	   and restart vm box" >
-					<Label>VirtualMachine box</Label><Title>COMPRESS</Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
+					<Label>VirtualMachine box</Label><Title>COMPRESS </Title><CallbackMethod>buttonVboxActionCompressCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="VboxActionBackupCALLBACK" type="button" tooltip=" this will stop, backup disk file  and restart vm box" >
-					<Label>VirtualMachine box</Label><Title>Backup</Title><CallbackMethod>buttonVboxActionBackupCALLBACK</CallbackMethod>
+					<Label>VirtualMachine box</Label><Title>Backup </Title><CallbackMethod>buttonVboxActionBackupCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -506,7 +513,7 @@
 		<Name>LISTENERS ... Manage </Name>
 		<ConfigUI>
 				<Field	  id="resetCam" type="button" tooltip="" >
-					<Label>Camera listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
+					<Label>Camera listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
 				</Field>
 			<Field id="simpleSeparatorCam" type="separator"/>
 				<Field	  id="resetGW" type="button" tooltip="" >
@@ -524,7 +531,7 @@
 					</List>
 				</Field>
 				<Field	  id="resetAP" type="button" tooltip="" >
-					<Label>AP listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartAPListenerCALLBACK</CallbackMethod>
+					<Label>AP listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartAPListenerCALLBACK</CallbackMethod>
 				</Field>
 			<Field id="simpleSeparatorAP" type="separator"/>
 				<Field	   id="pickSW" type="menu" defaultValue="0">
@@ -544,7 +551,7 @@
 					</List>
 				</Field>
 				<Field	  id="resetSW" type="button" tooltip="" >
-					<Label>Switch listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartSWListenerCALLBACK</CallbackMethod>
+					<Label>Switch listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartSWListenerCALLBACK</CallbackMethod>
 				</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -556,7 +563,7 @@
 		<ConfigUI>
 				<Field id="printGroups" type="button"> 
 					<Label>PRINT Groups </Label> 
-					<Title>CONFIRM</Title><CallbackMethod>printGroupsCALLBACK</CallbackMethod>
+					<Title>CONFIRM </Title><CallbackMethod>printGroupsCALLBACK</CallbackMethod>
 				</Field>
 
 				<Field id="simpleSeparator00" type="separator"/>
@@ -576,11 +583,11 @@
 				<Label>select which Group you want to add to / remove from:</Label>
 				<List class="self" filter="" method="filterGroupNoName"	 dynamicReload="false"/>
 			</Field>
-			<Field	  id="confirmadd" type="button" tooltip="" >
-				<Label>Click to add</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmAddDevGroupCALLBACK</CallbackMethod>
+			<Field	  id="confirmnameSW" type="button" tooltip="" >
+				<Label>Click to add</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmAddDevGroupCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirmrem" type="button" tooltip="" >
-				<Label>Click to remove</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmRemDevGroupCALLBACK</CallbackMethod>
+				<Label>Click to remove</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmRemDevGroupCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="simpleSeparator10" type="separator"/>
@@ -594,13 +601,13 @@
 			</Field>
 			<Field id="confirmGroup" type="button" tooltip="" >
 				<Label>Click to	 select Group </Label>
-				<Title>CONFIRM</Title> <CallbackMethod>buttonConfirmgroupCALLBACK</CallbackMethod>
+				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmgroupCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator30" type="separator"/>
 			<Field id="labeladdremove32" type="label"> <Label>REMOVE:</Label>  </Field>
 			<Field id="removeALLGroupMembers" type="button" tooltip="" >
 				<Label>Click to	 REMOVE ALL group members</Label>
-				<Title>CONFIRM</Title> <CallbackMethod>buttonConfirmremoveALLGroupMembersCALLBACK</CallbackMethod>
+				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmremoveALLGroupMembersCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="selectedGroupMemberIndigoIdremove" type="menu" tooltip="" >
 				<Label>Click to	 select group MEMBER </Label>
@@ -608,7 +615,7 @@
 			</Field>
 			<Field id="removeGroupMember" type="button" tooltip="" >
 				<Label>Click to	 REMOVE group member</Label>
-				<Title>CONFIRM</Title> <CallbackMethod>buttonConfirmremoveGroupMemberCALLBACK</CallbackMethod>
+				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmremoveGroupMemberCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator40" type="separator"/>
 			<Field id="labeladdremove42" type="label"> <Label>ADD:</Label>	</Field>
@@ -618,7 +625,7 @@
 			</Field>
 			<Field id="addGroupMember" type="button" tooltip="" >
 				<Label>Click to	 ADD group member</Label>
-				<Title>CONFIRM</Title> <CallbackMethod>buttonConfirmADDGroupMemberCALLBACK</CallbackMethod>
+				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmADDGroupMemberCALLBACK</CallbackMethod>
 			</Field>
 
 		</ConfigUI>
@@ -635,41 +642,41 @@
 		<Name>SET ALL  UniFi devices PROPS to .... </Name>
 		<ConfigUI>
 			<Field	  id="confirm11" type="button" tooltip="will set all WiFi devices to Optimized, IDLETIME = 30 secs or Uptime changed" >
-				<Label>Change all Wifi devices to OPTIMIZED</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetWifiOptCALLBACK</CallbackMethod>
+				<Label>Change all Wifi devices to OPTIMIZED</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetWifiOptCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm12" type="button" tooltip="will set all WiFi devices to use IDLETIME , ideltime = 30 secs" >
-				<Label>Change all Wifi devices to IDLE time</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetWifiIdleCALLBACK</CallbackMethod>
+				<Label>Change all Wifi devices to IDLE time</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetWifiIdleCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm13" type="button" tooltip="will set all WiFi devices to use Uptime must change" >
-				<Label>Change all Wifi devices to UpTime changed</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetWifiUptimeCALLBACK</CallbackMethod>
+				<Label>Change all Wifi devices to UpTime changed</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetWifiUptimeCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="simpleSeparator1" type="separator"/>
 
 			<Field	  id="confirm23" type="button" tooltip="will set all non-WiFi devices to Opt DHCP AND SWITCH with DHCP age lt 60 secs OR SWITCH UPTIME must change" >
-				<Label>Change all Non-Wifi devices to OPTIMIZED	 </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiOptCALLBACK</CallbackMethod>
+				<Label>Change all Non-Wifi devices to OPTIMIZED	 </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetNonWifiOptCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm24" type="button" tooltip="will set all non-WiFi devices to  SWITCH with SWITCH UPTIME must change" >
-				<Label>Change all Non-Wifi devices to SWITCH</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiToSwitchCALLBACK</CallbackMethod>
+				<Label>Change all Non-Wifi devices to SWITCH</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetNonWifiToSwitchCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm25" type="button" tooltip="will set all non-WiFi devices to  DHCP with DHCP AGE lt 60 secs" >
-				<Label>Change all Non-Wifi devices to DHCP</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetNonWifiToDHCPCALLBACK</CallbackMethod>
+				<Label>Change all Non-Wifi devices to DHCP</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetNonWifiToDHCPCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="simpleSeparator22" type="separator"/>
 
 			<Field	  id="confirm36" type="button" tooltip="" >
-				<Label>Change all devices to USE PING for UP test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingUPonCALLBACK</CallbackMethod>
+				<Label>Change all devices to USE PING for UP test</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetUsePingUPonCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm37" type="button" tooltip="" >
-				<Label>Change all devices to NOT use PING for UP test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingUPoffCALLBACK</CallbackMethod>
+				<Label>Change all devices to NOT use PING for UP test</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetUsePingUPoffCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field	  id="confirm38" type="button" tooltip="" >
-				<Label>Change all devices to USE PING for DOWN test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingDOWNonCALLBACK</CallbackMethod>
+				<Label>Change all devices to USE PING for DOWN test</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetUsePingDOWNonCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm39" type="button" tooltip="" >
-				<Label>Change all devices to NOT use PING for DOWN test</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetUsePingDOWNoffCALLBACK</CallbackMethod>
+				<Label>Change all devices to NOT use PING for DOWN test</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetUsePingDOWNoffCALLBACK</CallbackMethod>
 			</Field>
 
 			<Field id="simpleSeparator50" type="separator"/>
@@ -700,10 +707,10 @@
 				</List>
 			</Field>
 			<Field	  id="confirm50" type="button" tooltip="" >
-				<Label>Change all devices to this exp time</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetExpTimeCALLBACK</CallbackMethod>
+				<Label>Change all devices to this exp time</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetExpTimeCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm51" type="button" tooltip="" >
-				<Label>Change all devices to at least this MINUMUM exp time</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSetExpTimeMinCALLBACK</CallbackMethod>
+				<Label>Change all devices to at least this MINUMUM exp time</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetExpTimeMinCALLBACK</CallbackMethod>
 			</Field>
 
 
@@ -726,14 +733,14 @@
 				<List class="self" filter="" method="filterUnifiSwitch"	 dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmSW" type="button" tooltip="" >
-				<Label>confirm SW</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
+				<Label>confirm SW</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
 			</Field>
 			<Field	   id="selectedUnifiSwitchPort" type="menu" defaultValue="1">
 				<Label>select which port(#1..xx):</Label>
 				<List class="self" filter="" method="filterUnifiSwitchPort"	 dynamicReload="yes"/>
 			</Field>
 			<Field	  id="confirmpowerCycle" type="button" tooltip="" >
-				<Label>Click to</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
+				<Label>Click to</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator2" type="separator"/>
 			<Field	   id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
@@ -741,7 +748,7 @@
 				<List class="self" filter="" method="filterUnifiClient"	 dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirmpowerCycleClient" type="button" tooltip="" >
-				<Label>Click to</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACK</CallbackMethod>
+				<Label>Click to</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -753,7 +760,7 @@
 				<List class="self" filter="" method="filterWiFiDevice"	dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirmReconnect" type="button" tooltip="" >
-				<Label>Click to re-connect</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmReconnectCALLBACK</CallbackMethod>
+				<Label>Click to re-connect</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmReconnectCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -766,10 +773,10 @@
 				<List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirmblock" type="button" tooltip="" >
-				<Label>Click to block</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmBlockCALLBACK</CallbackMethod>
+				<Label>Click to block</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmBlockCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirmUNblockt" type="button" tooltip="" >
-				<Label>Click to un-block</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmUnBlockCALLBACK</CallbackMethod>
+				<Label>Click to un-block</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmUnBlockCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -782,7 +789,7 @@
 				<List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmReboot" type="button" tooltip="" >
-				<Label>Click to reboot</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
+				<Label>Click to reboot</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -798,10 +805,10 @@
 				<List class="self" filter="" method="filterAPdevices"  dynamicReload="false"/>
 			</Field>
 			<Field	  id="confirmE" type="button" tooltip="" >
-				<Label>Click to ENABLE </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmEnableAPConllerCALLBACK</CallbackMethod>
+				<Label>Click to ENABLE </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmEnableAPConllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirmD" type="button" tooltip="" >
-				<Label>Click to DISABLE </Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmDisableAPConllerCALLBACK</CallbackMethod>
+				<Label>Click to DISABLE </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmDisableAPConllerCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -817,10 +824,10 @@
 				<List class="self" filter="" method="filterUNIFIsystemDeviceSuspend"  dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirmSuspend" type="button" tooltip="" >
-				<Label>Click to SUSPEND</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmsuspendCALLBACKbutton</CallbackMethod>
+				<Label>Click to SUSPEND</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmsuspendCALLBACKbutton</CallbackMethod>
 			</Field>
 			<Field	  id="confirmActivate" type="button" tooltip="" >
-				<Label>Click to re-ACTIVATE</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmactivateCALLBACKbutton</CallbackMethod>
+				<Label>Click to re-ACTIVATE</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmactivateCALLBACKbutton</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -830,11 +837,11 @@
 		<Name>Set AP LEDs ON/off</Name>
 		<ConfigUI>
 			<Field	  id="confirm1" type="button" tooltip="" >
-				<Label>Click to switch all LEDs ON</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmAPledONControllerCALLBACK</CallbackMethod>
+				<Label>Click to switch all LEDs ON</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPledONControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator1" type="separator"/>
 			<Field	  id="confirm2" type="button" tooltip="" >
-				<Label>Click to switch all LEDs off</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmAPledOFFControllerCALLBACK</CallbackMethod>
+				<Label>Click to switch all LEDs off</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPledOFFControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator2" type="separator"/>
 			<Field	   id="selectedAPDevice" type="menu" defaultValue="0">
@@ -842,10 +849,10 @@
 				<List class="self" filter="" method="filterMAConlyAP"  dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirm3" type="button" tooltip="" >
-				<Label>Click to blink LED ON</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmAPxledONControllerCALLBACK</CallbackMethod>
+				<Label>Click to blink LED ON</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPxledONControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="confirm4" type="button" tooltip="" >
-				<Label>Click to switch LED off</Label><Title>EXECUTE</Title> <CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACK</CallbackMethod>
+				<Label>Click to switch LED off</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>

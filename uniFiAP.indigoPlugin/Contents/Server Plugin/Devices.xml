@@ -594,10 +594,10 @@
 					<TriggerLabel>wanUpload</TriggerLabel>
 					<ControlPageLabel>wanUpload</ControlPageLabel>
 			</State>
-			<State id="wanRunDate">
+			<State id="wanSpeedTest">
 					<ValueType>String</ValueType>
-					<TriggerLabel>wanRunDate</TriggerLabel>
-					<ControlPageLabel>wanRunDate</ControlPageLabel>
+					<TriggerLabel>wanSpeedTest</TriggerLabel>
+					<ControlPageLabel>wanSpeedTest</ControlPageLabel>
 			</State>
 			<State id="wanUpTime">
 					<ValueType>String</ValueType>
@@ -890,6 +890,11 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>hostname</TriggerLabel>
 					<ControlPageLabel>hostname</ControlPageLabel>
+				</State>
+				<State id="vlan">
+					<ValueType>String</ValueType>
+					<TriggerLabel>vlan</TriggerLabel>
+					<ControlPageLabel>vlan</ControlPageLabel>
 				</State>
 				<State id="lastStatusChange">
 					<ValueType>String</ValueType>

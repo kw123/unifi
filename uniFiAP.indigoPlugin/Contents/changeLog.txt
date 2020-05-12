@@ -1,8 +1,26 @@
-changes in V 7.30.217  @ 2019-05-08
+changes in V 7.31.238  @ 2019-05-12
 ==================  
 
 1.  added logging statements in case userid/passwd ip number are wrong
 2.  added UDM dict analysis
+3.  fixed format error
+4.  added space in button menue to improve readability
+5.  fixed some format statements and added some logic 
+6.  "ipNumber" is now the defined ipnumber in config and is NOT taken from the dict from unifi (key="ip")
+    the "ip" entry in the dict can chnage ie for UGS or UDM devceis as they use the external value
+7.  select proper userid/passwd for UDM ssh 
+8.  added option in MAC log-tracking menu to save MAC list and reload after plugin restart
+    and changed display of list, dev name first then mac#
+9.  added vlan name to device(client) states (info from switch devices port_table/mac_table)
+9.  changed dev-state wanRunDate to wanSpeedTest, gives the date when last speedtest was done
+
+changes in V 7.30.219  @ 2019-05-08
+==================  
+
+1.  added logging statements in case userid/passwd ip number are wrong
+2.  added UDM dict analysis
+3.  fixed format error
+4.  added space in button menue to imporve readability
 
 changes in V 7.30.215  @ 2019-05-06
 ==================  

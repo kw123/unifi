@@ -336,8 +336,6 @@
     <Field id="simpleSeparator215" 			type="separator"/>
 
 
-
-
     <Field    id="ipUDMON" 					type="checkbox"  defaultValue="false"      > <Label>UDM active:...............................................................</Label>  </Field>
    <Field     id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="yes"> 
 		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
@@ -377,12 +375,14 @@
         </List>
     </Field>
 
-    <Field    id="udPrompt"   				type="menu" defaultValue="#" visibleBindingId="ipUDMON" visibleBindingValue="true">
+    <Field    id="udPrompt"   				type="textfield" defaultValue="\\#" visibleBindingId="ipUDMON" visibleBindingValue="true">
         <Label>...prompt (unix) when logging in:</Label>
-        <List>
-            <Option value="#"      >#</Option>
-        </List>
-    </Field>
+     </Field>
+    <Field    id="udPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="false"> 
+		<Label>\\#  # has to be escaped with \\ 
+try: ssh userid@ip# to check</Label>  
+	</Field>
+
     <Field    id="debUD"  					type="checkbox"  defaultValue="false" 		visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
 		<Label>debug msg from this dev</Label>  
 	</Field>
@@ -401,6 +401,7 @@
     </Field>
 
 
+    <Field id="simpleSeparatorapON" 			type="separator"/>
 
     <Field id="apON" 						type="checkbox"  defaultValue="true"   > 
 		<Label>Show AP section........................................................:</Label>  
@@ -436,12 +437,13 @@
         </List>
     </Field>
 
-    <Field    id="apPrompt"   				type="menu" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
+    <Field    id="apPrompt"   				type="textfield" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
         <Label>...prompt when logging in(unix prompt):</Label>
-        <List>
-            <Option value="BZ.v"      >BZ.v</Option>
-        </List>
-    </Field>
+	</Field>
+    <Field    id="apPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="apON" visibleBindingValue="true"> 
+		<Label>options:   BZ.v 
+try: ssh userid@ip# to check</Label>  
+	</Field>
 
 
     <Field    id="ipON0" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:----------------</Label>  </Field>
@@ -468,6 +470,7 @@
 	</Field>
 
 
+    <Field id="simpleSeparatoripUGAON" 			type="separator"/>
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > 
 		<Label>USG/A active:...............................................................</Label>  
@@ -507,12 +510,13 @@
         </List>
     </Field>
 
-    <Field    id="gwPrompt"   type="menu" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
+    <Field    id="gwPrompt"   type="textfield" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
         <Label>...prompt (unix) when logging in:</Label>
-        <List>
-            <Option value=":~"      >:~</Option>
-        </List>
-    </Field>
+     </Field>
+    <Field    id="gwPrompt2"   			type="label"  alignWithControl="true"  visibleBindingId="ipUGAON" visibleBindingValue="true" readonly="true"> 
+		<Label>:~  
+try: ssh userid@ip# to check</Label>  
+	</Field>
 
     <Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>debug msg from this dev</Label>  
@@ -520,9 +524,7 @@
 
 
 
-
-
-
+    <Field id="simpleSeparatoripswON" 			type="separator"/>
 
     <Field    id="swON" type="checkbox"  defaultValue="false"       > <Label>Show Switch section:..................................................</Label>  </Field>
 
@@ -556,12 +558,13 @@
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
-    <Field    id="swPrompt" type="menu"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
+    <Field    id="swPrompt" type="textfield"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
     <Label>.. SW (unix)prompt:</Label>  
-        <List>
-            <Option value="US.v"      > US.v </Option>
-        </List>
-    </Field>
+	</Field>
+    <Field    id="swPrompt2"   			type="label" alignWithControl="true"  visibleBindingId="swON" visibleBindingValue="true" readonly="true"> 
+		<Label>US.v 
+try: ssh userid@ip# to check"</Label>  
+	</Field>
 
     <Field    id="ipSWON0" type="checkbox"  defaultValue="false"		visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:----------------</Label>  </Field>
     <Field    id="ipSW0"   type="textfield" defaultValue="192.168.1.x"	visibleBindingId="ipSWON0"  visibleBindingValue="true" > <Label>ipNumber of unifi switch 0:</Label>  </Field>
@@ -744,6 +747,7 @@
     <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (10) BroadCast:</Label>  </Field>
     <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (11) Ping WOL:</Label>  </Field>
     <Field    id="debugUDM"         type="checkbox"  defaultValue="false"   > <Label>... (12) UDM:</Label>  </Field>
+    <Field    id="debugIgnoreMAC"   type="checkbox"  defaultValue="false"   > <Label>... (13) ignore MAC:</Label>  </Field>
     <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (19) Special debug for development:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
     <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
