@@ -1,3 +1,9 @@
+changes in V 7.31.242  @ 2019-05-23
+==================  
+
+1. changed ssh login prompt check in expect from (yes/no)?  to (yes/no
+   as some prompts now show: (yes/no/[fingerprint])?
+
 changes in V 7.31.241  @ 2019-05-23
 ==================  
 

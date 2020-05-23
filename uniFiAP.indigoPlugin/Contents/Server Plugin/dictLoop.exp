@@ -11,7 +11,7 @@ set logfile [lindex $argv 8]
 set timeout 20
 spawn  ssh $userID@$ipNumber
 expect {
-    "(yes/no)? " {
+    "(yes/no" {
         send "yes\n"
         sleep 0.1
         expect "assword" { send "$password\n"}

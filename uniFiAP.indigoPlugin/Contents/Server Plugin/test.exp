@@ -5,7 +5,7 @@ set ipNumber [lindex $argv 2 ]
 set timeout 10
 spawn  ssh $userID@$ipNumber
 expect {
-    "(yes/no)? " {send "yes\r"  
+    "(yes/no" {send "yes\r"  
         expect "assword" { send "$password\n"} 
     }
     "assword"    {  send "$password\r"
