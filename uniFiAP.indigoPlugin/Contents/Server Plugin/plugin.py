@@ -4071,7 +4071,7 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(40,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
 						if ("username" not in jj)   and   ( "meta" not in jj or  jj["meta"]["rc"] !="ok"):
-							self.indiLOG.log(40,u"UNIFI executeCMDOnController error: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]) )
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController  login cmd:{}\ngives  error: {}\n {}".format(cmdL, ret[0],ret[1]) )
 							return []
 						if self.decideMyLog(u"Connection"):	 self.indiLOG.log(20,"Connection-{}: {}".format(self.unifiCloudKeyIP,ret[0]) )
 						self.lastUnifiCookieCurl =time.time()
