@@ -1,7 +1,8 @@
-changes in V 7.31.240  @ 2019-05-22
+changes in V 7.31.240  @ 2019-05-23
 ==================  
 
-1. fixed error :  9029 has error=local variable 'wanSpeedTest'
+1. fixed error :  has error=global name 'debLeve' is not defined 
+2. fixed error :  9029 has error=local variable 'wanSpeedTest'
 
 
 changes in V 7.31.239  @ 2019-05-15

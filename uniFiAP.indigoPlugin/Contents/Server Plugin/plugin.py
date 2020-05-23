@@ -7445,7 +7445,7 @@ class Plugin(indigo.PluginBase):
 
 		if ("usePingUP" in props and props["usePingUP"] and newStatus =="up" ) or ( "usePingDOWN" in props and props["usePingDOWN"] and newStatus !="up") :
 			if self.checkPing(ipNumber, nPings=1, waitForPing=500, calledFrom="doubleCheckWithPing") !=0:
-				if self.decideMyLog(debLeve, MAC=MAC): self.indiLOG.log(20,theType+" "+u" "+MAC+" "+section+" , status changed - not up , ping test failed" )
+				if self.decideMyLog(debLevel, MAC=MAC): self.indiLOG.log(20,theType+" "+u" "+MAC+" "+section+" , status changed - not up , ping test failed" )
 				return 1
 			else:
 				if self.decideMyLog(debLevel, MAC=MAC): self.indiLOG.log(20,theType+" "+u" "+MAC+" "+section+" , status changed - not up , ping test OK" )
