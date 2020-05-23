@@ -1,3 +1,18 @@
+changes in V 7.31.240  @ 2019-05-22
+==================  
+
+1. fixed error :  9029 has error=local variable 'wanSpeedTest'
+
+
+changes in V 7.31.239  @ 2019-05-15
+==================  
+
+1. minor menue text changes
+2. debug log streamlining for UDM devices
+3. added warning (in plugin.log) if ping test not working before connect 
+
+
+
 changes in V 7.31.238  @ 2019-05-12
 ==================  
 
@@ -12,7 +27,7 @@ changes in V 7.31.238  @ 2019-05-12
 8.  added option in MAC log-tracking menu to save MAC list and reload after plugin restart
     and changed display of list, dev name first then mac#
 9.  added vlan name to device(client) states (info from switch devices port_table/mac_table)
-9.  changed dev-state wanRunDate to wanSpeedTest, gives the date when last speedtest was done
+10. changed dev-state wanRunDate to wanSpeedTest, gives the date when last speedtest was done
 
 changes in V 7.30.219  @ 2019-05-08
 ==================  

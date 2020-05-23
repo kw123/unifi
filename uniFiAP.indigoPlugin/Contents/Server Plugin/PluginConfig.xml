@@ -172,9 +172,9 @@
 
     <Field id="simpleSeparatorUIDs" 			type="separator"/>
     <Field id="infoLabelUID" 				type="label"> 
-		<Label>== user IDs for systems (leave empty if not used), try to avoid ' and " in your passwords </Label>  
+		<Label>== user IDs for systems (leave empty if not used), no ' " GT LT | # in your passwords!! </Label>  
 	</Field>
-  <Field    id="unifiCONTROLLERUserID"   	type="textfield" defaultValue="" >
+  <Field    id="unifiCONTROLLERUserID"      type="textfield" defaultValue="" >
         <Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
     </Field>
 
@@ -205,7 +205,7 @@
     </Field>
 
     <Field    id="unifiPassWdUDM"   		type="textfield" defaultValue="" >
-        <Label>..  password:</Label>
+        <Label>..  password :</Label>
     </Field>
 
     <Field id="simpleSeparatorCO" 			type="separator"/>
