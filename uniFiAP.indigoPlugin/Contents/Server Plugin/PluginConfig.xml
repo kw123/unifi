@@ -250,12 +250,18 @@
     <Field    id="unifiCloudKeyPort"     	type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..port number of controller:</Label>  
 	</Field>
-   <Field id="unifiCloudKeyPort1"  			type="textfield" defaultValue="443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="unifiCloudKeyPortstd"  			type="textfield" defaultValue="8443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>for std + UDM:</Label>  
+	</Field>
+   <Field id="unifiCloudKeyPortUDM"  			type="textfield" defaultValue="443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>for UDM-PRO:</Label>  
 	</Field>
 
     <Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  
+	</Field>
+   <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>most likely this is default, This is not the name in unif/setting/site/site name. Only for multi sites system thsi will change and the controller will set it</Label>  
 	</Field>
 
     <Field    id="unifiApiWebPage"       	type="textfield"	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
@@ -263,11 +269,11 @@
     </Field>
 
     <Field    id="apiwebpage1"   			type="textfield" 	defaultValue="/api/s/"                visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>options:</Label> 
+		<Label>options (std +UDM):</Label> 
 	</Field>
 
     <Field    id="apiwebpage2"   			type="textfield" 	defaultValue="/proxy/network/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>options:</Label>  
+		<Label>options (UDM-pro):</Label>  
 	</Field>
 
     <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
@@ -275,11 +281,11 @@
     </Field>
  
    <Field    id="apiloginpage1"   			type="textfield" 	defaultValue="/api/login"            visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>options:</Label>  
+		<Label>options (std+UDM):</Label>  
 	</Field>
 
     <Field    id="apiloginpage2"  			type="textfield" 	defaultValue="/api/auth/login"      visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>options:</Label>  
+		<Label>options (UDM-pro):</Label>  
 	</Field>
 
     <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
