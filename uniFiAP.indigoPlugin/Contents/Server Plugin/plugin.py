@@ -850,7 +850,8 @@ class Plugin(indigo.PluginBase):
 				valuesDict["unifiCloudKeyPort"] 	= "8433"
 				valuesDict["unifiApiLoginPath"] 	= "/api/login"
 				valuesDict["unifiApiWebPage"]   	= "/api/s/"
-				valuesDict["ControllerBackupPath"]	 = "/usr/lib/unifi/data/backup/autobackup"
+				valuesDict["ControllerBackupPath"]	= "/usr/lib/unifi/data/backup/autobackup"
+				valuesDict["ipUDMON"]	 			= True
 
 			elif controllerType == "UDMPro":
 				valuesDict["unifiCloudKeyMode"] 	= "UDM"
@@ -858,6 +859,7 @@ class Plugin(indigo.PluginBase):
 				valuesDict["unifiApiLoginPath"] 	= "/api/auth/login"
 				valuesDict["unifiApiWebPage"]   	= "/proxy/network/api/s/"
 				valuesDict["ControllerBackupPath"]	= "/usr/lib/unifi/data/backup/autobackup"
+				valuesDict["ipUDMON"]	 			= True
 
 			else:
 				valuesDict["unifiCloudKeyMode"] 	= "ON"
@@ -866,6 +868,7 @@ class Plugin(indigo.PluginBase):
 				valuesDict["unifiApiLoginPath"] 	= "/api/login"
 				valuesDict["unifiApiWebPage"]   	= "/api/s/"
 				valuesDict["ControllerBackupPath"]	= "/data/unifi/data/backup/autobackup"
+				valuesDict["ipUDMON"]	 			= False
 
 		except	Exception, e:
 			if len(unicode(e)) > 5:
