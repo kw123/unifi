@@ -839,6 +839,39 @@ class Plugin(indigo.PluginBase):
 		if userCancelled == False:
 			pass
 		return
+	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	# This routine is called once the user has exited the preferences dialog
+	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	def buttonsetConfigToSelectedControllerTypeCALLBACK(self, valuesDict):
+		try:
+			controllerType = valuesDict["unifiControllerType"]
+			if   controllerType == "UDM":
+				valuesDict["unifiCloudKeyMode"] 	= "UDM"
+				valuesDict["unifiCloudKeyPort"] 	= "8433"
+				valuesDict["unifiApiLoginPath"] 	= "/api/login"
+				valuesDict["unifiApiWebPage"]   	= "/api/s/"
+				valuesDict["ControllerBackupPath"]	 = "/usr/lib/unifi/data/backup/autobackup"
+
+			elif controllerType == "UDMPro":
+				valuesDict["unifiCloudKeyMode"] 	= "UDM"
+				valuesDict["unifiCloudKeyPort"] 	= "433"
+				valuesDict["unifiApiLoginPath"] 	= "/api/auth/login"
+				valuesDict["unifiApiWebPage"]   	= "/proxy/network/api/s/"
+				valuesDict["ControllerBackupPath"]	= "/usr/lib/unifi/data/backup/autobackup"
+
+			else:
+				valuesDict["unifiCloudKeyMode"] 	= "ON"
+				valuesDict["unifiCloudKeyPort"] 	= "433"
+				valuesDict["unifiCloudKeyPort"] 	= "8433"
+				valuesDict["unifiApiLoginPath"] 	= "/api/login"
+				valuesDict["unifiApiWebPage"]   	= "/api/s/"
+				valuesDict["ControllerBackupPath"]	= "/data/unifi/data/backup/autobackup"
+
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
+		return valuesDict
+		
 
 	####-----------------  set the geneeral config parameters---------
 	def validatePrefsConfigUi(self, valuesDict):

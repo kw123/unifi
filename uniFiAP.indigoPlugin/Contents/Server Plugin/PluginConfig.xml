@@ -214,7 +214,7 @@
     <Field id="infoLabel217" 				type="label"> 
 		<Label>== Controller info (for controller commands and UDM WiFi info):  </Label>  
 	</Field>
-  <Field    id="unifiControllerType"  	type="menu"  defaultValue="0"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly"  > 
+  <Field    id="unifiControllerType"  	type="menu"  defaultValue="std"  > 
 		<Label>.. controller Type:</Label> 
         <List>
             <Option value="std"   	>unifi controller: mac, rpi, cloud key </Option>
@@ -222,6 +222,12 @@
             <Option value="UDMPro"  >UDM-pro </Option>
         </List>
     </Field>
+
+	<Field id="setConfigToSelectedControllerType" type="button" tooltip="" >
+		<Label>set (login, wbe pages ..) parameters to selected controller type</Label>
+		<Title>set parameters</Title> <CallbackMethod>buttonsetConfigToSelectedControllerTypeCALLBACK</CallbackMethod>
+	</Field>
+
    <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>selecting UDM(pro) will automatically: 
 1. activate (w. same IP#) SW#14, AP#4, USG, 
@@ -276,7 +282,7 @@
 		<Label>options (UDM-pro):</Label>  
 	</Field>
 
-    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
+    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/login"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
 		<Label>.. http: Api Login page:</Label> 
     </Field>
  

@@ -1,3 +1,7 @@
+changes in V 7.31.245  @ 2019-05-24
+==================  
+
+1. added button to preselect the most likely parameters for STd/UDM/UDMpro 
 changes in V 7.31.244  @ 2019-05-23
 ==================  
 
