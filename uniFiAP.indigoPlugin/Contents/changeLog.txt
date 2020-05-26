@@ -1,3 +1,9 @@
+changes in V 7.31.247  @ 2019-05-26
+==================  
+
+1. fix port # in "set parameters" button from 8433 to 8443
+
+
 changes in V 7.31.246  @ 2019-05-24
 ==================  
 

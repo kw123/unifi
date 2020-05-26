@@ -839,15 +839,12 @@ class Plugin(indigo.PluginBase):
 		if userCancelled == False:
 			pass
 		return
-	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-	# This routine is called once the user has exited the preferences dialog
-	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	def buttonsetConfigToSelectedControllerTypeCALLBACK(self, valuesDict):
 		try:
 			controllerType = valuesDict["unifiControllerType"]
 			if   controllerType == "UDM":
 				valuesDict["unifiCloudKeyMode"] 	= "UDM"
-				valuesDict["unifiCloudKeyPort"] 	= "8433"
+				valuesDict["unifiCloudKeyPort"] 	= "8443"
 				valuesDict["unifiApiLoginPath"] 	= "/api/login"
 				valuesDict["unifiApiWebPage"]   	= "/api/s/"
 				valuesDict["ControllerBackupPath"]	= "/usr/lib/unifi/data/backup/autobackup"
@@ -855,7 +852,7 @@ class Plugin(indigo.PluginBase):
 
 			elif controllerType == "UDMPro":
 				valuesDict["unifiCloudKeyMode"] 	= "UDM"
-				valuesDict["unifiCloudKeyPort"] 	= "433"
+				valuesDict["unifiCloudKeyPort"] 	= "443"
 				valuesDict["unifiApiLoginPath"] 	= "/api/auth/login"
 				valuesDict["unifiApiWebPage"]   	= "/proxy/network/api/s/"
 				valuesDict["ControllerBackupPath"]	= "/usr/lib/unifi/data/backup/autobackup"
@@ -863,8 +860,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				valuesDict["unifiCloudKeyMode"] 	= "ON"
-				valuesDict["unifiCloudKeyPort"] 	= "433"
-				valuesDict["unifiCloudKeyPort"] 	= "8433"
+				valuesDict["unifiCloudKeyPort"] 	= "8443"
 				valuesDict["unifiApiLoginPath"] 	= "/api/login"
 				valuesDict["unifiApiWebPage"]   	= "/api/s/"
 				valuesDict["ControllerBackupPath"]	= "/data/unifi/data/backup/autobackup"
@@ -876,6 +872,9 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 		
 
+	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	# This routine is called once the user has exited the preferences dialog
+	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	####-----------------  set the geneeral config parameters---------
 	def validatePrefsConfigUi(self, valuesDict):
 
@@ -4114,8 +4113,8 @@ class Plugin(indigo.PluginBase):
 
 						
 
-					if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection: "+cmdR )
-					if startText !="":					self.indiLOG.log(20,"Connection: "+startText)
+					if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection: {}".format(cmdR) )
+					if startText !="":					self.indiLOG.log(20,"Connection: {}".format(startText) )
 					try:
 						ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 						try:
@@ -4152,7 +4151,7 @@ class Plugin(indigo.PluginBase):
 					url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
 					dataLogin = json.dumps({"username":self.UserID["unixDevs"],"password":self.PassWd["unixDevs"],"strict":self.useStrictToLogin})
 					resp  = self.unifiControllerSession.post(url, data = dataLogin, verify=False)
-					if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: "+ resp.text)
+					if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: requests login {}".format(resp.text) )
 					self.lastUnifiCookieRequests =time.time()
 
 
@@ -4160,8 +4159,8 @@ class Plugin(indigo.PluginBase):
 				else:		  dataDict = json.dumps(data)
 				url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: requests: "+url +"  "+ dataDict)
-				if startText !="":					self.indiLOG.log(20,"Connection: requests: "+startText )
+				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: requests: {}  {}".format(url, dataDict) )
+				if startText !="":					self.indiLOG.log(20,"Connection: requests: {}".format(startText) )
 				try:
 						if	 cmdType == "put":	 						resp = self.unifiControllerSession.put(url,data = dataDict)
 						elif cmdType == "post":	 						resp = self.unifiControllerSession.post(url,data = dataDict)
@@ -4173,19 +4172,19 @@ class Plugin(indigo.PluginBase):
 
 							jj = json.loads(resp.text)
 						except :
-							self.indiLOG.log(40,"executeCMDOnController has error, no json object returned: " + unicode(resp.text))
+							self.indiLOG.log(40,"executeCMDOnController has error, no json object returned: {}".format(resp.text))
 							return []
  
 
 						if jj["meta"]["rc"] !="ok" :
-							self.indiLOG.log(40,u"error:>> "+ unicode(resp) +" Reconnect")
+							self.indiLOG.log(40,u"error:>> {} Reconnect".format(resp))
 							return []
 
 						if self.decideMyLog(u"Connection"):	
-							self.indiLOG.log(20,"Reconnect: executeCMDOnController resp.text:>>"+ resp.text[0:500]+".... <<" )
+							self.indiLOG.log(20,"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(resp.text[0:500]) )
 
 						if  jsonAction =="print":
-							self.indiLOG.log(20,"Reconnect: executeCMDOnController info\n"+ json.dumps(jj["data"],sort_keys=True, indent=2) )
+							self.indiLOG.log(20,"Reconnect: executeCMDOnController info\n{}".format(json.dumps(jj["data"],sort_keys=True, indent=2)) )
 							return []
 
 						if jsonAction =="returnData":
