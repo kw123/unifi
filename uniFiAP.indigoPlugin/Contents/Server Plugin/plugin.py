@@ -5370,24 +5370,15 @@ class Plugin(indigo.PluginBase):
 			temperature_Board_PHY = ""
 			for dd in data0:
 				if dd.find(":") == -1: continue
-				if dd[0] != " ":
-					nextItem = dd.strip().split(":")[0]	
-					continue
-				if nextItem not in ["temp1","temp3","Board Temp"]: continue
 				nn = dd.strip().split(":")
-				if nextItem == "Board Temp":
-					if nn[0] == "temp2_input":
-						temperature_Board_CPU = round(float(nn[1]),1)
-						nextItem = ""
-				elif nextItem == "temp1":
-					if nn[0] == "temp1_input":
-						temperature =  round(float(nn[1]))
-						nextItem = ""
-				elif nextItem == "temp3":
-					if nn[0] == "temp3_input":
-						temperature_Board_PHY =  round(float(nn[1]))
-						nextItem = ""
+				if nn[0] == "temp2_input":
+					temperature_Board_CPU 	= round(float(nn[1]),1)
+				elif nn[0] == "temp1_input":
+					temperature 			= round(float(nn[1]),1)
+				elif nn[0] == "temp3_input":
+					temperature_Board_PHY 	= round(float(nn[1]),1)
  
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"temp values found:  1:{}, 2:{}, 3:{}".format(temperature, temperature_Board_CPU, temperature_Board_PHY) )
 			for dev in indigo.devices.iter("props.isGateway"):
 				if dev.states[u"temperature"] 			!= temperature 			 and temperature != "": 		  self.addToStatesUpdateList(dev.id,u"temperature", temperature)
 				if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
