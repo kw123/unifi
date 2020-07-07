@@ -458,13 +458,13 @@ class Plugin(indigo.PluginBase):
 		ip0 												= self.pluginPrefs.get(u"ipUDM",  "")
 		ac													= self.pluginPrefs.get(u"ipUDMON",False)
 		self.debugDevs["UD"] 								= self.pluginPrefs.get(u"debUD",False)
-		self.ipNumbersOf["DM"] 								= ip0
+		self.ipNumbersOf["UD"] 								= ip0
 		self.deviceUp["UD"]									= time.time()
 
 		if self.isValidIP(ip0) and ac:
 			self.devsEnabled["UD"] 								= True
-			self.ipNumbersOf["SW"][self.numberForUDM["SW"]]	= ip0
-			self.ipNumbersOf["AP"][self.numberForUDM["AP"]]	= ip0
+			self.ipNumbersOf["SW"][self.numberForUDM["SW"]]		= ip0
+			self.ipNumbersOf["AP"][self.numberForUDM["AP"]]		= ip0
 			self.ipNumbersOf["GW"] 							  	= ip0
 			self.devsEnabled["SW"][self.numberForUDM["SW"]] 	= True
 			self.devsEnabled["AP"][self.numberForUDM["AP"]] 	= True
@@ -1085,7 +1085,7 @@ class Plugin(indigo.PluginBase):
 
 			## UDM parameters
 			ip0			= valuesDict[u"ipUDM"]
-			if self.ipNumbersOf["DM"] != ip0:
+			if self.ipNumbersOf["UD"] != ip0:
 				rebootRequired	+= " UDM ipNumber   changed; "
 
 			ac			= valuesDict[u"ipUDMON"]
@@ -1094,7 +1094,7 @@ class Plugin(indigo.PluginBase):
 				rebootRequired	+= " enable/disable UDM changed; "
 
 			self.devsEnabled["UD"]	   	= ac
-			self.ipNumbersOf["DM"] 	= ip0
+			self.ipNumbersOf["UD"] 	= ip0
 			self.debugDevs["UD"] 		= valuesDict[u"debUD"]
 			if self.devsEnabled["UD"]:
 				self.ipNumbersOf["SW"][self.numberForUDM["SW"]]		= ip0
@@ -4869,7 +4869,7 @@ class Plugin(indigo.PluginBase):
 		#1. get mca dump dict   
 		if self.devsEnabled["UD"]:
 			self.indiLOG.log(20,u"..starting threads for UDM  (db-DICT)")
-			self.broadcastIP = self.ipNumbersOf["DM"]
+			self.broadcastIP = self.ipNumbersOf["UD"]
 			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipNumbersOf["GW"],0,u"UDdict",float(self.readDictEverySeconds[u"UD"])*2,))
 			self.trUDDict.start()
 			# 2.  this  runs every xx secs  http get data 
@@ -5174,6 +5174,10 @@ class Plugin(indigo.PluginBase):
 			self.lastMinuteCheck = datetime.datetime.now().minute
 			self.statusChanged = max(1,self.statusChanged)
 
+			self.getUDMpro_sensors()
+
+
+
 			if self.VIDEOEnabled and self.vmMachine !="":
 				if "VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command
 					self.msgListenerActive["VDtail"] = time.time()
@@ -5200,8 +5204,6 @@ class Plugin(indigo.PluginBase):
 					if self.lastHourCheck ==1: # recycle at midnight
 						try:
 							fID =	indigo.variables["Unifi_Count_ALL_lastChange"].folderId
-							try:	indigo.variable.delete("Unifi_With_Status_Change")
-							except: pass
 							try:	indigo.variable.create("Unifi_With_Status_Change",value="", folder=fID)
 							except: pass
 						except:		pass
@@ -5342,6 +5344,61 @@ class Plugin(indigo.PluginBase):
 		return expT
 
 		####-----------------  check things every minute / xx minute / hour once a day ..  ---------
+
+
+
+	####-----------------	 ---------
+	def getUDMpro_sensors(self):
+		try:
+			if self.unifiControllerType != "UDMPro": return 
+
+			cmd = "/usr/bin/expect '"+self.pathToPlugin + "UDM-pro-sensors.exp' "
+			cmd += " '"+self.UserID["unixUD"]+"' "
+			cmd += " '"+self.PassWd["unixUD"]+"' "
+			cmd +=      self.unifiCloudKeyIP
+			cmd += " " +self.promptOnServer["UDdict"]
+
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"get sensorValues from UDMpro cmd: {}".format(cmd) )
+
+			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"sensorValues cmd ret data: {}\nerr:{}".format(ret[0],ret[1]) )
+			data0 = ret[0].split("\n")
+			nextItem = ""
+			temperature = ""
+			temperature_Board_CPU = ""
+			temperature_Board_PHY = ""
+			for dd in data0:
+				if dd.find(":") == -1: continue
+				if dd[0] != " ":
+					nextItem = dd.strip().split(":")[0]	
+					continue
+				if nextItem not in ["temp1","temp3","Board Temp"]: continue
+				nn = dd.strip().split(":")
+				if nextItem == "Board Temp":
+					if nn[0] == "temp2_input":
+						temperature_Board_CPU = round(float(nn[1]),1)
+						nextItem = ""
+				elif nextItem == "temp1":
+					if nn[0] == "temp1_input":
+						temperature =  round(float(nn[1]))
+						nextItem = ""
+				elif nextItem == "temp3":
+					if nn[0] == "temp3_input":
+						temperature_Board_PHY =  round(float(nn[1]))
+						nextItem = ""
+ 
+			for dev in indigo.devices.iter("props.isGateway"):
+				if dev.states[u"temperature"] 			!= temperature 			 and temperature != "": 		  self.addToStatesUpdateList(dev.id,u"temperature", temperature)
+				if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
+				if dev.states[u"temperature_Board_PHY"] != temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
+				self.executeUpdateStatesList()			
+				
+
+		except	Exception, e:
+			self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+		return
 
 	####-----------------	 ---------
 	def periodCheck(self):

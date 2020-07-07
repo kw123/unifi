@@ -1,3 +1,14 @@
+changes in V 7.31.249  @ 2019-07-07
+==================  
+
+1. added function to get tempereatures from UDM-pro machine w ssh and sensors -u command
+
+changes in V 7.31.248  @ 2019-05-28
+==================  
+
+1. removed delete and recreate of Unifi_With_Status_Change at startup. is now handled by supressing logging
+
+
 changes in V 7.31.247  @ 2019-05-26
 ==================  
 
