@@ -15,13 +15,16 @@ expect {
         send "$password\n"
     }
 }
-
-set timeout 3
-sleep 3
-expect "$promptOnServer" {send "sensors -u\r"}
-sleep 2
-expect "$promptOnServer"
+send "\r"
+send "\r"
 sleep 1
+set timeout 2
+unset expect_out(buffer)
+expect timeout
+send "\r"
+expect "$promptOnServer" {send "sensors -u\r"}
+sleep 1
+expect "$promptOnServer" {send "\r"}
 send "exit\r"
-sleep 0.1
+sleep 1
 expect eof
