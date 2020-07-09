@@ -1,4 +1,4 @@
-changes in V 7.31.250  @ 2019-07-07  
+changes in V 7.31.251  @ 2019-07-07  
 ==================  
 
 1. added function to get tempereatures from UDM-pro machine w ssh and sensors -u command

@@ -17,12 +17,11 @@ expect {
 }
 
 set timeout 3
-expect "Permission denied" {send \003\r"; exit 1}
-
-expect "$promptOnServer"{
-    send sensors -u\n
-}
+sleep 3
+expect "$promptOnServer" {send "sensors -u\r"}
+sleep 2
 expect "$promptOnServer"
+sleep 1
 send "exit\r"
 sleep 0.1
 expect eof
