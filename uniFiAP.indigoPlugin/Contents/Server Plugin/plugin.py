@@ -5358,17 +5358,19 @@ class Plugin(indigo.PluginBase):
 			cmd +=      self.unifiCloudKeyIP
 			cmd += " " +self.promptOnServer["UDdict"]
 
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"get sensorValues from UDMpro cmd: {}".format(cmd) )
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: get sensorValues from UDMpro cmd: {}".format(cmd) )
 
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"sensorValues cmd ret data: {}\nerr:{}".format(ret[0],ret[1]) )
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: sensorValues cmd ret data: {}\nerr:{}".format(ret[0],ret[1]) )
 			data0 = ret[0].split("\n")
 			nextItem = ""
 			temperature = ""
 			temperature_Board_CPU = ""
 			temperature_Board_PHY = ""
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors returned list: {}".format(data0) )
 			for dd in data0:
+				#if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: cehcking line: {}".format(dd) )
 				if dd.find(":") == -1: continue
 				nn = dd.strip().split(":")
 				if nn[0] == "temp2_input":
@@ -5378,8 +5380,9 @@ class Plugin(indigo.PluginBase):
 				elif nn[0] == "temp3_input":
 					temperature_Board_PHY 	= round(float(nn[1]),1)
  
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"temp values found:  1:{}, 2:{}, 3:{}".format(temperature, temperature_Board_CPU, temperature_Board_PHY) )
+			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: temp values found:  1:{}, 2:{}, 3:{}".format(temperature, temperature_Board_CPU, temperature_Board_PHY) )
 			for dev in indigo.devices.iter("props.isGateway"):
+				if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: adding temperature states to device:  {}-{}".format(dev.id, dev.name.encode("utf8")) )
 				if dev.states[u"temperature"] 			!= temperature 			 and temperature != "": 		  self.addToStatesUpdateList(dev.id,u"temperature", temperature)
 				if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
 				if dev.states[u"temperature_Board_PHY"] != temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
