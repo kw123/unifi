@@ -5350,7 +5350,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getUDMpro_sensors(self):
 		try:
-			if self.unifiControllerType != "UDMPro": return 
+			if self.unifiControllerType.find("UDM") == -1: return 
 
 			cmd = "/usr/bin/expect '"+self.pathToPlugin + "UDM-pro-sensors.exp' "
 			cmd += " '"+self.UserID["unixUD"]+"' "
@@ -5358,36 +5358,39 @@ class Plugin(indigo.PluginBase):
 			cmd +=      self.unifiCloudKeyIP
 			cmd += " " +self.promptOnServer["UDdict"]
 
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: get sensorValues from UDMpro cmd: {}".format(cmd) )
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"getUDMpro_sensors: get sensorValues from UDMpro w cmd: {}".format(cmd) )
 
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: sensorValues cmd ret data: {}\nerr:{}".format(ret[0],ret[1]) )
 			data0 = ret[0].split("\n")
 			nextItem = ""
 			temperature = ""
 			temperature_Board_CPU = ""
 			temperature_Board_PHY = ""
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors returned list: {}".format(data0) )
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"getUDMpro_sensors returned list: {}".format(data0) )
 			for dd in data0:
-				#if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: cehcking line: {}".format(dd) )
 				if dd.find(":") == -1: continue
 				nn = dd.strip().split(":")
 				if nn[0] == "temp2_input":
-					temperature_Board_CPU 	= round(float(nn[1]),1)
+					t2 	= round(float(nn[1]),1)
 				elif nn[0] == "temp1_input":
-					temperature 			= round(float(nn[1]),1)
+					t1			= round(float(nn[1]),1)
 				elif nn[0] == "temp3_input":
-					temperature_Board_PHY 	= round(float(nn[1]),1)
+					t3 	= round(float(nn[1]),1)
  
-			if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: temp values found:  1:{}, 2:{}, 3:{}".format(temperature, temperature_Board_CPU, temperature_Board_PHY) )
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"getUDMpro_sensors: temp values found:  1:{}, 2:{}, 3:{}".format(t1, t2, t3) )
+			found = False			
 			for dev in indigo.devices.iter("props.isGateway"):
-				if True or self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getUDMpro_sensors: adding temperature states to device:  {}-{}".format(dev.id, dev.name.encode("utf8")) )
-				if dev.states[u"temperature"] 			!= temperature 			 and temperature != "": 		  self.addToStatesUpdateList(dev.id,u"temperature", temperature)
-				if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
-				if dev.states[u"temperature_Board_PHY"] != temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
-				self.executeUpdateStatesList()			
-				
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"getUDMpro_sensors: adding temperature states to device:  {}-{}".format(dev.id, dev.name.encode("utf8")) )
+				if dev.states[u"temperature"] 			!= t1 and t1 != "": 		  self.addToStatesUpdateList(dev.id,u"temperature", t1)
+				if dev.states[u"temperature_Board_CPU"] != t2 and t2 != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", t2)
+				if dev.states[u"temperature_Board_PHY"] != t3 and t3 != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", t3)
+				self.executeUpdateStatesList()
+				found = True			
+				break
+			if not found:
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"getUDMpro_sensors: not UDM-GW device setup in indigo" )
+
 
 		except	Exception, e:
 			self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
