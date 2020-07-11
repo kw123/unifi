@@ -8236,9 +8236,9 @@ class Plugin(indigo.PluginBase):
 			dpi_table =[]
 			xx = {}
 			for dd in gwDict:
-				if len(dd) <1: comntinue
+				if len(dd) < 1: comntinue
 				if "ip" not in dd: 		
-					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    IP not in gWDict :".format(gwDict) )
+					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    \"ip\" not in gWDict :".format(gwDict) )
 					continue
 				if type(dd) != type({}): 
 					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    no dict in items in gWDict :".format(gwDict) )
@@ -8681,7 +8681,7 @@ class Plugin(indigo.PluginBase):
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 							try:
 								devName += u"_"+( unicode(time.time() - int(time.time())) ).split(".")[1] # create random name
-								self.indiLOG.log(30,u"trying again to create device with differnt name "+devName)
+								self.indiLOG.log(30,u"trying again to create device with different name "+devName)
 								dev = indigo.device.create(
 									protocol		=indigo.kProtocol.Plugin,
 									address			=MAC,
@@ -8903,15 +8903,16 @@ class Plugin(indigo.PluginBase):
 
 
 			if self.unifiControllerType.find("UDM") >-1:
-				if "if_table"			  not in gwDict: return
-
+				if "if_table" not in gwDict: 
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"gateway \"if_table\" not in dict:\n{} ".format(gwDict))
+					return
 				if "ip" in gwDict:	   
 						publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway no public IP number found ")
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway no public IP number found: \"ip\" not the gw-dict")
 					return 
 
-				nameList ={}
+				nameList = {}
 				for table in gwDict["if_table"]:
 					if "name" in table: 
 						nameList[table["name"]] = ""
@@ -10076,7 +10077,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if MAC !="" and MAC in self.MACloglist:				 	 return True
 			if msgLevel	 == u"all" or u"all" in self.debugLevel:	 return True
-			if msgLevel	 == ""	 and u"all" not in self.debugLevel:	 return False
+			if msgLevel	 == ""  and u"all" not in self.debugLevel:	 return False
 			if msgLevel in self.debugLevel:							 return True
 
 		except	Exception, e:
