@@ -8961,11 +8961,18 @@ class Plugin(indigo.PluginBase):
 
 				lan = {}
 				for table in gwDict["if_table"]:
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1; table:{} ".format(table))
+					if "ip" not in table: continue
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1.1; table:{} ".format(table))
 					if table["ip"] == ipNumber:
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1")
 						lan = table
 						if "name" in table:
+							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.2")
 							if table["name"] in nameList:
+								if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.3")
 								wan["mac"] =  nameList[table["name"]]
+						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.4 - break")
 						break
 
 				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +6 ")
@@ -9194,11 +9201,11 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception, e:
-			if len(unicode(e)) > 5:
-				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 		#if time.time()-waitT > 0.001: #self.myLog( text=unicode(self.blockAccess).ljust(28)+part.ljust(18)+"    exectime> %6.3f"%(time.time()-waitT)+ " @ "+datetime.datetime.now().strftime("%M:%S.%f")[:-3])
 		if len(self.blockAccess)>0:	 del self.blockAccess[0]
+		if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +99 - return")
 		return
 
 
