@@ -443,7 +443,7 @@ class Plugin(indigo.PluginBase):
 		#####  check UGA parameters
 		ip0 												= self.pluginPrefs.get(u"ipUGA",  "")
 		ac													= self.pluginPrefs.get(u"ipUGAON",False)
-		self.debugDevs["GW"] 										= self.pluginPrefs.get(u"debGW",False)
+		self.debugDevs["GW"] 								= self.pluginPrefs.get(u"debGW",False)
 
 		if self.isValidIP(ip0) and ac:
 			self.ipNumbersOf["GW"] 							= ip0
@@ -1224,12 +1224,16 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"AP tailCommand".ljust(40)					+	self.commandOnServer["APtail"] )
 			self.myLog( text=u"AP dictCommand".ljust(40)					+	self.commandOnServer["APdict"] )
 			self.myLog( text=u"UD dictCommand".ljust(40)					+	self.commandOnServer["UDdict"] )
+			self.myLog( text=u"AP enabled:".ljust(40)						+	unicode(self.devsEnabled["AP"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","") )
+			self.myLog( text=u"SW enabled:".ljust(40)						+	unicode(self.devsEnabled["SW"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","") )
+			self.myLog( text=u"GW enabled:".ljust(40)						+	unicode(self.devsEnabled["GW"]).replace("True","T").replace("False","F") )
+			self.myLog( text=u"UDM enabled".ljust(40)						+	unicode(self.devsEnabled["UD"]).replace("True","T").replace("False","F") )
 			self.myLog( text=u"read DB Dict every".ljust(40)				+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]" )
 			self.myLog( text=u"restart listeners if NoMessage for".ljust(40)+unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]" )
 			self.myLog( text=u"" ,mType=" ")
 			self.myLog( text=u"====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting",mType=" " )
 			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------",mType=" " )
-			self.myLog( text=u"Mode: off, ON, reports only".ljust(40)		+	self.unifiCloudKeyMode )
+			self.myLog( text=u"Mode: off, ON, UDM, reports only".ljust(40)	+	self.unifiCloudKeyMode )
 			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.UserID["webCTRL"] )
 			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.PassWd["webCTRL"] )
 			self.myLog( text=u"Controller Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType )
@@ -1262,17 +1266,17 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"",mType=" ")
 			self.myLog( text=u"AP ip#			  enabled / disabled")
 			for ll in range(len(self.ipNumbersOf["AP"])):
-				self.myLog( text=self.ipNumbersOf["AP"][ll].ljust(20) 			+	unicode(self.devsEnabled["AP"][ll]) )
+				self.myLog( text=self.ipNumbersOf["AP"][ll].ljust(20) 		+	unicode(self.devsEnabled["AP"][ll]).replace("True","T").replace("False","F") )
 
 
 			self.myLog( text=u"SW ip#")
 			for ll in range(len(self.ipNumbersOf["SW"])):
-				self.myLog( text=self.ipNumbersOf["SW"][ll].ljust(20) 			+	unicode(self.devsEnabled["SW"][ll]) )
+				self.myLog( text=self.ipNumbersOf["SW"][ll].ljust(20) 		+	unicode(self.devsEnabled["SW"][ll]).replace("True","T").replace("False","F") )
 			self.myLog( text=u"",mType=" ")
-			self.myLog( text=self.ipNumbersOf["GW"].ljust(20) 					+	unicode(self.devsEnabled["GW"])+"  USG/UGA  gateway/router " )
+			self.myLog( text=self.ipNumbersOf["GW"].ljust(20) 				+	unicode(self.devsEnabled["GW"])+"  USG/UGA  gateway/router " )
 
-			self.myLog( text=self.unifiCloudKeyIP.ljust(20) 					+	u"      Controller / cloud Key IP#" )
-			self.myLog( text=self.ipNumbersOf["VD"].ljust(20)					+	u"      Video NVR-IP#" )
+			self.myLog( text=self.unifiCloudKeyIP.ljust(20) 				+	u"      Controller / cloud Key IP#" )
+			self.myLog( text=self.ipNumbersOf["VD"].ljust(20)				+	u"      Video NVR-IP#" )
 			self.myLog( text=u"----------------------------------------------------",mType="  ")
 
 			self.myLog( text=u"")
@@ -3768,7 +3772,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def addFirstSeenToStates(self):
 		try:
-			if self.unifiCloudKeyMode != "ON":														 return
+			if self.unifiCloudKeyMode != "ON": return
 			listOfClients={}
 			# get data from conroller
 			data =	  self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
@@ -3809,7 +3813,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def checkForInforFromAllUsers(self, force= False):
 		try:
-			if self.unifiCloudKeyMode.find("ON") == -1 and not self.devsEnabled["UD"]:									return
+			if self.unifiCloudKeyMode.find("ON") == -1 and not self.devsEnabled["UD"]: return
 			if not force:
 				if (( time.time() - self.lastCheckForUDMUserReport < self.unifigetBlockedClientsDeltaTime ) and 
 					( time.time() - self.lastCheckForUDMUserReport < self.unifigetLastSeenDeltaTime       )  ):	return
