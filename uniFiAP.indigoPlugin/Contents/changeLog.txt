@@ -1,7 +1,7 @@
 changes in V 7.31.262  @ 2019-07-12
 ==================  
 
-1. tuned UDM gw dict part
+1. added UDM-pro GW device
 2. added unifiApiLoginPath etc  to print config
 
 changes in V 7.31.255  @ 2019-07-11

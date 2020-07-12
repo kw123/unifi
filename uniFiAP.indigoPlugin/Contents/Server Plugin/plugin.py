@@ -5355,7 +5355,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getUDMpro_sensors(self):
 		try:
-			if self.unifiControllerType.find("UDM") == -1: return 
+			if True or self.unifiControllerType.find("UDM") == -1: return 
 
 			cmd = "/usr/bin/expect '"+self.pathToPlugin + "UDM-pro-sensors.exp' "
 			cmd += " '"+self.UserID["unixUD"]+"' "
@@ -8912,21 +8912,15 @@ class Plugin(indigo.PluginBase):
 
 			if self.unifiControllerType.find("UDM") > -1:   
 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +1 ")
-
 				if "if_table" not in gwDict: 
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway \"if_table\" not in gwDict")
 					return
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +2 ")
 
 				if "ip" in gwDict:	   
 					publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict")
 					return 
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +3 ")
 
 				nameList = {}
 				for table in gwDict["if_table"]:
@@ -8940,8 +8934,6 @@ class Plugin(indigo.PluginBase):
 						if ethName in table:
 							if "mac" in table: 
 								nameList[ethName] = mac
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +4 ")
 
 				wan = {}
 				for table in gwDict["if_table"]:
@@ -8957,31 +8949,19 @@ class Plugin(indigo.PluginBase):
 								wan["mac"] =  nameList[table["name"]]
 						break
 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5 ")
-
 				lan = {}
 				for table in gwDict["if_table"]:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1; table:{} ".format(table))
 					if "ip" not in table: continue
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1.1; table:{} ".format(table))
 					if table["ip"] == ipNumber:
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.1")
 						lan = table
 						if "name" in table:
-							if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.2")
 							if table["name"] in nameList:
-								if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.3")
 								wan["mac"] =  nameList[table["name"]]
-						if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5.4 - break")
 						break
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +6 ")
 
 				if lan == {} or wan == {}: 
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway nameList:{};  ip:{}; wan:{} / lan:{};  not found in \"if_table\"".format(ipNumber, nameList, lan, wan) )
 					return 
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +7 ")
 
 				ipNDevice = ipNumber
 
@@ -8989,24 +8969,17 @@ class Plugin(indigo.PluginBase):
 
 
 			else: # non UDM type 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -1 " )
-
 				if "if_table"			  not in gwDict: 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -2 return " )
 					return
 				if	  "config_port_table"	  in gwDict: table = "config_port_table"
 				elif  "config_network_ports"  in gwDict: table = "config_network_ports"
 				else:									 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -3 return" )
 					return
 
 				if "connect_request_ip" in gwDict:
 					ipNDevice = self.fixIP(gwDict["connect_request_ip"])
 				if ipNDevice == "": 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -4 return" )
 					return
-
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -5 " )
 
 				if table =="config_network_ports":
 						if "LAN" in gwDict[table]:
@@ -9031,9 +9004,7 @@ class Plugin(indigo.PluginBase):
 							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 								wan = gwDict[u"if_table"][xx]
 				else:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -6 return" )
 					return
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -7  passed" )
 
 				if "ip" in wan:	   publicIP	   = wan[u"ip"].split("/")[0]
 
@@ -9046,13 +9017,12 @@ class Plugin(indigo.PluginBase):
 #			 self.myLog( text="if_table" + json.dumps(gwDict["if_table"], sort_keys=True, indent=2 ) )
 
 			if wan == {}: 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -1.1- wan empty")
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   wan empty")
 				return
 			if lan == {}: 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -1.1- lan empty")
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  lan empty")
 				return
 
-			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +8 ")
 
 
 			if "uptime" in wan:
@@ -9115,8 +9085,6 @@ class Plugin(indigo.PluginBase):
 
 			isNew = True
 
-			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +9 ")
-
 			if MAC in self.MAC2INDIGO[xType]:
 				try:
 					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
@@ -9132,7 +9100,7 @@ class Plugin(indigo.PluginBase):
 						isNew = False
 						break
 
-			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -2- MAC:{} -MAClan{}, is new:{}".format(MAC,MAClan,isNew))
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   MAC:{} -MAClan{}, is new:{}".format(MAC,MAClan,isNew))
 
 			if isNew:
 				try:
@@ -9205,7 +9173,6 @@ class Plugin(indigo.PluginBase):
 
 		#if time.time()-waitT > 0.001: #self.myLog( text=unicode(self.blockAccess).ljust(28)+part.ljust(18)+"    exectime> %6.3f"%(time.time()-waitT)+ " @ "+datetime.datetime.now().strftime("%M:%S.%f")[:-3])
 		if len(self.blockAccess)>0:	 del self.blockAccess[0]
-		if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +99 - return")
 		return
 
 
