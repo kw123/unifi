@@ -4170,7 +4170,7 @@ class Plugin(indigo.PluginBase):
 						if	 cmdType == "put":	 						resp = self.unifiControllerSession.put(url,data = dataDict)
 						elif cmdType == "post":	 						resp = self.unifiControllerSession.post(url,data = dataDict)
 						elif cmdType == "get":	 						resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
-						elif self.unifiControllerType.find("UDM") >-1:	resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
+						elif self.unifiControllerType.find("UDM") > -1:	resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
 						else:					 						resp = self.unifiControllerSession.put(url,data = dataDict)
   
 						try:
@@ -6816,7 +6816,7 @@ class Plugin(indigo.PluginBase):
 				passwd = self.PassWd["unixNVR"]
 
 			else:
-				if self.unifiControllerType.find("UDM") >-1 and (
+				if self.unifiControllerType.find("UDM") > -1 and (
 					( uType.find("AP") > -1 and ipNumber == self.ipNumbersOf["AP"][self.numberForUDM["AP"]]) or
 					( uType.find("SW") > -1 and ipNumber == self.ipNumbersOf["SW"][self.numberForUDM["SW"]]) or
 					( uType.find("UD") > -1 ) or
@@ -7583,7 +7583,7 @@ class Plugin(indigo.PluginBase):
 			doAP 	 = False
 			doGW 	 = False
 			#######  if this is a UDM device set AP, SW GW to tru
-			if unifiDeviceType == "UD" and self.unifiControllerType.find("UDM") >-1:
+			if unifiDeviceType == "UD" and self.unifiControllerType.find("UDM") > -1:
 				doSW 	 = True
 				doGW 	 = True
 				doAP 	 = True
@@ -7599,8 +7599,9 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20,"DEVdebug   {} dev #sw:{},ap:{}, uType:{}, unifiDeviceType:{}; dictmessage:\n{} ..\n{}".format(ipNumber, apNumbSW, apNumbAP, uType, unifiDeviceType, dd[:50], dd[-50:] ) )
 
 
-			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"updDict uType:{}; apNumb:{}; unifiDeviceType:{};  doGW:{}; ".format(ipNumber, uType, apNumb, unifiDeviceType, doGW) )
+			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"updDict  ipNumber:{};  apNumb:{};  uType:{};  unifiDeviceType:{};  doGW:{}; ".format(ipNumber,  apNumb, uType, unifiDeviceType, doGW) )
 			if unifiDeviceType == "GW" or doGW:
+				if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"updDict  dict:\n{}".format(apDict) )
 				self.doGatewaydictSELF(apDict, ipNumber)
 				if self.unifiControllerType.find("UDM") >-1: 
 					self.doGWDvi_stats(apDict, ipNumber)
@@ -8240,11 +8241,10 @@ class Plugin(indigo.PluginBase):
 				return 
 			dpi_table =[]
 			xx = {}
-			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI  gWDict:\n{}".format(gwDict) )
 			for dd in gwDict:
 				if len(dd) < 1: continue
 				if "ip" not in dd: 		
-					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    \"ip\" not in gWDict:\n{}".format(gwDict) )
+					#if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    \"ip\" not in gWDict" )
 					continue
 				if type(dd) != type({}): 
 					#if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI     dict in gwDict :".format(gwDict) )
@@ -8908,17 +8908,17 @@ class Plugin(indigo.PluginBase):
 			publicIP	= ""
 
 
-			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"doGw     ctrlType:{}; gwDict:\n{}".format(self.unifiControllerType, gwDict) )
+			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"doGw     unifiControllerType:{}; if.. find UDM >-1:{}".format(self.unifiControllerType, self.unifiControllerType.find("UDM") > -1) )
 
-			if self.unifiControllerType.find("UDM") >-1:   
+			if self.unifiControllerType.find("UDM") > -1:   
 
 				if "if_table" not in gwDict: 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway \"if_table\" not in gwDict:\n{} ".format(gwDict))
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway \"if_table\" not in gwDict")
 					return
 				if "ip" in gwDict:	   
 						publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict:{}".format(gwDict))
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict")
 					return 
 
 				nameList = {}
@@ -8959,23 +8959,32 @@ class Plugin(indigo.PluginBase):
 						break
 
 				if lan == {} or wan == {}: 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway nameList:{};  ip:{}; wan:{} / lan:{};  not found in if_table:{}".format(ipNumber, nameList, lan, wan, gwDict) )
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway nameList:{};  ip:{}; wan:{} / lan:{};  not found in \"if_table\"".format(ipNumber, nameList, lan, wan) )
 					return 
 
 				ipNDevice = ipNumber
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway ip:{}; nameList:{}\nwan:{}\nlan:{}".format(ipNumber, lan, wan, nameList) )
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway ip:{}; nameList:{}\nwan:{}\nlan:{}".format(ipNumber, lan, wan, nameList) )
 
 
 			else: # non UDM type 
-				if "if_table"			  not in gwDict: return
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -1 " )
+
+				if "if_table"			  not in gwDict: 
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -2 return " )
+					return
 				if	  "config_port_table"	  in gwDict: table = "config_port_table"
 				elif  "config_network_ports"  in gwDict: table = "config_network_ports"
-				else:									 return
+				else:									 
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -3 return" )
+					return
 
 				if "connect_request_ip" in gwDict:
 					ipNDevice = self.fixIP(gwDict["connect_request_ip"])
-				if ipNDevice == "": return
+				if ipNDevice == "": 
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -4 return" )
+					return
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -5 " )
 
 				if table =="config_network_ports":
 						if "LAN" in gwDict[table]:
@@ -8999,7 +9008,10 @@ class Plugin(indigo.PluginBase):
 							ifnameWAN = gwDict[table][xx]["ifname"]
 							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 								wan = gwDict[u"if_table"][xx]
-				else: return
+				else:
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -6 return" )
+					return
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    gateway not UDM type -7  passed" )
 
 				if "ip" in wan:	   publicIP	   = wan[u"ip"].split("/")[0]
 
