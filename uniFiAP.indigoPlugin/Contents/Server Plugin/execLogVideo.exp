@@ -19,8 +19,12 @@ expect {
 
 
 set timeout 10
+send "\r"
 expect "$promptOnServer" {}
-send "\n"
+send "\r"
+sleep 2
+expect *
+send "\r"
 
 sleep 0.1
 send "$command\n"

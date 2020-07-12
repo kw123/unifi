@@ -19,6 +19,9 @@ expect {
 
 set timeout 3
 expect "Permission denied" {send \003\r"; exit 1}
+sleep 2
+expect *
+send "\r"
 
 expect "$promptOnServer" {
     send $cmd\r\n

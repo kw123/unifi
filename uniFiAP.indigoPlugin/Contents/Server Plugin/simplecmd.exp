@@ -17,6 +17,11 @@ expect {
         send "$password\n"
     }
 }
+send "\r"
+sleep 1
+expect *
+send "\r"
+
 expect $promptOnServer
 send "rm xxabcxx > /dev/null 2>&1\n"
 sleep 0.1

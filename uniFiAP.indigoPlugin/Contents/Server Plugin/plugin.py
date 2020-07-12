@@ -8904,12 +8904,12 @@ class Plugin(indigo.PluginBase):
 
 			if self.unifiControllerType.find("UDM") >-1:
 				if "if_table" not in gwDict: 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"gateway \"if_table\" not in dict:\n{} ".format(gwDict))
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway \"if_table\" not in gw-dict:\n{} ".format(gwDict))
 					return
 				if "ip" in gwDict:	   
 						publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway no public IP number found: \"ip\" not the gw-dict")
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway no public IP number found: \"ip\" not in gw-dict:{}".format(gwDict))
 					return 
 
 				nameList = {}
@@ -9024,21 +9024,36 @@ class Plugin(indigo.PluginBase):
 				sysStats = gwDict["system-stats"]
 				if "cpu" in sysStats:	 cpuPercent = sysStats["cpu"]
 				if "mem" in sysStats:	 memPercent = sysStats["mem"]
-				if "temps" in sysStats:
-					if	len(sysStats["temps"]) > 0:
-						if type(sysStats["temps"]) == type({}):
-							try:
-								for key,value in sysStats["temps"].iteritems():
-									if   key =="Board (CPU)": 	temperature_Board_CPU 	= GT.getNumber(value)
-									elif key =="Board (PHY)":	temperature_Board_PHY 	= GT.getNumber(value)
-									elif key =="CPU": 			temperature_CPU 		= GT.getNumber(value)
-									elif key =="PHY": 			temperature_PHY 		= GT.getNumber(value)
-								#self.myLog( text="doGatewaydictSELF sysStats[temp]ok : "+temperature)
-							except:
-								self.indiLOG.log(30,"doGatewaydictSELF sysStats[temp]err : "+unicode(sysStats["temps"]))
-						else:
-							temperature	 = GT.getNumber(sysStats["temps"])
-							#self.myLog( text="doGatewaydictSELF sysStats: empty "+unicode(sysStats))
+				for xx in ["temps"]:
+					if xx in sysStats:
+						if len(sysStats[xx]) > 0:
+							if type(sysStats[xx]) == type({}):
+								try:
+									for key, value in sysStats[xx].iteritems():
+										if   key =="Board (CPU)": 	temperature_Board_CPU 	= GT.getNumber(value)
+										elif key =="Board (PHY)":	temperature_Board_PHY 	= GT.getNumber(value)
+										elif key =="CPU": 			temperature_CPU 		= GT.getNumber(value)
+										elif key =="PHY": 			temperature_PHY 		= GT.getNumber(value)
+									#self.myLog( text="doGatewaydictSELF sysStats[temp]ok : "+temperature)
+								except:
+									self.indiLOG.log(30,"doGatewaydictSELF sysStats[temp]err : "+unicode(sysStats[xx]))
+							else:
+								temperature	 = GT.getNumber(sysStats[xx])
+								#self.myLog( text="doGatewaydictSELF sysStats: empty "+unicode(sysStats))
+			for xx in ["temperatures"]:
+					if xx in gwDict:
+						if len(gwDict[xx]) > 0:
+							if type(gwDict[xx]) == type([]):
+								try:
+									for yy in gwDict[xx]:
+										if "name" in yy: 
+											if yy["name"] == "Local": 	temperature		 		= GT.getNumber(yy["value"])
+											if yy["name"] == "PHY":  	temperature_Board_PHY 	= GT.getNumber(yy["value"])
+											if yy["name"] == "CPU": 	temperature_Board_CPU 	= GT.getNumber(yy["value"])
+									#self.myLog( text="doGatewaydictSELF sysStats[temp]ok : "+temperature)
+								except:
+									self.indiLOG.log(30,"doGatewaydictSELF temperatures[temp]err : "+unicode(gwDict[xx]))
+								#self.myLog( text="doGatewaydictSELF sysStats: empty "+unicode(sysStats))
 
 			if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
 											wanSpeedTest   = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
