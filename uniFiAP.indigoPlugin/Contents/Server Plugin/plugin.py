@@ -8912,14 +8912,21 @@ class Plugin(indigo.PluginBase):
 
 			if self.unifiControllerType.find("UDM") > -1:   
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +1 ")
+
 				if "if_table" not in gwDict: 
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway \"if_table\" not in gwDict")
 					return
+
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +2 ")
+
 				if "ip" in gwDict:	   
-						publicIP	   = gwDict[u"ip"].split("/")[0]
+					publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict")
 					return 
+
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +3 ")
 
 				nameList = {}
 				for table in gwDict["if_table"]:
@@ -8934,6 +8941,7 @@ class Plugin(indigo.PluginBase):
 							if "mac" in table: 
 								nameList[ethName] = mac
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +4 ")
 
 				wan = {}
 				for table in gwDict["if_table"]:
@@ -8949,6 +8957,8 @@ class Plugin(indigo.PluginBase):
 								wan["mac"] =  nameList[table["name"]]
 						break
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +5 ")
+
 				lan = {}
 				for table in gwDict["if_table"]:
 					if table["ip"] == ipNumber:
@@ -8958,11 +8968,16 @@ class Plugin(indigo.PluginBase):
 								wan["mac"] =  nameList[table["name"]]
 						break
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +6 ")
+
 				if lan == {} or wan == {}: 
 					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway nameList:{};  ip:{}; wan:{} / lan:{};  not found in \"if_table\"".format(ipNumber, nameList, lan, wan) )
 					return 
 
+				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +7 ")
+
 				ipNDevice = ipNumber
+
 				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway ip:{}; nameList:{}\nwan:{}\nlan:{}".format(ipNumber, lan, wan, nameList) )
 
 
@@ -9030,6 +9045,7 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -1.1- lan empty")
 				return
 
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +8 ")
 
 
 			if "uptime" in wan:
@@ -9091,6 +9107,8 @@ class Plugin(indigo.PluginBase):
 				return
 
 			isNew = True
+
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway  +9 ")
 
 			if MAC in self.MAC2INDIGO[xType]:
 				try:
