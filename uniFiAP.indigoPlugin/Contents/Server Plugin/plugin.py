@@ -7599,7 +7599,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20,"DEVdebug   {} dev #sw:{},ap:{}, uType:{}, unifiDeviceType:{}; dictmessage:\n{} ..\n{}".format(ipNumber, apNumbSW, apNumbAP, uType, unifiDeviceType, dd[:50], dd[-50:] ) )
 
 
-
+			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"updDict uType:{}; apNumb:{}; unifiDeviceType:{};  doGW:{}; ".format(ipNumber, uType, apNumb, unifiDeviceType, doGW) )
 			if unifiDeviceType == "GW" or doGW:
 				self.doGatewaydictSELF(apDict, ipNumber)
 				if self.unifiControllerType.find("UDM") >-1: 
@@ -8240,13 +8240,14 @@ class Plugin(indigo.PluginBase):
 				return 
 			dpi_table =[]
 			xx = {}
+			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI  gWDict:\n{}".format(gwDict) )
 			for dd in gwDict:
-				if len(dd) < 1: comntinue
+				if len(dd) < 1: continue
 				if "ip" not in dd: 		
-					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    \"ip\" not in gWDict :".format(gwDict) )
+					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    \"ip\" not in gWDict:\n{}".format(gwDict) )
 					continue
 				if type(dd) != type({}): 
-					if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI    no dict in items in gWDict :".format(gwDict) )
+					#if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"DC-DPI     dict in gwDict :".format(gwDict) )
 					continue
 				xx = {"age": 99999999999,
 					  "authorized": False,
@@ -8907,14 +8908,17 @@ class Plugin(indigo.PluginBase):
 			publicIP	= ""
 
 
-			if self.unifiControllerType.find("UDM") >-1:
+			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"doGw     ctrlType:{}; gwDict:\n{}".format(self.unifiControllerType, gwDict) )
+
+			if self.unifiControllerType.find("UDM") >-1:   
+
 				if "if_table" not in gwDict: 
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway \"if_table\" not in gw-dict:\n{} ".format(gwDict))
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw     UDM gateway \"if_table\" not in gwDict:\n{} ".format(gwDict))
 					return
 				if "ip" in gwDict:	   
 						publicIP	   = gwDict[u"ip"].split("/")[0]
 				else:
-					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway no public IP number found: \"ip\" not in gw-dict:{}".format(gwDict))
+					if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict:{}".format(gwDict))
 					return 
 
 				nameList = {}
