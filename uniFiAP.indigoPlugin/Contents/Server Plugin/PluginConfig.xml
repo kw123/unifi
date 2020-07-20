@@ -230,7 +230,7 @@
 
    <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>selecting UDM(pro) will automatically: 
-1. activate (w. same IP#) SW#14, AP#4, USG, 
+1. activate (w. same IP#) SW#14, USG, AP#4 (for UDM not -PRO) 
 2. set controller info to ON or UDM</Label>  
 	</Field>
      <Field    id="unifiCloudKeyMode"  		type="menu"  defaultValue="ONreportsOnly"            > 
@@ -401,7 +401,7 @@ try: ssh userid@ip# to check</Label>
 	</Field>
 
     <Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipUDMON" visibleBindingValue="true" > 
-        <Label>...read UDM controller web page event log for tracking wifi devices every:</Label>
+        <Label>...read UDM (NOT-pro) controller web page event log for tracking wifi devices every:</Label>
         <List>
             <Option value="5"     > 5 seconds for testing</Option>
             <Option value="10"    >10 seconds </Option>
@@ -479,7 +479,7 @@ try: ssh userid@ip# to check</Label>
     <Field    id="ip4"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>- ipNumber of AP-4:</Label>  </Field>
     <Field    id="debAP4"  	type="checkbox"  defaultValue="false" 		visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
     <Field id="ipAPON4Label" type="label" 								visibleBindingId="ipSWON12"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-		<Label>This is used as AP device part of a UDM system</Label>  
+		<Label>This is used as AP device part of a UDM system (not UDM-pro)</Label>  
 	</Field>
 
 
