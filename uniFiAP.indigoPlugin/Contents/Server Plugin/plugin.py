@@ -9455,30 +9455,34 @@ class Plugin(indigo.PluginBase):
 							ppp = u"#C: " + "%02d" % nDevices # of clients
 
 							### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
-							if u"lldp_table"  in port and len(port["lldp_table"]) >0:
+							if SWP =="" and u"lldp_table"  in port and len(port["lldp_table"]) >0:
 								lldp_table = port[u"lldp_table"][0]
 								if u"lldp_chassis_id" in lldp_table and u"lldp_port_id" in lldp_table:
 									try:
 										macUPdowndevice = lldp_table[u"lldp_chassis_id"].lower()  # unifi deliver lower case , indigo uses upper case for MAC #
 										if	macUPdowndevice in self.MAC2INDIGO[u"GW"]:
-											ppp += ";GateW"
+											ppp += ";GtW"
 											SWP  = "GW"
 										elif "lldp_system_name" in lldp_table:
 											gwN = lldp_table[u"lldp_system_name"].lower()
-											if  "gatew" in gwN or "udm" in gwN:
-												ppp += ";GateW"
+											if  "gatew" in gwN or "udm" in gwN and gwN.find("switch") ==-1:
+												ppp += ";GtW"
 												SWP  = "GW"
-										elif  macUPdowndevice in self.MAC2INDIGO[xType]:
+										if  SWP == "" and macUPdowndevice in self.MAC2INDIGO[xType]:
 											try:	portNatSW = ",P:"+lldp_table[u"lldp_port_id"].split("/")[1]
 											except: portNatSW = ""
-											if SWP == "" : SWP = "DwL"
+											SWP = "DwL"
 											devIdOfSwitch = self.MAC2INDIGO[u"SW"][macUPdowndevice]["devId"]
 											ppp+= ";"+SWP+":"+ unicode(indigo.devices[devIdOfSwitch].states[u"switchNo"])+portNatSW
 									except	Exception, e:
 											self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
 							portsMAC["link"] = SWP
+
 							if SWP not in["UpL","GW"]: 
 								nClients += nDevices
+							if SWP == "":
+								ppp += "; "
 
 							poe = ""
 							if u"poe_enable" in port:
@@ -9491,15 +9495,20 @@ class Plugin(indigo.PluginBase):
 										poe="poe0"
 								else:
 										poe="poeX"
+							portsMAC["poe"] = poe
+
 							if poe != "":
 								ppp += ";"+poe
-							portsMAC["poe"] = poe
+							else:
+								ppp += "; "
 
 							if u"port_" + idS in dev.states:
 								if nDevices > 0:
 									ppp += u";" + fullDuplex + u"-" + (unicode(port[u"speed"]))
 									ppp += u"; err:" + errors
 									ppp += u"; rx-tx[kb/s]:" + rxRate + "-" + txRate
+								else:
+									ppp += "; ; ;"
 
 								if ppp != dev.states[u"port_" + idS]:
 									self.addToStatesUpdateList(dev.id,u"port_" + idS, ppp)
