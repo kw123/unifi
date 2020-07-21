@@ -8782,7 +8782,7 @@ class Plugin(indigo.PluginBase):
 					channel = shortC[u"channel"]
 					if not( GHz == "2" and channel < 14 or GHz == "5" and channel > 13): continue 
 					nStations += shortC[u"num_sta"]
-					essid	  += unicode(shortC[u"essid"]) + " ;"
+					essid	  += unicode(shortC[u"essid"]) + "; "
 					radio	  =  unicode(shortC[u"radio"])
 					tx_power  =  unicode(shortC[u"tx_power"])
 					if self.decideMyLog(u"Special"): self.indiLOG.log(20,"doAPdictsSELF {} - GHz:{}, sta:{}, essid:{}, radio:{}, tx:{}".format(MAC, GHz, nStations, essid, radio, tx_power)  )
@@ -8803,7 +8803,7 @@ class Plugin(indigo.PluginBase):
 								new = False
 								break
 					if not new:
-							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   "+ipNumber + " hostname:" + hostname + " MAC:" + MAC + " GHz:" + GHz + "  essid:" + essid + " channel:" + channel + "    nStations:" + nStations + "     tx_power:" + tx_power + "    radio:" + radio )
+							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   {} hostname:{} MAC:{}; GHz:{};  essid:{}; channel:{};  nStations:{};  tx_power:{}; radio:{}".format(ipNumber, hostname, MAC, GHz, essid, channel, nStations, tx_power, radio))
 							if u"uptime" in apDict and apDict[u"uptime"] !="":
 								if u"upSince" in dev.states:
 									self.addToStatesUpdateList(dev.id,u"upSince", time.strftime("%Y-%d-%m %H:%M:%S", time.localtime(time.time() - apDict[u"uptime"])) )
@@ -8811,10 +8811,10 @@ class Plugin(indigo.PluginBase):
 								self.addToStatesUpdateList(dev.id,u"tx_power_" + GHz, tx_power)
 							if unicode(channel) != dev.states[u"channel_" + GHz]:
 								self.addToStatesUpdateList(dev.id,u"channel_" + GHz, unicode(channel) )
-							if essid.strip(" ;)") != dev.states[u"essid_" + GHz]:
-								self.addToStatesUpdateList(dev.id,u"essid_" + GHz, essid, strip(" ;"))
+							if essid.strip("; ") != dev.states[u"essid_" + GHz]:
+								self.addToStatesUpdateList(dev.id,u"essid_" + GHz, essid.strip("; "))
 							if unicode(nStations) != dev.states[u"nStations_" + GHz]:
-								self.addToStatesUpdateList(dev.id,u"nStations_" + GHz,unicode(nStations) )
+								self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, unicode(nStations) )
 							if radio != dev.states[u"radio_" + GHz]:
 								self.addToStatesUpdateList(dev.id,u"radio_" + GHz, radio)
 							self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNumber
@@ -8850,7 +8850,7 @@ class Plugin(indigo.PluginBase):
 							self.addToStatesUpdateList(dev.id,u"channel_" + GHz, channel)
 							self.addToStatesUpdateList(dev.id,u"MAC", MAC)
 							self.addToStatesUpdateList(dev.id,u"hostname", hostname)
-							self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, nStations)
+							self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, unicode(nStations) )
 							self.addToStatesUpdateList(dev.id,u"radio_" + GHz, radio)
 							self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 							self.addToStatesUpdateList(dev.id,u"model", model)
@@ -9418,7 +9418,7 @@ class Plugin(indigo.PluginBase):
 
 						if u"port_idx" not in port: continue
 						ID = port[u"port_idx"]
-						idS = "%02d" % ID
+						idS = "%02d" % ID  # state name
 
 						if unicode(ID) not in self.MAC2INDIGO[xType][MAC][u"ports"]:
 							self.MAC2INDIGO[xType][MAC][u"ports"][unicode(ID)] = {u"rxLast": 0, u"txLast": 0, u"timeLast": 0,u"poe":"",u"fullDuplex":"",u"link":"",u"nClients":0}
@@ -9451,7 +9451,7 @@ class Plugin(indigo.PluginBase):
 							if u"mac_table" in port:
 								nDevices = len(port[u"mac_table"])
 							portsMAC["nClients"] = nDevices
-							ppp = u"#C: " + "%02d" % nDevices
+							ppp = u"#C: " + "%02d" % nDevices # of clients
 
 							### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
 							if u"lldp_table"  in port and len(port["lldp_table"]) >0:
@@ -9473,7 +9473,7 @@ class Plugin(indigo.PluginBase):
 
 							portsMAC["link"] = SWP
 
-							poe=""
+							poe = ""
 							if u"poe_enable" in port:
 								if port[u"poe_enable"]:
 									if (u"poe_good" in port and port[u"poe_good"])	:
@@ -9484,24 +9484,19 @@ class Plugin(indigo.PluginBase):
 										poe="poe0"
 								else:
 										poe="poeX"
-							if poe !="":
-								ppp+=";"+poe
+							if poe != "":
+								ppp += ";"+poe
 							portsMAC["poe"] = poe
 
-							if nDevices > 0:
-								ppp += u";" + fullDuplex + u"-" + (unicode(port[u"speed"]))
-								ppp += u"; err:" + errors
-								ppp += u"; rx-tx[kb/s]:" + rxRate + "-" + txRate
-
-
-								if ppp != dev.states[u"port_" + idS]:
-									self.addToStatesUpdateList(dev.id,u"port_" + idS, ppp)
-
-
-
 							if u"port_" + idS in dev.states:
+								if nDevices > 0:
+									ppp += u";" + fullDuplex + u"-" + (unicode(port[u"speed"]))
+									ppp += u"; err:" + errors
+									ppp += u"; rx-tx[kb/s]:" + rxRate + "-" + txRate
+
 								if ppp != dev.states[u"port_" + idS]:
 									self.addToStatesUpdateList(dev.id,u"port_" + idS, ppp)
+
 
 
 
