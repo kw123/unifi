@@ -9363,6 +9363,7 @@ class Plugin(indigo.PluginBase):
 			uptime			= unicode(theDict[u"uptime"])
 			portTable		= theDict[u"port_table"]
 			nports			= len(portTable)
+			nClients		= 0
 
 			if nports not in _numberOfPortsInSwitch:
 				for nn in _numberOfPortsInSwitch:
@@ -9460,18 +9461,24 @@ class Plugin(indigo.PluginBase):
 									try:
 										macUPdowndevice = lldp_table[u"lldp_chassis_id"].lower()  # unifi deliver lower case , indigo uses upper case for MAC #
 										if	macUPdowndevice in self.MAC2INDIGO[u"GW"]:
-											ppp+=";GateW"
-											SWP ="GW"
+											ppp += ";GateW"
+											SWP  = "GW"
+										elif "lldp_system_name" in lldp_table:
+											gwN = lldp_table[u"lldp_system_name"].lower()
+											if  "gatew" in gwN or "udm" in gwN:
+												ppp += ";GateW"
+												SWP  = "GW"
 										elif  macUPdowndevice in self.MAC2INDIGO[xType]:
 											try:	portNatSW = ",P:"+lldp_table[u"lldp_port_id"].split("/")[1]
 											except: portNatSW = ""
-											if SWP =="" : SWP = "DwL"
+											if SWP == "" : SWP = "DwL"
 											devIdOfSwitch = self.MAC2INDIGO[u"SW"][macUPdowndevice]["devId"]
 											ppp+= ";"+SWP+":"+ unicode(indigo.devices[devIdOfSwitch].states[u"switchNo"])+portNatSW
 									except	Exception, e:
 											self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-
 							portsMAC["link"] = SWP
+							if SWP not in["UpL","GW"]: 
+								nClients += nDevices
 
 							poe = ""
 							if u"poe_enable" in port:
@@ -9521,6 +9528,9 @@ class Plugin(indigo.PluginBase):
 					self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 					if "fanLevel" in dev.states and  fanLevel != "" and fanLevel != dev.states[u"fanLevel"]:
 						self.addToStatesUpdateList(dev.id,u"fanLevel", fanLevel)
+
+					if "nClients" in dev.states and  nClients != "" and nClients != dev.states[u"nClients"]:
+						self.addToStatesUpdateList(dev.id,u"nClients", nClients)
 
 
 					if self.updateDescriptions:
