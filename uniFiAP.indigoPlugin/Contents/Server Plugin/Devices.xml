@@ -2732,15 +2732,15 @@
 					<TriggerLabel>tx_power_5</TriggerLabel>
 					<ControlPageLabel>tx_power_5</ControlPageLabel>
 				</State>
-				<State id="nStations_2">
+				<State id="nClients_2">
 					<ValueType>String</ValueType>
-					<TriggerLabel>nStations_2</TriggerLabel>
-					<ControlPageLabel>nStations_2</ControlPageLabel>
+					<TriggerLabel>nClients_2</TriggerLabel>
+					<ControlPageLabel>nClients_2</ControlPageLabel>
 				</State>
-				<State id="nStations_5">
+				<State id="nClients_5">
 					<ValueType>String</ValueType>
-					<TriggerLabel>nStations_5</TriggerLabel>
-					<ControlPageLabel>nStations_5</ControlPageLabel>
+					<TriggerLabel>nClients_5</TriggerLabel>
+					<ControlPageLabel>nClients_5</ControlPageLabel>
 				</State>
 				<State id="radio_5">
 					<ValueType>String</ValueType>
@@ -2791,6 +2791,16 @@
 					<ValueType>String</ValueType>
 					<TriggerLabel>apNo</TriggerLabel>
 					<ControlPageLabel>apNo</ControlPageLabel>
+				</State>
+				<State id="clientList_5GHz">
+					<ValueType>String</ValueType>
+					<TriggerLabel>clientList_5GHz</TriggerLabel>
+					<ControlPageLabel>clientList_5GHz</ControlPageLabel>
+				</State>
+				<State id="clientList_2GHz">
+					<ValueType>String</ValueType>
+					<TriggerLabel>clientList_2GHz</TriggerLabel>
+					<ControlPageLabel>clientList_2GHz</ControlPageLabel>
 				</State>
 
 			</States>

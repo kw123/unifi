@@ -3653,7 +3653,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPledOFFControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPledOFFControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"led_enabled":False,"mac":False}, pageString="/set/setting/mgmt")
+		self.executeCMDOnController(data={"led_enabled":False}, pageString="/set/setting/mgmt", cmdType="get")
 		return
 
 	####-----------------	 ---------
@@ -3661,7 +3661,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPxledONControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPxledONControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"cmd":"set-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr")
+		self.executeCMDOnController(data={"cmd":"set-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="get")
 		return valuesDict
 
 	####-----------------	 ---------
@@ -3669,7 +3669,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPxledOFFControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPxledOFFControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"cmd":"unset-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr")
+		self.executeCMDOnController(data={"cmd":"unset-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="get")
 		return valuesDict
 
 	####-----------------	 ---------
@@ -4101,7 +4101,7 @@ class Plugin(indigo.PluginBase):
 				else:		  dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	 						cmdTypeUse= " -X PUT "
 				elif cmdType == "post":	  						cmdTypeUse= " -X post "
-				elif cmdType == "get":	  						cmdTypeUse= " -X GET "
+				elif cmdType == "get":	  						cmdTypeUse= " "
 				elif self.unifiControllerType.find("UDM") >-1:	cmdTypeUse= " -X GET "
 				else:					 						cmdTypeUse= " "
 				#cmdR  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
@@ -6382,7 +6382,7 @@ class Plugin(indigo.PluginBase):
 		essid		= ""
 		channel		= ""
 		radio 		= ""
-		nStations	= ""
+		nClients	= ""
 		devName		= "UDM-AP"
 		xType		= "AP"
 		isType 		= "isAP"
@@ -6409,7 +6409,7 @@ class Plugin(indigo.PluginBase):
 			self.addToStatesUpdateList(dev.id,u"channel_" + GHz, channel)
 			self.addToStatesUpdateList(dev.id,u"MAC", MAC)
 			self.addToStatesUpdateList(dev.id,u"hostname", hostname)
-			self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, nStations)
+			self.addToStatesUpdateList(dev.id,u"nClients_" + GHz, nClients)
 			self.addToStatesUpdateList(dev.id,u"radio_" + GHz, radio)
 			self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 			self.addToStatesUpdateList(dev.id,u"model", model)
@@ -7645,7 +7645,7 @@ class Plugin(indigo.PluginBase):
 					hostname = apDict[u"hostname"].strip()
 					ipNDevice= apDict[u"ip"]
 
-					self.doAPdictsSELF(apDict, apNumbAP, ipNDevice, MACAP, hostname, ipNumber)
+					clientHostnames ={"2":"","5":""}
 					for jj in range(len(apDict[u"vap_table"])):
 						if "usage" in apDict[u"vap_table"][jj]: #skip if not wireless
 							if apDict[u"vap_table"][jj]["usage"] == "downlink": continue
@@ -7656,12 +7656,11 @@ class Plugin(indigo.PluginBase):
 							GHz = "5"
 						else:
 							GHz = "2"
+						if "sta_table" in apDict[u"vap_table"][jj] and apDict[u"vap_table"][jj][u"sta_table"] !=[]:
+							clientHostnames[GHz] = self.doWiFiCLIENTSdict(apDict[u"vap_table"][jj][u"sta_table"], GHz, ipNDevice, apNumbAP, ipNumber)
 
 						#################  update APs themselves
-
-						#################  now update the WiFi clients
-						if "sta_table" in apDict[u"vap_table"][jj] and apDict[u"vap_table"][jj][u"sta_table"] !=[]:
-							self.doWiFiCLIENTSdict(apDict[u"vap_table"][jj][u"sta_table"], GHz, ipNDevice, apNumbAP, ipNumber)
+					self.doAPdictsSELF(apDict, apNumbAP, ipNDevice, MACAP, hostname, ipNumber, clientHostnames)
 
 
 					############  update neighbors
@@ -8414,6 +8413,7 @@ class Plugin(indigo.PluginBase):
 				devName = "UniFi"
 				suffixN = "WiFi"
 				xType	= u"UN"
+				clientHostNames = ""
 				#self.myLog( text=u"DictDetails", ipNDevice + " GHz" +GHz, mType=u"DICT-WiFi")
 				for MAC in self.MAC2INDIGO[xType]:
 					if self.MAC2INDIGO[xType][MAC][u"AP"]  != ipNumber: continue
@@ -8442,6 +8442,7 @@ class Plugin(indigo.PluginBase):
 						nameCl		= adDict[ii][u"hostname"].strip()
 					except:
 						nameCl		= ""
+					if nameCl !="": clientHostNames += nameCl+"; "
 					powerMgmt = unicode(adDict[ii][u"state_pwrmgt"])
 					ipx = self.fixIP(ip)
 					#if	 MAC == "54:9f:13:3f:95:25":
@@ -8741,14 +8742,15 @@ class Plugin(indigo.PluginBase):
 		except	Exception, e:
 			if unicode(e) != "None":
 					self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-		return
+		return 	clientHostNames
+
 
 
 
 	####-----------------	 ---------
 	## AP devices themselves  DICT
 	####-----------------	 ---------
-	def doAPdictsSELF(self,apDict, apNumb, ipNDevice, MAC, hostname, ipNumber):
+	def doAPdictsSELF(self,apDict, apNumb, ipNDevice, MAC, hostname, ipNumber, clientHostNames):
 
 		part="doAPdictsSELF"+unicode(random.random()); self.blockAccess.append(part)
 		for ii in range(90):
@@ -8770,7 +8772,7 @@ class Plugin(indigo.PluginBase):
 
 
 			for GHz in ["2","5"]:
-				nStations = 0
+				nClients = 0
 				essid	  = ""
 				radio	  = ""
 				tx_power  = ""
@@ -8781,11 +8783,11 @@ class Plugin(indigo.PluginBase):
 						if shortC["usage"] == "uplink":	  continue
 					channel = shortC[u"channel"]
 					if not( GHz == "2" and channel < 14 or GHz == "5" and channel > 13): continue 
-					nStations += shortC[u"num_sta"]
+					nClients += shortC[u"num_sta"]
 					essid	  += unicode(shortC[u"essid"]) + "; "
 					radio	  =  unicode(shortC[u"radio"])
 					tx_power  =  unicode(shortC[u"tx_power"])
-					if self.decideMyLog(u"Special"): self.indiLOG.log(20,"doAPdictsSELF {} - GHz:{}, sta:{}, essid:{}, radio:{}, tx:{}".format(MAC, GHz, nStations, essid, radio, tx_power)  )
+					if self.decideMyLog(u"Special"): self.indiLOG.log(20,"doAPdictsSELF {} - GHz:{}, sta:{}, essid:{}, radio:{}, tx:{}".format(MAC, GHz, nClients, essid, radio, tx_power)  )
 
 					new = True
 					if MAC in self.MAC2INDIGO[xType]:
@@ -8803,7 +8805,7 @@ class Plugin(indigo.PluginBase):
 								new = False
 								break
 					if not new:
-							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   {} hostname:{} MAC:{}; GHz:{};  essid:{}; channel:{};  nStations:{};  tx_power:{}; radio:{}".format(ipNumber, hostname, MAC, GHz, essid, channel, nStations, tx_power, radio))
+							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   {} hostname:{} MAC:{}; GHz:{};  essid:{}; channel:{};  nClients:{};  tx_power:{}; radio:{}".format(ipNumber, hostname, MAC, GHz, essid, channel, nClients, tx_power, radio))
 							if u"uptime" in apDict and apDict[u"uptime"] !="":
 								if u"upSince" in dev.states:
 									self.addToStatesUpdateList(dev.id,u"upSince", time.strftime("%Y-%d-%m %H:%M:%S", time.localtime(time.time() - apDict[u"uptime"])) )
@@ -8813,8 +8815,8 @@ class Plugin(indigo.PluginBase):
 								self.addToStatesUpdateList(dev.id,u"channel_" + GHz, unicode(channel) )
 							if essid.strip("; ") != dev.states[u"essid_" + GHz]:
 								self.addToStatesUpdateList(dev.id,u"essid_" + GHz, essid.strip("; "))
-							if unicode(nStations) != dev.states[u"nStations_" + GHz]:
-								self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, unicode(nStations) )
+							if unicode(nClients) != dev.states[u"nClients_" + GHz]:
+								self.addToStatesUpdateList(dev.id,u"nClients_" + GHz, unicode(nClients) )
 							if radio != dev.states[u"radio_" + GHz]:
 								self.addToStatesUpdateList(dev.id,u"radio_" + GHz, radio)
 							self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNumber
@@ -8850,12 +8852,11 @@ class Plugin(indigo.PluginBase):
 							self.addToStatesUpdateList(dev.id,u"channel_" + GHz, channel)
 							self.addToStatesUpdateList(dev.id,u"MAC", MAC)
 							self.addToStatesUpdateList(dev.id,u"hostname", hostname)
-							self.addToStatesUpdateList(dev.id,u"nStations_" + GHz, unicode(nStations) )
+							self.addToStatesUpdateList(dev.id,u"nClients_" + GHz, unicode(nClients) )
 							self.addToStatesUpdateList(dev.id,u"radio_" + GHz, radio)
 							self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 							self.addToStatesUpdateList(dev.id,u"model", model)
 							self.addToStatesUpdateList(dev.id,u"tx_power_" + GHz, tx_power)
-							self.executeUpdateStatesList()
 							dev = indigo.devices[dev.id]
 							self.setupStructures(xType, dev, MAC)
 							self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
@@ -8863,6 +8864,10 @@ class Plugin(indigo.PluginBase):
 						except	Exception, e:
 						  if unicode(e) != "None":
 								self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
+					self.addToStatesUpdateList(dev.id,u"clientList_"+GHz+"GHz", clientHostNames[GHz].strip("; "))
+
 			self.executeUpdateStatesList()
 
 		except	Exception, e:
