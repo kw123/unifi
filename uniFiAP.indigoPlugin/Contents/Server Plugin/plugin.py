@@ -9448,37 +9448,48 @@ class Plugin(indigo.PluginBase):
 								fullDuplex = u"HD"
 							portsMAC["fullDuplex"] = fullDuplex+u"-" + (unicode(port[u"speed"]))
 
-							if u"is_uplink"  in port and port["is_uplink"]:
-								SWP = "UpL"
-							else:
-								SWP = ""
-
 							nDevices = 0
 							if u"mac_table" in port:
 								nDevices = len(port[u"mac_table"])
 							portsMAC["nClients"] = nDevices
 							ppp = u"#C: " + "%02d" % nDevices # of clients
 
+
+							if u"is_uplink"  in port and port["is_uplink"]:
+								SWP = "UpL"
+								ppp += ";"+SWP
+							else:
+								SWP = ""
+
+
 							### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
-							if SWP =="" and u"lldp_table"  in port and len(port["lldp_table"]) >0:
+							if SWP == "" and u"lldp_table"  in port and len(port["lldp_table"]) >0:
 								lldp_table = port[u"lldp_table"][0]
-								if u"lldp_chassis_id" in lldp_table and u"lldp_port_id" in lldp_table:
+								if u"lldp_chassis_id" in lldp_table and u"lldp_port_id" in lldp_table and u"lldp_system_name" in lldp_table:
 									try:
-										macUPdowndevice = lldp_table[u"lldp_chassis_id"].lower()  # unifi deliver lower case , indigo uses upper case for MAC #
+										LinkName = 			lldp_table[u"lldp_system_name"].lower()
+										macUPdowndevice = 	lldp_table[u"lldp_chassis_id"].lower()
+										portID = 			lldp_table[u"lldp_port_id"].lower()
+
 										if	macUPdowndevice in self.MAC2INDIGO[u"GW"]:
 											ppp += ";GtW"
 											SWP  = "GW"
-										elif "lldp_system_name" in lldp_table:
-											gwN = lldp_table[u"lldp_system_name"].lower()
-											if  "gatew" in gwN or "udm" in gwN and gwN.find("switch") ==-1:
-												ppp += ";GtW"
-												SWP  = "GW"
+
+										elif "gatew" in LinkName or "udm" in LinkName and LinkName.find("switch") ==-1:
+											ppp += ";GtW"
+											SWP  = "GW"
+
 										if  SWP == "" and macUPdowndevice in self.MAC2INDIGO[xType]:
-											try:	portNatSW = ",P:"+lldp_table[u"lldp_port_id"].split("/")[1]
+											try:	portNatSW = ",P:"+portID.split("/")
 											except: portNatSW = ""
 											SWP = "DwL"
 											devIdOfSwitch = self.MAC2INDIGO[u"SW"][macUPdowndevice]["devId"]
 											ppp+= ";"+SWP+":"+ unicode(indigo.devices[devIdOfSwitch].states[u"switchNo"])+portNatSW
+
+										if  SWP == "" and "switch" in LinkName:
+											ppp += ";DwL"
+											SWP = "DwL"
+
 									except	Exception, e:
 											self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
