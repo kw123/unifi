@@ -99,6 +99,17 @@
         </List>
     </Field>
 
+    <Field    id="count_APDL_inPortCount"   				type="menu" defaultValue="1" tooltip="">
+        <Label>Count AP and Downlink clients in total clients count in Switch:</Label>
+        <List>
+            <Option value="0"  >No</Option>
+            <Option value="1"  >Yes</Option>
+        </List>
+    </Field>
+
+
+
+count_APDL_inPortCount
     <Field    id="timeoutDICT"   			type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
         <Label>timeout for expect DICT:</Label>
         <List>

@@ -855,9 +855,6 @@
 				<Label>Click to switch LED off</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	  id="confirm1" type="button" tooltip="" >
-				<Label>Click to switch all LEDs ON</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPledONControllerCALLBACK</CallbackMethod>
-			</Field>
 
 		</ConfigUI>
 	</MenuItem>

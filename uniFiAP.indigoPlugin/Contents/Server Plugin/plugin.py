@@ -306,6 +306,7 @@ class Plugin(indigo.PluginBase):
 		self.ignoreNewNeighbors								= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
 		self.ignoreNewClients								= self.pluginPrefs.get(u"ignoreNewClients", False)
 		self.enableFINGSCAN									= self.pluginPrefs.get(u"enableFINGSCAN", False)
+		self.count_APDL_inPortCount							= self.pluginPrefs.get(u"count_APDL_inPortCount", "1")
 		self.sendUpdateToFingscanList						= {}
 		self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
 		self.sendBroadCastEventsList						= []
@@ -888,6 +889,8 @@ class Plugin(indigo.PluginBase):
 			self.lastNVRCookie							= 0
 			self.checkforUnifiSystemDevicesState		= "validateConfig"
 			self.enableFINGSCAN							= valuesDict[u"enableFINGSCAN"]
+			self.count_APDL_inPortCount					= valuesDict[u"count_APDL_inPortCount"]
+
 			self.enableBroadCastEvents					= valuesDict[u"enableBroadCastEvents"]
 			self.sendBroadCastEventsList				= []
 			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
@@ -1201,6 +1204,7 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"debugLevel".ljust(40)						+	unicode(self.debugLevel).ljust(3) )
 			self.myLog( text=u"logFile".ljust(40)							+	unicode(self.logFile) )
 			self.myLog( text=u"enableFINGSCAN".ljust(40)					+	unicode(self.enableFINGSCAN) )
+			self.myLog( text=u"count_APDL_inPortCount".ljust(40)			+	unicode(self.count_APDL_inPortCount) )
 			self.myLog( text=u"enableBroadCastEvents".ljust(40)				+	unicode(self.enableBroadCastEvents) )
 			self.myLog( text=u"ignoreNeighborForFing".ljust(40)				+	unicode(self.ignoreNeighborForFing))
 			self.myLog( text=u"expirationTime".ljust(40)					+	unicode(self.expirationTime).ljust(3)+u" [sec]" )
@@ -9455,11 +9459,10 @@ class Plugin(indigo.PluginBase):
 							ppp = u"#C: " + "%02d" % nDevices # of clients
 
 
+							SWP = ""
 							if u"is_uplink"  in port and port["is_uplink"]:
-								SWP = "UpL"
+								SWP = "UL"
 								ppp += ";"+SWP
-							else:
-								SWP = ""
 
 
 							### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
@@ -9471,31 +9474,40 @@ class Plugin(indigo.PluginBase):
 										macUPdowndevice = 	lldp_table[u"lldp_chassis_id"].lower()
 										portID = 			lldp_table[u"lldp_port_id"].lower()
 
-										if	macUPdowndevice in self.MAC2INDIGO[u"GW"]:
-											ppp += ";GtW"
+										if	SWP == "" and macUPdowndevice in self.MAC2INDIGO[u"GW"]:
+											ppp += ";GW"
 											SWP  = "GW"
 
-										elif "gatew" in LinkName or "udm" in LinkName and LinkName.find("switch") ==-1:
-											ppp += ";GtW"
+										if	SWP == "" and macUPdowndevice in self.MAC2INDIGO[u"AP"]:
+											ppp += ";AP"
+											SWP  = "AP"
+
+										if	SWP == "" and "gatew" in LinkName or "udm" in LinkName and LinkName.find("switch") ==-1:
+											ppp += ";GW"
 											SWP  = "GW"
 
 										if  SWP == "" and macUPdowndevice in self.MAC2INDIGO[xType]:
 											try:	portNatSW = ",P:"+portID.split("/")
 											except: portNatSW = ""
-											SWP = "DwL"
+											SWP = "DL"
 											devIdOfSwitch = self.MAC2INDIGO[u"SW"][macUPdowndevice]["devId"]
 											ppp+= ";"+SWP+":"+ unicode(indigo.devices[devIdOfSwitch].states[u"switchNo"])+portNatSW
 
 										if  SWP == "" and "switch" in LinkName:
-											ppp += ";DwL"
-											SWP = "DwL"
+											ppp += ";DL"
+											SWP = "DL"
 
 									except	Exception, e:
 											self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 							portsMAC["link"] = SWP
 
-							if SWP not in["UpL","GW"]: 
+							if self.count_APDL_inPortCount == "0":
+								dontCountIf = ["UL","GW","AP","DL"]
+							else:
+								dontCountIf = ["UL","GW"]
+
+							if SWP not in dontCountIf: 
 								nClients += nDevices
 							if SWP == "":
 								ppp += "; "
