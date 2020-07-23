@@ -4090,7 +4090,7 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 	####-----------------	 ---------
-	def executeCMDOnController(self, data={},pageString="",jsonAction="",startText="", cmdType="put"):
+	def executeCMDOnController(self, data={}, pageString="",jsonAction="", startText="", cmdType="put"):
 
 		try:
 			if not self.isValidIP(self.unifiCloudKeyIP): return {}
@@ -4106,8 +4106,8 @@ class Plugin(indigo.PluginBase):
 				if	 cmdType == "put":	 						cmdTypeUse= " -X PUT "
 				elif cmdType == "post":	  						cmdTypeUse= " -X post "
 				elif cmdType == "get":	  						cmdTypeUse= " "
-				elif self.unifiControllerType.find("UDM") >-1:	cmdTypeUse= " -X GET "
-				else:					 						cmdTypeUse= " "
+				else:					 						cmdTypeUse= " ";	cmdType = "get"
+				if self.unifiControllerType.find("UDM") >-1 and cmdType == "get":	cmdTypeUse = " -X GET "; cmdType = "get"
 				#cmdR  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
 				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
 

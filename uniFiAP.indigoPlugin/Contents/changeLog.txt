@@ -1,3 +1,9 @@
+changes in V 7.32.271  @ 2019-07-23
+==================  
+  
+1. added options for explicit " -X get" in curl command for UDM
+
+
 changes in V 7.32.270  @ 2019-07-23
 ==================  
   
