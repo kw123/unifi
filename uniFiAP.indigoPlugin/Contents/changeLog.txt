@@ -1,7 +1,8 @@
-changes in V 7.32.271  @ 2019-07-23
+changes in V 7.32.272  @ 2019-07-23
 ==================  
   
-1. added options for explicit " -X get" in curl command for UDM
+1. instead of get implicit it is not using  explicit " -X GET" in curl command for all devices
+   and converted all -X xxx to Cap XXX ie get,put, post
 
 
 changes in V 7.32.270  @ 2019-07-23
