@@ -1,8 +1,8 @@
-changes in V 7.32.272  @ 2019-07-23
+changes in V 7.32.273  @ 2019-07-23
 ==================  
   
-1. instead of get implicit it is not using  explicit " -X GET" in curl command for all devices
-   and converted all -X xxx to Cap XXX ie get,put, post
+1. for curl and std controller do NOT use _X GET but blank
+   for curl and UDM controller use -X GET
 
 
 changes in V 7.32.270  @ 2019-07-23
