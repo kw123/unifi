@@ -3171,7 +3171,8 @@ class Plugin(indigo.PluginBase):
 ######## reports all devcies
 	####-----------------	 ---------
 	def buttonConfirmPrintalluserInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		data = self.executeCMDOnController(data={"type":"all","conn":"all"}, pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(data={}, pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
+#		data = self.executeCMDOnController(data={"type":"all","conn":"all"}, pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport3(data, "== ALL USER report ==")
 		return
 
@@ -3257,7 +3258,7 @@ class Plugin(indigo.PluginBase):
 			ltype = "Skipping"
 			useLimit = 5*limit
 
-		data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
 		self.unifsystemReport1(data,False,"     ==EVENTs ..;  last "+str(limit)+" events ;     -- "+ltype+" login events ==",limit,PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
 		self.addToMenuXML(valuesDict)
 
@@ -3267,7 +3268,7 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrint5MinutesInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 43200000 # 86400000/2 = 1/2 day
-		data = self.executeCMDOnController(data={"attrs": ["bytes", "num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/5minutes.ap", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(data={"attrs": ["bytes", "num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/5minutes.ap", jsonAction="returnData", cmdType="post")
 
 		out ="== 5 minutes AP stst report =="+"\n"
 		out+= "##".ljust(4)
@@ -3306,14 +3307,14 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrint48HourInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 2*86400000
-		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/hourly.site", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/hourly.site", jsonAction="returnData", cmdType="post")
 		self.unifsystemReport2(data,"== 48 HOUR report ==")
 
 	####-----------------	 ---------
 	def buttonConfirmPrint7DayInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 7*86400000
-		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/daily.site", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(data={"attrs": ["bytes","wan-tx_bytes","wan-rx_bytes","wan-tx_bytes", "num_sta", "wlan-num_sta", "lan-num_sta", "time"], "start": st, "end": en}, pageString="/stat/report/daily.site", jsonAction="returnData", cmdType="post")
 		self.unifsystemReport2(data,"== 7 DAY report ==")
 
 
@@ -3649,7 +3650,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPledONControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPledONControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"led_enabled":True}, pageString="/set/setting/mgmt", cmdType="get")
+		self.executeCMDOnController(data={"led_enabled":True}, pageString="/set/setting/mgmt", cmdType="post")
 		return
 
 	####-----------------	 ---------
@@ -3657,7 +3658,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPledOFFControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPledOFFControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"led_enabled":False}, pageString="/set/setting/mgmt", cmdType="get")
+		self.executeCMDOnController(data={"led_enabled":False}, pageString="/set/setting/mgmt", cmdType="post")
 		return
 
 	####-----------------	 ---------
@@ -3665,7 +3666,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPxledONControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPxledONControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"cmd":"set-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="get")
+		self.executeCMDOnController(data={"cmd":"set-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="post")
 		return valuesDict
 
 	####-----------------	 ---------
@@ -3673,7 +3674,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonConfirmAPxledOFFControllerCALLBACK(valuesDict=action1.props)
 	####-----------------	 ---------
 	def buttonConfirmAPxledOFFControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		self.executeCMDOnController(data={"cmd":"unset-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="get")
+		self.executeCMDOnController(data={"cmd":"unset-locate","mac":valuesDict["selectedAPDevice"]}, pageString="/cmd/devmgr", cmdType="post")
 		return valuesDict
 
 	####-----------------	 ---------
@@ -3785,7 +3786,8 @@ class Plugin(indigo.PluginBase):
 			if self.unifiCloudKeyMode != "ON": return
 			listOfClients={}
 			# get data from conroller
-			data =	  self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
+			data =	  self.executeCMDOnController(data={}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
+			#data =	  self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
 			if data == {}:
 				self.indiLOG.log(20,u"addFirstSeenToStates  "+"No data returned from controller")
 				return
@@ -3833,7 +3835,8 @@ class Plugin(indigo.PluginBase):
 			listOfClients			= {}
 
 			# get data from conroller
-			data =	  self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
+			#data =	  self.executeCMDOnController(data={"type": "all", "conn": "all"}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
+			data =	  self.executeCMDOnController(data={}, pageString="stat/alluser", jsonAction="returnData", cmdType="get")
 			if data == {}:
 				self.indiLOG.log(20,"No data returned from controller")#,mType="Connection")
 				return
@@ -4105,9 +4108,9 @@ class Plugin(indigo.PluginBase):
 				else:		  dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	 						cmdTypeUse= " -X PUT "
 				elif cmdType == "post":	  						cmdTypeUse= " -X POST "
-				elif cmdType == "get":	  						cmdTypeUse= " " # the regular controller works w blank for all get commands, but not w -X GET
-				else:					 						cmdTypeUse= "  ";	cmdType = "get"
-				if self.unifiControllerType.find("UDM") >-1 and cmdType == "get":	cmdTypeUse = " -X GET " # the UDM system wants a -X GET
+				elif cmdType == "get":	  						cmdTypeUse= " " # 
+				else:					 						cmdTypeUse= " ";	cmdType = "get"
+				if self.unifiControllerType.find("UDM") >-1 and cmdType == "get":	cmdTypeUse = " " 
 				#cmdR  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
 				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
 
@@ -6267,7 +6270,7 @@ class Plugin(indigo.PluginBase):
 					nrec = nRecordsToRetriveDefault
 					if len(thisRecIds) > 0: 
 						nrec = int( float(nRecordsToRetriveDefault * self.controllerWebEventReadON) / 30.)
-					eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec))}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
+					eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
 					thisRecIds			= []
 					# test if we have overlap. if not read 3 times the data 
 					for logEntry in eventLogList:
@@ -6276,7 +6279,7 @@ class Plugin(indigo.PluginBase):
 							lastRecIdFound = True
 
 					if not lastRecIdFound and lastRecIds !=[]:
-						eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec*3))}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
+						eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec*3))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
 						thisRecIds			= []
 						for logEntry in eventLogList:
 							thisRecIds.append(logEntry["_id"])

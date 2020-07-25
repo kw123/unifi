@@ -1,7 +1,15 @@
+changes in V 7.32.274  @ 2019-07-24
+==================  
+  
+1. went through all controller web api commands to set to proper GET PUT PUSH
+   it works  completely for std controller
+   use blank instead of -X GET 
+
+
 changes in V 7.32.273  @ 2019-07-23
 ==================  
   
-1. for curl and std controller do NOT use _X GET but blank
+1. for curl and std controller do NOT use -X GET but blank
    for curl and UDM controller use -X GET
 
 
