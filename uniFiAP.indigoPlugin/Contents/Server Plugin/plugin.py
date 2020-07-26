@@ -3697,7 +3697,7 @@ class Plugin(indigo.PluginBase):
 		ip = dev.states["ipNumber"]
 		if disable: self.setSuspend(ip, time.time() + 99999999)
 		else	  : self.delSuspend(ip)
-		self.executeCMDOnController(data={"disabled":disable}, pageString="/rest/device/"+ID, cmdType="put")
+		self.executeCMDOnController(data={"disabled":disable}, pageString="/rest/device/"+ID, cmdType="put" ,cmdTypeForce=True)
 		return valuesDict
 
 
@@ -4093,7 +4093,7 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 	####-----------------	 ---------
-	def executeCMDOnController(self, data={}, pageString="",jsonAction="", startText="", cmdType="put"):
+	def executeCMDOnController(self, data={}, pageString="",jsonAction="", startText="", cmdType="put" ,cmdTypeForce = False):
 
 		try:
 			if not self.isValidIP(self.unifiCloudKeyIP): return {}
@@ -4110,6 +4110,7 @@ class Plugin(indigo.PluginBase):
 				elif cmdType == "post":	  						cmdTypeUse= " -X POST "
 				elif cmdType == "get":	  						cmdTypeUse= " " # 
 				else:					 						cmdTypeUse= " ";	cmdType = "get"
+				if not cmdTypeForce: cmdTypeUse = " "
 				if self.unifiControllerType.find("UDM") >-1 and cmdType == "get":	cmdTypeUse = " " 
 				#cmdR  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
 				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
