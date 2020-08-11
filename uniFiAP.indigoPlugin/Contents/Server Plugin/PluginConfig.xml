@@ -31,7 +31,7 @@
             <Option value="40"   >40 seconds (for testing only)</Option>
             <Option value="60"   >60 seconds</Option>
             <Option value="90"   >90 seconds</Option>
-            <Option value="120"  >2 minutes</Option>
+            <Option value="120"  >2 minutes default</Option>
             <Option value="180"  >3 minutes</Option>
             <Option value="300"  >5 minutes</Option>
             <Option value="360"  >6 minutes</Option>
@@ -99,17 +99,6 @@
         </List>
     </Field>
 
-    <Field    id="count_APDL_inPortCount"   				type="menu" defaultValue="1" tooltip="">
-        <Label>Count AP and Downlink clients in total clients count in Switch:</Label>
-        <List>
-            <Option value="0"  >No</Option>
-            <Option value="1"  >Yes</Option>
-        </List>
-    </Field>
-
-
-
-count_APDL_inPortCount
     <Field    id="timeoutDICT"   			type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
         <Label>timeout for expect DICT:</Label>
         <List>
@@ -588,6 +577,14 @@ try: ssh userid@ip# to check</Label>
 		<Label>try: ssh userid@ip# to check"</Label>  
 	</Field>
 
+    <Field    id="count_APDL_inPortCount"   				type="menu" defaultValue="1" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
+        <Label>Count AP and Downlink clients in total clients count in Switch:</Label>
+        <List>
+            <Option value="0"  >No</Option>
+            <Option value="1"  >Yes</Option>
+        </List>
+    </Field>
+
     <Field    id="ipSWON0" type="checkbox"  defaultValue="false"		visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:----------------</Label>  </Field>
     <Field    id="ipSW0"   type="textfield" defaultValue="192.168.1.x"	visibleBindingId="ipSWON0"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch 0:</Label>  </Field>
     <Field    id="debSW0"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipSWON0" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
@@ -757,22 +754,23 @@ try: ssh userid@ip# to check</Label>
 
     <Field id="infoLabel226" type="label"> <Label>== Debug:... (no restart)</Label>  </Field>
 
-    <Field    id="debugLogic"       type="checkbox"  defaultValue="false"   > <Label>... (1) Logic:</Label>  </Field>
-    <Field    id="debugLog"         type="checkbox"  defaultValue="false"   > <Label>... (2) logMessages:</Label>  </Field>
-    <Field    id="debugLogDetails"  type="checkbox"  defaultValue="false"   > <Label>... (3) ...  Details:</Label>  </Field>
-    <Field    id="debugDict"        type="checkbox"  defaultValue="false"   > <Label>... (4) Dict Messages:</Label>  </Field>
-    <Field    id="debugDictDetails" type="checkbox"  defaultValue="false"   > <Label>... (5) ...  Details:</Label>  </Field>
-    <Field    id="debugConnection"  type="checkbox"  defaultValue="false"   > <Label>... (6) connection to unifi devices..:</Label>  </Field>
-    <Field    id="debugExpect"      type="checkbox"  defaultValue="false"   > <Label>... (7) Expect command...:</Label>  </Field>
-    <Field    id="debugVideo"       type="checkbox"  defaultValue="false"   > <Label>... (8) Video...:</Label>  </Field>
-    <Field    id="debugFing"        type="checkbox"  defaultValue="false"   > <Label>... (9) Fing:</Label>  </Field>
-    <Field    id="debugBC"          type="checkbox"  defaultValue="false"   > <Label>... (10) BroadCast:</Label>  </Field>
-    <Field    id="debugPing"        type="checkbox"  defaultValue="false"   > <Label>... (11) Ping WOL:</Label>  </Field>
-    <Field    id="debugUDM"         type="checkbox"  defaultValue="false"   > <Label>... (12) UDM:</Label>  </Field>
-    <Field    id="debugIgnoreMAC"   type="checkbox"  defaultValue="false"   > <Label>... (13) ignore MAC:</Label>  </Field>
-    <Field    id="debugSpecial"     type="checkbox"  defaultValue="false"   > <Label>... (19) Special debug for development:</Label>  </Field>
-    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (20) all of the above = everything:</Label>  </Field>
-    <Field    id="logFileActive2"   type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
+    <Field    id="debugLogic"         type="checkbox"  defaultValue="false"    > <Label>... (1) Logic:</Label>  </Field>
+    <Field    id="debugLog"           type="checkbox"  defaultValue="false"    > <Label>... (2) logMessages:</Label>  </Field>
+    <Field    id="debugLogDetails"    type="checkbox"  defaultValue="false"    > <Label>... (3) ...  Details:</Label>  </Field>
+    <Field    id="debugDict"          type="checkbox"  defaultValue="false"    > <Label>... (4) Dict Messages:</Label>  </Field>
+    <Field    id="debugDictDetails"   type="checkbox"  defaultValue="false"    > <Label>... (5) ...  Details:</Label>  </Field>
+    <Field    id="debugConnectionCMD" type="checkbox"  defaultValue="false"    > <Label>... (6) connection to unifi devices  show commands.:</Label>  </Field>
+    <Field    id="debugConnectionRET" type="checkbox"  defaultValue="false"    > <Label>... (6.1) connection to unifi devices  show result:</Label>  </Field>
+    <Field    id="debugExpect"        type="checkbox"  defaultValue="false"    > <Label>... (7) Expect command...:</Label>  </Field>
+    <Field    id="debugVideo"         type="checkbox"  defaultValue="false"    > <Label>... (8) Video...:</Label>  </Field>
+    <Field    id="debugFing"          type="checkbox"  defaultValue="false"    > <Label>... (9) Fing:</Label>  </Field>
+    <Field    id="debugBC"            type="checkbox"  defaultValue="false"    > <Label>... (10) BroadCast:</Label>  </Field>
+    <Field    id="debugPing"          type="checkbox"  defaultValue="false"    > <Label>... (11) Ping WOL:</Label>  </Field>
+    <Field    id="debugUDM"           type="checkbox"  defaultValue="false"    > <Label>... (12) UDM:</Label>  </Field>
+    <Field    id="debugIgnoreMAC"     type="checkbox"  defaultValue="false"    > <Label>... (13) ignore MAC:</Label>  </Field>
+    <Field    id="debugSpecial"       type="checkbox"  defaultValue="false"    > <Label>... (19) Special debug for development:</Label>  </Field>
+    <Field    id="debugall"           type="checkbox"  defaultValue="false"    > <Label>... (20) all of the above = everything:</Label>  </Field>
+    <Field    id="logFileActive2"     type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
         <List>
             <Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
         </List>

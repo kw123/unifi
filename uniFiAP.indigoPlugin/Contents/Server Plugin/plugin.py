@@ -31,6 +31,14 @@ import cProfile
 import pstats
 
 
+"""
+good web pages for unifi API
+https://ubntwiki.com/products/software/unifi-controller/api
+https://github.com/NickWaterton/Unifi-websocket-interface/blob/master/controller.py
+https://github.com/Art-of-WiFi/UniFi-API-client
+
+"""
+
 dataVersion = 2.0
 
 ## Static parameters, not changed in pgm
@@ -40,7 +48,7 @@ _GlobalConst_numberOfSW	 = 13
 _GlobalConst_numberOfGroups = 20
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
 _GlobalConst_dTypes			= ["UniFi","gateway","DHCP","SWITCH","Device-AP","Device-SW-5","Device-SW-8","Device-SW-10","Device-SW-11","Device-SW-18" ,"Device-SW-26","Device-SW-52","neighbor"]
-_debugAreas					= ["Logic","Log","Dict","LogDetails","DictDetails","Connection","Expect","Video","Fing","BC","Ping","all","Special","UDM","IgnoreMAC"]
+_debugAreas					= ["Logic","Log","Dict","LogDetails","DictDetails","ConnectionCMD","ConnectionRET","Expect","Video","Fing","BC","Ping","all","Special","UDM","IgnoreMAC"]
 _numberOfPortsInSwitch		= [5, 8, 10, 11, 18, 26, 52]
 ################################################################################
 # noinspection PyUnresolvedReferences,PySimplifyBooleanCheck,PySimplifyBooleanCheck
@@ -324,7 +332,11 @@ class Plugin(indigo.PluginBase):
 			if self.unifiCloudKeyMode == "ONreportsOnly": 
 				self.unifiCloudKeyMode == "UDM"
 				self.pluginPrefs["unifiCloudKeyMode"] = "UDM"
-		self.controllerWebEventReadON 						= int(self.pluginPrefs.get("controllerWebEventReadON","-1"))
+
+		try:
+			self.controllerWebEventReadON 						= int(self.pluginPrefs.get("controllerWebEventReadON","-1"))
+		except:
+			self.controllerWebEventReadON  					= -1
 		if self.unifiControllerType == "UDMpro": 
 			self.controllerWebEventReadON  					= -1
 
@@ -1181,7 +1193,7 @@ class Plugin(indigo.PluginBase):
 			rebootRequired += " "+item+" changed"
 		return	 xxx, rebootRequired
 
-	####-----------------  config setting ----	END	   ----------#########
+	####-----------------  config setting ---- END   ----------#########
 
 	####-----------------	 ---------
 	def getCPU(self,pid):
@@ -1445,7 +1457,7 @@ class Plugin(indigo.PluginBase):
 				if u"lastStatusChangeReason" in dev.states:			line += (unicode(dev.states[u"lastStatusChangeReason"])[0:35]).rjust(35)+u"; "
 				else:												line += " ".ljust(35)+"; "
 
-				if u"groupMember" in dev.states:			   line += (  (unicode(dev.states[u"groupMember"]).replace("Group","")).strip(",")	).rjust(13)+u"; "
+				if u"groupMember" in dev.states:					line += (  (unicode(dev.states[u"groupMember"]).replace("Group","")).strip(",")	).rjust(13)+u"; "
 				else:												line += " ".ljust(13)+"; "
 
 				devName = dev.name
@@ -1831,7 +1843,7 @@ class Plugin(indigo.PluginBase):
 		subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 		return
 
-	####-----------------  Stop	   ---------
+	####-----------------  Stop   ---------
 	def buttonVboxActionStopCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
 		self.buttonVboxActionStopCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionStopCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
@@ -1854,7 +1866,7 @@ class Plugin(indigo.PluginBase):
 		self.execVboxAction(json.dumps(cmd),action2=json.dumps(mountCmd))
 		return
 
-	####-----------------  compress	   ---------
+	####-----------------  compress   ---------
 	def buttonVboxActionCompressCALLBACKaction(self, action1=None, filter="", typeId="", devId=""):
 		self.buttonVboxActionCompressCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionCompressCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
@@ -2287,7 +2299,7 @@ class Plugin(indigo.PluginBase):
 		cmd+= self.promptOnServer[dtype] + " &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"REBOOT: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-		if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"REBOOT: "+unicode(ret) )
+		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"REBOOT: {}".format(ret) )
 		self.addToMenuXML(valuesDict)
 
 		return
@@ -3017,7 +3029,7 @@ class Plugin(indigo.PluginBase):
 		cmd+= self.promptOnServer[dtype] +u" &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"RECYCLE: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-		if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"RECYCLE: "+unicode(ret))
+		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"RECYCLE: {}".format(ret))
 		self.addToMenuXML(valuesDict)
 		return valuesDict
 
@@ -3212,8 +3224,8 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrintPortForWardInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		data =self.executeCMDOnController(data={}, pageString="/stat/portforward/", jsonAction="returnData", cmdType="get")
 		out ="== PortForward report ==\n"
-		out+= "##".ljust(4) + "name".ljust(20) + "protocol".ljust(10) + "source".ljust(16)	+ "fwd_port".ljust(9)+ "dst_port".ljust(9)+ "fwd_ip".ljust(17)+ "rx_bytes".ljust(10)+ "rx_packets".ljust(17)+"\n"
-		ii=0
+		out += "##".ljust(4) + "name".ljust(20) + "protocol".ljust(10) + "source".ljust(16)	+ "fwd_port".ljust(9)+ "dst_port".ljust(9)+ "fwd_ip".ljust(17)+ "rx_bytes".ljust(10)+ "rx_packets".ljust(17)+"\n"
+		ii = 0
 		for item in data:
 			ii+=1
 			ll = unicode(ii).ljust(4)
@@ -3229,12 +3241,77 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(20,u"unifi-Report ")
 		self.indiLOG.log(20,"unifi-Report  "+out)
 		return
+
+
+	####-----------------	 ---------
+	def buttonConfirmPrintSessionInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		toT		= int(time.time()+100)
+		fromT 	= toT - 30000
+		data = self.executeCMDOnController(data={}, pageString="/stat/session?type=all&start={:d}&end={:d}".format(fromT,toT), jsonAction="returnData", cmdType="get")
+		out = "\n"
+		ii = 0
+		for xxx in data:
+			ii += 1
+			out += "== Session report ==  #{}, client: mac={} - {}\n".format(ii, xxx["mac"], unicode(xxx["hostname"]))
+			for item in  ["ip","is_wired","is_guest","rx_bytes","tx_bytes","ap_mac"]:
+				out += (unicode(item)+":").ljust(35)+unicode(xxx[item])+"\n"
+			out += ("Accociated:").ljust(35)+"{} minutes ago\n".format(int(time.time()-xxx["assoc_time"])/60)
+			out += ("Duration:").ljust(35)+"{} [secs]\n".format(xxx["duration"])
+		self.indiLOG.log(20,u"unifi-Report ")
+		self.indiLOG.log(20,"unifi-Report  "+out)
+		return
+
+
 	####-----------------	 ---------
 	def buttonConfirmPrintAlarmInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		data = self.executeCMDOnController(data={}, pageString="/list/alarm/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport1(data,True,"    ==AlarmReport==",limit=99999)
 		self.addToMenuXML(valuesDict)
 		return
+
+		out = "\n"
+		ii = 0
+		for xxx in data:
+			ii += 1
+			out += "== Wifi Config report == SSID #{}, {}\n".format(ii, xxx["name"])
+			for item in xxx:
+				if item != "name":
+					out += (unicode(item)+":").ljust(35)+unicode(xxx[item])+"\n"
+		self.indiLOG.log(20,u"unifi-Report ")
+		self.indiLOG.log(20,"unifi-Report  "+out)
+		return
+
+
+	####-----------------	 ---------
+	def buttonConfirmPrintWifiConfigInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		data = self.executeCMDOnController(data={}, pageString="/rest/wlanconf", jsonAction="returnData", cmdType="get")
+		out = "\n"
+		ii = 0
+		for xxx in data:
+			ii += 1
+			out += "== Wifi Config report == # {}; SSID= {}\n".format(ii, xxx["name"])
+			for item in xxx:
+				if item not in ["name","site_id","x_iapp_key","_id","wlangroup_id"]:
+					out += (unicode(item)+":").ljust(35)+unicode(xxx[item])+"\n"
+		self.indiLOG.log(20,u"unifi-Report ")
+		self.indiLOG.log(20,"unifi-Report  "+out)
+		return
+
+
+	####-----------------	 ---------
+	def buttonConfirmPrintWifiChannelInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		data =self.executeCMDOnController(data={}, pageString="/stat/current-channel", jsonAction="returnData", cmdType="get")
+		out = "== Wifi Channel report ==\n"
+		for xxx in data:
+			for item in ["code","key","name"]:
+					out += (unicode(item)+":").ljust(25)+unicode(xxx[item])+"\n"
+			for item in xxx:
+				if item not in ["code","key","name"]:
+					out += (unicode(item)+":").ljust(25)+unicode(xxx[item])+"\n"
+		self.indiLOG.log(20,u"unifi-Report ")
+		self.indiLOG.log(20,"unifi-Report  "+out)
+		return
+
 
 
 	####-----------------	 ---------
@@ -3258,7 +3335,7 @@ class Plugin(indigo.PluginBase):
 			ltype = "Skipping"
 			useLimit = 5*limit
 
-		data = self.executeCMDOnController(data={"_sort":"+time", "within":999,"_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
+		data = self.executeCMDOnController(data={}, pageString="/stat/event/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport1(data,False,"     ==EVENTs ..;  last "+str(limit)+" events ;     -- "+ltype+" login events ==",limit,PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
 		self.addToMenuXML(valuesDict)
 
@@ -4116,7 +4193,7 @@ class Plugin(indigo.PluginBase):
 				cmdR  = self.unfiCurl+" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
 
 
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: "+cmdL )
+				if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,"Connection: {}".format(cmdL) )
 				try:
 					if time.time() - self.lastUnifiCookieCurl > 100: # re-login every 90 secs
 						ret = subprocess.Popen(cmdL, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
@@ -4127,13 +4204,13 @@ class Plugin(indigo.PluginBase):
 						if ("username" not in jj)   and   ( "meta" not in jj or  jj["meta"]["rc"] !="ok"):
 							self.indiLOG.log(40,u"UNIFI executeCMDOnController  login cmd:{}\ngives  error: {}\n {}".format(cmdL, ret[0],ret[1]) )
 							return []
-						if self.decideMyLog(u"Connection"):	 self.indiLOG.log(20,"Connection-{}: {}".format(self.unifiCloudKeyIP,ret[0]) )
+						if self.decideMyLog(u"ConnectionRET"):	 self.indiLOG.log(20,"Connection-{}: {}".format(self.unifiCloudKeyIP,ret[0]) )
 						self.lastUnifiCookieCurl =time.time()
 
 						
 
-					if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection: {}".format(cmdR) )
-					if startText !="":					self.indiLOG.log(20,"Connection: {}".format(startText) )
+					if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(20,"Connection: {}".format(cmdR) )
+					if startText !="":					 	self.indiLOG.log(20,"Connection: {}".format(startText) )
 					try:
 						ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 						try:
@@ -4146,7 +4223,10 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(40,u" Connection error: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret[0],ret[1]))
 							return []
 
-						if self.decideMyLog(u"Connection"):	self.indiLOG.log(20,"Connection to {}: returns >>{}<<".format(self.unifiCloudKeyIP,ret[0]) )
+						if self.decideMyLog(u"ConnectionRET"):
+								self.indiLOG.log(20,"Connection to {}: returns >>{}<<".format(self.unifiCloudKeyIP,ret[0]) )
+						elif self.decideMyLog(u"ConnectionCMD"):
+								self.indiLOG.log(20,"Connection to {}: returns >>{}...<<".format(self.unifiCloudKeyIP,ret[0][0:100]) )
 
 						if  jsonAction=="print":
 							self.indiLOG.log(20,u" Connection to:{} info\n{}".format(self.unifiCloudKeyIP, json.dumps(jj["data"],sort_keys=True, indent=2)))
@@ -4170,7 +4250,7 @@ class Plugin(indigo.PluginBase):
 					url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
 					dataLogin = json.dumps({"username":self.UserID["unixDevs"],"password":self.PassWd["unixDevs"],"strict":self.useStrictToLogin})
 					resp  = self.unifiControllerSession.post(url, data = dataLogin, verify=False)
-					if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: requests login {}".format(resp.text) )
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,"Connection: requests login {}".format(resp.text) )
 					self.lastUnifiCookieRequests =time.time()
 
 
@@ -4178,8 +4258,8 @@ class Plugin(indigo.PluginBase):
 				else:		  dataDict = json.dumps(data)
 				url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"Connection: requests: {}  {}".format(url, dataDict) )
-				if startText !="":					self.indiLOG.log(20,"Connection: requests: {}".format(startText) )
+				if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(20,"Connection: requests: {}  {}".format(url, dataDict) )
+				if startText !="":						self.indiLOG.log(20,"Connection: requests: {}".format(startText) )
 				try:
 						if	 cmdType == "put":	 						resp = self.unifiControllerSession.put(url,data = dataDict)
 						elif cmdType == "post":	 						resp = self.unifiControllerSession.post(url,data = dataDict)
@@ -4195,12 +4275,14 @@ class Plugin(indigo.PluginBase):
 							return []
  
 
-						if jj["meta"]["rc"] !="ok" :
+						if jj["meta"]["rc"] != "ok" :
 							self.indiLOG.log(40,u"error:>> {} Reconnect".format(resp))
 							return []
 
-						if self.decideMyLog(u"Connection"):	
-							self.indiLOG.log(20,"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(resp.text[0:500]) )
+						if self.decideMyLog(u"ConnectionRET"):	
+							self.indiLOG.log(20,"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(resp.text) )
+						elif self.decideMyLog(u"ConnectionCMD"):
+								self.indiLOG.log(20,"Connection to {}: returns >>{}...<<".format(resp.text[0:100]) )
 
 						if  jsonAction =="print":
 							self.indiLOG.log(20,"Reconnect: executeCMDOnController info\n{}".format(json.dumps(jj["data"],sort_keys=True, indent=2)) )
@@ -5799,11 +5881,11 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def testAPandPing(self,ipNumber, type):
 		try:
-			if self.decideMyLog(u"Connection"): self.indiLOG.log(20,u"CONNtest  testing if " + ipNumber  + "/usr/bin/expect "+self.expectCmdFile[type]+" is running ")
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  testing if " + ipNumber  + "/usr/bin/expect "+self.expectCmdFile[type]+" is running ")
 			if os.path.isfile(self.pathToPlugin +self.expectCmdFile[type]):
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"CONNtest  "+self.expectCmdFile[type]+" exists, now doing ping" )
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"CONNtest  "+self.expectCmdFile[type]+" exists, now doing ping" )
 			if self.checkPing(ipNumber, nPings=2, waitForPing=1000, calledFrom="testAPandPing", verbose=True) !=0:
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,u"CONNtest  ping not returned" )
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  ping not returned" )
 				return False
 
 			cmd = "ps -ef | grep " +self.expectCmdFile[type]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep"
@@ -5820,10 +5902,10 @@ class Plugin(indigo.PluginBase):
 				if len(items) < 5:
 					continue
 
-				if self.decideMyLog(u"Connection"): self.indiLOG.log(20,u"CONNtest  expect is running" )
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  expect is running" )
 				return True
 
-			if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"CONNtest  "+type+ "    " + ipNumber +u" is NOT running" )
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"CONNtest  "+type+ "    " + ipNumber +u" is NOT running" )
 			return False
 		except	Exception, e:
 				self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6271,7 +6353,8 @@ class Plugin(indigo.PluginBase):
 					nrec = nRecordsToRetriveDefault
 					if len(thisRecIds) > 0: 
 						nrec = int( float(nRecordsToRetriveDefault * self.controllerWebEventReadON) / 30.)
-					eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
+					#eventLogList 		= self.executeCMDOnController(data={"_sort":"+time", "_limit":min(500,max(10,nrec))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
+					eventLogList 		= self.executeCMDOnController(data={}, pageString="/stat/event/", jsonAction="returnData", cmdType="get") # UDM pro: post does not work, so we need to get all data
 					thisRecIds			= []
 					# test if we have overlap. if not read 3 times the data 
 					for logEntry in eventLogList:
@@ -6611,7 +6694,7 @@ class Plugin(indigo.PluginBase):
 						errorCount = 0
 						if linesFromServer.find("ThisIsTheAliveTestFromUnifiToPlugin") > -1:
 							self.dataStats["tcpip"][uType][ipNumber]["aliveTestCount"]+=1
-							if self.decideMyLog(u"Connection"): self.indiLOG.log(20,"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
+							if self.decideMyLog(u"Expect"): self.indiLOG.log(20,"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
 							continue
 						self.logQueue.put((linesFromServer,ipNumber,apN, uType,unifiDeviceType))
 						linesFromServer = ""
@@ -6808,7 +6891,7 @@ class Plugin(indigo.PluginBase):
 			if userid =="": return False
 
 			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " " +self.promptOnServer[uType]
-			#if self.decideMyLog(u"Connection"): 
+			#if self.decideMyLog(u"Expect"): 
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,cmd)
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 			test = ret[0].lower()
@@ -7571,7 +7654,7 @@ class Plugin(indigo.PluginBase):
 			while not self.logQueueDict.empty():
 				next = self.logQueueDict.get()
 				#self.myLog( text=unicode(next[0])[0:300] ,mType=u"up...Data2" )
-				###if self.decideMyLog(u"Connection"): self.myLog( text=unicode(next)[0:1000] + "...." ,mType=u"MESS---")
+				###if self.decideMyLog(u"ConnectionRET"): self.myLog( text=unicode(next)[0:1000] + "...." ,mType=u"MESS---")
 				self.updateIndigoWithDictData(next[0],next[1],next[2],next[3],next[4])
 			self.logQueueDict.task_done()
 		except	Exception, e:
@@ -8668,7 +8751,7 @@ class Plugin(indigo.PluginBase):
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 											#self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time() - self.getexpT(props)
 											else:
-												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u3-  {}  {}; set timer for status down	     Uptime is not changed".format(ipNumber, MAC) )
+												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u3-  {}  {}; set timer for status down     Uptime is not changed".format(ipNumber, MAC) )
 
 										elif newUpTime != oldUpTime and oldStatus != u"up":
 											self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
@@ -8795,7 +8878,7 @@ class Plugin(indigo.PluginBase):
 					essid	  += unicode(shortC[u"essid"]) + "; "
 					radio	  =  unicode(shortC[u"radio"])
 					tx_power  =  unicode(shortC[u"tx_power"])
-					if self.decideMyLog(u"Special"): self.indiLOG.log(20,"doAPdictsSELF {} - GHz:{}, sta:{}, essid:{}, radio:{}, tx:{}".format(MAC, GHz, nClients, essid, radio, tx_power)  )
+					#if self.decideMyLog(u"Special"): self.indiLOG.log(20,"doAPdictsSELF {} - GHz:{}, sta:{}, essid:{}, radio:{}, tx:{}".format(MAC, GHz, nClients, essid, radio, tx_power)  )
 
 					new = True
 					if MAC in self.MAC2INDIGO[xType]:
@@ -8912,8 +8995,8 @@ class Plugin(indigo.PluginBase):
 			#  get lan info ------
 			ipNDevice	= ""
 			MAClan		= ""
-			MAC			= ""
 			wan			= {}
+			wan2		= {}
 			lan			= {}
 			publicIP	= ""
 			model		= ""
@@ -8925,8 +9008,10 @@ class Plugin(indigo.PluginBase):
 			temperature_CPU 		= ""
 			temperature_PHY 		= ""
 			MAC			= ""
+			MACwan2		= ""
 			gateways	= ""
-			wanUP		= ""
+			wanUP		= False
+			wan2UP		= False
 			wanPingTime = ""
 			wanSpeedTest= ""
 			wanLatency	= ""
@@ -9025,6 +9110,11 @@ class Plugin(indigo.PluginBase):
 							for xx in range(len(gwDict[u"if_table"])):
 								if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 									wan = gwDict[u"if_table"][xx]
+						if "WAN2" in gwDict[table]:
+							ifnameWAN = gwDict[table]["WAN2"]
+							for xx in range(len(gwDict[u"if_table"])):
+								if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+									wan2 = gwDict[u"if_table"][xx]
 
 				elif table =="config_port_table":
 					for xx in range(len(gwDict[table])):
@@ -9036,11 +9126,28 @@ class Plugin(indigo.PluginBase):
 							ifnameWAN = gwDict[table][xx]["ifname"]
 							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 								wan = gwDict[u"if_table"][xx]
+						if "name" in gwDict[table][xx] and gwDict[table][xx]["name"].lower() =="wan2":
+							ifnameWAN = gwDict[table][xx]["ifname"]
+							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+								wan2 = gwDict[u"if_table"][xx]
 				else:
 					return
 
 				if "ip" in wan:	   publicIP	   = wan[u"ip"].split("/")[0]
 
+
+
+			if "uptime" in wan:					wanUpTime = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
+			if "up" in wan and wan["up"]:		wanUP = True
+			if "uptime" in wan2:				wanUpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
+			if  "up" in wan2 and wan2["up"]:	wan2UP = True
+
+			if 	wan2UP and not wanUP:
+				try: macwan = copy.copy(wan[u"mac"])
+				except: macwan = copy.copy(wan2["mac"])
+				wan = copy.copy(wan2)
+				wan["mac"] = macwan
+				
 
 			if wan == {}: 
 				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   wan empty")
@@ -9051,14 +9158,17 @@ class Plugin(indigo.PluginBase):
 
 
 
-			if "uptime" in wan:
-				wanUpTime = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
 
+			if "uptime" 		in wan:		wanUpTime	= wan[u"uptime"]
 			if "mac" 			in wan:		MAC			= wan[u"mac"]
+			if "mac" 			in wan2:	MACwan2		= wan2[u"mac"]
 			if "gateways" 		in wan:		gateways	= "-".join(wan[u"gateways"])
 			if "model_display" 	in gwDict:	model		= gwDict[u"model_display"]
 			else:
 				self.indiLOG.log(30,u"model_display not in dict doGatewaydict")
+
+			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
+
 
 			if "system-stats" in gwDict:
 				sysStats = gwDict["system-stats"]
@@ -9099,6 +9209,7 @@ class Plugin(indigo.PluginBase):
 											wanSpeedTest   = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
 			if "mac" in lan:				MAClan		   = lan[u"mac"]
 			if "up" in wan:					wanUP		   = "up" if wan[u"up"] else "down"
+			if "up" in wan2:				wan2UP		   = "up" if wan2[u"up"] else "down"
 			if "speedtest_ping" in wan:		wanPingTime	   = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
 			if "latency" in wan:			wanLatency	   = "%4.1f" % wan[u"latency"] + u"[ms]"
 			if "xput_down" in wan:			wanDownload	   = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
@@ -9155,41 +9266,40 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 			if not isNew:
-					if u"uptime" in gwDict and gwDict[u"uptime"] !="":
-						if u"upSince" in dev.states:
-							self.addToStatesUpdateList(dev.id,u"upSince",	time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-gwDict[u"uptime"])) )
+				if u"uptime" in gwDict and gwDict[u"uptime"] != "" and u"upSince" in dev.states:				self.addToStatesUpdateList(dev.id,u"upSince",time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-gwDict[u"uptime"])) )
 
-					self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNDevice
-					self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
+				self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNDevice
+				self.MAC2INDIGO[xType][MAC][u"lastUp"] 	 = time.time()
 
-					if gateways 		!= dev.states[u"gateways"]:	
-							self.addToStatesUpdateList(dev.id,u"gateways", gateways)
-					if nameservers 		!= dev.states[u"nameservers"]:					self.addToStatesUpdateList(dev.id,u"nameservers", nameservers)
-					if MAClan 			!= dev.states[u"MAClan"]:						self.addToStatesUpdateList(dev.id,u"MAClan", MAClan)
-					if ipNDevice 		!= dev.states[u"ipNumber"]:						self.addToStatesUpdateList(dev.id,u"ipNumber", ipNDevice)
-					if publicIP 		!= dev.states[u"publicIP"]:						self.addToStatesUpdateList(dev.id,u"publicIP", publicIP)
-					if wanPingTime 		!= dev.states[u"wanPingTime"]:					self.addToStatesUpdateList(dev.id,u"wanPingTime", wanPingTime)
-					if wanLatency 		!= dev.states[u"wanLatency"]:					self.addToStatesUpdateList(dev.id,u"wanLatency", wanLatency)
-					if wanUpload 		!= dev.states[u"wanUpload"]:					self.addToStatesUpdateList(dev.id,u"wanUpload", wanUpload)
-					if wanSpeedTest		!= dev.states[u"wanSpeedTest"]:					self.addToStatesUpdateList(dev.id,u"wanSpeedTest", wanSpeedTest)
-					if wanDownload 		!= dev.states[u"wanDownload"]:					self.addToStatesUpdateList(dev.id,u"wanDownload", wanDownload)
-					if wanUpTime 		!= dev.states[u"wanUpTime"]:					self.addToStatesUpdateList(dev.id,u"wanUpTime", wanUpTime)
-					if dev.states[u"wan"] != wanUP:										self.addToStatesUpdateList(dev.id,u"wan", wanUP)
-					if dev.states[u"MAC"] != MAC:										self.addToStatesUpdateList(dev.id,u"MAC", MAC)
-					if dev.states[u"model"] != model and model != "":					self.addToStatesUpdateList(dev.id,u"model", model)
-					if dev.states[u"memPercent"] != cpuPercent and memPercent != "":	self.addToStatesUpdateList(dev.id,u"memPercent", memPercent)
-					if dev.states[u"cpuPercent"] != cpuPercent and cpuPercent != "":	self.addToStatesUpdateList(dev.id,u"cpuPercent", cpuPercent)
-					if dev.states[u"temperature"] != temperature and temperature != "": self.addToStatesUpdateList(dev.id,u"temperature", temperature)
-					if dev.states[u"temperature_Board_CPU"] != temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
-					if dev.states[u"temperature_Board_PHY"] != temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
-					if dev.states[u"temperature_CPU"]		!= temperature_CPU 		 and temperature_CPU != "":		  self.addToStatesUpdateList(dev.id,u"temperature_CPU", temperature_CPU)
-					if dev.states[u"temperature_PHY"]		!= temperature_PHY 		 and temperature_PHY != "":		  self.addToStatesUpdateList(dev.id,u"temperature_PHY", temperature_PHY)
+				if dev.states[u"gateways"] 				!= gateways:											self.addToStatesUpdateList(dev.id,u"gateways", gateways)
+				if dev.states[u"nameservers"]			!= nameservers:											self.addToStatesUpdateList(dev.id,u"nameservers", nameservers)
+				if dev.states[u"MAClan"] 				!= MAClan:												self.addToStatesUpdateList(dev.id,u"MAClan", MAClan)
+				if dev.states[u"ipNumber"] 				!= ipNDevice: 											self.addToStatesUpdateList(dev.id,u"ipNumber", ipNDevice)
+				if dev.states[u"publicIP"] 				!= publicIP:											self.addToStatesUpdateList(dev.id,u"publicIP", publicIP)
+				if dev.states[u"wanPingTime"] 			!= wanPingTime: 										self.addToStatesUpdateList(dev.id,u"wanPingTime", wanPingTime)
+				if dev.states[u"wanLatency"] 			!= wanLatency: 											self.addToStatesUpdateList(dev.id,u"wanLatency", wanLatency)
+				if dev.states[u"wanUpload"] 			!= wanUpload:											self.addToStatesUpdateList(dev.id,u"wanUpload", wanUpload)
+				if dev.states[u"wanSpeedTest"] 			!= wanSpeedTest:										self.addToStatesUpdateList(dev.id,u"wanSpeedTest", wanSpeedTest)
+				if dev.states[u"wanDownload"] 			!= wanDownload:											self.addToStatesUpdateList(dev.id,u"wanDownload", wanDownload)
+				if dev.states[u"wanUpTime"] 			!= wanUpTime: 											self.addToStatesUpdateList(dev.id,u"wanUpTime", wanUpTime)
+				if dev.states[u"wan"] 					!= wanUP:												self.addToStatesUpdateList(dev.id,u"wan", wanUP)	
+				if dev.states[u"wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,u"wan2", wan2UP)
+				if dev.states[u"MAC"] 					!= MAC:													self.addToStatesUpdateList(dev.id,u"MAC", MAC)
+				if dev.states[u"MACwan2"] 				!= MACwan2:												self.addToStatesUpdateList(dev.id,u"MACwan2", MACwan2)
+				if dev.states[u"model"] 				!= model and model != "":								self.addToStatesUpdateList(dev.id,u"model", model)
+				if dev.states[u"memPercent"] 			!= cpuPercent and memPercent != "":						self.addToStatesUpdateList(dev.id,u"memPercent", memPercent)
+				if dev.states[u"cpuPercent"] 			!= cpuPercent and cpuPercent != "":						self.addToStatesUpdateList(dev.id,u"cpuPercent", cpuPercent)
+				if dev.states[u"temperature"] 			!= temperature and temperature != "": 					self.addToStatesUpdateList(dev.id,u"temperature", temperature)
+				if dev.states[u"temperature_Board_CPU"]	!= temperature_Board_CPU and temperature_Board_CPU != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_CPU", temperature_Board_CPU)
+				if dev.states[u"temperature_Board_PHY"]	!= temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
+				if dev.states[u"temperature_CPU"]		!= temperature_CPU 		 and temperature_CPU != "":		self.addToStatesUpdateList(dev.id,u"temperature_CPU", temperature_CPU)
+				if dev.states[u"temperature_PHY"]		!= temperature_PHY 		 and temperature_PHY != "":		self.addToStatesUpdateList(dev.id,u"temperature_PHY", temperature_PHY)
+				if dev.states[u"status"] 				!= "up":												self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.encode("utf8").ljust(30) + u" status up   GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
-					if dev.states[u"status"] != "up":									self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.encode("utf8").ljust(30) + u" status up		   GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
-					if self.decideMyLog(u"Dict", MAC=MAC) or self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"DC-GW-1--  {}     ip:{}    {}   new GW data".format(MAC,ipNDevice, dev.name.encode("utf8")))
+				if self.decideMyLog(u"Dict", MAC=MAC) or self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"DC-GW-1--  {}     ip:{}    {}   new GW data".format(MAC,ipNDevice, dev.name.encode("utf8")))
 
-					self.setStatusUpForSelfUnifiDev(MAC)
+				self.setStatusUpForSelfUnifiDev(MAC)
 
 		except	Exception, e:
 			self.indiLOG.log(40,"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))

@@ -1,3 +1,15 @@
+changes in V 7.33.275 @ 2019-08-12
+==================  
+  
+1. added dev/states for gateway device:
+   wan2 (==up/down), MACwan2 = mac # of wan2
+   use dev/states wan2 =="up" and wan=="down" to trigger wan failover
+   use dev/states wan =="up"  and wan2=="down" to trigger wan failover end 
+=== this currently only works for standard security gateway NOT for UDM/UDM-pro
+    need "mca-dump" output from the UDM system when in normal state and when in failover
+
+
+
 changes in V 7.32.275  @ 2019-07-25
 ==================  
   

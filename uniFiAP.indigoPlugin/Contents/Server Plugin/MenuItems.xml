@@ -105,6 +105,25 @@
 			</Field>
 			<Field id="simpleSeparator6" type="separator"/>
 
+
+			<Field	id="Label61" type="label"> <Label>Print WiFi channel info:</Label> </Field>
+			<Field	  id="confirm61" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintWifiChannelInfoFromControllerCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparator61" type="separator"/>
+
+			<Field	id="Label62" type="label"> <Label>Print WiFi config info:</Label> </Field>
+			<Field	  id="confirm62" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintWifiConfigInfoFromControllerCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparator62" type="separator"/>
+
+			<Field	id="Label63" type="label"> <Label>Print session info:</Label> </Field>
+			<Field	  id="confirm63" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintSessionInfoFromControllerCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparator63" type="separator"/>
+
 			<Field	id="Label7" type="label"> <Label>Print Events  (limited by retention set in controller):</Label> </Field>
 			<Field	   id="PrintEventInfoMaxEvents" type="menu" defaultValue="10">
 				<Label>Maximum Number of events:</Label>

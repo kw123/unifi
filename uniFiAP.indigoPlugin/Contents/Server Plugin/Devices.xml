@@ -609,6 +609,16 @@
 					<TriggerLabel>wan</TriggerLabel>
 					<ControlPageLabel>wan</ControlPageLabel>
 			</State>
+			<State id="wan2">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2</TriggerLabel>
+					<ControlPageLabel>wan2</ControlPageLabel>
+			</State>
+			<State id="MACwan2">
+					<ValueType>String</ValueType>
+					<TriggerLabel>MACwan2</TriggerLabel>
+					<ControlPageLabel>MACwan2</ControlPageLabel>
+			</State>
 
 
 		</States>
