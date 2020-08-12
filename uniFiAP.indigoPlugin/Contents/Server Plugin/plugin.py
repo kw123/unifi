@@ -9021,9 +9021,8 @@ class Plugin(indigo.PluginBase):
 			wanRunDate	= ""
 			wanUpTime	= ""
 			gateways	= "-"
-			wanUpTime	= ""
+			wan2UpTime	= ""
 			upTime		= ""
-			publicIP	= ""
 
 
 			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"doGw     unifiControllerType:{}; if.. find UDM >-1:{}".format(self.unifiControllerType, self.unifiControllerType.find("UDM") > -1) )
@@ -9053,19 +9052,57 @@ class Plugin(indigo.PluginBase):
 							if "mac" in table: 
 								nameList[ethName] = mac
 
+
+				###  wan default
+				#  udm-pro
+				#   wan  = eth8
+				#   wan2 = eth9
+				# udm has no second wan on the dedicated Unifi lte modem allows inetrnet backup 
+				#   not supported yet , only use wan not wan2
 				wan = {}
 				for table in gwDict["if_table"]:
-					if table["ip"] == publicIP:
-						wan = table
-						if "speedtest-status" in table:
-							wan["latency"] 			= table["speedtest-status"]["latency"]
-							wan["xput_down"] 		= table["speedtest-status"]["xput_download"]
-							wan["xput_up"] 			= table["speedtest-status"]["xput_upload"]
-							wan["speedtest_ping"] 	= table["speedtest-status"]["status_ping"]
-						if "name" in table:
-							if table["name"] in nameList:
-								wan["mac"] =  nameList[table["name"]]
-						break
+					if self.unifiControllerType == "UDM":
+						if table["ip"] == publicIP:
+							wan = table
+							if "speedtest-status" in table:
+								wan["latency"] 			= table["speedtest-status"]["latency"]
+								wan["xput_down"] 		= table["speedtest-status"]["xput_download"]
+								wan["xput_up"] 			= table["speedtest-status"]["xput_upload"]
+								wan["speedtest_ping"] 	= table["speedtest-status"]["status_ping"]
+							if "name" in table:
+								if table["name"] in nameList:
+									wan["mac"] =  nameList[table["name"]]
+							break
+
+					else:
+						if table["name"] == "eth8":
+							wan = table
+							if "speedtest-status" in table:
+								wan["latency"] 			= table["speedtest-status"]["latency"]
+								wan["xput_down"] 		= table["speedtest-status"]["xput_download"]
+								wan["xput_up"] 			= table["speedtest-status"]["xput_upload"]
+								wan["speedtest_ping"] 	= table["speedtest-status"]["status_ping"]
+							if "name" in table:
+								if table["name"] in nameList:
+									wan["mac"] =  nameList[table["name"]]
+							break
+
+
+				wan2 = {}
+				if self.unifiControllerType != "UDM": # for UDM pro only
+					for table in gwDict["if_table"]:
+						if table["name"] == "eth9":
+							wan2 = table
+							if "speedtest-status" in table:
+								wan2["latency"] 			= table["speedtest-status"]["latency"]
+								wan2["xput_down"] 			= table["speedtest-status"]["xput_download"]
+								wan2["xput_up"] 			= table["speedtest-status"]["xput_upload"]
+								wan2["speedtest_ping"] 		= table["speedtest-status"]["status_ping"]
+							if "name" in table:
+								if table["name"] in nameList:
+									wan2["mac"] =  nameList[table["name"]]
+							break
+
 
 				lan = {}
 				for table in gwDict["if_table"]:
@@ -9099,7 +9136,7 @@ class Plugin(indigo.PluginBase):
 				if ipNDevice == "": 
 					return
 
-				if table =="config_network_ports":
+				if table == "config_network_ports":
 						if "LAN" in gwDict[table]:
 							ifnameLAN = gwDict[table]["LAN"]
 							for xx in range(len(gwDict[u"if_table"])):
@@ -9111,12 +9148,12 @@ class Plugin(indigo.PluginBase):
 								if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 									wan = gwDict[u"if_table"][xx]
 						if "WAN2" in gwDict[table]:
-							ifnameWAN = gwDict[table]["WAN2"]
+							ifnameWAN2 = gwDict[table]["WAN2"]
 							for xx in range(len(gwDict[u"if_table"])):
-								if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+								if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN2:
 									wan2 = gwDict[u"if_table"][xx]
 
-				elif table =="config_port_table":
+				elif table == "config_port_table":
 					for xx in range(len(gwDict[table])):
 						if "name" in gwDict[table][xx] and gwDict[table][xx]["name"].lower() == "lan":
 							ifnameLAN = gwDict[table][xx]["ifname"]
@@ -9127,39 +9164,26 @@ class Plugin(indigo.PluginBase):
 							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
 								wan = gwDict[u"if_table"][xx]
 						if "name" in gwDict[table][xx] and gwDict[table][xx]["name"].lower() =="wan2":
-							ifnameWAN = gwDict[table][xx]["ifname"]
-							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN:
+							ifnameWAN2 = gwDict[table][xx]["ifname"]
+							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN2:
 								wan2 = gwDict[u"if_table"][xx]
-				else:
-					return
 
-				if "ip" in wan:	   publicIP	   = wan[u"ip"].split("/")[0]
-
-
-
-			if "uptime" in wan:					wanUpTime = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
 			if "up" in wan and wan["up"]:		wanUP = True
-			if "uptime" in wan2:				wanUpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
-			if  "up" in wan2 and wan2["up"]:	wan2UP = True
+			if "up" in wan2 and wan2["up"]:		wan2UP = True
+
+			if "uptime" in wan2:			wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
+			if "uptime" in wan:				wanUpTime = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
 
 			if 	wan2UP and not wanUP:
 				try: macwan = copy.copy(wan[u"mac"])
 				except: macwan = copy.copy(wan2["mac"])
 				wan = copy.copy(wan2)
 				wan["mac"] = macwan
-				
-
-			if wan == {}: 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   wan empty")
-				return
-			if lan == {}: 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  lan empty")
-				return
 
 
+			if   "ip" in wan and wan[u"ip"] != ""   and wanUP: 		publicIP = wan[u"ip"].split("/")[0]
+			elif "ip" in wan2 and wan2[u"ip"] != "" and  wan2UP:	publicIP = wan2[u"ip"].split("/")[0]
 
-
-			if "uptime" 		in wan:		wanUpTime	= wan[u"uptime"]
 			if "mac" 			in wan:		MAC			= wan[u"mac"]
 			if "mac" 			in wan2:	MACwan2		= wan2[u"mac"]
 			if "gateways" 		in wan:		gateways	= "-".join(wan[u"gateways"])
@@ -9282,6 +9306,7 @@ class Plugin(indigo.PluginBase):
 				if dev.states[u"wanSpeedTest"] 			!= wanSpeedTest:										self.addToStatesUpdateList(dev.id,u"wanSpeedTest", wanSpeedTest)
 				if dev.states[u"wanDownload"] 			!= wanDownload:											self.addToStatesUpdateList(dev.id,u"wanDownload", wanDownload)
 				if dev.states[u"wanUpTime"] 			!= wanUpTime: 											self.addToStatesUpdateList(dev.id,u"wanUpTime", wanUpTime)
+				if dev.states[u"wan2UpTime"] 			!= wan2UpTime: 											self.addToStatesUpdateList(dev.id,u"wan2UpTime", wan2UpTime)
 				if dev.states[u"wan"] 					!= wanUP:												self.addToStatesUpdateList(dev.id,u"wan", wanUP)	
 				if dev.states[u"wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,u"wan2", wan2UP)
 				if dev.states[u"MAC"] 					!= MAC:													self.addToStatesUpdateList(dev.id,u"MAC", MAC)
