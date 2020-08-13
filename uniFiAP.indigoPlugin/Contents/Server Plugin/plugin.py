@@ -9023,6 +9023,7 @@ class Plugin(indigo.PluginBase):
 			gateways	= "-"
 			wan2UpTime	= ""
 			upTime		= ""
+			wanSetup	= "wan1 only"
 
 
 			if self.decideMyLog(u"UDM"):  self.indiLOG.log(20,u"doGw     unifiControllerType:{}; if.. find UDM >-1:{}".format(self.unifiControllerType, self.unifiControllerType.find("UDM") > -1) )
@@ -9169,17 +9170,6 @@ class Plugin(indigo.PluginBase):
 								wan2 = gwDict[u"if_table"][xx]
 
 
-			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
-
-
-			if "up" in wan:										wanUP  = wan["up"]
-			if "up" in wan2:									wan2UP = wan2["up"]
-
-			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
-			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
-
-			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP = wan[u"ip"].split("/")[0]
-			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP = wan2[u"ip"].split("/")[0]
 
 			if "mac" 			in wan:							MAC			= wan[u"mac"]
 			if "mac" 			in wan2:						MACwan2		= wan2[u"mac"]
@@ -9188,6 +9178,41 @@ class Plugin(indigo.PluginBase):
 			else:
 				self.indiLOG.log(20,u"model_display not in dict doGatewaydict")
 
+			if "up" in wan:										wanUP  = wan["up"]
+			if "up" in wan2:									wan2UP = wan2["up"]
+			if   not wanUP and wan2UP: 							wanSetup = "failover"
+			elif not wanUP and not wan2UP: 						wanSetup = "wan down"
+			elif wanUP     and wan2UP: 							wanSetup = "load balancing"
+			else: 												wanSetup = "wan1 only"
+
+			isNew = True
+
+			if MAC in self.MAC2INDIGO[xType]:
+				try:
+					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
+					if dev.deviceTypeId != devType: 1 / 0
+					#self.myLog( text=MAC + " " + dev.name)
+					isNew = False
+					if dev.states[u"wanSetup"] != wanSetup: self.addToStatesUpdateList(dev.id,u"wanSetup", wanSetup)
+				except:
+					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,"{}     {} wrong {}" .format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
+					for dev in indigo.devices.iter("props."+isType):
+						if "MAC" not in dev.states:			continue
+						if dev.states[u"MAC"] != MAC:		continue
+						self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
+						isNew = False
+						break
+
+
+			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
+			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
+
+			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP = wan[u"ip"].split("/")[0]
+			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP = wan2[u"ip"].split("/")[0]
+
+
+
+			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
 
 
 			if 	wan2UP and not wanUP:
@@ -9245,22 +9270,6 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -no MAC #")
 				return
 
-			isNew = True
-
-			if MAC in self.MAC2INDIGO[xType]:
-				try:
-					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
-					if dev.deviceTypeId != devType: 1 / 0
-					#self.myLog( text=MAC + " " + dev.name)
-					isNew = False
-				except:
-					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,"{}     {} wrong {}" .format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
-					for dev in indigo.devices.iter("props."+isType):
-						if "MAC" not in dev.states:			continue
-						if dev.states[u"MAC"] != MAC:		continue
-						self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
-						isNew = False
-						break
 
 			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   MAC:{} -MAClan{}, is new:{}".format(MAC,MAClan,isNew))
 

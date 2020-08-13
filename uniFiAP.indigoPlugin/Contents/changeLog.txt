@@ -1,9 +1,14 @@
+changes in V 7.33.278 @ 2019-08-13
+==================  
+  
+1. added dev/state wanSetup: "wan1 only"/"failover"/"wan down"/"load balancing"
+
 changes in V 7.33.277 @ 2019-08-13
 ==================  
   
 1. added dev/states for gateway device:
-   wan2UpTime = xH 7M zS
-2. fixed some logig for fail over
+   wan2UpTime = xH yM zS
+2. fixed some logic for fail over
 
 
 changes in V 7.33.275 @ 2019-08-12

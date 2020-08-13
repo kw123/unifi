@@ -624,6 +624,11 @@
 					<TriggerLabel>MACwan2</TriggerLabel>
 					<ControlPageLabel>MACwan2</ControlPageLabel>
 			</State>
+			<State id="wanSetup">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wanSetup</TriggerLabel>
+					<ControlPageLabel>wanSetup</ControlPageLabel>
+			</State>
 
 
 		</States>
