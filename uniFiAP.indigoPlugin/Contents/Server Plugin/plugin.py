@@ -9190,8 +9190,6 @@ class Plugin(indigo.PluginBase):
 			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
 			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
 
-			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP  = wan[u"ip"].split("/")[0]
-			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP2 = wan2[u"ip"].split("/")[0]
 			if "gateways" 		in wan:							gateways	= "-".join(wan[u"gateways"])
 			if "gateways" 		in wan2:						gateways2	= "-".join(wan2[u"gateways"])
 			if "nameservers" in wan:							nameservers		= "-".join(wan[u"nameservers"])
@@ -9202,13 +9200,17 @@ class Plugin(indigo.PluginBase):
 
 			if "up" in wan:										wanUP  = wan["up"]
 			if "up" in wan2:									wan2UP = wan2["up"]
+
 			if   not wanUP and wan2UP: 							wanSetup = "failover"
 			elif not wanUP and not wan2UP: 						wanSetup = "wan down"
 			elif wanUP     and wan2UP: 							wanSetup = "load balancing"
 			else: 												wanSetup = "wan1 only"
 
+			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP  = wan[u"ip"].split("/")[0]
+			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP2 = wan2[u"ip"].split("/")[0]
 
-			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
+
+			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}, publicIP:{}, publicIP2:{}".format(wan,wan2,MAC,MACwan2,publicIP,publicIP2))
 
 			if "mac" in lan:				MAClan			= lan[u"mac"]
 			if "system-stats" in gwDict:
