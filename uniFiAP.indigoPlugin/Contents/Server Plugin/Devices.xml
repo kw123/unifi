@@ -526,13 +526,13 @@
 			</State>
 			<State id="gateways">
 					<ValueType>String</ValueType>
-					<TriggerLabel>rundate</TriggerLabel>
-					<ControlPageLabel>rundate</ControlPageLabel>
+					<TriggerLabel>gateways</TriggerLabel>
+					<ControlPageLabel>gateways</ControlPageLabel>
 			</State>
 			<State id="nameservers">
 					<ValueType>String</ValueType>
-					<TriggerLabel>rundate</TriggerLabel>
-					<ControlPageLabel>rundate</ControlPageLabel>
+					<TriggerLabel>nameservers</TriggerLabel>
+					<ControlPageLabel>nameservers</ControlPageLabel>
 			</State>
 			<State id="publicIP">
 					<ValueType>String</ValueType>
@@ -574,6 +574,11 @@
 					<TriggerLabel>upSince</TriggerLabel>
 					<ControlPageLabel>upSince</ControlPageLabel>
 			</State>
+			<State id="wan">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan</TriggerLabel>
+					<ControlPageLabel>wan</ControlPageLabel>
+			</State>
 			<State id="wanPingTime">
 					<ValueType>String</ValueType>
 					<TriggerLabel>wanPingTime</TriggerLabel>
@@ -604,25 +609,60 @@
 					<TriggerLabel>wanUpTime</TriggerLabel>
 					<ControlPageLabel>wanUpTime</ControlPageLabel>
 			</State>
-			<State id="wan2UpTime">
+			<State id="MACwan2">
 					<ValueType>String</ValueType>
-					<TriggerLabel>wan2UpTime</TriggerLabel>
-					<ControlPageLabel>wan2UpTime</ControlPageLabel>
-			</State>
-			<State id="wan">
-					<ValueType>String</ValueType>
-					<TriggerLabel>wan</TriggerLabel>
-					<ControlPageLabel>wan</ControlPageLabel>
+					<TriggerLabel>MACwan2</TriggerLabel>
+					<ControlPageLabel>MACwan2</ControlPageLabel>
 			</State>
 			<State id="wan2">
 					<ValueType>String</ValueType>
 					<TriggerLabel>wan2</TriggerLabel>
 					<ControlPageLabel>wan2</ControlPageLabel>
 			</State>
-			<State id="MACwan2">
+			<State id="wan2PingTime">
 					<ValueType>String</ValueType>
-					<TriggerLabel>MACwan2</TriggerLabel>
-					<ControlPageLabel>MACwan2</ControlPageLabel>
+					<TriggerLabel>wan2PingTime</TriggerLabel>
+					<ControlPageLabel>wan2PingTime</ControlPageLabel>
+			</State>
+			<State id="wan2Latency">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2Latency</TriggerLabel>
+					<ControlPageLabel>wan2Latency</ControlPageLabel>
+			</State>
+			<State id="wan2Download">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2Download</TriggerLabel>
+					<ControlPageLabel>wan2Download</ControlPageLabel>
+			</State>
+			<State id="wan2Upload">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2Upload</TriggerLabel>
+					<ControlPageLabel>wan2Upload</ControlPageLabel>
+			</State>
+			<State id="wan2SpeedTest">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2SpeedTest</TriggerLabel>
+					<ControlPageLabel>wan2SpeedTest</ControlPageLabel>
+			</State>
+			<State id="wan2UpTime">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2UpTime</TriggerLabel>
+					<ControlPageLabel>wan2UpTime</ControlPageLabel>
+			</State>
+			<State id="wan2Gateways">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2Gateways</TriggerLabel>
+					<ControlPageLabel>wan2Gateways</ControlPageLabel>
+			</State>
+			<State id="wan2Nameservers">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2Nameservers</TriggerLabel>
+					<ControlPageLabel>wan2Nameservers</ControlPageLabel>
+			</State>
+			<State id="wan2PublicIP">
+					<ValueType>String</ValueType>
+					<TriggerLabel>wan2PublicIP</TriggerLabel>
+					<ControlPageLabel>wan2PublicIP</ControlPageLabel>
 			</State>
 			<State id="wanSetup">
 					<ValueType>String</ValueType>
