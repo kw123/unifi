@@ -9168,30 +9168,33 @@ class Plugin(indigo.PluginBase):
 							if "name" in gwDict[u"if_table"][xx] and gwDict[u"if_table"][xx]["name"] == ifnameWAN2:
 								wan2 = gwDict[u"if_table"][xx]
 
-			if "up" in wan and wan["up"]:		wanUP = True
-			if "up" in wan2 and wan2["up"]:		wan2UP = True
 
-			if "uptime" in wan2:			wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
-			if "uptime" in wan:				wanUpTime = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
+			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
+
+
+			if "up" in wan:										wanUP  = wan["up"]
+			if "up" in wan2:									wan2UP = wan2["up"]
+
+			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
+			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
+
+			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP = wan[u"ip"].split("/")[0]
+			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP = wan2[u"ip"].split("/")[0]
+
+			if "mac" 			in wan:							MAC			= wan[u"mac"]
+			if "mac" 			in wan2:						MACwan2		= wan2[u"mac"]
+			if "gateways" 		in wan:							gateways	= "-".join(wan[u"gateways"])
+			if "model_display" 	in gwDict:						model		= gwDict[u"model_display"]
+			else:
+				self.indiLOG.log(20,u"model_display not in dict doGatewaydict")
+
+
 
 			if 	wan2UP and not wanUP:
 				try: macwan = copy.copy(wan[u"mac"])
 				except: macwan = copy.copy(wan2["mac"])
 				wan = copy.copy(wan2)
 				wan["mac"] = macwan
-
-
-			if   "ip" in wan and wan[u"ip"] != ""   and wanUP: 		publicIP = wan[u"ip"].split("/")[0]
-			elif "ip" in wan2 and wan2[u"ip"] != "" and  wan2UP:	publicIP = wan2[u"ip"].split("/")[0]
-
-			if "mac" 			in wan:		MAC			= wan[u"mac"]
-			if "mac" 			in wan2:	MACwan2		= wan2[u"mac"]
-			if "gateways" 		in wan:		gateways	= "-".join(wan[u"gateways"])
-			if "model_display" 	in gwDict:	model		= gwDict[u"model_display"]
-			else:
-				self.indiLOG.log(30,u"model_display not in dict doGatewaydict")
-
-			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
 
 
 			if "system-stats" in gwDict:
@@ -9232,8 +9235,6 @@ class Plugin(indigo.PluginBase):
 			if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
 											wanSpeedTest   = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
 			if "mac" in lan:				MAClan		   = lan[u"mac"]
-			if "up" in wan:					wanUP		   = "up" if wan[u"up"] else "down"
-			if "up" in wan2:				wan2UP		   = "up" if wan2[u"up"] else "down"
 			if "speedtest_ping" in wan:		wanPingTime	   = "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
 			if "latency" in wan:			wanLatency	   = "%4.1f" % wan[u"latency"] + u"[ms]"
 			if "xput_down" in wan:			wanDownload	   = "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
@@ -9307,8 +9308,8 @@ class Plugin(indigo.PluginBase):
 				if dev.states[u"wanDownload"] 			!= wanDownload:											self.addToStatesUpdateList(dev.id,u"wanDownload", wanDownload)
 				if dev.states[u"wanUpTime"] 			!= wanUpTime: 											self.addToStatesUpdateList(dev.id,u"wanUpTime", wanUpTime)
 				if dev.states[u"wan2UpTime"] 			!= wan2UpTime: 											self.addToStatesUpdateList(dev.id,u"wan2UpTime", wan2UpTime)
-				if dev.states[u"wan"] 					!= wanUP:												self.addToStatesUpdateList(dev.id,u"wan", wanUP)	
-				if dev.states[u"wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,u"wan2", wan2UP)
+				if dev.states[u"wan"] 					!= wanUP:												self.addToStatesUpdateList(dev.id,u"wan", "up" if wanUP else "down")	
+				if dev.states[u"wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,u"wan2", "up" if wan2UP else "down")
 				if dev.states[u"MAC"] 					!= MAC:													self.addToStatesUpdateList(dev.id,u"MAC", MAC)
 				if dev.states[u"MACwan2"] 				!= MACwan2:												self.addToStatesUpdateList(dev.id,u"MACwan2", MACwan2)
 				if dev.states[u"model"] 				!= model and model != "":								self.addToStatesUpdateList(dev.id,u"model", model)
