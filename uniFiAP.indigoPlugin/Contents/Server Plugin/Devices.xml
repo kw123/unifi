@@ -443,6 +443,14 @@
 					<Option value="MAClan" >use MAClan for controller querries</Option>
 				</List>
 			</Field>
+			<Field	 id="failoverSettings"	 type="menu"  defaultValue="MAClan" tooltip="failover: internet switches from wan(down) to wan2(up), need to have 2 internet connections setup and wan2 setup as failover, copy publicIP, nameserver, gateways" >
+				<Label>In case of a wan failover event:</Label>
+				<List>
+					<Option value="copypublicIP"  >copy wan2PublicIP to publicIP state  </Option>
+					<Option value="keepSeparated" >keep publicIP separated from wan2PublicIP state </Option>
+				</List>
+			</Field>
+
 
 
 			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >

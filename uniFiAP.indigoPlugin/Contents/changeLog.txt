@@ -1,4 +1,9 @@
-changes in V 7.33.280 @ 2019-08-14
+changes in V 7.33.281 @ 2019-08-13
+==================  
+  
+1. added property (device edit) to set behaviour at wan fail over event
+
+changes in V 7.33.280 @ 2019-08-13
 ==================  
   
 1. added dev/state for each wan state a  wan2 state:

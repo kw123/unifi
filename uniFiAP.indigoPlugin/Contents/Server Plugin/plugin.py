@@ -9187,6 +9187,19 @@ class Plugin(indigo.PluginBase):
 			else:
 				self.indiLOG.log(20,u"model_display not in dict doGatewaydict")
 
+			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
+			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
+
+			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP  = wan[u"ip"].split("/")[0]
+			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP2 = wan2[u"ip"].split("/")[0]
+			if "gateways" 		in wan:							gateways	= "-".join(wan[u"gateways"])
+			if "gateways" 		in wan2:						gateways2	= "-".join(wan2[u"gateways"])
+			if "nameservers" in wan:							nameservers		= "-".join(wan[u"nameservers"])
+			if "nameservers" in wan2:							nameservers2	= "-".join(wan2[u"nameservers"])
+			if "mac" 			in wan:							MAC			= wan[u"mac"]
+			if "mac" 			in wan2:						MACwan2		= wan2[u"mac"]
+
+
 			if "up" in wan:										wanUP  = wan["up"]
 			if "up" in wan2:									wan2UP = wan2["up"]
 			if   not wanUP and wan2UP: 							wanSetup = "failover"
@@ -9194,48 +9207,8 @@ class Plugin(indigo.PluginBase):
 			elif wanUP     and wan2UP: 							wanSetup = "load balancing"
 			else: 												wanSetup = "wan1 only"
 
-			if "mac" 			in wan:							MAC			= wan[u"mac"]
-			if "mac" 			in wan2:						MACwan2		= wan2[u"mac"]
-			if "gateways" 		in wan:							gateways	= "-".join(wan[u"gateways"])
-			if "gateways" 		in wan2:						gateways2	= "-".join(wan2[u"gateways"])
-
-
-			isNew = True
-
-			if MAC in self.MAC2INDIGO[xType]:
-				try:
-					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
-					if dev.deviceTypeId != devType: 1 / 0
-					#self.myLog( text=MAC + " " + dev.name)
-					isNew = False
-					if dev.states[u"wanSetup"] != wanSetup: self.addToStatesUpdateList(dev.id,u"wanSetup", wanSetup)
-				except:
-					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,"{}     {} wrong {}" .format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
-					for dev in indigo.devices.iter("props."+isType):
-						if "MAC" not in dev.states:			continue
-						if dev.states[u"MAC"] != MAC:		continue
-						self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
-						isNew = False
-						break
-
-
-			if "uptime" in wan2:								wan2UpTime = self.convertTimedeltaToDaysHoursMin(wan2[u"uptime"])
-			if "uptime" in wan:									wanUpTime  = self.convertTimedeltaToDaysHoursMin(wan[u"uptime"])
-
-			if   "ip" in wan  and wan[u"ip"]  != "" and wanUP: 	publicIP  = wan[u"ip"].split("/")[0]
-			elif "ip" in wan2 and wan2[u"ip"] != "" and wan2UP:	publicIP2 = wan2[u"ip"].split("/")[0]
-
-
 
 			if self.decideMyLog(u"Special"): self.indiLOG.log(20,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}".format(wan,wan2,MAC,MACwan2))
-
-
-			if 	False and wan2UP and not wanUP:
-				try: macwan = copy.copy(wan[u"mac"])
-				except: macwan = copy.copy(wan2["mac"])
-				wan = copy.copy(wan2)
-				wan["mac"] = macwan
-
 
 			if "mac" in lan:				MAClan			= lan[u"mac"]
 			if "system-stats" in gwDict:
@@ -9274,27 +9247,39 @@ class Plugin(indigo.PluginBase):
 								#self.myLog( text="doGatewaydictSELF sysStats: empty "+unicode(sysStats))
 
 			if "speedtest_lastrun" in wan and wan[u"speedtest_lastrun"] !=0:
-											wanSpeedTest   = datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
+											wanSpeedTest	= datetime.datetime.fromtimestamp(float(wan[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
 			if "speedtest_lastrun" in wan2 and wan2[u"speedtest_lastrun"] !=0:
-											wan2SpeedTest   = datetime.datetime.fromtimestamp(float(wan2[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
+											wan2SpeedTest	= datetime.datetime.fromtimestamp(float(wan2[u"speedtest_lastrun"])).strftime(u"%Y-%m-%d %H:%M:%S")
 			if "speedtest_ping" in wan:		wanPingTime		= "%4.1f" % wan[u"speedtest_ping"] + u"[ms]"
 			if "latency" in wan:			wanLatency		= "%4.1f" % wan[u"latency"] + u"[ms]"
 			if "xput_down" in wan:			wanDownload		= "%4.1f" % wan[u"xput_down"] + u"[Mb/S]"
 			if "xput_up" in wan:			wanUpload		= "%4.1f" % wan[u"xput_up"] + u"[Mb/S]"
-			if "nameservers" in wan:		nameservers		= "-".join(wan[u"nameservers"])
 
 			if "speedtest_ping" in wan2:	wan2PingTime	= "%4.1f" % wan2[u"speedtest_ping"] + u"[ms]"
 			if "latency" in wan2:			wan2Latency		= "%4.1f" % wan2[u"latency"] + u"[ms]"
 			if "xput_down" in wan2:			wan2Download	= "%4.1f" % wan2[u"xput_down"] + u"[Mb/S]"
 			if "xput_up" in wan2:			wan2Upload		= "%4.1f" % wan2[u"xput_up"] + u"[Mb/S]"
-			if "nameservers" in wan2:		nameservers2	= "-".join(wan2[u"nameservers"])
-
-			if MAC == "": 
-				if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway  -no MAC #")
-				return
 
 
 			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   MAC:{} -MAClan{}, is new:{}".format(MAC,MAClan,isNew))
+
+			isNew = True
+
+			if MAC in self.MAC2INDIGO[xType]:
+				try:
+					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
+					if dev.deviceTypeId != devType: 1 / 0
+					#self.myLog( text=MAC + " " + dev.name)
+					isNew = False
+				except:
+					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,"{}     {} wrong {}" .format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
+					for dev in indigo.devices.iter("props."+isType):
+						if "MAC" not in dev.states:			continue
+						if dev.states[u"MAC"] != MAC:		continue
+						self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
+						isNew = False
+						break
+
 
 			if isNew:
 				try:
@@ -9306,7 +9291,7 @@ class Plugin(indigo.PluginBase):
 						pluginId 		= self.pluginId,
 						deviceTypeId 	= devType,
 						folder 			= self.folderNameIDCreated,
-						props 			= {u"useWhatForStatus":"",isType:True})
+						props 			= {u"useWhatForStatus":"",isType:True, u"failoverSettings":"copypublicIP", "useWhichMAC":"MAClan","enableBroadCastEvents":"0"})
 					self.setupStructures(xType, dev, MAC)
 					self.setupBasicDeviceStates(dev, MAC, xType, ipNDevice, "", "", u" status up         GW DICT new gateway if_table", u"STATUS-GW")
 					self.executeUpdateStatesList()
@@ -9324,10 +9309,18 @@ class Plugin(indigo.PluginBase):
 
 			if not isNew:
 				if u"uptime" in gwDict and gwDict[u"uptime"] != "" and u"upSince" in dev.states:				self.addToStatesUpdateList(dev.id,u"upSince",time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-gwDict[u"uptime"])) )
+				props = dev.pluginProps
+				if wanSetup == "failover": 
+					if "failoverSettings" in props and props["failoverSettings"] == "copypublicIP":
+						publicIP = publicIP2 
+						gateways = gateways2 
+						nameservers = nameservers2 
+
 
 				self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNDevice
 				self.MAC2INDIGO[xType][MAC][u"lastUp"] 	 = time.time()
 
+				if dev.states[u"wanSetup"] 				!= wanSetup: 											self.addToStatesUpdateList(dev.id,u"wanSetup", wanSetup)
 				if dev.states[u"MAClan"] 				!= MAClan:												self.addToStatesUpdateList(dev.id,u"MAClan", MAClan)
 				if dev.states[u"ipNumber"] 				!= ipNDevice: 											self.addToStatesUpdateList(dev.id,u"ipNumber", ipNDevice)
 				if dev.states[u"model"] 				!= model and model != "":								self.addToStatesUpdateList(dev.id,u"model", model)
@@ -9338,7 +9331,6 @@ class Plugin(indigo.PluginBase):
 				if dev.states[u"temperature_Board_PHY"]	!= temperature_Board_PHY and temperature_Board_PHY != "": self.addToStatesUpdateList(dev.id,u"temperature_Board_PHY", temperature_Board_PHY)
 				if dev.states[u"temperature_CPU"]		!= temperature_CPU 		 and temperature_CPU != "":		self.addToStatesUpdateList(dev.id,u"temperature_CPU", temperature_CPU)
 				if dev.states[u"temperature_PHY"]		!= temperature_PHY 		 and temperature_PHY != "":		self.addToStatesUpdateList(dev.id,u"temperature_PHY", temperature_PHY)
-				if dev.states[u"status"] 				!= "up":												self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.encode("utf8").ljust(30) + u" status up   GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
 				if dev.states[u"wan"] 					!= wanUP:												self.addToStatesUpdateList(dev.id,u"wan", "up" if wanUP else "down")	
 				if dev.states[u"MAC"] 					!= MAC:													self.addToStatesUpdateList(dev.id,u"MAC", MAC)
@@ -9364,6 +9356,7 @@ class Plugin(indigo.PluginBase):
 				if dev.states[u"wan2Download"] 			!= wan2Download:										self.addToStatesUpdateList(dev.id,u"wan2Download", wan2Download)
 				if dev.states[u"wan2UpTime"] 			!= wan2UpTime: 											self.addToStatesUpdateList(dev.id,u"wan2UpTime", wan2UpTime)
 
+				if dev.states[u"status"] 				!= "up":												self.setImageAndStatus(dev, "up",oldStatus=dev.states[u"status"], ts=time.time(), level=1, text1=dev.name.encode("utf8").ljust(30) + u" status up   GW DICT if_table", reason="gateway DICT", iType=u"STATUS-GW")
 
 
 				if self.decideMyLog(u"Dict", MAC=MAC) or self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"DC-GW-1--  {}     ip:{}    {}   new GW data".format(MAC,ipNDevice, dev.name.encode("utf8")))
