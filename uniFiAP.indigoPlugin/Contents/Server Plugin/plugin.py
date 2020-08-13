@@ -8996,7 +8996,6 @@ class Plugin(indigo.PluginBase):
 			ipNDevice	= ""
 			MAClan		= ""
 			lan			= {}
-			publicIP	= ""
 			model		= ""
 			cpuPercent	= ""
 			memPercent	= ""
@@ -9006,6 +9005,7 @@ class Plugin(indigo.PluginBase):
 			temperature_CPU 		= ""
 			temperature_PHY 		= ""
 
+			publicIP	= ""
 			wan			= {}
 			MAC			= ""
 			gateways	= ""
@@ -9020,6 +9020,7 @@ class Plugin(indigo.PluginBase):
 			wanUpTime	= ""
 			gateways	= "-"
 
+			publicIP2	= ""
 			wan2		= {}
 			MACwan2		= ""
 			gateways2	= "-"
@@ -9353,7 +9354,7 @@ class Plugin(indigo.PluginBase):
 
 				if dev.states[u"wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,u"wan2", "up" if wan2UP else "down")
 				if dev.states[u"MACwan2"] 				!= MACwan2:												self.addToStatesUpdateList(dev.id,u"MACwan2", MACwan2)
-				if dev.states[u"wan2nameservers"]		!= nameservers2:										self.addToStatesUpdateList(dev.id,u"wan2Nameservers", nameservers2)
+				if dev.states[u"wan2Nameservers"]		!= nameservers2:										self.addToStatesUpdateList(dev.id,u"wan2Nameservers", nameservers2)
 				if dev.states[u"wan2Gateways"] 			!= gateways2:											self.addToStatesUpdateList(dev.id,u"wan2Gateways", gateways2)
 				if dev.states[u"wan2PublicIP"] 			!= publicIP2:											self.addToStatesUpdateList(dev.id,u"wan2PublicIP", publicIP2)
 				if dev.states[u"wan2PingTime"] 			!= wan2PingTime: 										self.addToStatesUpdateList(dev.id,u"wan2PingTime", wan2PingTime)
