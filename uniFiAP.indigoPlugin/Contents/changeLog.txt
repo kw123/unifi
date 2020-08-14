@@ -1,3 +1,22 @@
+changes in V 7.33.283 @ 2019-08-14
+==================  
+  
+1. added dev/states for gateway device:
+      wan2        = up/downif2. wan port is active
+      wan2Latency = same as  for wan
+      wan2Upload= same as  for wan
+      wan2Gateways= same as  for wan
+      wan2Nameservers= same as  for wan
+      wan2PublicIP=  ip numebr of wan2 if wactive
+      wanSetup =  "wan1 only" if normal single wan active
+                  "failover"  if wan2 active and wan 1 down
+                  "load balancing" if both wan1 and wa2 are active
+                  "wan down"  if both wan connections are down
+                  this is tested with std UniFi gateways, should also work for UDM-pro but not for UDM as it does not have a second wan port
+     in case of failover the state values for publicIP nameservers and gateways  can be  set to == the wan2 value or not change
+        if you would like to keep eg publicIP as your defined public ip number. if set to copy the wan2 values will be used to overwrite the wan xxx values.
+ 
+
 changes in V 7.33.282 @ 2019-08-13
 ==================  
   
