@@ -9263,7 +9263,7 @@ class Plugin(indigo.PluginBase):
 			if "xput_up" in wan2:			wan2Upload		= "%4.1f" % wan2[u"xput_up"] + u"[Mb/S]"
 
 
-			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   MAC:{} -MAClan{}, is new:{}".format(MAC,MAClan,isNew))
+			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,"UDM gateway   MAC:{} -MAClan{}".format(MAC,MAClan))
 
 			isNew = True
 

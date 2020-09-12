@@ -1,10 +1,16 @@
+changes in V 7.33.284 @ 2019-09-12
+==================  
+  
+1. fixed error isNew dow not exist -- only happened when UDM debug on
+
+
 changes in V 7.33.283 @ 2019-08-14
 ==================  
   
 1. added dev/states for gateway device:
       wan2        = up/downif2. wan port is active
       wan2Latency = same as  for wan
-      wan2Upload= same as  for wan
+      wan2Upload  = same as  for wan
       wan2Gateways= same as  for wan
       wan2Nameservers= same as  for wan
       wan2PublicIP=  ip numebr of wan2 if wactive
