@@ -5410,7 +5410,7 @@ class Plugin(indigo.PluginBase):
 							continue
 					if u"useWhatForStatusWiFi" in props and props[u"useWhatForStatusWiFi"] in [u"FastDown",u"Optimized"]:
 						if dtDOWN > 10. and dev.states[u"status"] == u"up":
-							self.setImageAndStatus(dev, u"down", ts=dt - 0.1, fing=True, level=1, text1= u"{:30s}  status was up  changed period WiFi, expT={4.1f};  dt={:4.1f}".format(dev.name, expT, dt), iType=u"CHAN-WiFi",reason="FastDown")
+							self.setImageAndStatus(dev, u"down", ts=dt - 0.1, fing=True, level=1, text1= u"{:30s}  status was up  changed period WiFi, expT={:4.1f};  dt={:4.1f}".format(dev.name, expT, dt), iType=u"CHAN-WiFi",reason="FastDown")
 							self.MAC2INDIGO[xType][dev.states[u"MAC"]][u"lastUp"] = time.time() - expT
 							deldev[devid] = 1
 							continue
