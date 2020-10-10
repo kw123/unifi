@@ -1,3 +1,15 @@
+changes in V 7.33.287 @ 2019-10-10
+==================  
+  
+1. unicode format changes
+
+
+changes in V 7.33.286 @ 2019-10-07
+==================  
+  
+1. some menu formatting changes
+
+
 changes in V 7.33.285 @ 2019-10-05
 ==================  
   
