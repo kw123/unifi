@@ -47,17 +47,17 @@
 	</Field>
  
   <Field    id="expTimeMultiplier"   		type="menu" defaultValue="2" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
-        <Label>Status goes from DOWN 2 EXP after x times UP 2 DOWN time:</Label>
+        <Label>Status goes from DOWN to EXP after x times UP to DOWN time:</Label>
         <List>
-            <Option value="1.5" > 1.5</Option>
-            <Option value="2"   > 2</Option>
-            <Option value="2.5" > 2.5</Option>
-            <Option value="3"   > 3</Option>
-            <Option value="3.5" > 3.5</Option>
-            <Option value="4"   > 4</Option>
-            <Option value="5"   > 5</Option>
-            <Option value="7"   > 7</Option>
-            <Option value="10"  >10 </Option>
+            <Option value="1.5" >x=1.5</Option>
+            <Option value="2"   >x=2</Option>
+            <Option value="2.5" >x=2.5</Option>
+            <Option value="3"   >x=3</Option>
+            <Option value="3.5" >x=3.5</Option>
+            <Option value="4"   >x=4</Option>
+            <Option value="5"   >x=5</Option>
+            <Option value="7"   >x=7</Option>
+            <Option value="10"  >x=10</Option>
         </List>
    </Field>
 
@@ -168,6 +168,10 @@
 
     <Field id="folderNameNeighbors"     	type="textfield"  defaultValue="UNIFI_neighbors"    > 
 		<Label> .. new neighbors:</Label>  
+	</Field>
+
+    <Field id="folderNameVariables"     	type="textfield"  defaultValue="UNIFI"    > 
+		<Label> .. variables:</Label>  
 	</Field>
 
     <Field id="simpleSeparatorUIDs" 			type="separator"/>

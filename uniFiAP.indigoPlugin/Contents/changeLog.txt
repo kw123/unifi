@@ -1,3 +1,18 @@
+changes in V 7.33.290 @ 2019-10-21
+==================  
+   
+1. added config optiuon to set folder name for unifi variables
+   up to now: it used the folder where other variables where 
+   now you need to set it in config.. default is UNIFI
+
+
+changes in V 7.33.289 @ 2019-10-20
+==================  
+   
+1. streamlining processes 
+2. unicode updates
+
+
 changes in V 7.33.288 @ 2019-10-10
 ==================  
    
