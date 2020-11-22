@@ -1,3 +1,9 @@
+changes in V 7.33.291 @ 2019-11-21
+==================  
+   
+1. added check to catch not properly set up AP devices in config ("AP" error in lne 8537)
+
+
 changes in V 7.33.290 @ 2019-10-21
 ==================  
    

@@ -8534,6 +8534,9 @@ class Plugin(indigo.PluginBase):
 				clientHostNames = ""
 				#self.myLog( text=u"DictDetails", ipNDevice + " GHz" +GHz, mType=u"DICT-WiFi")
 				for MAC in self.MAC2INDIGO[xType]:
+					if u"AP" not in self.MAC2INDIGO[xType][MAC]:
+						self.indiLOG.log(30,u"DC-WF-ER   {} # type:{} is not properly defined, please check config  and fix, then restart plugin".format(MAC, xType) )
+						continue
 					if self.MAC2INDIGO[xType][MAC][u"AP"]  != ipNumber: continue
 					if self.MAC2INDIGO[xType][MAC][u"GHz"] != GHz:		continue
 					self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 0
