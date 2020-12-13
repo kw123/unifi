@@ -219,18 +219,18 @@ class Plugin(indigo.PluginBase):
 															u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"APdict": u"mca-dump | sed -e 's/^ *//'"}
-		self.promptOnServer = {	  							u"APtail": u"BZ.v",
+		self.promptOnServer = {	  							u"APtail": u"BZ.",
 															u"GWtail": u":~",
 															u"GWctrl": u":~",
 															u"UDtail": u"\#",
 															u"UDctrl": u"\#",
-															u"SWtail": u"US.v",
+															u"SWtail": u"US.",
 															u"VDtail": u"VirtualBox",
 															u"VDdict": u"VirtualBox",
 															u"GWdict": u":~",
 															u"UDdict": u"\#",
-															u"SWdict": u"US.v",
-															u"APdict": u"BZ.v"}
+															u"SWdict": u"US.",
+															u"APdict": u"BZ."}
 		self.startDictToken = {	  							u"APtail": u"x",
 															u"GWtail": u"x",
 															u"UDtail": u"x",
@@ -8608,7 +8608,7 @@ class Plugin(indigo.PluginBase):
 								try:
 									if oldIdle < 600 and  int(idletime) > oldIdle: 
 										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic") or self.debugDevs[u"AP"](int[apN]):
-											self.indiLOG.log(20,u"DC-WF-old {} oldAP:{}; {};  idletime old:{}/new:{} reject entry, still managed by old AP, not switched yet.. expired?".format(ipNumber, dev.states[u"AP"], MAC, oldIdle, idletime ))
+											self.indiLOG.log(20,u"DC-WF-old  {} oldAP:{}; {};  idletime old:{}/new:{} reject entry, still managed by old AP, not switched yet.. expired?".format(ipNumber, dev.states[u"AP"], MAC, oldIdle, idletime ))
 										continue # oldIdle <600 is to catch expired devices
 								except:
 									pass
