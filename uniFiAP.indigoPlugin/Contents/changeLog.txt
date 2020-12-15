@@ -1,3 +1,11 @@
+changes in V 7.33.294 @ 2019-12-14
+==================  
+   
+1. add a check, if prompt on unifi devcie does not work, 
+   switch to the last 4 characters of promnpt when login in
+   in most cases: "xx# " (and # needs to get a \) so "xx\# "
+
+
 changes in V 7.33.293 @ 2019-12-13
 ==================  
    

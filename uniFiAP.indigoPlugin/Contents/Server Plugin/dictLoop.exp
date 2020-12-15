@@ -25,6 +25,7 @@ expect "Permission denied" {send \003\r"; exit 1}
 sleep 2
 expect *
 send "\r"
+expect -re $
 expect "$promptOnServer" {puts "startxxxx\r";}
 sleep 1.0
 
@@ -34,6 +35,9 @@ send "\r"
         sleep 0.2
         expect "$promptOnServer"
         send "$cmd \r"
+        sleep 2
+		expect *
+        send "\r"
         expect "$promptOnServer"
         puts "$endDictToken$i\r\r"
         sleep $readDictEverySeconds

@@ -392,7 +392,7 @@
         </List>
     </Field>
 
-    <Field    id="udPrompt"   				type="textfield" defaultValue="\\#" visibleBindingId="ipUDMON" visibleBindingValue="true">
+    <Field    id="udPrompt"   				type="textfield" defaultValue="\\# " visibleBindingId="ipUDMON" visibleBindingValue="true">
         <Label>...prompt (unix) when logging in:</Label>
      </Field>
     <Field    id="udPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="false"> 
@@ -454,11 +454,11 @@ try: ssh userid@ip# to check</Label>
         </List>
     </Field>
 
-    <Field    id="apPrompt"   				type="textfield" defaultValue="BZ.v" visibleBindingId="apON" visibleBindingValue="true">
+    <Field    id="apPrompt"   				type="textfield" defaultValue="BZ." visibleBindingId="apON" visibleBindingValue="true">
         <Label>...prompt when logging in(unix prompt):</Label>
 	</Field>
     <Field    id="apPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="apON" visibleBindingValue="true"> 
-		<Label>options:   BZ.v 
+		<Label>options:   BZ. or  --\\# -- (with a space)  
 try: ssh userid@ip# to check</Label>  
 	</Field>
 

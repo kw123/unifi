@@ -219,18 +219,18 @@ class Plugin(indigo.PluginBase):
 															u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"APdict": u"mca-dump | sed -e 's/^ *//'"}
-		self.promptOnServer = {	  							u"APtail": u"BZ.",
+		self.promptOnServer = {	  							u"APtail": u"\# ",
 															u"GWtail": u":~",
 															u"GWctrl": u":~",
-															u"UDtail": u"\#",
-															u"UDctrl": u"\#",
-															u"SWtail": u"US.",
+															u"UDtail": u"\# ",
+															u"UDctrl": u"\# ",
+															u"SWtail": u"\# ",
 															u"VDtail": u"VirtualBox",
 															u"VDdict": u"VirtualBox",
 															u"GWdict": u":~",
-															u"UDdict": u"\#",
-															u"SWdict": u"US.",
-															u"APdict": u"BZ."}
+															u"UDdict": u"\# ",
+															u"SWdict": u"\# ",
+															u"APdict": u"\# "}
 		self.startDictToken = {	  							u"APtail": u"x",
 															u"GWtail": u"x",
 															u"UDtail": u"x",
@@ -1613,7 +1613,7 @@ class Plugin(indigo.PluginBase):
 			  self.pathToPlugin + "videoServerAction.exp' " + \
 			" '"+userid + "' '"+passwd + "' " + \
 			  self.ipNumbersOf[u"VD"] + " " + \
-			  self.promptOnServer[uType] + cmdIN
+			  "'"+self.promptOnServer[uType]+"' " + cmdIN
 		if self.decideMyLog(u"Expect"):  self.indiLOG.log(20,u"CameraInfo "+ cmd)
 
 		if returnCmd: return cmd
@@ -2162,7 +2162,7 @@ class Plugin(indigo.PluginBase):
 				  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
 				  "'"+userid + "' '"+passwd + "' " + \
 				  self.ipNumbersOf[u"VD"] + " " + \
-				  self.promptOnServer[uType] + " " + \
+				  "'"+self.promptOnServer[uType] + "' " + \
 				  " XXXXsepXXXXX " + \
 				  cmdstr
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"UNIFI getMongoData cmd " +cmd )
@@ -2313,7 +2313,7 @@ class Plugin(indigo.PluginBase):
 		cmd+= "'"+self.pathToPlugin + "rebootUNIFIdeviceAP.exp" + "' "
 		cmd+= "'"+self.UserID["unixDevs"] + "' '"+self.PassWd["unixDevs"] + "' "
 		cmd+= ipNumber + " "
-		cmd+= self.promptOnServer[dtype] + " &"
+		cmd+= "'"+self.promptOnServer[dtype] + "' &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"REBOOT: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"REBOOT: {}".format(ret) )
@@ -3043,7 +3043,7 @@ class Plugin(indigo.PluginBase):
 		cmd+= "'"+self.UserID["unixDevs"] + u"' '"+self.PassWd["unixDevs"] + u"' "
 		cmd+= ipNumber + " "
 		cmd+= port + u" "
-		cmd+= self.promptOnServer[dtype] +u" &"
+		cmd+= "'"+self.promptOnServer[dtype] +u"' &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"RECYCLE: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"RECYCLE: {}".format(ret))
@@ -4132,7 +4132,7 @@ class Plugin(indigo.PluginBase):
 				  self.pathToPlugin + self.expectCmdFile["GWctrl"] + "' " + \
 				  "'"+self.UserID["unixDevs"]+ "' '"+self.PassWd["unixDevs"]+ "' " + \
 				  self.ipNumbersOf[u"GW"] + " " + \
-				  self.promptOnServer[u"GWctrl"] + " " + \
+				  "'"+self.promptOnServer[u"GWctrl"] + "' " + \
 				  " XXXXsepXXXXX " + " " + \
 				  "\""+self.commandOnServer[u"GWctrl"] +"\""
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u" UGA EXPECT CMD: "+ unicode(cmd))
@@ -5481,7 +5481,7 @@ class Plugin(indigo.PluginBase):
 			cmd += " '"+self.UserID["unixUD"]+"' "
 			cmd += " '"+self.PassWd["unixUD"]+"' "
 			cmd +=      self.unifiCloudKeyIP
-			cmd += " " +self.promptOnServer[u"UDdict"]
+			cmd += " '" +self.promptOnServer[u"UDdict"]+"' "
 
 			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"getUDMpro_sensors: get sensorValues from UDMpro w cmd: {}".format(cmd) )
 
@@ -5904,17 +5904,17 @@ class Plugin(indigo.PluginBase):
 
 	### test if AP are up, first ping then check if expect is running
 	####-----------------	 ---------
-	def testAPandPing(self,ipNumber, type):
+	def testAPandPing(self,ipNumber, cType):
 		try:
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  testing if " + ipNumber  + u"/usr/bin/expect "+self.expectCmdFile[type]+u" is running ")
-			if os.path.isfile(self.pathToPlugin +self.expectCmdFile[type]):
-				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  "+self.expectCmdFile[type]+" exists, now doing ping" )
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  testing if {} /usr/bin/expect {} is running ".format(ipNumber, self.expectCmdFile[cType]))
+			if os.path.isfile(self.pathToPlugin +self.expectCmdFile[cType]):
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest {} exists, now doing ping" .format(self.expectCmdFile[cType]))
 			if self.checkPing(ipNumber, nPings=2, waitForPing=1000, calledFrom=u"testAPandPing", verbose=True) !=0:
 				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  ping not returned" )
 				return False
 
-			cmd = "ps -ef | grep " +self.expectCmdFile[type]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep"
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  check if pgm is running "+cmd )
+			cmd = "ps -ef | grep " +self.expectCmdFile[cType]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep"
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  check if pgm is running {}".format(cmd) )
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
 			if len(ret) < 5: return False
 			lines = ret.split("\n")
@@ -5930,7 +5930,7 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  expect is running" )
 				return True
 
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  "+type+ "    " + ipNumber +u" is NOT running" )
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  {}    {}is NOT running".format(cType, ipNumber) )
 			return False
 		except	Exception, e:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6802,22 +6802,22 @@ class Plugin(indigo.PluginBase):
 						  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
 						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
-						  self.promptOnServer[uType] + " " + \
+						  "'"+self.promptOnServer[uType] + "' " + \
 						  self.endDictToken[uType]+ " " + \
 						  unicode(self.readDictEverySeconds[TT])+ " " + \
 						  unicode(self.timeoutDICT)+ \
 						  " \""+self.commandOnServer[uType]+"\" "
 					if uType.find(u"AP") >-1:
-						 cmd += "  /var/log/messages"
+						cmd += " /var/log/messages"
 					else:
 						 cmd += "  doNotSendAliveMessage"
 
 				else:
-					cmd = "/usr/bin/expect	'" + \
+					cmd = "/usr/bin/expect '" + \
 						  self.pathToPlugin +self.expectCmdFile[uType] + "' " + \
 						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
-						  self.promptOnServer[uType]  +\
+						  "'"+self.promptOnServer[uType]+"' "  +\
 						  " \""+self.commandOnServer[uType]+"\" "
 
 				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"startConnect: cmd {}".format(cmd) )
@@ -6848,7 +6848,7 @@ class Plugin(indigo.PluginBase):
 	def testServerIfOK(self, ipNumber, uType):
 		try:
 			userid, passwd = self.getUidPasswd(uType,ipNumber)
-			if userid =="": 
+			if userid == u"": 
 				self.indiLOG.log(40,u"testServerIf ssh connection OK: userid>>{}<<, passwd>>{}<<  wrong for {}-{}".format(userid, passwd, uType, ipNumber) )
 				return False
 
@@ -6865,10 +6865,23 @@ class Plugin(indigo.PluginBase):
 					ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 
 			test = ret[0].lower()
-			tags = ["welcome","unifi","debian","edge","busybox","ubiquiti","ubnt","login"]+[self.promptOnServer[uType]]
+			tags = [u"welcome",u"unifi",u"debian",u"edge",u"busybox",u"ubiquiti",u"ubnt",u"login"]
+			loggedIn = False
 			for tag in tags:
-				if tag in test:	 return True
-			self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, test) )
+				if tag in test:	 
+					loggedIn = True
+					break
+			if loggedIn:
+				if self.promptOnServer[uType].replace("\\","") in ret[0][-20:]:
+					return True
+				if self.promptOnServer[uType].find("#") >-1:
+					self.promptOnServer[uType].replace("#","\\#")
+				self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last chars:'{}'; ret: \n{}".format(ipNumber,  self.promptOnServer[uType], ret[0][-4:],ret[0][-20:], ret[0]) )
+				self.promptOnServer[uType] = ret[0][-4:]
+				return True
+
+			self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, ret[0]) )
+			return False
 		except	Exception, e:
 			if unicode(e) != u"None":
 				self.indiLOG.log(40,u"testServerIfOK in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -6917,12 +6930,12 @@ class Plugin(indigo.PluginBase):
 			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return False
 
-			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " " +self.promptOnServer[uType]
+			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " '" +self.promptOnServer[uType]+"' "
 			#if self.decideMyLog(u"Expect"): 
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,cmd)
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 			test = ret[0].lower()
-			tags = ["welcome","unifi","debian","edge","busybox","ubiquiti","ubnt","login"]+[self.promptOnServer[uType]]
+			tags = [u"welcome",u"unifi",u"debian",u"edge",u"busybox",u"ubiquiti",u"ubnt",u"login"]
 			for tag in tags:
 				if tag in test:	 return True
 			self.indiLOG.log(20,u"\n==========={}  ssh response, tags {} not found : ==> {}".format(ipNumber, tags, test) )
