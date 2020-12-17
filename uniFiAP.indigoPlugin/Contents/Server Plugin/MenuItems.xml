@@ -545,7 +545,7 @@
 			<Label>This will restart the Gateway listener propcess </Label> 
 			</Field>
 			<Field id="simpleSeparatorGW" type="separator"/>
-				<Field	   id="pickAP" type="menu" defaultValue="0">
+				<Field	   id="pickAP" type="menu" defaultValue="-1">
 					<Label>which AP# listener should be restarted</Label>
 					 <List>
 						<Option value="0"	 > #0</Option>
@@ -562,7 +562,7 @@
 			<Label>This will restart the WiFi AP listener propcesses </Label> 
 			</Field>
 			<Field id="simpleSeparatorAP" type="separator"/>
-				<Field	   id="pickSW" type="menu" defaultValue="0">
+				<Field	   id="pickSW" type="menu" defaultValue="-1">
 					<Label>which SWP# listener should be restarted</Label>
 					 <List>
 						<Option value="0"	 > #0</Option>
@@ -587,7 +587,7 @@
 
 			<Field id="simpleSeparatorresetprompts" type="separator"/>
 				<Field	  id="resetprompts" type="button" tooltip="" >
-					<Label>Reset prompts used for ssh ... </Label><Title>Reset </Title><CallbackMethod>buttonResetPromptsCALLBACK</CallbackMethod>
+					<Label>Reset prompt(s) used for ssh ... </Label><Title>Reset </Title><CallbackMethod>buttonResetPromptsCALLBACK</CallbackMethod>
 				</Field>
 			<Field id="resetprompts2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
 			<Label>This will reset the prompt-tag used in expect script

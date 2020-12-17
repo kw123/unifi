@@ -1,4 +1,4 @@
-changes in V 7.33.296 @ 2019-12-17
+changes in V 7.33.297 @ 2019-12-17
 ==================  
    
 1. prompt for expect ssh to unifi devices is now fully auto detect 
