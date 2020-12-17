@@ -376,7 +376,8 @@
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
 
-    <Field    id="UDtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
+<!--
+	<Field    id="UDtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
 		<Label>.. UDM tail command:</Label>  
 		<List>
             <Option value="off"      > off </Option>
@@ -399,6 +400,7 @@
 		<Label>\\#  # has to be escaped with \\ 
 try: ssh userid@ip# to check</Label>  
 	</Field>
+-->
 
     <Field    id="debUD"  					type="checkbox"  defaultValue="false" 		visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
@@ -438,6 +440,7 @@ try: ssh userid@ip# to check</Label>
         </List>
     </Field>
 
+<!--
     <Field    id="APtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
     <Label>.. AP tail command:</Label>  
         <List>
@@ -458,10 +461,10 @@ try: ssh userid@ip# to check</Label>
         <Label>...prompt when logging in(unix prompt):</Label>
 	</Field>
     <Field    id="apPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="apON" visibleBindingValue="true"> 
-		<Label>options:   BZ. or  --\\# -- (with a space)  
+		<Label>options:   BZ. or  \\# (with a space)  
 try: ssh userid@ip# to check</Label>  
 	</Field>
-
+-->
 
     <Field    id="ipON0" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
     <Field    id="ip0"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>
@@ -511,6 +514,7 @@ try: ssh userid@ip# to check</Label>
 		<Label>- ipNumber of your GW:</Label>  
 	</Field>
 
+<!--
     <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
     <Label>.. GW tail command:</Label>  
         <List>
@@ -527,12 +531,14 @@ try: ssh userid@ip# to check</Label>
         </List>
     </Field>
 
+
     <Field    id="gwPrompt"   type="textfield" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
         <Label>...prompt (unix) when logging in:</Label>
      </Field>
     <Field    id="gwPrompt2"   			type="label"  alignWithControl="true"  visibleBindingId="ipUGAON" visibleBindingValue="true" readonly="true"> 
 		<Label>try: ssh userid@ip# to check</Label>  
 	</Field>
+-->
 
     <Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
@@ -559,7 +565,9 @@ try: ssh userid@ip# to check</Label>
             <Option value="240"   >4  minutes</Option>
             <Option value="300"   >5  minutes</Option>
         </List>
-    </Field>
+   </Field>
+
+<!-- 
     <Field    id="SWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
     <Label>.. SW tail command:</Label>  
         <List>
@@ -574,12 +582,14 @@ try: ssh userid@ip# to check</Label>
             <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
         </List>
     </Field>
-    <Field    id="swPrompt" type="textfield"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
+
+	<Field    id="swPrompt" type="textfield"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
     <Label>.. SW (unix)prompt:</Label>  
 	</Field>
     <Field    id="swPrompt2"   			type="label" alignWithControl="true"  visibleBindingId="swON" visibleBindingValue="true" readonly="true"> 
 		<Label>try: ssh userid@ip# to check"</Label>  
 	</Field>
+-->
 
     <Field    id="count_APDL_inPortCount"   				type="menu" defaultValue="1" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
         <Label>Count AP and Downlink clients in total clients count in Switch:</Label>
@@ -657,10 +667,13 @@ try: ssh userid@ip# to check</Label>
     <Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true" readonly="true">
         <Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
     </Field>
+
+<!--
     <Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
         <Label>..Prompt for UniFi NVR unix box:</Label>
     </Field>
-    <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="vdON" visibleBindingValue="true"> 
+--> 
+   <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="vdON" visibleBindingValue="true"> 
        <Label>- ipNumber of your NVR:</Label>  
     </Field>
     <Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="vdON"    visibleBindingValue="true"> 
@@ -713,7 +726,7 @@ try: ssh userid@ip# to check</Label>
     <Label>.. Video tail command(empty=off):</Label>  
     </Field>
     <Field id="infoLabelVDtailCommand" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> .../usr/bin/tail -F pathTo motion.log</Label>  </Field>
-    <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"   hidden="true"       > 
+    <Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"   hidden="false"       > 
     <Label>.. Video dict command(no="):</Label>  
         <List>
             <Option value="not implemented"      > not implemented </Option>
@@ -763,9 +776,10 @@ try: ssh userid@ip# to check</Label>
     <Field    id="debugLogDetails"    type="checkbox"  defaultValue="false"    > <Label>... (3) ...  Details:</Label>  </Field>
     <Field    id="debugDict"          type="checkbox"  defaultValue="false"    > <Label>... (4) Dict Messages:</Label>  </Field>
     <Field    id="debugDictDetails"   type="checkbox"  defaultValue="false"    > <Label>... (5) ...  Details:</Label>  </Field>
-    <Field    id="debugConnectionCMD" type="checkbox"  defaultValue="false"    > <Label>... (6) connection to unifi devices  show commands.:</Label>  </Field>
-    <Field    id="debugConnectionRET" type="checkbox"  defaultValue="false"    > <Label>... (6.1) connection to unifi devices  show result:</Label>  </Field>
+    <Field    id="debugConnectionCMD" type="checkbox"  defaultValue="false"    > <Label>... (6) curl connection to unifi devices  show commands.:</Label>  </Field>
+    <Field    id="debugConnectionRET" type="checkbox"  defaultValue="false"    > <Label>... (6.1) curl connection to unifi devices  show result:</Label>  </Field>
     <Field    id="debugExpect"        type="checkbox"  defaultValue="false"    > <Label>... (7) Expect command...:</Label>  </Field>
+    <Field    id="debugExpectRET"     type="checkbox"  defaultValue="false"    > <Label>... (7.1) Expect command return strings:</Label>  </Field>
     <Field    id="debugVideo"         type="checkbox"  defaultValue="false"    > <Label>... (8) Video...:</Label>  </Field>
     <Field    id="debugFing"          type="checkbox"  defaultValue="false"    > <Label>... (9) Fing:</Label>  </Field>
     <Field    id="debugBC"            type="checkbox"  defaultValue="false"    > <Label>... (10) BroadCast:</Label>  </Field>
@@ -802,7 +816,5 @@ try: ssh userid@ip# to check</Label>
 .           In general max value for best performance. 
 .           32k seems to cover 99% of packages. Each listener stream will use one of the buffers
 .           Small read buffer will do several reads when data is &gt; buffer size</Label>  </Field>
-
-
 
 </PluginConfig>

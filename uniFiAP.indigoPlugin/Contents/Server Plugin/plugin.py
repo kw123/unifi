@@ -48,7 +48,7 @@ _GlobalConst_numberOfSW	 = 13
 _GlobalConst_numberOfGroups = 20
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
 _GlobalConst_dTypes			= [u"UniFi",u"gateway",u"DHCP",u"SWITCH",u"Device-AP",u"Device-SW-5",u"Device-SW-8",u"Device-SW-10",u"Device-SW-11",u"Device-SW-18",u"Device-SW-26",u"Device-SW-52",u"neighbor"]
-_debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"Video",u"Fing",u"BC",u"Ping",u"all",u"Special",u"UDM",u"IgnoreMAC"]
+_debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"ExpectRET",u"Video",u"Fing",u"BC",u"Ping",u"all",u"Special",u"UDM",u"IgnoreMAC"]
 _numberOfPortsInSwitch		= [5, 8, 10, 11, 18, 26, 52]
 ################################################################################
 # noinspection PyUnresolvedReferences,PySimplifyBooleanCheck,PySimplifyBooleanCheck
@@ -64,6 +64,7 @@ class Plugin(indigo.PluginBase):
 
 
 		self.quitNow					= ""
+		self.updateConnectParams		= False
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
 		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split("Indigo")[0]
@@ -195,7 +196,10 @@ class Plugin(indigo.PluginBase):
 
 		self.varExcludeSQLList = [u"Unifi_New_Device",u"Unifi_With_IPNumber_Change",u"Unifi_With_Status_Change"]
 
-		self.expectCmdFile	= {	  							u"APtail": u"execLog.exp",
+		self.UserID					= {}
+		self.PassWd					= {}
+		self.connectParamsDefault 	= {}
+		self.connectParamsDefault["expectCmdFile"]	= {		u"APtail": u"execLog.exp",
 															u"GWtail": u"execLog.exp",
 															u"UDtail": u"execLog.exp",
 															u"SWtail": u"execLog.exp",
@@ -207,19 +211,21 @@ class Plugin(indigo.PluginBase):
 															u"GWctrl": u"simplecmd.exp",
 															u"UDctrl": u"simplecmd.exp",
 															u"VDdict": u"simplecmd.exp"}
-		self.commandOnServer= {	  							u"APtail": u"/usr/bin/tail -F /var/log/messages",
+		self.connectParamsDefault["commandOnServer"] = {	u"APtail": u"/usr/bin/tail -F /var/log/messages",
 															u"GWtail": u"/usr/bin/tail -F /var/log/messages",
 															u"UDtail": u"/usr/bin/tail -F /var/log/messages",
 															u"SWtail": u"/usr/bin/tail -F /var/log/messages",
 															u"VDtail": u"/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
-															u"VDdict": u"not implemented ",
+															u"VDdict": u"not implemented",
 															u"GWdict": u"mca-dump | sed -e 's/^ *//'",
 															u"UDdict": u"mca-dump | sed -e 's/^ *//'",
 															u"SWdict": u"mca-dump | sed -e 's/^ *//'",
 															u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"APdict": u"mca-dump | sed -e 's/^ *//'"}
-		self.promptOnServer = {	  							u"APtail": u"\# ",
+		self.connectParamsDefault["promptOnServer"] = {}
+		"""
+															u"APtail": u"\# ",
 															u"GWtail": u":~",
 															u"GWctrl": u":~",
 															u"UDtail": u"\# ",
@@ -231,7 +237,8 @@ class Plugin(indigo.PluginBase):
 															u"UDdict": u"\# ",
 															u"SWdict": u"\# ",
 															u"APdict": u"\# "}
-		self.startDictToken = {	  							u"APtail": u"x",
+		"""
+		self.connectParamsDefault["startDictToken"] = {		u"APtail": u"x",
 															u"GWtail": u"x",
 															u"UDtail": u"x",
 															u"SWtail": u"x",
@@ -240,7 +247,7 @@ class Plugin(indigo.PluginBase):
 															u"UDdict": u"mca-dump | sed -e 's/^ *//'",
 															u"SWdict": u"mca-dump | sed -e 's/^ *//'",
 															u"APdict": u"mca-dump | sed -e 's/^ *//'"}
-		self.endDictToken	= {	  							u"APtail": u"x",
+		self.connectParamsDefault["endDictToken"] = {		u"APtail": u"x",
 															u"GWtail": u"x",
 															u"UDtail": u"x",
 															u"VDtail": u"x",
@@ -248,34 +255,51 @@ class Plugin(indigo.PluginBase):
 															u"UDdict": u"xxxThisIsTheEndTokenxxx",
 															u"SWdict": u"xxxThisIsTheEndTokenxxx",
 															u"APdict": u"xxxThisIsTheEndTokenxxx"}
+		self.connectParamsDefault["UserID"] 		= {		u"unixDevs": u"",
+															u"unixUD":   u"",
+															u"unixNVR":  u"",
+															u"nvrWeb":   u"",
+															u"unixDevs": u"",
+															u"unixUD":   u"",
+															u"webCTRL":  u""}
+		self.connectParamsDefault["PassWd"] 		= {		u"unixDevs": u"",
+															u"unixUD":   u"",
+															u"unixNVR":  u"",
+															u"nvrWeb":   u"",
+															u"unixDevs": u"",
+															u"unixUD":   u"",
+															u"webCTRL":  u""}
 
-		self.UserID											= {}
-		self.PassWd											= {}
 
+		self.connectParams = copy.copy(self.connectParamsDefault)
+		try: 	
+			xx = json.loads(self.pluginPrefs.get(u"connectParams","{}"))
+			if xx != {}:
+				self.connectParams = copy.copy(xx)
+			for item1 in self.connectParamsDefault:
+				if item1 not in self.connectParams:
+					self.connectParams[item1] = copy.copy(self.connectParamsDefault[item1])
+				if item1 in ["expectCmdFile","commandOnServer","startDictToken","endDictToken","UserID","PassWd"]:
+					for item2 in self.connectParams[item1]:
+						self.connectParams[item1][item2] = self.connectParams[item1][item2].strip()
 
-		self.promptOnServer[u"GWtail"]						= self.pluginPrefs.get(u"gwPrompt",u":~")
-		self.promptOnServer[u"GWdict"]						= self.pluginPrefs.get(u"gwPrompt",u":~")
+				if item1 in ["startDictToken","endDictToken"]:
+					for item2 in self.connectParams[item1]:
+						self.connectParams[item1][item2] = copy.copy(self.connectParamsDefault[item1][item2])
+		except:	
+			pass
 
-		self.promptOnServer[u"UDtail"]						= self.pluginPrefs.get(u"udPrompt",u"#")
-		self.promptOnServer[u"UDdict"]						= self.pluginPrefs.get(u"udPrompt",u"#")
+		if self.connectParams["UserID"][u"unixDevs"] == "": self.connectParams["UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiUserID","")
+		if self.connectParams["UserID"][u"unixUD"]   == "": self.connectParams["UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiUserIDUDM","")
+		if self.connectParams["UserID"][u"unixNVR"]  == "": self.connectParams["UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXUserID","")
+		if self.connectParams["UserID"][u"nvrWeb"]   == "": self.connectParams["UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebUserID","")
 
-		self.promptOnServer[u"VDdict"]						= self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
-		self.promptOnServer[u"VDtail"]						= self.pluginPrefs.get(u"vdPrompt",u"VirtualBox")
+		if self.connectParams["UserID"][u"unixDevs"] == "": self.connectParams["UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiPassWd","")
+		if self.connectParams["UserID"][u"unixUD"]   == "": self.connectParams["UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiPassWdUDM","")
+		if self.connectParams["UserID"][u"unixNVR"]  == "": self.connectParams["UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXPassWd","")
+		if self.connectParams["UserID"][u"nvrWeb"]   == "": self.connectParams["UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebPassWd","")
 
-		self.commandOnServer[u"VDtail"]						= self.pluginPrefs.get(u"VDtailCommand",  self.commandOnServer[u"VDtail"])
-		self.commandOnServer[u"VDdict"]						= self.pluginPrefs.get(u"VDdictCommand",  self.commandOnServer[u"VDdict"])
-
-		self.commandOnServer[u"GWtail"]						= self.pluginPrefs.get(u"GWtailCommand",  self.commandOnServer[u"GWtail"])
-		self.commandOnServer[u"GWdict"]						= self.pluginPrefs.get(u"GWdictCommand",  self.commandOnServer[u"GWdict"])
-
-		self.commandOnServer[u"UDtail"]						= self.pluginPrefs.get(u"UDtailCommand",  self.commandOnServer[u"UDtail"])
-		self.commandOnServer[u"UDdict"]						= self.pluginPrefs.get(u"UDdictCommand",  self.commandOnServer[u"UDdict"])
-
-		self.commandOnServer[u"APtail"]						= self.pluginPrefs.get(u"APtailCommand",  self.commandOnServer[u"APtail"])
-		self.commandOnServer[u"APdict"]						= self.pluginPrefs.get(u"APdictCommand",  self.commandOnServer[u"APdict"])
-
-		self.commandOnServer[u"SWtail"]						= self.pluginPrefs.get(u"SWtailCommand",  self.commandOnServer[u"SWtail"])
-		self.commandOnServer[u"SWdict"]						= self.pluginPrefs.get(u"SWdictCommand",  self.commandOnServer[u"SWdict"])
+		#indigo.server.log(u"startDictToken:"+ unicode(self.connectParams["startDictToken"]))
 
 		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
 		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indio/unifi/"))
@@ -340,9 +364,6 @@ class Plugin(indigo.PluginBase):
 		if self.unifiControllerType == "UDMpro": 
 			self.controllerWebEventReadON  					= -1
 
-		self.UserID["webCTRL"]								= self.pluginPrefs.get(u"unifiCONTROLLERUserID", "")
-		self.PassWd["webCTRL"]								= self.pluginPrefs.get(u"unifiCONTROLLERPassWd", "")
-
 		self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
 		self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
 
@@ -355,10 +376,6 @@ class Plugin(indigo.PluginBase):
 		self.imageSourceForSnapShot							= self.pluginPrefs.get(u"imageSourceForSnapShot", "noImage")
 
 		self.listenStart									= {}
-		self.UserID["unixDevs"]									= self.pluginPrefs.get(u"unifiUserID", "")
-		self.PassWd["unixDevs"]									= self.pluginPrefs.get(u"unifiPassWd", "")
-		self.UserID["unixUD"]									= self.pluginPrefs.get(u"unifiUserIDUDM", "")
-		self.PassWd["unixUD"]									= self.pluginPrefs.get(u"unifiPassWdUDM", "")
 		self.useStrictToLogin								= self.pluginPrefs.get(u"useStrictToLogin", False)
 		self.unifiControllerSession							= ""
 
@@ -496,10 +513,6 @@ class Plugin(indigo.PluginBase):
 
 
 		#####  check video parameters
-		self.UserID["unixNVR"]								= self.pluginPrefs.get(u"nvrUNIXUserID", "")
-		self.PassWd["unixNVR"]								= self.pluginPrefs.get(u"nvrUNIXPassWd", "")
-		self.UserID["nvrWeb"]								= self.pluginPrefs.get(u"nvrWebUserID", "")
-		self.PassWd["nvrWeb"]								= self.pluginPrefs.get(u"nvrWebPassWd", "")
 		enableVideoSwitch									= self.pluginPrefs.get(u"enableVideoSwitch", False)
 
 		try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
@@ -512,7 +525,7 @@ class Plugin(indigo.PluginBase):
 		self.VIDEOEnabled  									= False
 		self.VIDEOUP										= 0
 		if enableVideoSwitch:
-			if self.isValidIP(ip0) and self.UserID["unixNVR"] != "" and self.PassWd["unixNVR"] != "":
+			if self.isValidIP(ip0) and self.connectParams["UserID"]["unixNVR"] != "" and self.connectParams["PassWd"]["unixNVR"] != "":
 				self.VIDEOEnabled 							= True
 				self.VIDEOUP	 							= time.time()
 
@@ -847,7 +860,7 @@ class Plugin(indigo.PluginBase):
 	# This routine returns the XML for the PluginConfig.xml by default; you probably don't
 	# want to use this unless you have a need to customize the XML (again, uncommon)
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-	def getPrefsConfigUiXml(self):
+	def xxgetPrefsConfigUiXml(self):
 		return super(Plugin, self).getPrefsConfigUiXml()
 
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -856,7 +869,47 @@ class Plugin(indigo.PluginBase):
 	# defaults at run time
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	def getPrefsConfigUiValues(self):
-		return super(Plugin, self).getPrefsConfigUiValues()
+		valuesDict, errDict =  super(Plugin, self).getPrefsConfigUiValues()
+		try:
+			"""
+			valuesDict[u"gwPrompt"]			= self.connectParams["promptOnServer"][u"GWtail"]
+			valuesDict[u"udPrompt"]			= self.connectParams["promptOnServer"][u"UDtail"]
+			valuesDict[u"apPrompt"]			= self.connectParams["promptOnServer"][u"APtail"]
+			valuesDict[u"swPrompt"]			= self.connectParams["promptOnServer"][u"SWtail"]
+			valuesDict[u"vdPrompt"]			= self.connectParams["promptOnServer"][u"VDtail"]
+
+			valuesDict[u"GWdict"]			= self.connectParams["promptOnServer"][u"GWtail"]
+			valuesDict[u"UDdict"]			= self.connectParams["promptOnServer"][u"UDtail"]
+			valuesDict[u"APdict"]			= self.connectParams["promptOnServer"][u"APtail"]
+			valuesDict[u"SWdict"]			= self.connectParams["promptOnServer"][u"SWtail"]
+			valuesDict[u"VDdict"]			= self.connectParams["promptOnServer"][u"VDtail"]
+			valuesDict[u"GWctrl"]			= self.connectParams["promptOnServer"][u"GWtail"]
+
+			valuesDict[u"GWtailCommand"]	= self.connectParams["commandOnServer"][u"GWtail"]
+			valuesDict[u"GWdictCommand"]	= self.connectParams["commandOnServer"][u"GWdict"]
+			valuesDict[u"UDtailCommand"]	= self.connectParams["commandOnServer"][u"UDtail"]
+			valuesDict[u"UDdictCommand"]	= self.connectParams["commandOnServer"][u"UDdict"]
+			valuesDict[u"SWtailCommand"]	= self.connectParams["commandOnServer"][u"SWtail"]
+			valuesDict[u"SWdictCommand"]	= self.connectParams["commandOnServer"][u"SWdict"]
+			valuesDict[u"APtailCommand"]	= self.connectParams["commandOnServer"][u"APtail"]
+			valuesDict[u"APdictCommand"]	= self.connectParams["commandOnServer"][u"APdict"]
+			valuesDict[u"VDtailCommand"]	= self.connectParams["commandOnServer"][u"VDtail"]
+			valuesDict[u"VDdictCommand"]	= self.connectParams["commandOnServer"][u"VDdict"]
+			"""
+
+			valuesDict[u"unifiUserID"]		= self.connectParams["UserID"][u"unixDevs"]
+			valuesDict[u"unifiUserIDUDM"]	= self.connectParams["UserID"][u"unixUD"]
+			valuesDict[u"nvrUNIXUserID"]	= self.connectParams["UserID"][u"unixNVR"]
+			valuesDict[u"nvrWebUserID"]		= self.connectParams["UserID"][u"nvrWeb"]
+
+			valuesDict[u"unifiPassWd"]		= self.connectParams["PassWd"][u"unixDevs"]
+			valuesDict[u"unifiPassWdUDM"]	= self.connectParams["PassWd"][u"unixUD"]
+			valuesDict[u"nvrUNIXPassWd"]	= self.connectParams["PassWd"][u"unixNVR"]
+			valuesDict[u"nvrWebPassWd"]		= self.connectParams["PassWd"][u"nvrWeb"]
+
+		except	Exception, e:
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return valuesDict, errDict
 
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# This routine is called once the user has exited the preferences dialog
@@ -907,6 +960,7 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			rebootRequired								= ""
+			self.updateConnectParams 					= False
 			self.lastUnifiCookieCurl					= 0
 			self.lastUnifiCookieRequests				= 0
 
@@ -920,8 +974,8 @@ class Plugin(indigo.PluginBase):
 			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
 			self.ignoreNewClients						= valuesDict[u"ignoreNewClients"]
 			self.loopSleep								= float(valuesDict[u"loopSleep"])
-			self.UserID["webCTRL"]						= valuesDict[u"unifiCONTROLLERUserID"]
-			self.PassWd["webCTRL"]						= valuesDict[u"unifiCONTROLLERPassWd"]
+			self.connectParams["UserID"]["webCTRL"]		= valuesDict[u"unifiCONTROLLERUserID"]
+			self.connectParams["PassWd"]["webCTRL"]		= valuesDict[u"unifiCONTROLLERPassWd"]
 			self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
 			self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
 
@@ -938,17 +992,17 @@ class Plugin(indigo.PluginBase):
 			except: self.readBuffer						= 32767
 
 
-			if self.UserID["unixDevs"]	!= valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
-			if self.PassWd["unixDevs"]	!= valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
-			if self.UserID["unixUD"] 	!= valuesDict[u"unifiUserIDUDM"]:			rebootRequired += " unifiUserIDUDM changed;"
-			if self.PassWd["unixUD"] 	!= valuesDict[u"unifiPassWdUDM"]:			rebootRequired += " unifiPassWdUDM changed;"
+			if self.connectParams["UserID"]["unixDevs"]	!= valuesDict[u"unifiUserID"]:				rebootRequired += " unifiUserID changed;"
+			if self.connectParams["PassWd"]["unixDevs"]	!= valuesDict[u"unifiPassWd"]:				rebootRequired += " unifiPassWd changed;"
+			if self.connectParams["UserID"]["unixUD"] 	!= valuesDict[u"unifiUserIDUDM"]:			rebootRequired += " unifiUserIDUDM changed;"
+			if self.connectParams["PassWd"]["unixUD"] 	!= valuesDict[u"unifiPassWdUDM"]:			rebootRequired += " unifiPassWdUDM changed;"
 
-			self.UserID["unixUD"]						= valuesDict[u"unifiUserIDUDM"]
-			self.PassWd["unixUD"]						= valuesDict[u"unifiPassWdUDM"]
+			self.connectParams["UserID"]["unixUD"]		= valuesDict[u"unifiUserIDUDM"]
+			self.connectParams["PassWd"]["unixUD"]		= valuesDict[u"unifiPassWdUDM"]
 			self.useStrictToLogin						= valuesDict[u"useStrictToLogin"]
 
-			self.UserID["unixDevs"]						= valuesDict[u"unifiUserID"]
-			self.PassWd["unixDevs"]						= valuesDict[u"unifiPassWd"]
+			self.connectParams["UserID"]["unixDevs"]	= valuesDict[u"unifiUserID"]
+			self.connectParams["PassWd"]["unixDevs"]	= valuesDict[u"unifiPassWd"]
 			self.unfiCurl								= valuesDict[u"unfiCurl"]
 
 
@@ -1025,33 +1079,31 @@ class Plugin(indigo.PluginBase):
 			self.fixExpirationTime						= valuesDict[u"fixExpirationTime"]
 
 
+			"""
+			self.connectParams["promptOnServer"][u"GWtail"], rebootRequired		= self.getNewValusDictField(u"gwPrompt",		 valuesDict, self.connectParams["promptOnServer"][u"GWtail"], rebootRequired)
+			self.connectParams["promptOnServer"][u"UDtail"], rebootRequired		= self.getNewValusDictField(u"udPrompt",		 valuesDict, self.connectParams["promptOnServer"][u"UDtail"], rebootRequired)
+			self.connectParams["promptOnServer"][u"APtail"], rebootRequired		= self.getNewValusDictField(u"apPrompt",		 valuesDict, self.connectParams["promptOnServer"][u"APtail"], rebootRequired)
+			self.connectParams["promptOnServer"][u"SWtail"], rebootRequired		= self.getNewValusDictField(u"swPrompt",		 valuesDict, self.connectParams["promptOnServer"][u"SWtail"], rebootRequired)
+			self.connectParams["promptOnServer"][u"VDtail"], rebootRequired		= self.getNewValusDictField(u"vdPrompt",		 valuesDict, self.connectParams["promptOnServer"][u"VDtail"], rebootRequired)
 
-			self.promptOnServer[u"GWtail"], rebootRequired		= self.getNewValusDictField(u"gwPrompt",		 valuesDict, self.promptOnServer[u"GWtail"], rebootRequired)
-			self.promptOnServer[u"UDtail"], rebootRequired		= self.getNewValusDictField(u"udPrompt",		 valuesDict, self.promptOnServer[u"UDtail"], rebootRequired)
-			self.promptOnServer[u"APtail"], rebootRequired		= self.getNewValusDictField(u"apPrompt",		 valuesDict, self.promptOnServer[u"APtail"], rebootRequired)
-			self.promptOnServer[u"SWtail"], rebootRequired		= self.getNewValusDictField(u"swPrompt",		 valuesDict, self.promptOnServer[u"SWtail"], rebootRequired)
-			self.promptOnServer[u"VDtail"], rebootRequired		= self.getNewValusDictField(u"vdPrompt",		 valuesDict, self.promptOnServer[u"VDtail"], rebootRequired)
+			self.connectParams["promptOnServer"][u"GWdict"] 					= self.connectParams["promptOnServer"][u"GWtail"]
+			self.connectParams["promptOnServer"][u"UDdict"]						= self.connectParams["promptOnServer"][u"UDtail"]
+			self.connectParams["promptOnServer"][u"APdict"] 					= self.connectParams["promptOnServer"][u"APtail"]
+			self.connectParams["promptOnServer"][u"SWdict"] 					= self.connectParams["promptOnServer"][u"SWtail"]
+			self.connectParams["promptOnServer"][u"VDdict"] 					= self.connectParams["promptOnServer"][u"VDtail"]
+			self.connectParams["promptOnServer"][u"GWctrl"] 					= self.connectParams["promptOnServer"][u"GWtail"]
 
-			self.promptOnServer[u"GWdict"] = self.promptOnServer[u"GWtail"]
-			self.promptOnServer[u"UDdict"] = self.promptOnServer[u"UDtail"]
-			self.promptOnServer[u"APdict"] = self.promptOnServer[u"APtail"]
-			self.promptOnServer[u"SWdict"] = self.promptOnServer[u"SWtail"]
-			self.promptOnServer[u"VDdict"] = self.promptOnServer[u"VDtail"]
-			self.promptOnServer[u"GWctrl"] = self.promptOnServer[u"GWtail"]
-
-			self.commandOnServer[u"GWtailCommand"], rebootRequired = self.getNewValusDictField(u"GWtailCommand", valuesDict, self.commandOnServer[u"GWtail"], rebootRequired)
-			self.commandOnServer[u"GWdictCommand"], rebootRequired = self.getNewValusDictField(u"GWdictCommand", valuesDict, self.commandOnServer[u"GWdict"], rebootRequired)
-			self.commandOnServer[u"UDtailCommand"], rebootRequired = self.getNewValusDictField(u"UDtailCommand", valuesDict, self.commandOnServer[u"UDtail"], rebootRequired)
-			self.commandOnServer[u"UDdictCommand"], rebootRequired = self.getNewValusDictField(u"UDdictCommand", valuesDict, self.commandOnServer[u"UDdict"], rebootRequired)
-			self.commandOnServer[u"SWtailCommand"], rebootRequired = self.getNewValusDictField(u"SWtailCommand", valuesDict, self.commandOnServer[u"SWtail"], rebootRequired)
-			self.commandOnServer[u"SWdictCommand"], rebootRequired = self.getNewValusDictField(u"SWdictCommand", valuesDict, self.commandOnServer[u"SWdict"], rebootRequired)
-			self.commandOnServer[u"APtailCommand"], rebootRequired = self.getNewValusDictField(u"APtailCommand", valuesDict, self.commandOnServer[u"APtail"], rebootRequired)
-			self.commandOnServer[u"APdictCommand"], rebootRequired = self.getNewValusDictField(u"APdictCommand", valuesDict, self.commandOnServer[u"APdict"], rebootRequired)
-			self.commandOnServer[u"VDtailCommand"], rebootRequired = self.getNewValusDictField(u"VDtailCommand", valuesDict, self.commandOnServer[u"VDtail"], rebootRequired)
-			self.commandOnServer[u"VDdictCommand"], rebootRequired = self.getNewValusDictField(u"VDdictCommand", valuesDict, self.commandOnServer[u"VDdict"], rebootRequired)
-
-
-
+			self.connectParams["commandOnServer"][u"GWtail"], rebootRequired = self.getNewValusDictField(u"GWtailCommand", valuesDict, self.connectParams["commandOnServer"][u"GWtail"], rebootRequired)
+			self.connectParams["commandOnServer"][u"GWdict"], rebootRequired = self.getNewValusDictField(u"GWdictCommand", valuesDict, self.connectParams["commandOnServer"][u"GWdict"], rebootRequired)
+			self.connectParams["commandOnServer"][u"UDtail"], rebootRequired = self.getNewValusDictField(u"UDtailCommand", valuesDict, self.connectParams["commandOnServer"][u"UDtail"], rebootRequired)
+			self.connectParams["commandOnServer"][u"UDdict"], rebootRequired = self.getNewValusDictField(u"UDdictCommand", valuesDict, self.connectParams["commandOnServer"][u"UDdict"], rebootRequired)
+			self.connectParams["commandOnServer"][u"SWtail"], rebootRequired = self.getNewValusDictField(u"SWtailCommand", valuesDict, self.connectParams["commandOnServer"][u"SWtail"], rebootRequired)
+			self.connectParams["commandOnServer"][u"SWdict"], rebootRequired = self.getNewValusDictField(u"SWdictCommand", valuesDict, self.connectParams["commandOnServer"][u"SWdict"], rebootRequired)
+			self.connectParams["commandOnServer"][u"APtail"], rebootRequired = self.getNewValusDictField(u"APtailCommand", valuesDict, self.connectParams["commandOnServer"][u"APtail"], rebootRequired)
+			self.connectParams["commandOnServer"][u"APdict"], rebootRequired = self.getNewValusDictField(u"APdictCommand", valuesDict, self.connectParams["commandOnServer"][u"APdict"], rebootRequired)
+			self.connectParams["commandOnServer"][u"VDtail"], rebootRequired = self.getNewValusDictField(u"VDtailCommand", valuesDict, self.connectParams["commandOnServer"][u"VDtail"], rebootRequired)
+			self.connectParams["commandOnServer"][u"VDdict"], rebootRequired = self.getNewValusDictField(u"VDdictCommand", valuesDict, self.connectParams["commandOnServer"][u"VDdict"], rebootRequired)
+			"""
 
 			## AP parameters
 			acNew = [False for i in range(_GlobalConst_numberOfAP)]
@@ -1150,22 +1202,22 @@ class Plugin(indigo.PluginBase):
 
 
 			## video parameters
-			if self.UserID["unixNVR"]	!= valuesDict[u"nvrUNIXUserID"]:	  rebootRequired += u" nvrUNIXUserID changed;"
-			if self.PassWd["unixNVR"]	!= valuesDict[u"nvrUNIXPassWd"]:	  rebootRequired += u" nvrUNIXPassWd changed;"
+			if self.connectParams["UserID"]["unixNVR"]	!= valuesDict[u"nvrUNIXUserID"]:	  rebootRequired += u" nvrUNIXUserID changed;"
+			if self.connectParams["PassWd"]["unixNVR"]	!= valuesDict[u"nvrUNIXPassWd"]:	  rebootRequired += u" nvrUNIXPassWd changed;"
 
 			self.unifiVIDEONumerOfEvents	= int(valuesDict[u"unifiVIDEONumerOfEvents"])
-			self.UserID["unixNVR"]			= valuesDict[u"nvrUNIXUserID"]
-			self.PassWd["unixNVR"]			= valuesDict[u"nvrUNIXPassWd"]
-			self.UserID["nvrWeb"]			= valuesDict[u"nvrWebUserID"]
-			self.PassWd["nvrWeb"]			= valuesDict[u"nvrWebPassWd"]
-			self.vmMachine					= valuesDict[u"vmMachine"]
-			self.mountPathVM				= valuesDict[u"mountPathVM"]
-			self.videoPath					= self.completePath(valuesDict[u"videoPath"])
-			self.vboxPath					= self.completePath(valuesDict[u"vboxPath"])
-			self.changedImagePath			= self.completePath(valuesDict[u"changedImagePath"])
-			self.vmDisk						= valuesDict[u"vmDisk"]
-			enableVideoSwitch				= valuesDict[u"enableVideoSwitch"]
-			ip0								= valuesDict[u"nvrIP"]
+			self.connectParams["UserID"]["unixNVR"]	= valuesDict[u"nvrUNIXUserID"]
+			self.connectParams["PassWd"]["unixNVR"]	= valuesDict[u"nvrUNIXPassWd"]
+			self.connectParams["UserID"]["nvrWeb"]	= valuesDict[u"nvrWebUserID"]
+			self.connectParams["PassWd"]["nvrWeb"]	= valuesDict[u"nvrWebPassWd"]
+			self.vmMachine							= valuesDict[u"vmMachine"]
+			self.mountPathVM						= valuesDict[u"mountPathVM"]
+			self.videoPath							= self.completePath(valuesDict[u"videoPath"])
+			self.vboxPath							= self.completePath(valuesDict[u"vboxPath"])
+			self.changedImagePath					= self.completePath(valuesDict[u"changedImagePath"])
+			self.vmDisk								= valuesDict[u"vmDisk"]
+			enableVideoSwitch						= valuesDict[u"enableVideoSwitch"]
+			ip0										= valuesDict[u"nvrIP"]
 
 			if self.ipNumbersOf[u"VD"] != ip0 :
 				rebootRequired	+= u" VIDEO ipNumber changed;"
@@ -1180,6 +1232,7 @@ class Plugin(indigo.PluginBase):
 			if rebootRequired != "":
 				self.indiLOG.log(30,u"restart " + rebootRequired)
 				self.quitNow = u"config changed"
+				self.updateConnectParams =  True
 
 			self.setLogfile(unicode(valuesDict[u"logFileActive2"]),config=True)
 
@@ -1204,6 +1257,7 @@ class Plugin(indigo.PluginBase):
 		xxx	   = valuesDict[item]
 		if xxx != old:
 			rebootRequired += " "+item+" changed"
+			#indigo.server.log(u" changed: "+item+ u" new: >"+ xxx +u"< old:>"+old+u"<") 
 		return	 xxx, rebootRequired
 
 	####-----------------  config setting ---- END   ----------#########
@@ -1221,7 +1275,7 @@ class Plugin(indigo.PluginBase):
 		return ""
 
 	####-----------------	 ---------
-	def printConfigMenu(self,  valuesDict=None, typeId="", devId=0):
+	def printConfigMenu(self,  valuesDict=None, typeId=""):
 		try:
 			self.myLog( text=u" ",mType=u" ")
 			self.myLog( text=u"UniFi   =============plugin config Parameters========",mType=u" ")
@@ -1238,27 +1292,21 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"cpu used since restart: ".ljust(40) 			+	self.getCPU(self.myPID) )
 			self.myLog( text=u"" ,mType=u" ")
 			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=u" " )
-			self.myLog( text=u"UserID-ssh".ljust(40)						+	self.UserID["unixDevs"])
-			self.myLog( text=u"PassWd-ssh".ljust(40)						+	self.PassWd["unixDevs"])
-			self.myLog( text=u"UserID-ssh-UDM".ljust(40)					+	self.UserID["unixUD"])
-			self.myLog( text=u"PassWd-ssh-UDM".ljust(40)					+	self.PassWd["unixUD"])
+			self.myLog( text=u"UserID-ssh".ljust(40)						+	self.connectParams["UserID"]["unixDevs"])
+			self.myLog( text=u"PassWd-ssh".ljust(40)						+	self.connectParams["PassWd"]["unixDevs"])
+			self.myLog( text=u"UserID-ssh-UDM".ljust(40)					+	self.connectParams["UserID"]["unixUD"])
+			self.myLog( text=u"PassWd-ssh-UDM".ljust(40)					+	self.connectParams["PassWd"]["unixUD"])
 			self.myLog( text=u"read buffer size ".ljust(40)					+	unicode(self.readBuffer) )
-			self.myLog( text=u"promptOnServer -GW dict".ljust(40)			+	self.promptOnServer[u"GWdict"] )
-			self.myLog( text=u"promptOnServer -AP dict".ljust(40)			+	self.promptOnServer[u"APdict"] )
-			self.myLog( text=u"promptOnServer -SW dict".ljust(40)			+	self.promptOnServer[u"SWdict"] )
-			self.myLog( text=u"promptOnServer -UD dict".ljust(40)			+	self.promptOnServer[u"UDdict"] )
-			self.myLog( text=u"promptOnServer -GW ctrl".ljust(40)			+	self.promptOnServer[u"GWctrl"] )
-			self.myLog( text=u"promptOnServer -AP tail".ljust(40)			+	self.promptOnServer[u"APtail"] )
-			self.myLog( text=u"promptOnServer -GW tail".ljust(40)			+	self.promptOnServer[u"GWtail"] )
-			self.myLog( text=u"promptOnServer -SW tail".ljust(40)			+	self.promptOnServer[u"SWtail"] )
-			self.myLog( text=u"promptOnServer -UD tail".ljust(40)			+	self.promptOnServer[u"UDtail"] )
-			self.myLog( text=u"GW tailCommand".ljust(40)					+	self.commandOnServer[u"GWtail"] )
-			self.myLog( text=u"GW dictCommand".ljust(40)					+	self.commandOnServer[u"GWdict"] )
-			self.myLog( text=u"SW tailCommand".ljust(40)					+	self.commandOnServer[u"SWtail"] )
-			self.myLog( text=u"SW dictCommand".ljust(40)					+	self.commandOnServer[u"SWdict"] )
-			self.myLog( text=u"AP tailCommand".ljust(40)					+	self.commandOnServer[u"APtail"] )
-			self.myLog( text=u"AP dictCommand".ljust(40)					+	self.commandOnServer[u"APdict"] )
-			self.myLog( text=u"UD dictCommand".ljust(40)					+	self.commandOnServer[u"UDdict"] )
+			for ipN in self.connectParams["promptOnServer"]:
+				self.myLog( text=(u"promptOnServer "+ipN).ljust(40)			+	u"'"+self.connectParams["promptOnServer"][ipN]+u"'")
+
+			self.myLog( text=u"GW tailCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"GWtail"] )
+			self.myLog( text=u"GW dictCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"GWdict"] )
+			self.myLog( text=u"SW tailCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"SWtail"] )
+			self.myLog( text=u"SW dictCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"SWdict"] )
+			self.myLog( text=u"AP tailCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"APtail"] )
+			self.myLog( text=u"AP dictCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"APdict"] )
+			self.myLog( text=u"UD dictCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"UDdict"] )
 			self.myLog( text=u"AP enabled:".ljust(40)						+	unicode(self.devsEnabled[u"AP"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","") )
 			self.myLog( text=u"SW enabled:".ljust(40)						+	unicode(self.devsEnabled[u"SW"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","") )
 			self.myLog( text=u"GW enabled:".ljust(40)						+	unicode(self.devsEnabled[u"GW"]).replace("True","T").replace("False","F") )
@@ -1269,8 +1317,8 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting",mType=u" " )
 			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------",mType=u" " )
 			self.myLog( text=u"Mode: off, ON, UDM, reports only".ljust(40)	+	self.unifiCloudKeyMode )
-			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.UserID["webCTRL"] )
-			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.PassWd["webCTRL"] )
+			self.myLog( text=u"WEB-UserID".ljust(40)						+	self.connectParams["UserID"]["webCTRL"] )
+			self.myLog( text=u"WEB-PassWd".ljust(40)						+	self.connectParams["PassWd"]["webCTRL"] )
 			self.myLog( text=u"Controller Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType )
 			self.myLog( text=u"use strict:true for web login".ljust(40)		+	unicode(self.useStrictToLogin)[0] )
 			self.myLog( text=u"Controller port#".ljust(40)					+	self.unifiCloudKeyPort )
@@ -1284,19 +1332,17 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=u" " )
 			self.myLog( text=u"  ssh NVR-UNIXUserID@NVR-IP ",mType=u" ")
 			self.myLog( text=u"NVR-VIDEO enabled".ljust(40)					+	unicode(self.VIDEOEnabled)[0] )
-			self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+	self.UserID["unixNVR"] )
-			self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+	self.PassWd["unixNVR"] )
-			self.myLog( text=u"promptOnServer -VD dict".ljust(40)			+	self.promptOnServer[u"VDdict"] )
-			self.myLog( text=u"promptOnServer -VD tail".ljust(40)			+	self.promptOnServer[u"VDtail"] )
-			self.myLog( text=u"VD tailCommand".ljust(40)					+	self.commandOnServer[u"VDtail"] )
-			self.myLog( text=u"VD dictCommand".ljust(40)					+	self.commandOnServer[u"VDdict"] )
+			self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+	self.connectParams["UserID"]["unixNVR"] )
+			self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+	self.connectParams["PassWd"]["unixNVR"] )
+			self.myLog( text=u"VD tailCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"VDtail"] )
+			self.myLog( text=u"VD dictCommand".ljust(40)					+	self.connectParams["commandOnServer"][u"VDdict"] )
 			self.myLog( text=u"= getting snapshots and reading and changing parameters",mType=u" " )
 			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://NVR-IP#:  ....   for commands and read parameters ",mType=u" " )
 			self.myLog( text=u"  requests(http://IP-NVR:7080/api/2.0/snapshot/camera/**camApiKey**?force=true&width=1024&apiKey=nvrAPIkey,stream=True)  for snap shots",mType=u" " )
 			self.myLog( text=u"imageSourceForSnapShot".ljust(40)			+	self.imageSourceForSnapShot )
 			self.myLog( text=u"imageSourceForEvent".ljust(40)				+	self.imageSourceForEvent )
-			self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+	self.UserID["nvrWeb"] )
-			self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+	self.PassWd["nvrWeb"] )
+			self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+	self.connectParams["UserID"]["nvrWeb"] )
+			self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+	self.connectParams["PassWd"]["nvrWeb"] )
 			self.myLog( text=u"NVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey )
 			self.myLog( text=u"",mType=u" ")
 			self.myLog( text=u"AP ip#			  enabled / disabled")
@@ -1581,6 +1627,10 @@ class Plugin(indigo.PluginBase):
 		self.restartRequest["SWdict"] = valuesDict[u"pickSW"]
 		return
 
+	def buttonResetPromptsCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		self.connectParams["promptOnServer"] = {}
+		self.quitNow = "restart due to prompt settings reset"
+		return
 
 	def buttonstopVideoServiceCALLBACKaction (self, valuesDict=None, filter="", typeId="", devId=""):
 		self.execVideoAction(" \"service unifi-video stop\"")
@@ -1609,11 +1659,14 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,u"CameraInfo  Video Action : userid not set")
 			return
 
+		if self.ipNumbersOf[u"VD"] not in self.connectParams["promptOnServer"]:
+			self.testServerIfOK(self.ipNumbersOf[u"VD"],uType)
+
 		cmd = "/usr/bin/expect '" + \
 			  self.pathToPlugin + "videoServerAction.exp' " + \
 			" '"+userid + "' '"+passwd + "' " + \
 			  self.ipNumbersOf[u"VD"] + " " + \
-			  "'"+self.promptOnServer[uType]+"' " + cmdIN
+			  "'"+self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf[u"VD"]])+"' " + cmdIN
 		if self.decideMyLog(u"Expect"):  self.indiLOG.log(20,u"CameraInfo "+ cmd)
 
 		if returnCmd: return cmd
@@ -1621,7 +1674,6 @@ class Plugin(indigo.PluginBase):
 		subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
 		return
-
 
 	####-----------------	 ---------
 	####-----send commd parameters to cameras through VNR ------
@@ -1761,7 +1813,7 @@ class Plugin(indigo.PluginBase):
 				url = u"https://"+self.ipNumbersOf[u"VD"]+ u":7443/api/2.0/camera/"+"?apiKey=" + self.nvrVIDEOapiKey
 
 			if self.unfiCurl.find(u"curl") > -1:
-				cmdL  = self.unfiCurl+u" --insecure -c /tmp/nvrCookie --data '"+json.dumps({u"username":self.UserID[u"nvrWeb"],u"password":self.PassWd[u"nvrWeb"]})+u"' 'https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login'"
+				cmdL  = self.unfiCurl+u" --insecure -c /tmp/nvrCookie --data '"+json.dumps({u"username":self.connectParams["UserID"][u"nvrWeb"],u"password":self.connectParams["PassWd"][u"nvrWeb"]})+u"' 'https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login'"
 				if data =={} or data =="": dataDict = u""
 				else:					   dataDict = u" --data '"+json.dumps(data)+"' "
 				if	 cmdType == u"put":	  cmdTypeUse= u" -X PUT "
@@ -1811,7 +1863,7 @@ class Plugin(indigo.PluginBase):
 				if self.unifiNVRSession =="" or (time.time() - self.lastNVRCookie) > 300:
 					self.unifiNVRSession  = requests.Session()
 					urlLogin  = u"https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login"
-					dataLogin = json.dumps({u"username":self.UserID[u"nvrWeb"],u"password":self.PassWd[u"nvrWeb"]})
+					dataLogin = json.dumps({u"username":self.connectParams["UserID"][u"nvrWeb"],u"password":self.connectParams["PassWd"][u"nvrWeb"]})
 					resp  = self.unifiNVRSession.post(urlLogin, data = dataLogin, verify=False)
 					self.lastNVRCookie =time.time()
 					#if self.decideMyLog(u"Video"): self.myLog( text="executeCMDonNVR  cmdType: post ;     urlLogin: "+urlLogin +";  dataLogin: "+ dataLogin+";  resp.text: "+ resp.text+"<<",mType=u"Video")
@@ -2158,11 +2210,11 @@ class Plugin(indigo.PluginBase):
 			userid, passwd =  self.getUidPasswd(uType,self.ipNumbersOf[u"VD"])
 			if userid == "": return {}
 
-			cmd = "/usr/bin/expect	'" + \
-				  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
+			cmd = "/usr/bin/expect '" + \
+				  self.pathToPlugin + self.connectParams["expectCmdFile"][uType] + "' " + \
 				  "'"+userid + "' '"+passwd + "' " + \
 				  self.ipNumbersOf[u"VD"] + " " + \
-				  "'"+self.promptOnServer[uType] + "' " + \
+				  "'"+self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf[u"VD"]]) + "' " + \
 				  " XXXXsepXXXXX " + \
 				  cmdstr
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"UNIFI getMongoData cmd " +cmd )
@@ -2311,12 +2363,12 @@ class Plugin(indigo.PluginBase):
 		dtype	 = ip_type[1]
 		cmd = "/usr/bin/expect "
 		cmd+= "'"+self.pathToPlugin + "rebootUNIFIdeviceAP.exp" + "' "
-		cmd+= "'"+self.UserID["unixDevs"] + "' '"+self.PassWd["unixDevs"] + "' "
+		cmd+= "'"+self.connectParams["UserID"]["unixDevs"] + "' '"+self.connectParams["PassWd"]["unixDevs"] + "' "
 		cmd+= ipNumber + " "
-		cmd+= "'"+self.promptOnServer[dtype] + "' &"
+		cmd+= "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"REBOOT: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"REBOOT: {}".format(ret) )
+		if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,u"REBOOT returned: {}".format(ret) )
 		self.addToMenuXML(valuesDict)
 
 		return
@@ -2554,7 +2606,11 @@ class Plugin(indigo.PluginBase):
 		for dev in indigo.devices.iter(self.pluginId):
 			if u"MAC" in dev.states:
 				if u"displayStatus" in dev.states and   dev.states[u"displayStatus"].find(u"ignored") >-1: continue
-				xlist.append([dev.states[u"MAC"],dev.states[u"MAC"] + " - "+dev.name])
+				mac = dev.states[u"MAC"]
+				if self.isValidMAC(mac):
+					xlist.append([mac,dev.states[u"MAC"] + " - "+dev.name])
+				else:
+					xlist.append(["bad mac",u"badMAC#-"+dev.states[u"MAC"] + " - "+dev.name])
 		return sorted(xlist, key=lambda x: x[1])
 
 	####-----------------	 ---------
@@ -2562,7 +2618,11 @@ class Plugin(indigo.PluginBase):
 		xlist = []
 		for dev in indigo.devices.iter(self.pluginId):
 			if u"MAC" in dev.states:
-				xlist.append([dev.states[u"MAC"],dev.name+" - "+dev.states[u"MAC"]])
+				mac = dev.states[u"MAC"]
+				if self.isValidMAC(mac):
+					xlist.append([dev.states[u"MAC"],dev.name+u" - "+dev.states[u"MAC"]])
+				else:
+					xlist.append([u"bad mac",u"badMAC#-"+dev.name+u" - "+dev.states[u"MAC"]])
 		return sorted(xlist, key=lambda x: x[1])
 
 	####-----------------	 ---------
@@ -3040,13 +3100,13 @@ class Plugin(indigo.PluginBase):
 			cmd+= "'"+self.pathToPlugin + u"onPort.exp" + "' "
 		elif  onOffCycle =="OFF":
 			cmd+= "'"+self.pathToPlugin + u"offPort.exp" + "' "
-		cmd+= "'"+self.UserID["unixDevs"] + u"' '"+self.PassWd["unixDevs"] + u"' "
+		cmd+= "'"+self.connectParams["UserID"]["unixDevs"] + u"' '"+self.connectParams["PassWd"]["unixDevs"] + u"' "
 		cmd+= ipNumber + " "
 		cmd+= port + u" "
-		cmd+= "'"+self.promptOnServer[dtype] +u"' &"
+		cmd+= "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) +u"' &"
 		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"RECYCLE: "+cmd )
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"RECYCLE: {}".format(ret))
+		if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,u"RECYCLE returned: {}".format(ret))
 		self.addToMenuXML(valuesDict)
 		return valuesDict
 
@@ -3107,8 +3167,8 @@ class Plugin(indigo.PluginBase):
 
 		cmd = u"cd '"+self.indigoPreferencesPluginDir+"backup';"
 		cmd += "/usr/bin/expect '"+self.pathToPlugin + "controllerbackup.exp' "
-		cmd += " '"+self.UserID["unixDevs"]+"' "
-		cmd += " '"+self.PassWd["unixDevs"]+"' "
+		cmd += " '"+self.connectParams["UserID"]["unixDevs"]+"' "
+		cmd += " '"+self.connectParams["PassWd"]["unixDevs"]+"' "
 		cmd +=     self.unifiCloudKeyIP
 		cmd += " '"+self.ControllerBackupPath.rstrip("/")+"'"
 
@@ -3116,7 +3176,7 @@ class Plugin(indigo.PluginBase):
 
 		ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 
-		if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"backup cmd ret: {}".format(ret))
+		if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,u"backup cmd returned: {}".format(ret))
 
 		return 
 
@@ -4126,17 +4186,18 @@ class Plugin(indigo.PluginBase):
 		keepList=[u"vpn",u"port-forward",u"service:radius-server",u"service:dhcp-server"]
 		jsonAction=u"print"
 		ret =[]
-		if self.commandOnServer[u"GWctrl"].find(u"off") ==0: return valuesDict
+		if self.connectParams["commandOnServer"][u"GWctrl"].find(u"off") ==0: return valuesDict
 		try:
-			cmd = "/usr/bin/expect	'" + \
-				  self.pathToPlugin + self.expectCmdFile["GWctrl"] + "' " + \
-				  "'"+self.UserID["unixDevs"]+ "' '"+self.PassWd["unixDevs"]+ "' " + \
+			cmd = "/usr/bin/expect '" + \
+				  self.pathToPlugin + self.connectParams["expectCmdFile"]["GWctrl"] + "' " + \
+				  "'"+self.connectParams["UserID"]["unixDevs"]+ "' '"+self.connectParams["PassWd"]["unixDevs"]+ "' " + \
 				  self.ipNumbersOf[u"GW"] + " " + \
-				  "'"+self.promptOnServer[u"GWctrl"] + "' " + \
+				  "'"+self.connectParams["promptOnServer"][u"GWctrl"] + "' " + \
 				  " XXXXsepXXXXX " + " " + \
-				  "\""+self.commandOnServer[u"GWctrl"] +"\""
+				  "\""+self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf[u"GW"]])+"\""
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u" UGA EXPECT CMD: "+ unicode(cmd))
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,"returned from expect-command: {}".format(ret[0]))
 			dbJson, error= self.makeJson2(ret[0], u"XXXXsepXXXXX")
 			if jsonAction == u"print":
 				for xx in keepList:
@@ -4196,8 +4257,8 @@ class Plugin(indigo.PluginBase):
 
 			if self.unfiCurl.find(u"curl") > -1:
 				#cmdL  = curl  --insecure -c /tmp/unifiCookie -H "Content-Type: application/json"  --data '{"username":"karlwachs","password":"457654aA.unifi"}' https://192.168.1.2:8443/api/login
-				#cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.UserID["webCTRL"],"password":self.PassWd["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
-				cmdL  = self.unfiCurl+u" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({u"username":self.UserID[u"webCTRL"],u"password":self.PassWd[u"webCTRL"],u"strict":self.useStrictToLogin})+u"' 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+u"'"
+				#cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
+				cmdL  = self.unfiCurl+u" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({u"username":self.connectParams["UserID"][u"webCTRL"],u"password":self.connectParams["PassWd"][u"webCTRL"],u"strict":self.useStrictToLogin})+u"' 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+u"'"
 				if data =={}: dataDict = ""
 				else:		  dataDict = u" --data '"+json.dumps(data)+"' "
 				if	 cmdType == u"put":	 						cmdTypeUse= u" -X PUT "
@@ -4269,7 +4330,7 @@ class Plugin(indigo.PluginBase):
 				if self.unifiControllerSession =="" or (time.time() - self.lastUnifiCookieRequests) > 60: # every 60 secs refresh cert
 					self.unifiControllerSession	 = requests.Session()
 					url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
-					dataLogin = json.dumps({"username":self.UserID["unixDevs"],"password":self.PassWd["unixDevs"],"strict":self.useStrictToLogin})
+					dataLogin = json.dumps({"username":self.connectParams["UserID"]["unixDevs"],"password":self.connectParams["PassWd"]["unixDevs"],"strict":self.useStrictToLogin})
 					resp  = self.unifiControllerSession.post(url, data = dataLogin, verify=False)
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,u"Connection: requests login {}".format(resp.text) )
 					self.lastUnifiCookieRequests =time.time()
@@ -4931,7 +4992,9 @@ class Plugin(indigo.PluginBase):
 
 
 		if self.VIDEOEnabled:
+
 			self.indiLOG.log(20,u"..setup NVR -1 getNVRIntoIndigo")
+			self.testServerIfOK(self.ipNumbersOf[u"VD"], "VDdict")
 			self.getNVRIntoIndigo(force= True)
 			self.indiLOG.log(20,u"..setup NVR -2 getCamerasIntoIndigo")
 			self.getCamerasIntoIndigo(force=True)
@@ -4961,7 +5024,7 @@ class Plugin(indigo.PluginBase):
 						ipn = self.ipNumbersOf[u"AP"][ll]
 						self.broadcastIP = ipn
 						if self.decideMyLog(u"Logic"): self.indiLOG.log(20,u"START: AP Thread # {}   {}".format(ll, ipn) )
-						if self.commandOnServer[u"APtail"].find(u"off") ==-1: 
+						if self.connectParams["commandOnServer"][u"APtail"].find(u"off") ==-1: 
 							self.trAPLog[unicode(ll)] = threading.Thread(name=u'getMessages-AP-log-'+unicode(ll), target=self.getMessages, args=(ipn,ll,u"APtail",float(self.readDictEverySeconds[u"AP"])*2,))
 							self.trAPLog[unicode(ll)].start()
 							self.sleep(nsleep)
@@ -4982,7 +5045,7 @@ class Plugin(indigo.PluginBase):
 		if self.devsEnabled[u"GW"] and not self.devsEnabled[u"UD"]:
 			self.indiLOG.log(20,u"..starting threads for GW (MSG-log and db-DICT)")
 			self.broadcastIP = self.ipNumbersOf[u"GW"]
-			if self.commandOnServer[u"GWtail"].find(u"off") == -1: 
+			if self.connectParams["commandOnServer"][u"GWtail"].find(u"off") == -1: 
 				self.trGWLog  = threading.Thread(name=u'getMessages-UGA-log', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
 				self.trGWLog.start()
 				self.sleep(1)
@@ -5221,6 +5284,10 @@ class Plugin(indigo.PluginBase):
 			self.quitNow = ""
 			while self.quitNow == "":
 				self.sleep(self.loopSleep)
+				if self.updateConnectParams:
+					self.updateConnectParams  = False
+					self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+	 
 				self.countLoop += 1
 				ret = self.doTheLoop()
 				if ret !="ok":
@@ -5346,6 +5413,7 @@ class Plugin(indigo.PluginBase):
 		if self.quitNow == "": self.quitNow = u" restart / self.stop requested "
 		if self.quitNow == u"config changed":
 			self.resetDataStats(calledFrom="postLoop")
+		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
 
 		if True:
 			for ll in range(len(self.devsEnabled[u"SW"])):
@@ -5478,10 +5546,10 @@ class Plugin(indigo.PluginBase):
 			if True or self.unifiControllerType.find(u"UDM") == -1: return 
 
 			cmd = "/usr/bin/expect '"+self.pathToPlugin + "UDM-pro-sensors.exp' "
-			cmd += " '"+self.UserID["unixUD"]+"' "
-			cmd += " '"+self.PassWd["unixUD"]+"' "
+			cmd += " '"+self.connectParams["UserID"]["unixUD"]+"' "
+			cmd += " '"+self.connectParams["PassWd"]["unixUD"]+"' "
 			cmd +=      self.unifiCloudKeyIP
-			cmd += " '" +self.promptOnServer[u"UDdict"]+"' "
+			cmd += " '"+self.escapeExpect(self.connectParams["promptOnServer"][self.unifiCloudKeyIP])+"' "
 
 			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"getUDMpro_sensors: get sensorValues from UDMpro w cmd: {}".format(cmd) )
 
@@ -5492,7 +5560,7 @@ class Plugin(indigo.PluginBase):
 			temperature = ""
 			temperature_Board_CPU = ""
 			temperature_Board_PHY = ""
-			if self.decideMyLog(u"UDM"): self.indiLOG.log(20,u"getUDMpro_sensors returned list: {}".format(data0) )
+			if self.decideMyLog(u"UDM") or self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,u"getUDMpro_sensors returned list: {}".format(data0) )
 			for dd in data0:
 				if dd.find(u":") == -1: continue
 				nn = dd.strip().split(":")
@@ -5906,16 +5974,17 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def testAPandPing(self,ipNumber, cType):
 		try:
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  testing if {} /usr/bin/expect {} is running ".format(ipNumber, self.expectCmdFile[cType]))
-			if os.path.isfile(self.pathToPlugin +self.expectCmdFile[cType]):
-				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest {} exists, now doing ping" .format(self.expectCmdFile[cType]))
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  testing if {} /usr/bin/expect {} is running ".format(ipNumber, self.connectParams["expectCmdFile"][cType]))
+			if os.path.isfile(self.pathToPlugin +self.connectParams["expectCmdFile"][cType]):
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest {} exists, now doing ping" .format(self.connectParams["expectCmdFile"][cType]))
 			if self.checkPing(ipNumber, nPings=2, waitForPing=1000, calledFrom=u"testAPandPing", verbose=True) !=0:
 				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  ping not returned" )
 				return False
 
-			cmd = "ps -ef | grep " +self.expectCmdFile[cType]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep"
+			cmd = "ps -ef | grep " +self.connectParams["expectCmdFile"][cType]+ "| grep " + ipNumber + " | grep /usr/bin/expect | grep -v grep"
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"CONNtest  check if pgm is running {}".format(cmd) )
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
+			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,"returned from expect-command: {}".format(ret[0]))
 			if len(ret) < 5: return False
 			lines = ret.split("\n")
 			for line in lines:
@@ -6106,7 +6175,7 @@ class Plugin(indigo.PluginBase):
 			users = info["users"]
 
 			for _id in users:
-				if users[_id]["userName"] == self.UserID["nvrWeb"]:
+				if users[_id]["userName"] == self.connectParams["UserID"]["nvrWeb"]:
 					if u"apiKey" in users[_id] and "enableApiAccess" in users[_id]:
 						if users[_id]["enableApiAccess"] :
 							apiKey		= users[_id]["apiKey"]
@@ -6567,6 +6636,8 @@ class Plugin(indigo.PluginBase):
 			else:
 				minWaitbeforeRestart	= max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
 
+			self.testServerIfOK(ipNumber,uType)
+
 			while True:
 				if self.pluginState == "stop": 
 					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
@@ -6590,7 +6661,7 @@ class Plugin(indigo.PluginBase):
 							if lastForcedRestartTimeStamp> 0:
 								restartCount +=1
 								if self.decideMyLog(u"Expect"):
-									self.indiLOG.log(40,u"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.expectCmdFile[uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
+									self.indiLOG.log(40,u"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams["expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
 								self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"]+=1
 							else:
 								self.indiLOG.log(20,u"getMessages: launching listener for: {}  @ {}".format(uType, ipNumber) )
@@ -6598,7 +6669,7 @@ class Plugin(indigo.PluginBase):
 							try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
 							except:	pass
 
-							self.killIfRunning(ipNumber,self.expectCmdFile[uType] )
+							self.killIfRunning(ipNumber,self.connectParams["expectCmdFile"][uType] )
 							if not self.testServerIfOK(ipNumber,uType):
 								self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {} wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber) )
 								time.sleep(15)
@@ -6608,7 +6679,9 @@ class Plugin(indigo.PluginBase):
 								self.setAccessToLog(ipNumber,uType)
 							ListenProcessFileHandle, msg = self.startConnect(ipNumber,uType)
 							if self.decideMyLog(u"Expect"):
-								self.indiLOG.log(30,u"getMessages: ListenProcess started for uType: {};  ip: {}  pid:{}".format(uType, ipNumber, ListenProcessFileHandle.pid) )
+								try: 	pid = ListenProcessFileHandle.pid
+								except:	pid = "not defined"
+								self.indiLOG.log(30,u"getMessages: ListenProcess started for uType: {};  ip: {} pid:{}".format(uType, ipNumber, pid) )
 
 
 							if msg != "":
@@ -6687,8 +6760,8 @@ class Plugin(indigo.PluginBase):
 
 				if linesFromServer != "":
 					lastMSG = linesFromServer
-					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"]+=1
-					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"]+=len(linesFromServer)
+					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"] += 1
+					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"] += len(linesFromServer)
 					lastForcedRestartTimeStamp = time.time()
 					lastTestServer	  = time.time()
 					testServerCount	  = 0
@@ -6721,7 +6794,7 @@ class Plugin(indigo.PluginBase):
 						errorCount = 0
 						if linesFromServer.find(u"ThisIsTheAliveTestFromUnifiToPlugin") > -1:
 							self.dataStats[u"tcpip"][uType][ipNumber]["aliveTestCount"]+=1
-							if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
+							if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,u"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
 							continue
 						self.logQueue.put((linesFromServer,ipNumber,apN, uType,unifiDeviceType))
 						linesFromServer = ""
@@ -6731,14 +6804,17 @@ class Plugin(indigo.PluginBase):
 					######### for Dicts
 					else:
 						total += linesFromServer
-						ppp = total.split(self.startDictToken[uType])
-						if len(ppp) ==2:
-							if ppp[1].find(self.endDictToken[uType]) >-1:
+						ppp = total.split(self.connectParams["startDictToken"][uType])
+						#if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"linesFromServer  uType:{};  splitting:startDict:{};  ppp:{},  {} .... {}".format(uType, self.connectParams["startDictToken"][uType], len(ppp), total[0:100],total[-100:]  ) )
+
+						if len(ppp) == 2:
+							#if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"linesFromServer   found endDictToken:{}, ? {} ".format( self.connectParams["endDictToken"][uType], ppp[1].find(self.connectParams["endDictToken"][uType]) ) )
+							if ppp[1].find(self.connectParams["endDictToken"][uType]) >-1:
 								dictData0 = ppp[len(ppp) - 1].lstrip("\r\n")
 
 								try:
 									ok = True
-									dictData= dictData0.split(self.endDictToken[uType])[0]
+									dictData= dictData0.split(self.connectParams["endDictToken"][uType])[0]
 									## remove last line
 									if dictData[-1] !="}":
 										ppp = dictData.rfind("}")
@@ -6746,16 +6822,17 @@ class Plugin(indigo.PluginBase):
 									theDict= json.loads(dictData)
 									errorCount = 0
 									if	  unifiDeviceType == "AP":
-										self.deviceUp[u"AP"][ipNumber] = time.time()
+										self.deviceUp[u"AP"][ipNumber]	= time.time()
 									elif  unifiDeviceType == "SW":
-										self.deviceUp[u"SW"][ipNumber] = time.time()
+										self.deviceUp[u"SW"][ipNumber]	= time.time()
 									elif  unifiDeviceType == "GW":
-										self.deviceUp[u"GW"][ipNumber] = time.time()
+										self.deviceUp[u"GW"][ipNumber]	= time.time()
 									elif  unifiDeviceType == "UD":
-										self.deviceUp[u"SW"][ipNumber] = time.time()
+										self.deviceUp[u"SW"][ipNumber]	= time.time()
 										self.deviceUp[u"UD"]			= time.time()
-										self.deviceUp[u"GW"][ipNumber] = time.time()
-									self.logQueueDict.put((theDict,ipNumber,apN,uType, unifiDeviceType))
+										self.deviceUp[u"GW"][ipNumber]	= time.time()
+									#if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"linesFromServer   theDict: {} ... {}; ipNumber:{}, apN:{}, uType:{}, unifiDeviceType:{}".format( dictData[0:10] ,  dictData[-10:], ipNumber, apN, uType, unifiDeviceType ) )
+									self.logQueueDict.put((theDict, ipNumber, apN, uType, unifiDeviceType))
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
 								except	Exception, e:
 									if unicode(e) != u"None":
@@ -6769,7 +6846,7 @@ class Plugin(indigo.PluginBase):
 									lastForcedRestartTimeStamp = time.time() - minWaitbeforeRestart*0.91
 								total = ""
 						else:
-							total=""
+							total = ""
 					if self.statusChanged > 0:
 						self.setGroupStatus()
 
@@ -6793,20 +6870,20 @@ class Plugin(indigo.PluginBase):
 			if ipNumber not in self.listenStart:
 				self.listenStart[ipNumber] = {}
 			self.listenStart[ipNumber][uType] = time.time()
-			if self.commandOnServer[uType].find(u"off") == 0: return "",""
+			if self.connectParams["commandOnServer"][uType].find(u"off") == 0: return "",""
 
 			TT= uType[0:2]
 			for ii in range(20):
 				if uType.find(u"dict")>-1:
-					cmd = "/usr/bin/expect	'" + \
-						  self.pathToPlugin + self.expectCmdFile[uType] + "' " + \
+					cmd = "/usr/bin/expect '" + \
+						  self.pathToPlugin + self.connectParams["expectCmdFile"][uType] + "' " + \
 						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
-						  "'"+self.promptOnServer[uType] + "' " + \
-						  self.endDictToken[uType]+ " " + \
+						  "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' " + \
+						  self.connectParams["endDictToken"][uType]+ " " + \
 						  unicode(self.readDictEverySeconds[TT])+ " " + \
 						  unicode(self.timeoutDICT)+ \
-						  " \""+self.commandOnServer[uType]+"\" "
+						  " \""+self.connectParams["commandOnServer"][uType]+"\" "
 					if uType.find(u"AP") >-1:
 						cmd += " /var/log/messages"
 					else:
@@ -6814,11 +6891,11 @@ class Plugin(indigo.PluginBase):
 
 				else:
 					cmd = "/usr/bin/expect '" + \
-						  self.pathToPlugin +self.expectCmdFile[uType] + "' " + \
+						  self.pathToPlugin +self.connectParams["expectCmdFile"][uType] + "' " + \
 						"'"+userid + "' '"+passwd + "' " + \
 						  ipNumber + " " + \
-						  "'"+self.promptOnServer[uType]+"' "  +\
-						  " \""+self.commandOnServer[uType]+"\" "
+						  "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber])+"' "  +\
+						  " \""+self.connectParams["commandOnServer"][uType]+"\" "
 
 				if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"startConnect: cmd {}".format(cmd) )
 				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -6855,6 +6932,7 @@ class Plugin(indigo.PluginBase):
 			cmd = "/usr/bin/expect '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"testServerIfOK: {}".format(cmd) )
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,"returned from expect-command: {}".format(ret[0]))
 
 			## check if we need to fix unknown host in .ssh/known_hosts
 			if len(ret[1]) > 0:
@@ -6872,12 +6950,14 @@ class Plugin(indigo.PluginBase):
 					loggedIn = True
 					break
 			if loggedIn:
-				if self.promptOnServer[uType].replace("\\","") in ret[0][-20:]:
-					return True
-				if self.promptOnServer[uType].find("#") >-1:
-					self.promptOnServer[uType].replace("#","\\#")
-				self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last chars:'{}'; ret: \n{}".format(ipNumber,  self.promptOnServer[uType], ret[0][-4:],ret[0][-20:], ret[0]) )
-				self.promptOnServer[uType] = ret[0][-4:]
+				if ipNumber in self.connectParams["promptOnServer"]:
+					if self.connectParams["promptOnServer"][ipNumber] in ret[0][-10:]:
+						return True
+				if ipNumber not in self.connectParams["promptOnServer"]: self.connectParams["promptOnServer"][ipNumber] = ""
+				self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last chars:'{}'; ret: \n{}".format(ipNumber,  self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]), ret[0][-4:],ret[0][-30:], ret[0]) )
+				self.connectParams["promptOnServer"][ipNumber] = ret[0][-3:]
+				self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+				self.indiLOG.log(20,u"testServerIfOK: =========== prompts: \n{}".format(self.connectParams["promptOnServer"]))
 				return True
 
 			self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, ret[0]) )
@@ -6930,10 +7010,11 @@ class Plugin(indigo.PluginBase):
 			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return False
 
-			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " '" +self.promptOnServer[uType]+"' "
+			cmd = "/usr/bin/expect '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " '" +self.escapeExpect(self.connectParams["promptOnServer"][ipNumber])+"' "
 			#if self.decideMyLog(u"Expect"): 
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,cmd)
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,"returned from expect-command: {}".format(ret[0]))
 			test = ret[0].lower()
 			tags = [u"welcome",u"unifi",u"debian",u"edge",u"busybox",u"ubiquiti",u"ubnt",u"login"]
 			for tag in tags:
@@ -6949,8 +7030,8 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			if uType.find(u"VD") > -1:
-				userid = self.UserID["unixNVR"]
-				passwd = self.PassWd["unixNVR"]
+				userid = self.connectParams["UserID"]["unixNVR"]
+				passwd = self.connectParams["PassWd"]["unixNVR"]
 
 			else:
 				if self.unifiControllerType.find(u"UDM") > -1 and (
@@ -6958,11 +7039,11 @@ class Plugin(indigo.PluginBase):
 					( uType.find(u"SW") > -1 and ipNumber == self.ipNumbersOf[u"SW"][self.numberForUDM[u"SW"]]) or
 					( uType.find(u"UD") > -1 ) or
 					( uType.find(u"GW") > -1 and ipNumber == self.ipNumbersOf[u"GW"]) ):
-					userid = self.UserID["unixUD"]
-					passwd = self.PassWd["unixUD"]
+					userid = self.connectParams["UserID"]["unixUD"]
+					passwd = self.connectParams["PassWd"]["unixUD"]
 				else:	
-					userid = self.UserID["unixDevs"]
-					passwd = self.PassWd["unixDevs"]
+					userid = self.connectParams["UserID"]["unixDevs"]
+					passwd = self.connectParams["PassWd"]["unixDevs"]
 
 			if userid == "":
 				self.indiLOG.log(20,u"Connection: {} login disabled, userid is empty".format(uType) )
@@ -7693,9 +7774,8 @@ class Plugin(indigo.PluginBase):
 		try:
 			while not self.logQueueDict.empty():
 				next = self.logQueueDict.get()
-				#self.myLog( text=unicode(next[0])[0:300] ,mType=u"up...Data2" )
-				###if self.decideMyLog(u"ConnectionRET"): self.myLog( text=unicode(next)[0:1000] + "...." ,mType=u"MESS---")
-				self.updateIndigoWithDictData(next[0],next[1],next[2],next[3],next[4])
+				#if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"updateIndigoWithDictData2 type:{}, len:{},  next:{}".format(type(next), len(next), next) )
+				self.updateIndigoWithDictData( next[0], next[1], next[2], next[3], next[4] )
 			self.logQueueDict.task_done()
 		except	Exception, e:
 			if unicode(e) != u"None":
@@ -7707,9 +7787,11 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def updateIndigoWithDictData(self, apDict, ipNumber, apNumb, uType, unifiDeviceType):
-		if len(apDict) < 1: return
 
 		try:
+			#if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"updateIndigoWithDictData apDict[0:100]:{}, ipNumber:{}, apNumb:{}, uType:{}, unifiDeviceType:{}".format(unicode(apDict)[0:100], ipNumber, apNumb, uType, unifiDeviceType ) )
+
+			if len(apDict) < 1: return
 			self.manageLogfile(apDict, apNumb, unifiDeviceType)
 
 			apNumbSW = apNumb
@@ -10053,7 +10135,7 @@ class Plugin(indigo.PluginBase):
 
 					if u"lastStatusChangeReason" in dev.states and reason !=u"":
 						self.addToStatesUpdateList(dev.id,u"lastStatusChangeReason", reason)
-					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"STAT-Change {} st changed  {}->{}; {}".format(dev.states[u"MAC"], dev.states[u"status"], newStatus, text1))
+					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"STAT-Chang {} st changed  {}->{}; {}".format(dev.states[u"MAC"], dev.states[u"status"], newStatus, text1))
 
 		except	Exception, e:
 			if unicode(e) != u"None":
@@ -10258,6 +10340,10 @@ class Plugin(indigo.PluginBase):
 		elif status == u"ON":		 return status.ljust(10)
 		else:						 return status.ljust(10)
 		return
+
+	####-----------------	 ---------
+	def escapeExpect(self, inString):
+		return inString.replace("#","\\#")
 
 
 	########################################

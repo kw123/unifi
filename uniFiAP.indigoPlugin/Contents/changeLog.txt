@@ -1,7 +1,24 @@
+changes in V 7.33.296 @ 2019-12-17
+==================  
+   
+1. prompt for expect ssh to unifi devices is now fully auto detect 
+   no need to enter in config
+2. removed options for log messages mca-dump commands in config, no need to chnage anything.
+
+
+
+changes in V 7.33.295 @ 2019-12-15
+==================  
+   
+1. expect prompt string is now fully auto detect, uses 2 last character, most likely #_  (space)
+     if the default does not work.
+   Using the last 4 characters does not work as it likely contains the system version# and that might be differnt from AP to AP or switch to switch
+
+
 changes in V 7.33.294 @ 2019-12-14
 ==================  
    
-1. add a check, if prompt on unifi devcie does not work, 
+1. add a check, if prompt on unifi device does not work, 
    switch to the last 4 characters of promnpt when login in
    in most cases: "xx# " (and # needs to get a \) so "xx\# "
 

@@ -534,10 +534,16 @@
 				<Field	  id="resetCam" type="button" tooltip="" >
 					<Label>Camera listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
 				</Field>
+			<Field id="resetCam2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the camera listener propcesses </Label> 
+			</Field>
 			<Field id="simpleSeparatorCam" type="separator"/>
 				<Field	  id="resetGW" type="button" tooltip="" >
 					<Label>Gateway listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartGWListenerCALLBACK</CallbackMethod>
 				</Field>
+			<Field id="resetGW2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the Gateway listener propcess </Label> 
+			</Field>
 			<Field id="simpleSeparatorGW" type="separator"/>
 				<Field	   id="pickAP" type="menu" defaultValue="0">
 					<Label>which AP# listener should be restarted</Label>
@@ -552,6 +558,9 @@
 				<Field	  id="resetAP" type="button" tooltip="" >
 					<Label>AP listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartAPListenerCALLBACK</CallbackMethod>
 				</Field>
+			<Field id="resetAP2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the WiFi AP listener propcesses </Label> 
+			</Field>
 			<Field id="simpleSeparatorAP" type="separator"/>
 				<Field	   id="pickSW" type="menu" defaultValue="0">
 					<Label>which SWP# listener should be restarted</Label>
@@ -572,6 +581,20 @@
 				<Field	  id="resetSW" type="button" tooltip="" >
 					<Label>Switch listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartSWListenerCALLBACK</CallbackMethod>
 				</Field>
+			<Field id="resetSW2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the switches listener propcesses </Label> 
+			</Field>
+
+			<Field id="simpleSeparatorresetprompts" type="separator"/>
+				<Field	  id="resetprompts" type="button" tooltip="" >
+					<Label>Reset prompts used for ssh ... </Label><Title>Reset </Title><CallbackMethod>buttonResetPromptsCALLBACK</CallbackMethod>
+				</Field>
+			<Field id="resetprompts2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will reset the prompt-tag used in expect script
+it will make the plugin restart </Label> 
+			</Field>
+
+
 		</ConfigUI>
 	</MenuItem>
 
