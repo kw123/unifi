@@ -1,10 +1,10 @@
-changes in V 7.33.297 @ 2019-12-17
+changes in V 7.33.298 @ 2019-12-19
 ==================  
    
 1. prompt for expect ssh to unifi devices is now fully auto detect 
    no need to enter in config
 2. removed options for log messages mca-dump commands in config, no need to chnage anything.
-
+3. cleaned up some logging formats
 
 
 changes in V 7.33.295 @ 2019-12-15

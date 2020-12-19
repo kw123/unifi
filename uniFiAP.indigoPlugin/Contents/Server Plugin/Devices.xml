@@ -44,7 +44,7 @@
 					<Option value="FastDown"	> FastDown = after disconnect message from AP, down immediately</Option>
 					<Option value="IdleTime"	> IdleTime = idle time is gt xx	 .. secs since last AP-WiFi connect</Option>
 					<Option value="UpTime"		> UpTime   = WiFi uptime does not increase</Option>
-					<Option value="Optimized"	> optimized, stay up = if msg OR (dict AND uptime Increase OR IdelTime lt xx ).. takes a longer time to go down </Option>
+					<Option value="Optimized"	> optimized, stay up = if AP-msg OR (AP-dict with uptime Increase OR IdelTime lt xx ).. takes a longer time to go down </Option>
 					<Option value="Expiration"	> Wait until the device disappears from the UniFi Wifi Devices tables</Option>
 				</List>
 			</Field>

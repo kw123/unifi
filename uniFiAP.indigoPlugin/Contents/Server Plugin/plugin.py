@@ -4741,7 +4741,7 @@ class Plugin(indigo.PluginBase):
 				update=True
 
 			if u"AP" in dev.states:
-				if dev.states[u"AP"].find(u"-") ==-1 :
+				if dev.states[u"AP"].find(u"-") == -1 :
 					newAP= dev.states[u"AP"]+"-"
 					dev.updateStateOnServer(u"AP",newAP)
 
@@ -6695,7 +6695,7 @@ class Plugin(indigo.PluginBase):
 
 							self.killIfRunning(ipNumber,self.connectParams[u"expectCmdFile"][uType] )
 							if not self.testServerIfOK(ipNumber,uType):
-								self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, propmt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber]) )
+								self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber]) )
 								time.sleep(15)
 								self.msgListenerActive[uType] = 0
 								continue
@@ -6705,7 +6705,7 @@ class Plugin(indigo.PluginBase):
 							if self.decideMyLog(u"Expect"):
 								try: 	pid = ListenProcessFileHandle.pid
 								except:	pid = "not defined"
-								self.indiLOG.log(30,u"getMessages: ListenProcess started for uType: {};  ip: {}, propmt:'{}', pid:{}".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber], pid) )
+								self.indiLOG.log(30,u"getMessages: ListenProcess started for uType: {};  ip: {}, prompt:'{}', pid:{}".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber], pid) )
 
 
 							if msg != "":
@@ -6970,16 +6970,17 @@ class Plugin(indigo.PluginBase):
 			tags = [u"welcome",u"unifi",u"debian",u"edge",u"busybox",u"ubiquiti",u"ubnt",u"login"]
 			loggedIn = False
 			for tag in tags:
-				if tag in test:	 
+				if tag in test: 
 					loggedIn = True
 					break
 			if loggedIn:
+				nPrompt = 3
 				if ipNumber in self.connectParams[u"promptOnServer"]:
-					if self.connectParams[u"promptOnServer"][ipNumber] in ret[0][-10:]:
+					if self.connectParams[u"promptOnServer"][ipNumber]  == ret[0][-nPrompt:]:
 						return True
 				if ipNumber not in self.connectParams[u"promptOnServer"]: self.connectParams[u"promptOnServer"][ipNumber] = ""
-				self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last chars:'{}'; ret: \n{}".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]), ret[0][-4:],ret[0][-30:], ret[0]) )
-				self.connectParams[u"promptOnServer"][ipNumber] = ret[0][-3:]
+				self.indiLOG.log(20,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in:'{}'; \nret:{}".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  ret[0][-nPrompt:], nPrompt, ret[0][-10:], ret[0]) )
+				self.connectParams[u"promptOnServer"][ipNumber] = ret[0][-nPrompt:]
 				self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
 				self.indiLOG.log(20,u"testServerIfOK: =========== prompts: \n{}".format(self.connectParams[u"promptOnServer"]))
 				return True
@@ -7094,7 +7095,7 @@ class Plugin(indigo.PluginBase):
 				xType			= item[4]
 
 				## update device-ap with new timestamp, it is up
-				if self.decideMyLog(u"Log"): self.indiLOG.log(20,u"MS-------  {}-#{}   {}  {} .. {}".format(ipNumber, apN, uType, xType, lines) )
+				if self.decideMyLog(u"Log"): self.indiLOG.log(20,u"MS-------  {:13s}#{}   {}  {} .. {}".format(ipNumber, apN, uType, xType, lines) )
 
 				if ( (uType.find(u"SW") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"SW"]) and self.debugDevs[u"SW"][apNint]) or
 				     (uType.find(u"AP") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"AP"]) and self.debugDevs[u"AP"][apNint]) or 
@@ -7637,7 +7638,7 @@ class Plugin(indigo.PluginBase):
 					if line.find(u"ath1:") > -1: GHz = "2"
 					timeOfMSG = time.time()
 
-					if self.decideMyLog(u"LogDetails", MAC=MAC):self.indiLOG.log(20,u"MS-AP-WF-0 {}-#{}; {};  GHz:{}; up:{} token:{}, log-event:{}".format( ipNumberAP,apN, MAC , GHz, up, token, line))
+					if self.decideMyLog(u"LogDetails", MAC=MAC):self.indiLOG.log(20,u"MS-AP-WF-0 {:13s}#{}; {};  GHz:{}; up:{} token:{}, log-event:{}".format( ipNumberAP,apN, MAC , GHz, up, token, line))
 
 				if self.testIgnoreMAC(MAC, fromSystem="AP-msg"): continue
 
@@ -7690,7 +7691,7 @@ class Plugin(indigo.PluginBase):
 
 						if u"useWhatForStatus" in props and props[u"useWhatForStatus"].find(u"WiFi") > -1:
 
-							if self.decideMyLog(u"LogDetails", MAC=MAC): self.indiLOG.log(20,u"MS-AP-WF-3  ..  old->new associated {}->{}-#{}".format( oldIP, ipNumberAP, apN) )
+							if self.decideMyLog(u"LogDetails", MAC=MAC): self.indiLOG.log(20,u"MS-AP-WF-3  .. old->new associated {}->{}#{}".format( oldIP, ipNumberAP, apN) )
 
 							if up: # is up now
 								self.MAC2INDIGO[xType][MAC][u"idleTime" + suffixN] = 0
@@ -7699,7 +7700,7 @@ class Plugin(indigo.PluginBase):
 								if dev.states[u"status"] != u"up":
 									if self.decideMyLog(u"LogDetails", MAC=MAC): self.indiLOG.log(20,u"MS-AP-WF-4  .. ipNumberAP:{} 'setting state to UP' from:{}".format( ipNumberAP, dev.states[u"status"]))
 									self.setImageAndStatus(dev, "up",oldStatus= dev.states[u"status"], ts=time.time(), level=1, text1= dev.name.ljust(30) +u" status up  AP message received >%s<"%ipNumberAP, iType=u"MS-AP-WF-4 ",reason=u"MSG WiFi "+u"up")
-								if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"MS-AP-WF-R  ... reset exptimer use AP log-msg")
+								if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"MS-AP-WF-R  ==> restart exptimer use AP log-msg")
 								self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 							else: # is down now
@@ -8098,7 +8099,7 @@ class Plugin(indigo.PluginBase):
 					if self.MAC2INDIGO[xType][MAC][u"inList"+suffixN]  > 0:	 # was here was here , need to test
 						self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 0
 				except:
-						self.indiLOG.log(40,u"error in doSWITCHdictClients: mac:"+ MAC+"  "+unicode(self.MAC2INDIGO[xType][MAC]) )
+						self.indiLOG.log(40,u"error in doSWITCHdictClients: mac:{}  {}".format(MAC, self.MAC2INDIGO[xType][MAC]))
 						return
 				else:
 					self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = -1	 # was not here
@@ -8157,7 +8158,7 @@ class Plugin(indigo.PluginBase):
 							self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 1 # is here
 							new = False
 						except:
-							if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,MAC + "     " + unicode(self.MAC2INDIGO[xType][MAC][u"devId"]) + " wrong " + devType)
+							if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20, "{}     {} wrong {}".format(MAC, self.MAC2INDIGO[xType][MAC][u"devId"], devType))
 							for dev in indigo.devices.iter(u"props."+isType):
 								if u"MAC" not in dev.states:			continue
 								if dev.states[u"MAC"] != MAC:		continue
@@ -8170,8 +8171,7 @@ class Plugin(indigo.PluginBase):
 					if not new:
 
 						self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 1
-						if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-00   "+useIP +u"-#. "+ MAC+u" "+ dev.name+u"; IP:"+ip+u"; AGE:"+unicode(age)+u"; newUp:"+unicode(newUp)+ u"; hostN:"+unicode(nameSW))
-
+						if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-00   {:15s}  {}; {}; IP:{}; AGE:{}; newUp:{}; hostN:{}".format(useIP, MAC,  dev.name, ip, age, newUp, nameSW))
 
 						if not ( isUpLink or isDownLink ): # this is not for up or downlink 
 							poe = ""
@@ -8211,28 +8211,28 @@ class Plugin(indigo.PluginBase):
 						oldUp	  = self.MAC2INDIGO[xType][MAC][u"upTime" + suffixN]
 						self.MAC2INDIGO[xType][MAC][u"upTime" + suffixN] = unicode(newUp)
 						if u"useWhatForStatus" in props and props[u"useWhatForStatus"] in ["SWITCH","OptDhcpSwitch"]:
-							if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-0    "+useIP +u" "+ MAC+u" "+ dev.name+u"; oldStatus:"+oldStatus+"; IP:"+ip+"; AGE:"+unicode(age)+"; newUp:"+unicode(newUp)+ "; oldUp:"+unicode(oldUp)+ "; hostN:"+unicode(nameSW))
+							if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-0    {:15s} {} {}; oldStatus:{}; IP:{}; AGE:{}; newUp:{}; oldUp:{} hostN:{}".format(useIP, MAC, dev.name, oldStatus, ip, age, newUp, oldUp, nameSW))
 							if oldUp ==	 newUp and oldStatus =="up":
 								if u"useupTimeforStatusSWITCH" in props and props[u"useupTimeforStatusSWITCH"] :
 									if u"usePingDOWN" in props and props[u"usePingDOWN"]	and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doSWITCHdictClients") == 0:
-										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-1    "+ MAC+ u" reset timer for status up  notuptime const	but answers ping")
+										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-1    {} reset timer for status up  notuptime const	but answers ping".format(MAC))
 										self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 									else:
-										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-2    "+ MAC+ u"      SW DICT network_table , Uptime not changed, continue expiration timer")
+										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-2    {} SW DICT network_table , Uptime not changed, continue expiration timer".format(MAC))
 								else: # will only expired if not in list anymore
 									if u"usePingDOWN" in props and props[u"usePingDOWN"]	 and status !="up" and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
-										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-3    "+ MAC+ u" SW DICT network_table , but does not answer ping, continue expiration timer")
+										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-3    {} SW DICT network_table , but does not answer ping, continue expiration timer".format(MAC))
 									else:
-										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-4    "+ MAC+ u" reset timer for status up     answers ping in  DHCP list")
+										if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-4    {} reset timer for status up     answers ping in  DHCP list".format(MAC))
 										self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 
 							if oldUp != newUp:
 								if u"usePingUP" in props and props[u"usePingUP"] and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
-									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-5    "+  MAC+ u" SW DICT network_table , but does not answer ping, continue expiration timer")
+									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-5    {} SW DICT network_table , but does not answer ping, continue expiration timer".format(MAC))
 								else:
 									self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
-									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-0    "+  MAC+u" SW DICT network_tablerestart exp timer ")
+									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(20,u"DC-SW-0    {} SW DICT network_tablerestart exp timer ".format(MAC))
 
 						if self.updateDescriptions:
 							oldIPX = dev.description.split("-")
@@ -8240,7 +8240,7 @@ class Plugin(indigo.PluginBase):
 								if oldIPX[0] != ipx and oldIPX[0] !="":
 									indigo.variable.updateValue("Unifi_With_IPNumber_Change",dev.name+"/"+dev.states[u"MAC"]+"/"+oldIPX[0]+"/"+ipx)
 								dev.description = ipx + "-" + nameSW
-								if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-7    "+u"updating description for "+dev.name+"  to...."+ dev.description)
+								if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-SW-7    updating description for {}  to....{}".format(dev.name, dev.description) )
 								dev.replaceOnServer()
 
 						#break
@@ -8364,7 +8364,7 @@ class Plugin(indigo.PluginBase):
 								break
 
 					if not new:
-							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DHCP-1  {}  {}; {}; ip:{}; age:{}; uptime:{}".format(ipNumber, MAC, dev.name,ip, age, uptime))
+							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DHCP-1  {:15s}  {}; {}; ip:{}; age:{}; uptime:{}".format(ipNumber, MAC, dev.name,ip, age, uptime))
 
 							self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = True
 
@@ -8383,11 +8383,11 @@ class Plugin(indigo.PluginBase):
 								if u"useAgeforStatusDHCP" in props and props[u"useAgeforStatusDHCP"] != "-1"     and float(age) > float( props[u"useAgeforStatusDHCP"]):
 										if dev.states[u"status"] == "up":
 											if u"usePingDOWN" in props and props[u"usePingDOWN"] and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doGWHost_table") == 0:  # did  answer
-												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"    {} reset exptimer DICT network_table AGE>max:{}, but answers ping".format(MAC, props[u"useAgeforStatusDHCP"]))
+												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"    {} restart exptimer DICT network_table AGE>max:{}, but answers ping".format(MAC, props[u"useAgeforStatusDHCP"]))
 												self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 												newStatus = "up"
 											else:
-												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"    {} set timer for status down  GW DICT network_table AGE>max:{}".format(MAC, props[u"useAgeforStatusDHCP"]))
+												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"    {} set timer for status down GW DICT network_table AGE>max:{}".format(MAC, props[u"useAgeforStatusDHCP"]))
 												newStatus = "startDown"
 
 								else: # good data, should be up
@@ -8553,11 +8553,11 @@ class Plugin(indigo.PluginBase):
 								if u"useAgeforStatusDHCP" in props and props[u"useAgeforStatusDHCP"] != "-1"     and float(age) > float( props[u"useAgeforStatusDHCP"]):
 										if dev.states[u"status"] == "up":
 											if u"usePingDOWN" in props and props[u"usePingDOWN"] and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doGWHost_table") == 0:  # did  answer
-												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DPI-2   {} reset exptimer DICT network_table AGE>max, but answers ping {}".format(MAC,props[u"useAgeforStatusDHCP"]))
+												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DPI-2   {} ==> restart exptimer DICT network_table AGE>max, but answers ping {}".format(MAC,props[u"useAgeforStatusDHCP"]))
 												self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 												newStatus = "up"
 											else:
-												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DPI-3   {} set timer for status down	 GW DICT network_table AGE>max:" .format(MAC,props[u"useAgeforStatusDHCP"]))
+												if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-DPI-3   {} set timer for status down GW DICT network_table AGE>max:" .format(MAC,props[u"useAgeforStatusDHCP"]))
 												newStatus = "startDown"
 
 								else: # good data, should be up
@@ -8642,7 +8642,7 @@ class Plugin(indigo.PluginBase):
 				if len(self.blockAccess)>0:	 del self.blockAccess[0]
 				return
 
-			if self.decideMyLog(u"Dict") or self.debugDevs[u"AP"][int(apN)]: self.indiLOG.log(20,u"DC-WF-00   {}-#{} ... vap_table..[sta_table]: {}".format(ipNumber,apN, adDict) )
+			if self.decideMyLog(u"Dict") or self.debugDevs[u"AP"][int(apN)]: self.indiLOG.log(20,u"DC-WF-00   {:13s}#{} ... vap_table..[sta_table]: {}".format(ipNumber,apN, adDict) )
 
 			try:
 				devType = "UniFi"
@@ -8717,7 +8717,7 @@ class Plugin(indigo.PluginBase):
 							props=dev.pluginProps
 							devidd = unicode(dev.id)
 
-							oldAssociated =	 dev.states[u"AP"].split("-")[0]
+							oldAssociated =	 dev.states[u"AP"].split("#")[0]
 							newAssociated =	 ipNumber
 							try:	 oldIdle =	int(self.MAC2INDIGO[xType][MAC][u"idleTime" + suffixN])
 							except:	 oldIdle = 0
@@ -8725,14 +8725,14 @@ class Plugin(indigo.PluginBase):
 							# this is for the case when device switches betwen APs and the old one is still sending.. ignore that one
 							if dev.states[u"AP"].split("-")[0] != ipNumber:
 								try:
-									if oldIdle < 600 and  int(idletime) > oldIdle: 
+									if oldIdle < 600 and int(idletime) > oldIdle: 
 										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic") or self.debugDevs[u"AP"](int[apN]):
-											self.indiLOG.log(20,u"DC-WF-old  {} oldAP:{}; {};  idletime old:{}/new:{} reject entry, still managed by old AP, not switched yet.. expired?".format(ipNumber, dev.states[u"AP"], MAC, oldIdle, idletime ))
-										continue # oldIdle <600 is to catch expired devices
+											self.indiLOG.log(20,u"DC-WF-old  {:15s} oldAP:{}; {};  idletime old:{}/new:{} reject entry, still managed by old AP, not switched yet.. expired?".format(ipNumber, dev.states[u"AP"], MAC, oldIdle, idletime ))
+										continue # oldIdle < 600 is to catch expired devices
 								except:
 									pass
 
-							if dev.states[u"AP"]!= ipNumber+"-#"+unicode(apN):
+							if dev.states[u"AP"] != ipNumber+"-#"+unicode(apN):
 								self.addToStatesUpdateList(dev.id,u"AP", ipNumber+"-#"+unicode(apN))
 
 							self.MAC2INDIGO[xType][MAC][u"inList"+suffixN] = 1
@@ -8804,11 +8804,11 @@ class Plugin(indigo.PluginBase):
 									dev.replaceOnServer()
 
 							if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic") or self.debugDevs[u"AP"][int(apN)]:
-								self.indiLOG.log(20,u"DC-WF-01   {}  {};  {}  ip:{}; GHz:{}; txRate:{}; rxRate:{}; new-oldUPtime:{}-{}; idletime:{}; signal:{};  hostN:{};  powerMgmt:{}; old/new associated {}/{}; curr status:{}".format(ipNumber, MAC, dev.name, ip, GHz, txRate, rxRate,  newUpTime, oldUpTime, idletime, signal, nameCl, powerMgmt, oldAssociated.split("-")[0], newAssociated, dev.states[u"status"]))
+								self.indiLOG.log(20,u"DC-WF-01   {:15s}  {}; {}; ip:{}; GHz:{}; txRate:{}; rxR:{}; new-oldUPtime:{}-{}; idletime:{}; signal:{}; hostN:{}; powerMgmt:{}; old/new assoc {}/{}; curr status:{}".format(ipNumber, MAC, dev.name, ip, GHz, txRate, rxRate,  newUpTime, oldUpTime, idletime, signal, nameCl, powerMgmt, oldAssociated.split("-")[0], newAssociated, dev.states[u"status"]))
 
 
 							# check what is used to determine up / down, make WiFi a priority
-							if ( "useWhatForStatus" not in	props ) or ( "useWhatForStatus"     in props and props[u"useWhatForStatus"].find(u"WiFi") == -1 ):
+							if ( "useWhatForStatus" not in	props ) or ( "useWhatForStatus" in props and props[u"useWhatForStatus"].find(u"WiFi") == -1 ):
 								try:
 									if time.time() - time.mktime(datetime.datetime.strptime(dev.states[u"created"], "%Y-%m-%d %H:%M:%S").timetuple()) <	 60:
 										props = dev.pluginProps
@@ -8834,23 +8834,23 @@ class Plugin(indigo.PluginBase):
 										idleTimeMaxSecs	 = float(props[u"idleTimeMaxSecs"])
 									except:
 										idleTimeMaxSecs = 5
-									if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-01x  {}  {};    using idle with idleTimeMaxSecs:{}  ".format(ipNumber, MAC, idleTimeMaxSecs) )
+									if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-01N  {:15s}  {}; .. using idle with idleTimeMaxSecs:{}  ".format(ipNumber, MAC, idleTimeMaxSecs) )
 
 
-									if u"useWhatForStatusWiFi" in props and ( props[u"useWhatForStatusWiFi"] =="Optimized"):
-										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o1   {}  {}; using  optimized for status" .format(ipNumber, MAC))
+									if u"useWhatForStatusWiFi" in props and ( props[u"useWhatForStatusWiFi"] == "Optimized"):
+										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o1   {:15s}  {}; .. using optimized for status" .format(ipNumber, MAC))
 
 										if oldStatus == "up":
 											expT =self.getexpT(props)
-											if (  float(newUpTime) != float(oldUpTime)	) or  (	 float(idletime)  < idleTimeMaxSecs	 ):
-													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o2-  {}  {}; reset exptimer   use idle uptimes".format(ipNumber, MAC))
+											if (  float(newUpTime) != float(oldUpTime)	) or  ( float(idletime)  < idleTimeMaxSecs ):
+													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o2   {:15s}  {}; ==> restart exptimer use idle uptimes {} < {}  or uptime (new){} != {}(Old)".format(ipNumber, MAC, idletime, idleTimeMaxSecs, newUpTime, oldUpTime))
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 											else:
 												if ( oldAssociated.split("-")[0] != newAssociated ): # ignore new AP
-													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o3-  {}  {}; reset exptimer, associated to new AP:{} from:{}  ".format(ipNumber, MAC, oldAssociated, newAssociated) )
+													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o3-  {:15s}  {}; ==> restart exptimer, associated to new AP:{} from:{}  ".format(ipNumber, MAC, oldAssociated, newAssociated) )
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 												else: # same old
-													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o4-  {}  {}; set timer to expire   use idle  uptimes:".format(ipNumber, MAC))
+													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o4-  {:15s}  {}; set timer to expire  use idle  uptimes:".format(ipNumber, MAC))
 													#self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time() - expT
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()- self.getexpT(props) + 10
 
@@ -8858,15 +8858,15 @@ class Plugin(indigo.PluginBase):
 											if ( float(newUpTime) != float(oldUpTime) ) or (  float(idletime) <= idleTimeMaxSecs ):
 												self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 												self.setImageAndStatus(dev, "up",oldStatus=oldStatus,ts=time.time(),reason=u"DICT "+suffixN+u" "+ipNumber+u" up Optimized")
-												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o5-  {}  {}; status up     use idle: uptimes".format(ipNumber, MAC))
+												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o5-  {:15s}  {}; status up; ==> restart exptimer, use idle: uptimes".format(ipNumber, MAC))
 											else:
 												if ( oldAssociated.split("-")[0] != newAssociated ): # ignore new AP
-													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o6-  {}  {}; status up new AP    use idle uptimes".format(ipNumber, MAC))
+													if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-o6-  {:15s}  {}; status up new AP; restart exptimer, use idle uptimes".format(ipNumber, MAC))
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 
 									elif u"useWhatForStatusWiFi" in props and (props[u"useWhatForStatusWiFi"] =="IdleTime" ):
-										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i0-  {}  {};.  IdleTime..  checking IdleTime vs max:{}  old/new associated {}/{}".format(ipNumber, MAC, props[u"idleTimeMaxSecs"], oldAssociated.split("-")[0], newAssociated)) 
+										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i0-  {:15s}  {};.  IdleTime..  checking IdleTime vs max:{}  old/new associated {}/{}".format(ipNumber, MAC, props[u"idleTimeMaxSecs"], oldAssociated.split("-")[0], newAssociated)) 
 										try:
 											idleTimeMaxSecs	 = float(props[u"idleTimeMaxSecs"])
 										except:
@@ -8875,38 +8875,38 @@ class Plugin(indigo.PluginBase):
 										if float(idletime)	> idleTimeMaxSecs and oldStatus == "up":
 											if ( oldAssociated.split("-")[0] == newAssociated ):
 												if u"usePingDOWN" in props and props[u"usePingDOWN"] and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doWiFiCLIENTSdict") ==0:
-														if self.decideMyLog(u"Logic"): self.indiLOG.log(20,u"DC-WF-i1-  {}  {};  reset exptimer, ping was test up".format(ipNumber, MAC) )
+														if self.decideMyLog(u"Logic"): self.indiLOG.log(20,u"DC-WF-i1-  {:15s}  {}; reset exptimer, ping was test up".format(ipNumber, MAC) )
 														self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 												else:
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()- self.getexpT(props) + 10
 											else:
-												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i2-  {}  {}; status up	new AP     WiFi DICT use idle".format(ipNumber, MAC))
+												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i2-  {:15s}  {}; status up new AP     WiFi DICT use idle".format(ipNumber, MAC))
 												self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 										elif float(idletime)  <= idleTimeMaxSecs:
-											if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i3-  {}  {}; restart exptimer        use idle< max: ".format(ipNumber, MAC))
+											if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i3   {:15s}  {}; ==> restart exptimer, use idle uptimes {} < {}".format(ipNumber, MAC, idletime, idleTimeMaxSecs,))
 											self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 											if oldStatus != "up":
 												self.setImageAndStatus(dev, "up",oldStatus=oldStatus,ts=time.time(),reason=u"DICT "+ipNumber+u" "+suffixN+u" up idle-time")
-												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i4-  {}  {}; status up     use idle".format(ipNumber, MAC))
+												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-i4   {:15s}  {}; status up, use idle".format(ipNumber, MAC))
 
 
 									elif u"useWhatForStatusWiFi" in props and (props[u"useWhatForStatusWiFi"] == "UpTime" ):
-										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-U1   ... using  UpTime for status".format(ipNumber, MAC) )
+										if self.decideMyLog(u"DictDetails", MAC=MAC) or self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-U1   .. using  UpTime for status" )
 										if newUpTime == oldUpTime and oldStatus == "up":
 											if u"usePingUP" in props and props[u"usePingUP"] and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doWiFiCLIENTSdict") == 0:
-													if self.decideMyLog(u"Logic", MAC=MAC):self.indiLOG.log(20,u"DC-WF-u2-  {}   {}; reset exptimer  , ping test ok".format(ipNumber, MAC) )
+													if self.decideMyLog(u"Logic", MAC=MAC):self.indiLOG.log(20,u"DC-WF-u2   {:15s}   {}; ==> restart exptimer, ping test ok".format(ipNumber, MAC) )
 													self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 											#self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time() - self.getexpT(props)
 											else:
-												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u3-  {}  {}; set timer for status down     Uptime is not changed".format(ipNumber, MAC) )
+												if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u3   {:15s}  {}; set timer for status down, Uptime is not changed".format(ipNumber, MAC) )
 
 										elif newUpTime != oldUpTime and oldStatus != u"up":
 											self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
-											self.setImageAndStatus(dev, u"up",oldStatus=oldStatus, ts=time.time(), level=1, text1=dev.name.ljust(30) + " "+MAC+u" status up   WiFi DICT  Uptime",iType=u"DC-WF-U2",reason=u"DICT "+ipNumber+u" "+suffixN+u" up time")
+											self.setImageAndStatus(dev, u"up",oldStatus=oldStatus, ts=time.time(), level=1, text1=dev.name.ljust(30) + " "+MAC+u" status up  WiFi DICT Uptime",iType=u"DC-WF-U2",reason=u"DICT "+ipNumber+u" "+suffixN+u" up time")
 
 										elif oldStatus == u"up":
-											if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u4-  {}  {}; reset exptimer  , normal extension".format(ipNumber, MAC))
+											if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(20,u"DC-WF-u4   {:15s}  {}; ==> restart exptimer, normal extension".format(ipNumber, MAC))
 											self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
 
 
@@ -9036,7 +9036,7 @@ class Plugin(indigo.PluginBase):
 							#self.myLog( text=MAC + " " + dev.name)
 							new = False
 						except:
-							if self.decideMyLog(u"Logic"): self.indiLOG.log(20,MAC + "  " + unicode(self.MAC2INDIGO[xType][MAC]) + " wrong " + devType)
+							if self.decideMyLog(u"Logic"): self.indiLOG.log(20, u"{}  {} wrong {}".format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
 							for dev in indigo.devices.iter(u"props."+isType):
 								if u"MAC" not in dev.states: continue
 								if dev.states[u"MAC"] != MAC: continue
@@ -9044,7 +9044,7 @@ class Plugin(indigo.PluginBase):
 								new = False
 								break
 					if not new:
-							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   {} hostname:{} MAC:{}; GHz:{};  essid:{}; channel:{};  nClients:{};  tx_power:{}; radio:{}".format(ipNumber, hostname, MAC, GHz, essid, channel, nClients, tx_power, radio))
+							if self.decideMyLog(u"DictDetails", MAC=MAC): self.indiLOG.log(20,u"DC-AP---   {} hostname:{} MAC:{}; GHz:{}; essid:{}; channel:{}; nClients:{}; tx_power:{}; radio:{}".format(ipNumber, hostname, MAC, GHz, essid, channel, nClients, tx_power, radio))
 							if u"uptime" in apDict and apDict[u"uptime"] !="":
 								if u"upSince" in dev.states:
 									self.addToStatesUpdateList(dev.id,u"upSince", time.strftime("%Y-%d-%m %H:%M:%S", time.localtime(time.time() - apDict[u"uptime"])) )
