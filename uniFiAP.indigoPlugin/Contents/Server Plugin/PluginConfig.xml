@@ -493,7 +493,17 @@ try: ssh userid@ip# to check</Label>
     <Field id="simpleSeparatoripUGAON" 			type="separator"/>
 
     <Field    id="ipUGAON" type="checkbox"  defaultValue="false"      > 
-		<Label>Gateway (GW) active:..........................................................</Label>  
+		<Label>Gateway (GW/router) active:..................................................</Label>  
+	</Field>
+
+    <Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="false" fontSize="small" fontColor="darkgrey"> 
+	<Label>.                                                                Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info.
+.                                                                The USG3 in some software versions does not show any relevant info in the message logfile, 
+.                                                                   then you will see a lot of listener restart message for GWtail 
+.                                                                   ==> disable the message listener process</Label>  </Field>
+
+    <Field    id="GWtailEnable"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+		<Label>run message listener process on Gateway</Label>  
 	</Field>
 
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
@@ -514,31 +524,6 @@ try: ssh userid@ip# to check</Label>
 		<Label>- ipNumber of your GW:</Label>  
 	</Field>
 
-<!--
-    <Field    id="GWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
-    <Label>.. GW tail command:</Label>  
-        <List>
-            <Option value="off"      > off </Option>
-            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
-            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
-        </List>
-    </Field>
-
-    <Field    id="GWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUGAON" visibleBindingValue="true"     > 
-    <Label>.. GW dict command(empty = off):</Label>  
-        <List>
-            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
-        </List>
-    </Field>
-
-
-    <Field    id="gwPrompt"   type="textfield" defaultValue=":~" visibleBindingId="ipUGAON" visibleBindingValue="true">
-        <Label>...prompt (unix) when logging in:</Label>
-     </Field>
-    <Field    id="gwPrompt2"   			type="label"  alignWithControl="true"  visibleBindingId="ipUGAON" visibleBindingValue="true" readonly="true"> 
-		<Label>try: ssh userid@ip# to check</Label>  
-	</Field>
--->
 
     <Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  

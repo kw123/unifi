@@ -1,10 +1,11 @@
-changes in V 7.33.298 @ 2019-12-19
+changes in V 7.33.302 @ 2019-12-22
 ==================  
    
 1. prompt for expect ssh to unifi devices is now fully auto detect 
    no need to enter in config
 2. removed options for log messages mca-dump commands in config, no need to chnage anything.
 3. cleaned up some logging formats
+4. changed number to float for dev states temperature in prep for indigo 7.5
 
 
 changes in V 7.33.295 @ 2019-12-15
