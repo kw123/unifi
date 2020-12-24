@@ -436,6 +436,9 @@ class Plugin(indigo.PluginBase):
 		self.numberOfActive									= {}
 
 
+		self.createEntryInUnifiDevLogActive					= self.pluginPrefs.get(u"createEntryInUnifiDevLogActive",	False)
+		self.lastcreateEntryInUnifiDevLog 					= time.time()
+
 		self.updateStatesList								= {}
 		self.logCount										= {}
 		self.ipNumbersOf[u"AP"]								= ["" for nn in range(_GlobalConst_numberOfAP)]
@@ -1042,6 +1045,9 @@ class Plugin(indigo.PluginBase):
 			if self.enableMACtoVENDORlookup != valuesDict[u"enableMACtoVENDORlookup"] and self.enableMACtoVENDORlookup == u"0":
 				rebootRequired							+= u" MACVendor lookup changed; "
 			self.enableMACtoVENDORlookup				= valuesDict[u"enableMACtoVENDORlookup"]
+
+			self.createEntryInUnifiDevLogActive			= valuesDict[u"createEntryInUnifiDevLogActive"]
+
 
 	#new for UDM (pro)
 			if self.unifiControllerType.find(u"UDM") > -1 and  valuesDict[u"unifiControllerType"].find(u"UDM") == -1:
@@ -5321,6 +5327,7 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log( u"initialized ... looping")
 		self.indiLOG.log(20,u"initialized ... looping")
 		indigo.server.savePluginPrefs()	
+		self.lastcreateEntryInUnifiDevLog = time.time() 
 		try:
 			self.quitNow = ""
 			while self.quitNow == "":
@@ -5651,6 +5658,7 @@ class Plugin(indigo.PluginBase):
 			self.saveCamerasStats()
 			self.saveDataStats()
 			self.saveMACdata()
+			self.createEntryInUnifiDevLog()
 
 			for dev in indigo.devices.iter(self.pluginId):
 
@@ -6970,8 +6978,38 @@ class Plugin(indigo.PluginBase):
 		return "","error connecting"
 
 
+
 	####-----------------	 ---------
-	def testServerIfOK(self, ipNumber, uType):
+	def createEntryInUnifiDevLog(self):
+		try:
+			if not self.createEntryInUnifiDevLogActive: return 
+			if time.time() - self.lastcreateEntryInUnifiDevLog < 80: return 
+			self.lastcreateEntryInUnifiDevLog = time.time()
+
+			if self.devsEnabled[u"GW"] and not self.devsEnabled[u"UD"]:
+				self.testServerIfOK( self.ipNumbersOf[u"GW"], u"GW", batch=True)
+
+			if self.numberOfActive[u"AP"] > 0:
+				for ll in range(_GlobalConst_numberOfAP):
+					if self.devsEnabled[u"AP"][ll]:
+						if (self.unifiControllerType == "UDM" or self.controllerWebEventReadON > 0) and ll == self.numberForUDM[u"AP"]: continue
+						self.testServerIfOK( self.ipNumbersOf[u"AP"][ll], u"AP", batch=True)
+
+			if self.numberOfActive[u"SW"] > 0:
+				for ll in range(_GlobalConst_numberOfSW):
+					if self.devsEnabled[u"SW"][ll]:
+						if self.unifiControllerType.find(u"UDM") > -1 and ll == self.numberForUDM[u"SW"]: continue
+						self.testServerIfOK( self.ipNumbersOf[u"SW"][ll], u"SW", batch=True)
+	
+		except	Exception, e:
+			if unicode(e) != u"None":
+				self.indiLOG.log(40,u"startConnect: in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return 
+
+
+
+	####-----------------	 ---------
+	def testServerIfOK(self, ipNumber, uType, batch=False):
 		try:
 			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid == u"": 
@@ -6980,6 +7018,12 @@ class Plugin(indigo.PluginBase):
 
 			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(20,u"testServerIfOK: {}".format(cmd) )
+
+			if batch:
+				if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"testServer ssh to {}-{} to create log entry using:{}".format(uType, ipNumber, cmd) )
+				subprocess.Popen(cmd+" &", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+				return 
+
 			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(20,"returned from expect-command: {}".format(ret[0]))
 

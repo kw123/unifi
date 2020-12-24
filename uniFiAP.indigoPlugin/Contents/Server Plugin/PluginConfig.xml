@@ -797,9 +797,18 @@ try: ssh userid@ip# to check</Label>
             <Option value="65536" > 65536</Option>
         </List>
     </Field>
-<Field id="infoLabel229" type="label"> <Label>.           For Mojave error 22: reduce buffer size until error disappears
+<Field id="infoLabel229" type="label" > <Label>.           For Mojave error 22: reduce buffer size until error disappears
 .           In general max value for best performance. 
 .           32k seems to cover 99% of packages. Each listener stream will use one of the buffers
 .           Small read buffer will do several reads when data is &gt; buffer size</Label>  </Field>
+
+    <Field id="infoLabel331" type="label"> <Label>-- unifi device message log entries: </Label>  </Field>
+    <Field    id="createEntryInUnifiDevLogActive" type="checkbox"  defaultValue="false"   > 
+        <Label>.. create message log entries on unifi devices:</Label>  
+    </Field>
+<Field id="infoLabel332" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
+<Label> set to active if you get frequent warnings: no message for xx seconds, restart listener</Label>  </Field>
+
+
 
 </PluginConfig>

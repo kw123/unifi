@@ -1,7 +1,15 @@
+changes in V 7.33.304 @ 2019-12-23
+==================  
+   
+1. force a log entry in /var/log/messages by logging in to unifi devices and logging out 
+  creates entries like: 
+    Wed Dec 23 22:52:25 2020 authpriv.notice dropbear[17590]: Password auth succeeded for ...
+
+
 changes in V 7.33.303 @ 2019-12-23
 ==================  
    
-1. fixed restart issue w listener, whne ap log listener restarted itself it also killed the dict listener, but did not restart that process
+1. fixed restart issue w listener, when ap log listener restarted itself it also killed the dict listener, but did not restart that process
 
 
 changes in V 7.33.302 @ 2019-12-22
