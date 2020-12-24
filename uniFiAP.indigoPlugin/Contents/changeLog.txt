@@ -1,9 +1,10 @@
-changes in V 7.33.304 @ 2019-12-23
+changes in V 7.33.305 @ 2019-12-23
 ==================  
    
 1. force a log entry in /var/log/messages by logging in to unifi devices and logging out 
   creates entries like: 
     Wed Dec 23 22:52:25 2020 authpriv.notice dropbear[17590]: Password auth succeeded for ...
+
 
 
 changes in V 7.33.303 @ 2019-12-23
