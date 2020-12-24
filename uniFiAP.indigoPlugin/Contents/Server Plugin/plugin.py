@@ -6750,7 +6750,7 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(20, "{} {} forcing restart of msg after due to error count in json".format(uType, ipNumber))
 					errorCount =0
 					lastForcedRestartTimeStamp = time.time()
-					self.killIfRunning(ipNumber, "")
+					self.killIfRunning(ipNumber, self.connectParams[u"expectCmdFile"][uType] )
 
 				## force a logfile respnse by logging in. this is needed to make the tail -f pis send a message to make sure we are still alive
 				if (time.time() - lastForcedRestartTimeStamp) > max(30.,minWaitbeforeRestart*0.9):
