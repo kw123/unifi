@@ -1,4 +1,12 @@
-changes in V 7.33.305 @ 2019-12-23
+changes in V 7.33.307 @ 2021-01-04
+==================  
+   
+1. fixed:
+in Line 5559 has error='int' object has no attribute '__getitem__'
+
+
+
+changes in V 7.33.305 @ 2020-12-23
 ==================  
    
 1. force a log entry in /var/log/messages by logging in to unifi devices and logging out 
@@ -7,13 +15,13 @@ changes in V 7.33.305 @ 2019-12-23
 
 
 
-changes in V 7.33.303 @ 2019-12-23
+changes in V 7.33.303 @ 2020-12-23
 ==================  
    
 1. fixed restart issue w listener, when ap log listener restarted itself it also killed the dict listener, but did not restart that process
 
 
-changes in V 7.33.302 @ 2019-12-22
+changes in V 7.33.302 @ 2020-12-22
 ==================  
    
 1. prompt for expect ssh to unifi devices is now fully auto detect 
@@ -23,7 +31,7 @@ changes in V 7.33.302 @ 2019-12-22
 4. changed number to float for dev states temperature in prep for indigo 7.5
 
 
-changes in V 7.33.295 @ 2019-12-15
+changes in V 7.33.295 @ 2020-12-15
 ==================  
    
 1. expect prompt string is now fully auto detect, uses 2 last character, most likely #_  (space)
@@ -31,7 +39,7 @@ changes in V 7.33.295 @ 2019-12-15
    Using the last 4 characters does not work as it likely contains the system version# and that might be differnt from AP to AP or switch to switch
 
 
-changes in V 7.33.294 @ 2019-12-14
+changes in V 7.33.294 @ 2020-12-14
 ==================  
    
 1. add a check, if prompt on unifi device does not work, 
@@ -39,7 +47,7 @@ changes in V 7.33.294 @ 2019-12-14
    in most cases: "xx# " (and # needs to get a \) so "xx\# "
 
 
-changes in V 7.33.293 @ 2019-12-13
+changes in V 7.33.293 @ 2020-12-13
 ==================  
    
 1. fixed prompt on unifi wifi AP has changed.
@@ -49,13 +57,13 @@ changes in V 7.33.293 @ 2019-12-13
  
 
 
-changes in V 7.33.291 @ 2019-11-21
+changes in V 7.33.291 @ 2020-11-21
 ==================  
    
 1. added check to catch not properly set up AP devices in config ("AP" error in lne 8537)
 
 
-changes in V 7.33.290 @ 2019-10-21
+changes in V 7.33.290 @ 2020-10-21
 ==================  
    
 1. added config optiuon to set folder name for unifi variables
@@ -63,39 +71,39 @@ changes in V 7.33.290 @ 2019-10-21
    now you need to set it in config.. default is UNIFI
 
  
-changes in V 7.33.289 @ 2019-10-20
+changes in V 7.33.289 @ 2020-10-20
 ==================  
    
 1. streamlining processes 
 2. unicode updates
 
 
-changes in V 7.33.288 @ 2019-10-10
+changes in V 7.33.288 @ 2020-10-10
 ==================  
    
 1. unicode format changes
 
 
-changes in V 7.33.286 @ 2019-10-07
+changes in V 7.33.286 @ 2020-10-07
 ==================  
   
 1. some menu formatting changes
 
 
-changes in V 7.33.285 @ 2019-10-05
+changes in V 7.33.285 @ 2020-10-05
 ==================  
   
 1. fixed all  "{}".format(dev.name.encode("utf8") to u"{}".format(dev.name)
 
 
 
-changes in V 7.33.284 @ 2019-09-12
+changes in V 7.33.284 @ 2020-09-12
 ==================  
   
 1. fixed error isNew dow not exist -- only happened when UDM debug on
 
 
-changes in V 7.33.283 @ 2019-08-14
+changes in V 7.33.283 @ 2020-08-14
 ==================  
   
 1. added dev/states for gateway device:
@@ -114,24 +122,24 @@ changes in V 7.33.283 @ 2019-08-14
         if you would like to keep eg publicIP as your defined public ip number. if set to copy the wan2 values will be used to overwrite the wan xxx values.
  
 
-changes in V 7.33.282 @ 2019-08-13
+changes in V 7.33.282 @ 2020-08-13
 ==================  
   
 1. added property (device edit) to set behaviour at wan fail over event
 
-changes in V 7.33.280 @ 2019-08-13
+changes in V 7.33.280 @ 2020-08-13
 ==================  
   
 1. added dev/state for each wan state a  wan2 state:
    eg: wanPingTime and wan2PingTime
 
 
-changes in V 7.33.278 @ 2019-08-13
+changes in V 7.33.278 @ 2020-08-13
 ==================  
   
 1. added dev/state wanSetup: "wan1 only"/"failover"/"wan down"/"load balancing"
 
-changes in V 7.33.277 @ 2019-08-13
+changes in V 7.33.277 @ 2020-08-13
 ==================  
   
 1. added dev/states for gateway device:
@@ -139,7 +147,7 @@ changes in V 7.33.277 @ 2019-08-13
 2. fixed some logic for fail over
 
 
-changes in V 7.33.275 @ 2019-08-12
+changes in V 7.33.275 @ 2020-08-12
 ==================  
   
 1. added dev/states for gateway device:
@@ -151,7 +159,7 @@ changes in V 7.33.275 @ 2019-08-12
 
 
 
-changes in V 7.32.275  @ 2019-07-25
+changes in V 7.32.275  @ 2020-07-25
 ==================  
   
 1. went through all controller web api commands to set to proper GET PUT PUSH
@@ -161,7 +169,7 @@ only for PUT use -X PUT (ie for enable disable devices)
 
 
 
-changes in V 7.32.274  @ 2019-07-24
+changes in V 7.32.274  @ 2020-07-24
 ==================  
   
 1. went through all controller web api commands to set to proper GET PUT PUSH
@@ -169,14 +177,14 @@ changes in V 7.32.274  @ 2019-07-24
    use blank instead of -X GET 
 
 
-changes in V 7.32.273  @ 2019-07-23
+changes in V 7.32.273  @ 2020-07-23
 ==================  
   
 1. for curl and std controller do NOT use -X GET but blank
    for curl and UDM controller use -X GET
 
 
-changes in V 7.32.270  @ 2019-07-23
+changes in V 7.32.270  @ 2020-07-23
 ==================  
   
 1. requesting AP info from UDM only not UDM-pro
@@ -191,54 +199,54 @@ changes in V 7.32.270  @ 2019-07-23
 
 
 
-changes in V 7.31.262  @ 2019-07-12
+changes in V 7.31.262  @ 2020-07-12
 ==================  
 
 1. added UDM-pro GW device
 2. added unifiApiLoginPath etc  to print config
 
-changes in V 7.31.255  @ 2019-07-11
+changes in V 7.31.255  @ 2020-07-11
 ==================  
 
 1. added function to get tempereatures from UDM-pro machine w ssh and sensors -u command
 
 
-changes in V 7.31.248  @ 2019-05-28
+changes in V 7.31.248  @ 2020-05-28
 ==================  
 
 1. removed delete and recreate of Unifi_With_Status_Change at startup. is now handled by supressing logging
 
 
-changes in V 7.31.247  @ 2019-05-26
+changes in V 7.31.247  @ 2020-05-26
 ==================  
 
 1. fix port # in "set parameters" button from 8433 to 8443
 
 
-changes in V 7.31.246  @ 2019-05-24
+changes in V 7.31.246  @ 2020-05-24
 ==================  
 
 1. added button in config to preselect the most likely parameters for STd/UDM/UDMpro 
 
-changes in V 7.31.244  @ 2019-05-23
+changes in V 7.31.244  @ 2020-05-23
 ==================  
 
 1. changed option in config to better explain the options for std vs UDM vs UDM pro
 
 
-changes in V 7.31.242  @ 2019-05-23
+changes in V 7.31.242  @ 2020-05-23
 ==================  
 
 1. changed ssh login prompt check in expect from (yes/no)?  to (yes/no
    as some prompts now show: (yes/no/[fingerprint])?
 
-changes in V 7.31.241  @ 2019-05-23
+changes in V 7.31.241  @ 2020-05-23
 ==================  
 
 1. fixed error :  has error=global name 'debLeve' is not defined 
 2. added dubug info in case login not successful
 
-changes in V 7.31.239  @ 2019-05-15
+changes in V 7.31.239  @ 2020-05-15
 ==================  
 
 1. minor menue text changes
@@ -247,7 +255,7 @@ changes in V 7.31.239  @ 2019-05-15
 
 
 
-changes in V 7.31.238  @ 2019-05-12
+changes in V 7.31.238  @ 2020-05-12
 ==================  
 
 1.  added logging statements in case userid/passwd ip number are wrong
@@ -263,7 +271,7 @@ changes in V 7.31.238  @ 2019-05-12
 9.  added vlan name to device(client) states (info from switch devices port_table/mac_table)
 10. changed dev-state wanRunDate to wanSpeedTest, gives the date when last speedtest was done
 
-changes in V 7.30.219  @ 2019-05-08
+changes in V 7.30.219  @ 2020-05-08
 ==================  
 
 1.  added logging statements in case userid/passwd ip number are wrong
@@ -271,14 +279,14 @@ changes in V 7.30.219  @ 2019-05-08
 3.  fixed format error
 4.  added space in button menue to imporve readability
 
-changes in V 7.30.215  @ 2019-05-06
+changes in V 7.30.215  @ 2020-05-06
 ==================  
 
 1.  added usage of mca dump dict to feed wifi dict analysis
 2.  added option for last seen  from API alluser data report for expiration
 
 
-changes in V 7.30.214  @ 2019-05-05
+changes in V 7.30.214  @ 2020-05-05
 ==================  
 
 1.  added check if we have continuous records read fro UDm event dump
@@ -290,25 +298,25 @@ changes in V 7.30.214  @ 2019-05-05
 
 
 
-changes in V 7.30.213  @ 2019-05-04
+changes in V 7.30.213  @ 2020-05-04
 ==================  
 
 1.  removed not UDM filter
 
-changes in V 7.30.212  @ 2019-05-04
+changes in V 7.30.212  @ 2020-05-04
 ==================  
 
 1.  added debug statements for UDM  tracking 
 2.  cleaned up some code
 
 
-changes in V 7.30.211  @ 2019-05-03
+changes in V 7.30.211  @ 2020-05-03
 ==================  
 
 1.  added debug statements for UDM for disconnect
 
 
-changes in V 7.30.210  @ 2019-05-03
+changes in V 7.30.210  @ 2020-05-03
 ==================  
 
 1.  added debug statements for UDM
@@ -318,51 +326,51 @@ changes in V 7.30.210  @ 2019-05-03
 5.  ignore event records that are older than last event for UDM
 
 
-changes in V 7.30.198  @ 2019-05-02
+changes in V 7.30.198  @ 2020-05-02
 ==================  
 
 1.  added some more config checks for UDM
 
 
-changes in V 7.30.197  @ 2019-05-01
+changes in V 7.30.197  @ 2020-05-01
 ==================  
 
 1.  fixed isType not defined
 
-changes in V 7.30.196  @ 2019-04-29
+changes in V 7.30.196  @ 2020-04-29
 ==================  
 
 1.  fixed device cretaion for UDM devcies
 2. controller ON not needed anymore for UDM active
 
-changes in V 7.30.195  @ 2019-04-29
+changes in V 7.30.195  @ 2020-04-29
 ==================  
 
 1.  fixed devName not defined 
 
-changes in V 7.30.194  @ 2019-04-29
+changes in V 7.30.194  @ 2020-04-29
 ==================  
 
 1.  fixed error message for UDM 
 
-changes in V 7.30.193  @ 2019-04-29
+changes in V 7.30.193  @ 2020-04-29
 ==================  
 
 1.  fixed error message for UDM 
 
-changes in V 7.30.192  @ 2019-04-29
+changes in V 7.30.192  @ 2020-04-29
 ==================  
 
 1.  changed -PUT to -GET for several http commands to support UDM
 
 
-changes in V 7.30.191  @ 2019-04-26
+changes in V 7.30.191  @ 2020-04-26
 ==================  
 
 1.  fixed error in Line 989 has error=list assignment index out of range
 	for UDM settings in config
 
-changes in V 7.30.190  @ 2019-04-26
+changes in V 7.30.190  @ 2020-04-26
 ==================  
 
 1.  clarified config lables for UDM vs UDM-pro
@@ -370,7 +378,7 @@ changes in V 7.30.190  @ 2019-04-26
 
 
 
-changes in V 7.30.189  @ 2019-04-25
+changes in V 7.30.189  @ 2020-04-25
 ==================  
 
 1.  added option for UDM as its own section
@@ -382,7 +390,7 @@ changes in V 7.30.189  @ 2019-04-25
 3.  added option to ignore all new devices in config
 
 
-changes in V 7.29.187  @ 2019-04-23
+changes in V 7.29.187  @ 2020-04-23
 ==================  
 
 1.  added debug options for unfi devices
@@ -391,7 +399,7 @@ changes in V 7.29.187  @ 2019-04-23
     if managing properly now, no plugin restart done if noc hange. 
 
 
-changes in V 7.29.186  @ 2019-04-23
+changes in V 7.29.186  @ 2020-04-23
 ==================  
 
 1.  added addition userid/passwd for UDM devices
@@ -401,7 +409,7 @@ changes in V 7.29.186  @ 2019-04-23
     will delete the ip# line in userid/.ssh/known_hosts
 
 
-changes in V 7.28.186  @ 2019-04-22
+changes in V 7.28.186  @ 2020-04-22
 ==================  
 
 1. minor format changes
@@ -410,7 +418,7 @@ changes in V 7.28.186  @ 2019-04-22
     history has several devices connected to the same POE port
 
 
-changes in V 7.28.185  @ 2019-02-27
+changes in V 7.28.185  @ 2020-02-27
 ==================  
 
 1. fixed uniFiAP Error in Line 3909 has error=local variable 'ret' 
@@ -418,7 +426,7 @@ changes in V 7.28.185  @ 2019-02-27
 
 
 
-changes in V 7.28.183  @ 2019-02-25
+changes in V 7.28.183  @ 2020-02-25
 ==================  
 
 1. fine tuning of web log pulling
@@ -427,14 +435,14 @@ changes in V 7.28.183  @ 2019-02-25
 
 
 
-changes in V 7.28.178  @ 2019-02-24
+changes in V 7.28.178  @ 2020-02-24
 ==================  
 
 1. added web log pull for AP up / down info 
 
 
 
-changes in V 7.28.177  @ 2019-02-24
+changes in V 7.28.177  @ 2020-02-24
 ==================  
 
 1. added config options to copy backup files from controller.
@@ -443,7 +451,7 @@ changes in V 7.28.177  @ 2019-02-24
     backupfiles will be in 
       /Library/Application Support/Perceptive Automation/Indigo x.x/Preferences/Plugins/com.karlwachs.uniFiAP/backup/
 
-changes in V 7.28.176  @ 2019-02-24
+changes in V 7.28.176  @ 2020-02-24
 ==================  
 
 1. added config options UDM debug
@@ -451,14 +459,14 @@ changes in V 7.28.176  @ 2019-02-24
 3. added UDM w 5 ports
 
 
-changes in V 7.28.169  @ 2019-02-22
+changes in V 7.28.169  @ 2020-02-22
 ==================  
 
 1. added config options for UDM-(pro) 
 
 
 
-changes in V 7.27.169  @ 2019-02-09
+changes in V 7.27.169  @ 2020-02-09
 ==================  
 
 1. will suppress certain states and variables from being logged in SQL logger. only works w indigo 7.4.1

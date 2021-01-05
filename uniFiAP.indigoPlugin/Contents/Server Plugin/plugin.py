@@ -5528,7 +5528,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(40,u"in Line {} has error={}\ncommunication to indigo is interrupted".format(sys.exc_traceback.tb_lineno, e))
 						return
 					if unicode(e).find(u"not found in database") >-1:
-						deldev[devid] =1
+						deldev[devid] =[-1,u"dev w devID:{} does not exist".format(devid)"
 						continue
 					self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 					return
