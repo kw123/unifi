@@ -1,8 +1,21 @@
+changes in V 7.34.308 @ 2021-01-20
+==================  
+   
+1. added support for new unifi op system for controller os v 6.x ++
+   eg UDMpro has unifi ops sys, but also genx cloud key can be upgraded to v 6.
+   most reports work, but not stat reports (daily ,...)
+
+2. will now autodetect the controller ports and login and api web pages, 
+   no config setup required for:
+   ie 8443/ 433;  /proxy/network/api/s/ vs /api/s; /api/auth/login vs /api/login
+
+
 changes in V 7.33.308 @ 2021-01-05
 ==================  
    
 1. fixed:
 in Line 5559 has error='int' object has no attribute '__getitem__'
+
 
 
 

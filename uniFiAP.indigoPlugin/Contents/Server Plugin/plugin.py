@@ -333,7 +333,7 @@ class Plugin(indigo.PluginBase):
 		self.mountPathVM									= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
 		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
 		self.unifiNVRSession								= ""
-
+		self.unifiControllerOS 								= ""
 
 		self.menuXML										= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
 		self.pluginPrefs["menuXML"]							= json.dumps(self.menuXML)
@@ -1002,6 +1002,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
 			self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
 
+			self.unifiControllerOS						= ""
 
 			try:	self.unifigetBlockedClientsDeltaTime =  int(valuesDict[u"unifigetBlockedClientsDeltaTime"])
 			except: self.unifigetBlockedClientsDeltaTime = 999999999
@@ -1032,7 +1033,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiCloudKeyIP						= valuesDict[u"unifiCloudKeyIP"]
 			self.unifiCloudKeyPort						= valuesDict[u"unifiCloudKeyPort"]
 			self.unifiCloudKeyMode						= valuesDict[u"unifiCloudKeyMode"]
-			self.unifiCloudKeySiteName					= valuesDict[u"unifiCloudKeySiteName"]
+			#self.unifiCloudKeySiteName					= valuesDict[u"unifiCloudKeySiteName"]
 
 
 			self.ignoreNeighborForFing					= valuesDict[u"ignoreNeighborForFing"]
@@ -3465,6 +3466,10 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmPrint5MinutesInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		if self.unifiControllerOS == "unifi_os":
+			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
+			return 
+			
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 43200000 # 86400000/2 = 1/2 day
 		data = self.executeCMDOnController(data={u"attrs": [u"bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.ap", jsonAction=u"returnData", cmdType=u"post")
@@ -3504,6 +3509,9 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmPrint48HourInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		if self.unifiControllerOS == "unifi_os":
+			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
+			return 
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 2*86400000
 		data = self.executeCMDOnController(data={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.site", jsonAction=u"returnData", cmdType=u"post")
@@ -3511,6 +3519,9 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmPrint7DayInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		if self.unifiControllerOS == "unifi_os":
+			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
+			return 
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 7*86400000
 		data = self.executeCMDOnController(data={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.site", jsonAction=u"returnData", cmdType=u"post")
@@ -4293,15 +4304,64 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(40,u"in Line {} has error={}\n system info:\n>>{}<<".format(sys.exc_traceback.tb_lineno, e, unicode(ret)[0:100]) )
 		return valuesDict
 
+
+
+	####-----------------	 ---------
+	def getunifiOSAndPort(self):
+		try:
+			for ii in range(3):
+				ret = ["",""]
+				# get port and which unifi os:
+				if (self.unifiControllerOS == "" or self.unifiCloudKeyPort not in ["8443","443"]):
+					self.unifiControllerOS = ""
+					self.unifiCloudKeyPort = ""
+					for port in ["443","8443"]:
+						# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print later http code)
+						cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+u"'"
+						ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+						self.indiLOG.log(20,u"getunifiOSAndPort cmd:{}; .. ret:{}".format(cmdOS, ret) )
+						if ret[0] == "200": 
+							self.unifiControllerOS = "unifi_os"
+							self.unifiCloudKeyPort = port
+							self.indiLOG.log(20,u"unifi OS:{}, port#:{}".format(self.unifiControllerOS, port) )
+							self.unifiApiLoginPath = "/api/auth/login"
+							self.unifiApiWebPage = "/proxy/network/api/s/"
+							self.unifiCloudKeySiteName = u"default"
+							return True
+						elif ret[0] == "302": 
+							self.unifiControllerOS = "std"
+							self.unifiCloudKeyPort = port
+							self.indiLOG.log(20,u"unifi OS:{}, port#:{}".format(self.unifiControllerOS, port) )
+							self.unifiApiLoginPath = "/api/auth/login"
+							self.unifiApiWebPage = "/api/s/"
+							self.unifiCloudKeySiteName = u"default"
+							return True
+						else:
+							pass
+				
+			if self.unifiControllerOS == "": 
+				self.indiLOG.log(30,u"bad return from unifi controller, no os and / port found")
+				return False
+			return True
+		except	Exception, e:
+			if unicode(e) != u"None":
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
+				self.indiLOG.log(40,u"getunifiOSAndPort ret:\n>>{}<<".format(unicode(ret)[0:100]) )
+
 	####-----------------	 ---------
 	def executeCMDOnController(self, data={}, pageString=u"",jsonAction=u"", startText="", cmdType=u"put" ,cmdTypeForce = False):
 
 		try:
-			if not self.isValidIP(self.unifiCloudKeyIP): return {}
-			if  self.unifiCloudKeyMode.find(u"ON") == -1 and self.unifiCloudKeyMode != u"UDM": return {}
+			if not self.isValidIP(self.unifiCloudKeyIP): return []
+			if  self.unifiCloudKeyMode.find(u"ON") == -1 and self.unifiCloudKeyMode != u"UDM": return []
 
 
-			if self.unfiCurl.find(u"curl") > -1:
+			# get port and which unifi os:
+			if not self.getunifiOSAndPort(): return []
+
+
+			# now execute commands
+			if self.unfiCurl.find(u"curl") > -1 and self.unifiControllerOS == "std":
 				#cmdL  = curl  --insecure -c /tmp/unifiCookie -H "Content-Type: application/json"  --data '{"username":"karlwachs","password":"457654aA.unifi"}' https://192.168.1.2:8443/api/login
 				#cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams[u"UserID"]["webCTRL"],"password":self.connectParams[u"PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
 				cmdL  = self.unfiCurl+u" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({u"username":self.connectParams[u"UserID"][u"webCTRL"],u"password":self.connectParams[u"PassWd"][u"webCTRL"],u"strict":self.useStrictToLogin})+u"' 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+u"'"
@@ -4372,45 +4432,54 @@ class Plugin(indigo.PluginBase):
 
 
 			############# does not work on OSX	el capitan ssl lib too old	##########
-			elif self.unfiCurl =="requests":
-				if self.unifiControllerSession =="" or (time.time() - self.lastUnifiCookieRequests) > 60: # every 60 secs refresh cert
+			else: # use requests or unifi os
+				if self.unifiControllerSession == "" or (time.time() - self.lastUnifiCookieRequests) > 60: # every 60 secs refresh cert
 					self.unifiControllerSession	 = requests.Session()
 					url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
-					dataLogin = json.dumps({"username":self.connectParams[u"UserID"][u"unixDevs"],"password":self.connectParams[u"PassWd"][u"unixDevs"],"strict":self.useStrictToLogin})
-					resp  = self.unifiControllerSession.post(url, data = dataLogin, verify=False)
+					dataLogin = json.dumps({"username":self.connectParams[u"UserID"][u"webCTRL"],"password":self.connectParams[u"PassWd"][u"webCTRL"],"strict":self.useStrictToLogin})
+					resp  = self.unifiControllerSession.post(url,  headers={"Accept": "application/json", "Content-Type": "application/json", "referer": "/login"}, data = dataLogin, verify=False)
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,u"Connection: requests login {}".format(resp.text) )
 					self.lastUnifiCookieRequests =time.time()
 
 
 				if data =={}: dataDict = ""
 				else:		  dataDict = json.dumps(data)
+				headers = {"Accept": "application/json", "Content-Type": "application/json"}
 				url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
+
+				cookies_dict = requests.utils.dict_from_cookiejar(self.unifiControllerSession.cookies)
+				if self.unifiControllerOS == "unifi_os":
+					cookies = {"TOKEN": cookies_dict.get('TOKEN')}
+				else:
+					cookies = {"unifises": cookies_dict.get('unifises'), "csrf_token": cookies_dict.get('csrf_token')}
+
 
 				if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(20,u"Connection: requests: {}  {}".format(url, dataDict) )
 				if startText !="":						self.indiLOG.log(20,u"Connection: requests: {}".format(startText) )
 				try:
-						if	 cmdType == "put":	 							resp = self.unifiControllerSession.put(url,data = dataDict)
-						elif cmdType == "post":	 							resp = self.unifiControllerSession.post(url,data = dataDict)
-						elif cmdType == "get":	 							resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
-						elif self.unifiControllerType.find(u"UDM") > -1:	resp = self.unifiControllerSession.get(url,data = dataDict, stream=True)
-						else:					 							resp = self.unifiControllerSession.put(url,data = dataDict)
+						if	 cmdType == "put":	 							resp = self.unifiControllerSession.put(url,  data= dataDict, cookies=cookies, headers=headers, verify=False)
+						elif cmdType == "post":	 							resp = self.unifiControllerSession.post(url, data= dataDict, cookies=cookies, headers=headers, verify=False)
+						elif cmdType == "get":	 							resp = self.unifiControllerSession.get(url,  data= dataDict, cookies=cookies, headers=headers, verify=False, stream=True)
+						elif self.unifiControllerType.find(u"UDM") > -1:	resp = self.unifiControllerSession.get(url,  data= dataDict, cookies=cookies, headers=headers, verify=False, stream=True)
+						else:					 							resp = self.unifiControllerSession.put(url,  data= dataDict, cookies=cookies, headers=headers, verify=False)
   
-						response = resp.text.decode(u"utf8")
 						try:
-							jj = json.loads(response)
-						except :
-							self.indiLOG.log(40,u"executeCMDOnController has error, no json object returned: {}".format(response))
+							respText = resp.text
+							jj = json.loads(respText)
+						except	Exception, e:
+							self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+							self.indiLOG.log(40,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}, cmdType:{}, dataDict:{}\n resp: {}".format(self.unifiControllerOS, cmdType, url, dataDict,unicode(respText)[0:800]))
 							return []
  
 
-						if jj["meta"]["rc"] != "ok" :
-							self.indiLOG.log(40,u"error:>> {} Reconnect".format(resp))
+						if jj["meta"]["rc"] != "ok":
+							self.indiLOG.log(40,u"error:>> url:{}, resp:{}".format(url, respText[0:100]))
 							return []
 
 						if self.decideMyLog(u"ConnectionRET"):	
-							self.indiLOG.log(20,u"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(response) )
+							self.indiLOG.log(20,u"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(respText) )
 						elif self.decideMyLog(u"ConnectionCMD"):
-								self.indiLOG.log(20,u"Connection to {}: returns >>{}...<<".format(responset[0:100]) )
+								self.indiLOG.log(20,u"Connection to {}: returns >>{}...<<".format(respText[0:100]) )
 
 						if  jsonAction ==u"print":
 							self.indiLOG.log(20,u"Reconnect: executeCMDOnController info\n{}".format(json.dumps(jj["data"],sort_keys=True, indent=2)) )
@@ -6912,7 +6981,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception, e:
 			if unicode(e) != u"None":
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-		self.indiLOG.log(30,u"getMessages: stoppoing listener process for :{} - {}".format(uType, ipNumber )  )
+		self.indiLOG.log(30,u"getMessages: stopping listener process for :{} - {}".format(uType, ipNumber )  )
 		return
 
 	### start the expect command to get the logfile
