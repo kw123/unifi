@@ -4316,11 +4316,11 @@ class Plugin(indigo.PluginBase):
 				if self.unifiControllerOS != "" and self.unifiCloudKeyPort in ["8443","443"]: return True
 				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. port>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, self.unifiCloudKeyPort ) )
 				self.executeCMDOnControllerReset()
-				for port in ["443","8443"]:
+				for port in ["8443","443"]:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print later http code)
-					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+u"'"
+					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-					self.indiLOG.log(10,u"getunifiOSAndPort ret code:{}".format(ret) )
+					self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(port, ret) )
 					if ret[0] == "200": 
 						self.unifiControllerOS = "unifi_os"
 						self.unifiCloudKeyPort = port
@@ -4332,7 +4332,7 @@ class Plugin(indigo.PluginBase):
 					elif ret[0] == "302": 
 						self.unifiControllerOS = "std"
 						self.unifiCloudKeyPort = port
-						self.unifiApiLoginPath = "/api/auth/login"
+						self.unifiApiLoginPath = "/api/login"
 						self.unifiApiWebPage = "/api/s/"
 						self.unifiCloudKeySiteName = u"default"
 						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
