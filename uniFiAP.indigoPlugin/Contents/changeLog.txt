@@ -1,3 +1,11 @@
+changes in V 7.34.309 @ 2021-01-20
+==================  
+   
+1. fixed: Error in Line 6023 has error=global name 'mac' is not defined
+
+2. added a retry to get the port Numebr of the controller
+
+
 changes in V 7.34.308 @ 2021-01-20
 ==================  
    
