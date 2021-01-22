@@ -4314,13 +4314,13 @@ class Plugin(indigo.PluginBase):
 				ret = ["",""]
 				# get port and which unifi os:
 				if self.unifiControllerOS != "" and self.unifiCloudKeyPort in ["8443","443"]: return True
-				self.indiLOG.log(10,u"getunifiOSAndPort given os>{}< port:{}".format( self.unifiControllerOS, self.unifiCloudKeyPort ) )
+				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. port>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, self.unifiCloudKeyPort ) )
 				self.executeCMDOnControllerReset()
 				for port in ["443","8443"]:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print later http code)
 					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-					self.indiLOG.log(10,u"getunifiOSAndPort ret code:{}".format( ret) )
+					self.indiLOG.log(10,u"getunifiOSAndPort ret code:{}".format(ret) )
 					if ret[0] == "200": 
 						self.unifiControllerOS = "unifi_os"
 						self.unifiCloudKeyPort = port
@@ -6034,22 +6034,21 @@ class Plugin(indigo.PluginBase):
 
 	### reset exp timer if it is shorter than the device exp time
 	####-----------------	 ---------
-	def expTimerSettingsOK(self,xType,MAC,	dev):
+	def expTimerSettingsOK(self, xType, MAC,	dev):
 		try:
+			if not self.fixExpirationTime: 		return True
 			props = dev.pluginProps
-			if u"expirationTime" not in props:
-				return True
-			if not self.fixExpirationTime: return True
+			if u"expirationTime" not in props:	return True
 
 			if float(self.readDictEverySeconds[xType]) <  float(props[u"expirationTime"]): return True
 			newExptime	= float(self.readDictEverySeconds[xType])+10
-			self.indiLOG.log(10,u"checking expiration timer settings {} updating exptime for {} to {} as it is shorter than reading dicts: {}+10".format(mac, dev.name, newExptime, self.readDictEverySeconds[xType]))
+			self.indiLOG.log(10,u"checking expiration timer settings {} updating exptime for {} to {} as it is shorter than reading dicts: {}+10".format(MAC, dev.name, newExptime, self.readDictEverySeconds[xType]))
 			props[u"expirationTime"] = newExptime
 			dev.replacePluginPropsOnServer(props)
 			return False
 
 		except	Exception, e:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return True
 
 	###	 kill expect pids if running
