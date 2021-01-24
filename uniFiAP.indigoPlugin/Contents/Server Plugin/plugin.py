@@ -4445,7 +4445,7 @@ class Plugin(indigo.PluginBase):
 							try:
 								jj = json.loads(ret0)
 							except :
-								self.indiLOG.log(40,u"UNIFI executeCMDOnController to {} has error, no json object returned: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret0,ret1))
+								self.indiLOG.log(40,u"UNIFI executeCMDOnController to {} has error, no json object returned: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret))
 								self.executeCMDOnControllerReset(wait=True)
 								continue
 
@@ -4510,7 +4510,7 @@ class Plugin(indigo.PluginBase):
 							continue
 						if "meta" in jj and "rc" in jj["meta"] and jj["meta"]["rc"] == "ok" and "data" in jj and  "name" in jj["data"][0]:
 							self.unifiCloudKeySiteName = jj["data"][0]["name"]
-							self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site id name to >>{}<<\n{}".format(self.unifiCloudKeySiteName))
+							self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site id name to >>{}<<".format(self.unifiCloudKeySiteName))
 						else:
 							self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site not found resp:{}".format(jj))
 							continue
