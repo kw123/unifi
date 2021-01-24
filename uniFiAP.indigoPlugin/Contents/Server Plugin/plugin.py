@@ -360,7 +360,7 @@ class Plugin(indigo.PluginBase):
 		self.sendUpdateToFingscanList						= {}
 		self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
 		self.sendBroadCastEventsList						= []
-		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", "default")
+		self.unifiCloudKeySiteName							= ""# self.pluginPrefs.get(u"unifiCloudKeySiteName", "default")
 		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
 
 		self.numberForUDM									= {"AP":4,"SW":12}
@@ -3460,7 +3460,7 @@ class Plugin(indigo.PluginBase):
 			useLimit = 5*limit
 
 		data = self.executeCMDOnController(data={}, pageString=u"/stat/event/", jsonAction=u"returnData", cmdType=u"get")
-		self.unifsystemReport1(data,False,u"     ==EVENTs ..;  last "+unicode(limit)+u" events ;     -- "+ltype+u" login events ==",limit,PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
+		self.unifsystemReport1(data,False,u"     ==EVENTs ..;  last "+unicode(limit)+u" events ;     -- "+ltype+u" login events ==", limit, PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
 		self.addToMenuXML(valuesDict)
 
 		return
@@ -4326,16 +4326,16 @@ class Plugin(indigo.PluginBase):
 						self.unifiCloudKeyPort = port
 						self.unifiApiLoginPath = "/api/auth/login"
 						self.unifiApiWebPage = "/proxy/network/api/s/"
-						self.unifiCloudKeySiteName = u"default"
-						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
+						#self.unifiCloudKeySiteName = u"default"
+						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}, unifiCloudKeySiteName:{}<".format(self.unifiControllerOS, port, self.unifiCloudKeyIP, self.unifiCloudKeySiteName) )
 						return True
 					elif ret[0] == "302": 
 						self.unifiControllerOS = "std"
 						self.unifiCloudKeyPort = port
 						self.unifiApiLoginPath = "/api/login"
 						self.unifiApiWebPage = "/api/s/"
-						self.unifiCloudKeySiteName = u"default"
-						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
+						#self.unifiCloudKeySiteName = u"default"
+						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}, unifiCloudKeySiteName:{}<".format(self.unifiControllerOS, port, self.unifiCloudKeyIP, self.unifiCloudKeySiteName) )
 						return True
 					else:
 						self.indiLOG.log(10,u"getunifiOSAndPort wrong ret code from curl test:{}, expecting 200 or 302, try again".format(ret) )
@@ -4349,6 +4349,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
 				self.indiLOG.log(40,u"getunifiOSAndPort ret:\n>>{}<<".format(unicode(ret)[0:100]) )
 		return False
+
 
 	####-----------------	 ---------
 	def executeCMDOnControllerReset(self, wait=False):
@@ -4391,8 +4392,8 @@ class Plugin(indigo.PluginBase):
 					else:					 						cmdTypeUse= u" ";	cmdType = u"get"
 					if not cmdTypeForce: cmdTypeUse = u" "
 					if self.unifiControllerType.find(u"UDM") >-1 and cmdType == u"get":	cmdTypeUse = u" " 
+
 					#cmdR  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
-					cmdR  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
 
 
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"Connection: {}".format(cmdL) )
@@ -4406,14 +4407,34 @@ class Plugin(indigo.PluginBase):
 								self.indiLOG.log(40,u"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret0,ret1))
 								self.executeCMDOnControllerReset(wait=True)
 								continue
-							if (u"username" not in jj)   and   ( u"meta" not in jj or  jj[u"meta"][u"rc"] !=u"ok"):
+							if   ( u"meta" not in jj or  jj[u"meta"][u"rc"] !=u"ok"):
 								self.indiLOG.log(40,u"UNIFI executeCMDOnController  login cmd:{}\ngives  error: {}\n {}".format(cmdL, ret0,ret1) )
 								self.executeCMDOnControllerReset(wait=True)
 								continue
 							if self.decideMyLog(u"ConnectionRET"):	 self.indiLOG.log(10,u"Connection-{}: {}".format(self.unifiCloudKeyIP,ret0) )
 							self.lastUnifiCookieCurl = time.time()
 
-						
+
+						if self.unifiCloudKeySiteName == "":
+							cmdSite  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " + u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+							ret = subprocess.Popen(cmdSite, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+							ret0 = ret[0].decode(u"utf8")
+							ret1 = ret[1].decode(u"utf8")
+							 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
+							try:
+								jj = json.loads(ret0)
+							except :
+								self.indiLOG.log(40,u"UNIFI executeCMDOnController to {} has error, no json object returned: >>{}<<\n{}".format(self.unifiCloudKeyIP,ret0,ret1))
+								self.executeCMDOnControllerReset(wait=True)
+								continue
+							if "meta" in jj and "rc" in jj["meta"] and jj["meta"]["rc"] == "ok" and "data" in jj and "name" in jj["data"][0]:
+								self.unifiCloudKeySiteName = jj["data"][0]["name"]
+								self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site id name to >>{}<<\n{}".format(self.unifiCloudKeySiteName ))
+							else:
+								self.indiLOG.log(20,u"UNIFI executeCMDOnController unifiCloudKeySiteName using curl  not found ret:>>{}<<".format(ret0))
+								continue
+
+						cmdR  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataDict+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
 
 						if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: {}".format(cmdR) )
 						if startText !="":					 	self.indiLOG.log(10,u"Connection: {}".format(startText) )
@@ -4435,8 +4456,6 @@ class Plugin(indigo.PluginBase):
 
 							if self.decideMyLog(u"ConnectionRET"):
 									self.indiLOG.log(10,u"Connection to {}: returns >>{}<<".format(self.unifiCloudKeyIP, ret0) )
-							elif self.decideMyLog(u"ConnectionCMD"):
-									self.indiLOG.log(10,u"Connection to {}: returns >>{}...<<".format(self.unifiCloudKeyIP, ret0[0:100]) )
 
 							if  jsonAction == u"print":
 								self.indiLOG.log(10,u" Connection to:{} info\n{}".format(self.unifiCloudKeyIP, json.dumps(jj["data"],sort_keys=True, indent=2)))
@@ -4468,7 +4487,6 @@ class Plugin(indigo.PluginBase):
 					if data =={}: dataDict = ""
 					else:		  dataDict = json.dumps(data)
 					headers = {"Accept": "application/json", "Content-Type": "application/json"}
-					url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
 					cookies_dict = requests.utils.dict_from_cookiejar(self.unifiControllerSession.cookies)
 					if self.unifiControllerOS == "unifi_os":
@@ -4476,6 +4494,29 @@ class Plugin(indigo.PluginBase):
 					else:
 						cookies = {"unifises": cookies_dict.get('unifises'), "csrf_token": cookies_dict.get('csrf_token')}
 
+
+					if self.unifiCloudKeySiteName == "":
+						urlSite = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
+						resp = self.unifiControllerSession.get(urlSite,   cookies=cookies, headers=headers, verify=False)
+						 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
+						try:
+							jj = json.loads(resp.text)
+							if self.decideMyLog(u"Special"): self.indiLOG.log(20,u"UNIFI executeCMDOnController resp >>{}<<".format(resp.text ))
+						except	Exception, e:
+							self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController get site has error, resp: >>{}<<".format(resp))
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController resp.text >>{}<<".format(resp.text))
+							self.executeCMDOnControllerReset(wait=True)
+							continue
+						if "meta" in jj and "rc" in jj["meta"] and jj["meta"]["rc"] == "ok" and "data" in jj and  "name" in jj["data"][0]:
+							self.unifiCloudKeySiteName = jj["data"][0]["name"]
+							self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site id name to >>{}<<\n{}".format(self.unifiCloudKeySiteName))
+						else:
+							self.indiLOG.log(20,u"UNIFI executeCMDOnController setting site not found resp:{}".format(jj))
+							continue
+						
+						
+					url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
 					if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: requests: {}  {}".format(url, dataDict) )
 					if startText !="":						self.indiLOG.log(10,u"Connection: requests: {}".format(startText) )
@@ -4491,7 +4532,7 @@ class Plugin(indigo.PluginBase):
 								jj = json.loads(respText)
 							except	Exception, e:
 								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-								self.indiLOG.log(40,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}, cmdType:{}, dataDict:{}\n resp: {}".format(self.unifiControllerOS, cmdType, url, dataDict,unicode(respText)[0:800]))
+								self.indiLOG.log(40,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}, dataDict:{}\n resp: {}".format(self.unifiControllerOS, cmdType, url, dataDict,unicode(respText)[0:800]))
 								self.executeCMDOnControllerReset(wait=True)
 								continue
  
@@ -4503,8 +4544,6 @@ class Plugin(indigo.PluginBase):
 
 							if self.decideMyLog(u"ConnectionRET"):	
 								self.indiLOG.log(10,u"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(respText) )
-							elif self.decideMyLog(u"ConnectionCMD"):
-								self.indiLOG.log(10,u"Connection to {}: returns >>{}...<<".format(respText[0:100]) )
 
 							if  jsonAction == u"print":
 								self.indiLOG.log(10,u"Reconnect: executeCMDOnController info\n{}".format(json.dumps(jj["data"],sort_keys=True, indent=2)) )

@@ -1,3 +1,9 @@
+changes in V 7.34.312 @ 2021-01-24
+==================  
+   
+1. get site id name dynamically (in most cases:default)
+
+
 changes in V 7.34.311 @ 2021-01-20
 ==================  
    
