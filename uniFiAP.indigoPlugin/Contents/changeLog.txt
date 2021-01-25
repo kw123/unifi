@@ -1,3 +1,15 @@
+changes in V 7.34.315 @ 2021-01-24
+==================  
+   
+1. get site ID name dynamically from controller IF:   
+   - not set
+   or 
+   - reset in config
+    or 
+   - login to controller does not work
+   this is mostly for installs that have 2+ sites and or have been upgraded from one device to the next 
+
+
 changes in V 7.34.314 @ 2021-01-24
 ==================  
    

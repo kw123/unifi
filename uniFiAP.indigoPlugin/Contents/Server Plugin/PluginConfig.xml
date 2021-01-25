@@ -175,9 +175,18 @@
 	</Field>
 
     <Field id="simpleSeparatorUIDs" 			type="separator"/>
+
     <Field id="infoLabelUID" 				type="label"> 
-		<Label>== user IDs for systems (leave empty if not used), no ' " GT LT | # in your passwords!! </Label>  
+		<Label>== user IDs for systems (leave empty if not used), no ' " GT LT | # in your passwords!! </Label> 
 	</Field>
+
+    <Field id="infoLabelDifferentUIDs" 		type="label" 			visibleBindingId="unifiCloudKeyMode"   fontSize="small" fontColor="darkgrey"> 
+		<Label>.           There can be several sets of UID-password - They can all be the same depending on YOUR setup on the controller
+.           1. the UID-password  you use to login via web browser (http) to your controller
+.           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
+.           3. the unix UID-passwd    when you ssh in terminal to the UDM pro </Label>  
+	</Field>
+
   <Field    id="unifiCONTROLLERUserID"      type="textfield" defaultValue="" >
         <Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
     </Field>
@@ -254,48 +263,19 @@
     <Field    id="unifiCloudKeyIP"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
 		<Label>..ipNumber of controller</Label>  
 	</Field>
-<!--
-    <Field    id="unifiCloudKeyPort"     	type="textfield" 	defaultValue="8443"        visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
-		<Label>..port number of controller:</Label>  
-	</Field>
-   <Field id="unifiCloudKeyPortstd"  		type="textfield" defaultValue="8443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-		<Label>- for std + UDM use:</Label>  
-	</Field>
-   <Field id="unifiCloudKeyPortUDM"  		type="textfield" defaultValue="443"           readonly="yes" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-		<Label>- for UDM-PRO use:</Label>  
+
+   <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
+		<Label>..ipNumber of controller</Label>  
 	</Field>
 
-    <Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue="default"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
-		<Label>..site ID (not name) in http... 8443/manage/site/&gt;default&lt;/:</Label>  
+	<Field    id="unifiCloudKeySiteName" 	type="menu" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
+		<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/:</Label>  
+				<List class="self" filter="" method="filterunifiCloudKeyListOfSiteNames" dynamicReload="false"/>
 	</Field>
    <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-		<Label>most likely this is default, This is NOT the name in unifi/setting/site/site name. Only for multi sites system this will change and the controller will set it</Label>  
+		<Label>in most caeses do not touch this, it will auto adapt</Label>  
 	</Field>
 
-    <Field    id="unifiApiWebPage"       	type="textfield"	defaultValue="/api/s/"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
-		<Label>.. http: Api Web Page:</Label> 
-    </Field>
-
-    <Field    id="apiwebpage1"   			type="textfield" 	defaultValue="/api/s/"                visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>- for std+UDM use:</Label> 
-	</Field>
-
-    <Field    id="apiwebpage2"   			type="textfield" 	defaultValue="/proxy/network/api/s/"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>- for UDM-pro use:</Label>  
-	</Field>
-
-    <Field    id="unifiApiLoginPath"  		type="textfield"  	defaultValue="/api/login"     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"  > 
-		<Label>.. http: Api Login page:</Label> 
-    </Field>
- 
-   <Field    id="apiloginpage1"   			type="textfield" 	defaultValue="/api/login"            visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>- for std+UDM use:</Label>  
-	</Field>
-
-    <Field    id="apiloginpage2"  			type="textfield" 	defaultValue="/api/auth/login"      visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" readonly="yes"> 
-		<Label>- for UDM-pro use:</Label>  
-	</Field>
--->
     <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
 		<Label>.. get (un)blocked client info from Controller:</Label> 
         <List>
@@ -376,31 +356,6 @@
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
 
-<!--
-	<Field    id="UDtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
-		<Label>.. UDM tail command:</Label>  
-		<List>
-            <Option value="off"      > off </Option>
-            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
-            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
-		</List>
-    </Field>
-
-    <Field    id="UDdictCommand" 			type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="ipUDMON" visibleBindingValue="true"   > 
-    	<Label>.. UDM dict command(empty = off):</Label>  
-        <List>
-            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
-        </List>
-    </Field>
-
-    <Field    id="udPrompt"   				type="textfield" defaultValue="\\# " visibleBindingId="ipUDMON" visibleBindingValue="true">
-        <Label>...prompt (unix) when logging in:</Label>
-     </Field>
-    <Field    id="udPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="false"> 
-		<Label>\\#  # has to be escaped with \\ 
-try: ssh userid@ip# to check</Label>  
-	</Field>
--->
 
     <Field    id="debUD"  					type="checkbox"  defaultValue="false" 		visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
@@ -440,31 +395,6 @@ try: ssh userid@ip# to check</Label>
         </List>
     </Field>
 
-<!--
-    <Field    id="APtailCommand" 			type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP tail command:</Label>  
-        <List>
-            <Option value="off"      > off </Option>
-            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
-            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
-        </List>
-    </Field>
-
-    <Field    id="APdictCommand" 			type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="apON" visibleBindingValue="true"     > 
-    <Label>.. AP dict command:</Label>  
-        <List>
-            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
-        </List>
-    </Field>
-
-    <Field    id="apPrompt"   				type="textfield" defaultValue="BZ." visibleBindingId="apON" visibleBindingValue="true">
-        <Label>...prompt when logging in(unix prompt):</Label>
-	</Field>
-    <Field    id="apPrompt2"   			type="label" 	alignWithControl="true"  visibleBindingId="apON" visibleBindingValue="true"> 
-		<Label>options:   BZ. or  \\# (with a space)  
-try: ssh userid@ip# to check</Label>  
-	</Field>
--->
 
     <Field    id="ipON0" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
     <Field    id="ip0"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>
@@ -552,29 +482,6 @@ try: ssh userid@ip# to check</Label>
         </List>
    </Field>
 
-<!-- 
-    <Field    id="SWtailCommand" type="menu"  defaultValue="/usr/bin/tail -F /var/log/messages"  visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW tail command:</Label>  
-        <List>
-            <Option value="off"      > off </Option>
-            <Option value="/usr/bin/tail -F /var/log/messages"      > new   versions: /usr/bin/tail -F /var/log/messages </Option>
-            <Option value="/usr/bin/tail -f /var/log/messages"      > older versions: /usr/bin/tail -f /var/log/messages</Option>
-        </List>
-    </Field>
-    <Field    id="SWdictCommand" type="menu"  defaultValue="mca-dump | sed -e 's/^ *//'"         visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW dict command:</Label>  
-        <List>
-            <Option value="mca-dump | sed -e 's/^ *//'"      > mca-dump | sed -e 's/^ *//' </Option>
-        </List>
-    </Field>
-
-	<Field    id="swPrompt" type="textfield"  defaultValue="US.v"         visibleBindingId="swON" visibleBindingValue="true"     > 
-    <Label>.. SW (unix)prompt:</Label>  
-	</Field>
-    <Field    id="swPrompt2"   			type="label" alignWithControl="true"  visibleBindingId="swON" visibleBindingValue="true" readonly="true"> 
-		<Label>try: ssh userid@ip# to check"</Label>  
-	</Field>
--->
 
     <Field    id="count_APDL_inPortCount"   				type="menu" defaultValue="1" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
         <Label>Count AP and Downlink clients in total clients count in Switch:</Label>
