@@ -288,6 +288,9 @@ class Plugin(indigo.PluginBase):
 															u"unixUD":   u"",
 															u"webCTRL":  u""
 														}
+		self.tryHTTPPorts 		= ["443","8443"]
+		self.HTTPretCodes		= { "200": {"os":"unifi_os", "unifiApiLoginPath":"/api/auth/login", "unifiApiWebPage":"/proxy/network/api/s" },
+									"302": {"os":"std",      "unifiApiLoginPath":"/api/login",      "unifiApiWebPage":"/api/s" }  }
 
 
 		self.connectParams = copy.copy(self.connectParamsDefault)
@@ -366,9 +369,9 @@ class Plugin(indigo.PluginBase):
 
 		self.numberForUDM									= {"AP":4,"SW":12}
 
-		self.unifiApiWebPage								= self.pluginPrefs.get(u"unifiApiWebPage", "/api/s/")
-		self.unifiApiLoginPath								= self.pluginPrefs.get(u"unifiApiLoginPath", "/api/login")
-		self.unifiCloudKeyPort								= self.pluginPrefs.get(u"unifiCloudKeyPort", "8443")
+		self.unifiApiWebPage								= ""
+		self.unifiApiLoginPath								= ""
+		self.unifiCloudKeyPort								= ""
 		self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", "std")
 		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
 		if self.unifiControllerType.find(u"UDM") > -1:
@@ -891,8 +894,8 @@ class Plugin(indigo.PluginBase):
 	# defaults at run time
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	def getPrefsConfigUiValues(self):
-		valuesDict, errDict =  super(Plugin, self).getPrefsConfigUiValues()
 		try:
+			(valuesDict, errorsDict) = super(Plugin, self).getPrefsConfigUiValues()
 			"""
 			valuesDict[u"gwPrompt"]			= self.connectParams[u"promptOnServer"][u"GWtail"]
 			valuesDict[u"udPrompt"]			= self.connectParams[u"promptOnServer"][u"UDtail"]
@@ -935,7 +938,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-		return valuesDict, errDict
+		return (valuesDict, errorsDict)
 
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# This routine is called once the user has exited the preferences dialog
@@ -950,25 +953,16 @@ class Plugin(indigo.PluginBase):
 			controllerType = valuesDict[u"unifiControllerType"]
 			if   controllerType == "UDM":
 				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
-				valuesDict[u"unifiCloudKeyPort"] 	= u"8443"
-				valuesDict[u"unifiApiLoginPath"] 	= u"/api/login"
-				valuesDict[u"unifiApiWebPage"]   	= u"/api/s/"
 				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
 				valuesDict[u"ipUDMON"]	 			= True
 
 			elif controllerType == "UDMPro":
 				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
-				valuesDict[u"unifiCloudKeyPort"] 	= u"443"
-				valuesDict[u"unifiApiLoginPath"] 	= u"/api/auth/login"
-				valuesDict[u"unifiApiWebPage"]   	= u"/proxy/network/api/s/"
 				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
 				valuesDict[u"ipUDMON"]	 			= True
 
 			else:
 				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
-				valuesDict[u"unifiCloudKeyPort"] 	= u"8443"
-				valuesDict[u"unifiApiLoginPath"] 	= u"/api/login"
-				valuesDict[u"unifiApiWebPage"]   	= u"/api/s/"
 				valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
 				valuesDict[u"ipUDMON"]	 			= False
 
@@ -1009,9 +1003,9 @@ class Plugin(indigo.PluginBase):
 
 			self.unifiControllerOS						= ""
 
-			try:	self.unifigetBlockedClientsDeltaTime =  int(valuesDict[u"unifigetBlockedClientsDeltaTime"])
+			try:	self.unifigetBlockedClientsDeltaTime = int(valuesDict[u"unifigetBlockedClientsDeltaTime"])
 			except: self.unifigetBlockedClientsDeltaTime = 999999999
-			try:	self.unifigetLastSeenDeltaTime 		 =  int(valuesDict[u"unifigetLastSeenDeltaTime"])
+			try:	self.unifigetLastSeenDeltaTime 		 = int(valuesDict[u"unifigetLastSeenDeltaTime"])
 			except: self.unifigetLastSeenDeltaTime 		 = 999999999
 		
 			self.cameraEventWidth						= int(valuesDict[u"cameraEventWidth"])
@@ -2602,9 +2596,9 @@ class Plugin(indigo.PluginBase):
 	####-----------------  filter	---------
 
 	####-----------------  setconfig default values	---------
-	def setfilterunifiCloudKeyListOfSiteNames(self, filter="", valuesDict=None, typeId="", devId=""):
-		if self.refreshCallbackMethodAlreadySet != "no": return indigo.Dict()
-		if valuesDict == None:
+	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict=None):
+		self.indiLOG.log(10,u"setfilterunifiCloudKeyListOfSiteNames valuesDict: {}".format(unicode(valuesDict)) )
+		if valuesDict is None:
 			valuesDict = indigo.Dict()
 		valuesDict["unifiCloudKeySiteName"] = self.unifiCloudKeySiteName
 		self.refreshCallbackMethodAlreadySet = "yes" # only do it once after called 
@@ -4336,44 +4330,36 @@ class Plugin(indigo.PluginBase):
 	def getunifiOSAndPort(self):
 		try:
 			ret 			= ""
-			tryPorts 		= ["8443","443"]
-			unify_osCode 	= "200"
-			stdCode 		= "302"
 			for ii in range(3):
 				# get port and which unifi os:
-				if self.unifiControllerOS != "" and self.unifiCloudKeyPort in tryPorts: return True
-				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, tryPorts ) )
+				if self.unifiControllerOS != "" and self.unifiCloudKeyPort in self.tryHTTPPorts: return True
+				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, self.tryHTTPPorts ) )
 				self.executeCMDOnControllerReset()
-				for port in tryPorts:
+
+				for port in self.tryHTTPPorts:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
 					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
 					#self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(port, ret) )
-					if ret == unify_osCode: 
-						self.unifiControllerOS = "unifi_os"
+					if ret in self.HTTPretCodes: 
 						self.unifiCloudKeyPort = port
-						self.unifiApiLoginPath = "/api/auth/login"
-						self.unifiApiWebPage = "/proxy/network/api/s/"
-						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
-						return True
-					elif ret == stdCode: 
-						self.unifiControllerOS = "std"
-						self.unifiCloudKeyPort = port
-						self.unifiApiLoginPath = "/api/login"
-						self.unifiApiWebPage = "/api/s/"
+						self.unifiControllerOS = self.HTTPretCodes[ret]["os"]
+						self.unifiApiLoginPath = self.HTTPretCodes[ret]["unifiApiLoginPath"]
+						self.unifiApiWebPage   = self.HTTPretCodes[ret]["unifiApiWebPage"]
 						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
 						return True
 					else:
-						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test:{}, expecting {} or {}".format(port, ret, stdCode, unify_osCode) )
+						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test:{}, expecting {} ".format(port, ret, self.HTTPretCodes) )
+
 				self.sleep(1)
 				
 			if self.unifiControllerOS == "": 
-				self.indiLOG.log(30,u"getunifiOSAndPort bad return from unifi controller {}, no os and / port found, tried ports:{}".format(self.unifiCloudKeyIP, tryPorts))
+				self.indiLOG.log(30,u"getunifiOSAndPort bad return from unifi controller {}, no os and / port found, tried ports:{}".format(self.unifiCloudKeyIP, self.tryHTTPPorts) )
 
 		except	Exception, e:
 			if unicode(e) != u"None":
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
-				self.indiLOG.log(40,u"getunifiOSAndPort ret:\n>>{}<<".format(unicode(ret)[0:min(100),len(ret)-1]) )
+				self.indiLOG.log(40,u"getunifiOSAndPort ret:\n>>{}<<".format(unicode(ret)[0:100]) )
 		return False
 
 
@@ -4429,6 +4415,7 @@ class Plugin(indigo.PluginBase):
 
 					if self.unifiCloudKeyListOfSiteNames != []:
 						self.unifiCloudKeySiteName = self.unifiCloudKeyListOfSiteNames[0]
+						self.pluginPrefs["unifiCloudKeySiteName"] = self.unifiCloudKeySiteName 
 
 				self.indiLOG.log(20,u"setunifiCloudKeySiteNamer setting site id name to >>{}<<, list of Names found:{}<".format(self.unifiCloudKeySiteName , self.unifiCloudKeyListOfSiteNames))
 				self.pluginPrefs["unifiCloudKeyListOfSiteNames"] = json.dumps(self.unifiCloudKeyListOfSiteNames)
@@ -4482,12 +4469,12 @@ class Plugin(indigo.PluginBase):
 							ret = subprocess.Popen(cmdLogin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 							ret0 = ret[0].decode(u"utf8")
 							ret1 = ret[1].decode(u"utf8")
-							try: jj = json.loads(ret0)
+							try: loginDict = json.loads(ret0)
 							except:
 								self.indiLOG.log(40,u"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.unifiCloudKeyIP,ret0,ret1))
 								self.executeCMDOnControllerReset(wait=True)
 								continue
-							if   ( u"meta" not in jj or  jj[u"meta"][u"rc"] !=u"ok"):
+							if   ( u"meta" not in loginDict or  loginDict[u"meta"][u"rc"] != u"ok"):
 								self.indiLOG.log(40,u"UNIFI executeCMDOnController  login cmd:{}\ngives  error: {}\n {}".format(cmdLogin, ret0,ret1) )
 								self.executeCMDOnControllerReset(wait=True)
 								continue
@@ -4499,7 +4486,7 @@ class Plugin(indigo.PluginBase):
 							if not self.setunifiCloudKeySiteName(method = "curl"): continue
 
 						#cmdDATA  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
-						cmdDATA  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataDictSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
+						cmdDATA  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataDictSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
 
 						if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: {}".format(cmdDATA) )
 						if startText !="":					 	self.indiLOG.log(10,u"Connection: {}".format(startText) )
@@ -4541,13 +4528,35 @@ class Plugin(indigo.PluginBase):
 				############# does not work on OSX	el capitan ssl lib too old	##########
 				else: # use requests if requested or when using unifi os ... curl does  not work w unifi_os
 					if self.unifiControllerSession == "" or (time.time() - self.lastUnifiCookieRequests) > 60: # every 60 secs refresh cert
-						self.unifiControllerSession	 = requests.Session()
+						if self.unifiControllerSession != "":
+							try: 
+								self.unifiControllerSession.close()
+								self.unifiControllerSession = ""
+							except: 
+								self.unifiControllerSession == ""
+
+						if self.unifiControllerSession == "":
+							self.unifiControllerSession	 = requests.Session()
+
 						url	 = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
 						dataLogin = json.dumps({"username":self.connectParams[u"UserID"][u"webCTRL"],"password":self.connectParams[u"PassWd"][u"webCTRL"],"strict":self.useStrictToLogin})
 						resp  = self.unifiControllerSession.post(url,  headers={"Accept": "application/json", "Content-Type": "application/json", "referer": "/login"}, data = dataLogin, verify=False)
-						if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"Connection: requests login {}".format(resp.text) )
-						self.lastUnifiCookieRequests = time.time()
+						if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"Connection: requests login url:{}, dataLogin: {} ...".format(url, dataLogin) )
+						if self.decideMyLog(u"ConnectionRET"): self.indiLOG.log(10,u"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
+						try: loginDict = json.loads(resp.text)
+						except	Exception, e:
+							self.indiLOG.log(40,u"Connection: in Line {} has error={}   ".format(sys.exc_traceback.tb_lineno, e) )
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP,resp.text))
+							self.executeCMDOnControllerReset(wait=True)
+							continue
+						if  resp.status_code != requests.codes.ok:
+							self.indiLOG.log(40,u"UNIFI executeCMDOnController  login url:{}\ngives, ok not found or status_code:{} not in [{}]\n  error: {}\n".format(url,resp.status_code, requests.codes.ok, resp.text[0:300]) )
+							self.executeCMDOnControllerReset(wait=True)
+							continue
+							
 
+						self.lastUnifiCookieRequests = time.time()
+		
 
 					if dataSEND =={}: 	dataSendSTR = ""
 					else:		  		dataSendSTR = json.dumps(dataSEND)
@@ -4564,10 +4573,10 @@ class Plugin(indigo.PluginBase):
 						if not self.setunifiCloudKeySiteName(method="response", cookies=cookies, headers=headers ): continue
 				
 						
-					url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
+					url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
-					if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: requests: {}  {}".format(url, dataSendSTR) )
-					if startText !="":						self.indiLOG.log(10,u"Connection: requests: {}".format(startText) )
+					if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: requests:{}; header:{}; dataSendSTR:{}; cookies:{}".format(url, headers,dataSendSTR, cookies) )
+					if startText !="":						self.indiLOG.log(10,u"Connection: requests: startText{},".format(startText) )
 					try:
 							retCode		= ""
 							respText 	= ""
@@ -4609,7 +4618,10 @@ class Plugin(indigo.PluginBase):
 							return []
 					except	Exception, e:
 						self.indiLOG.log(40,u"in Line {} has error={}   Connection".format(sys.exc_traceback.tb_lineno, e) )
+
+				## we get here when not successful
 				self.executeCMDOnControllerReset(wait=True)
+
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}   Connection".format(sys.exc_traceback.tb_lineno, e))
 
@@ -4622,9 +4634,9 @@ class Plugin(indigo.PluginBase):
 		try:
 			dev		= indigo.devices[int(indigoCameraId)]
 			cmdR	= self.unfiCurl +" 'http://"+dev.states[u"ip"] +"/snap.jpeg' > "+ fileName
-			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR with: "+cmdR)
+			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR with: {}".format(cmdR) )
 			ret 	= subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromCamera response: "+unicode(ret))
+			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromCamera response: {}".format(ret))
 			return "ok"
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -4641,7 +4653,7 @@ class Plugin(indigo.PluginBase):
 			if self.unfiCurl.find(u"curl") > -1:
 				cmdR	= self.unfiCurl+" -o '" + fileName +"'  '"+ url+"'"
 				try:
-					if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: "+cmdR )
+					if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: {}".format(cmdR) )
 					ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[1]
 					try:
 						fs1	 = ""
@@ -4652,13 +4664,13 @@ class Plugin(indigo.PluginBase):
 						else:                  ret = ret.split("\n")
 						fs0  = ret[-1] # last line
 						fs1  = fs0.split()[-1] # last number
-						unit = fs1[-1] # strip last char
+						unit = fs1[-1] # last char
 						fs  = int(fs1.strip("k").strip("m").strip("M"))
 					except: fs = 0
 					if fs == 0:
-						self.indiLOG.log(40,u"getSnapshotfromNVR has error, no file returned: \n"+unicode(ret[1])+"  "+cmdR + "  Video error")
+						self.indiLOG.log(40,u"getSnapshotfromNVR has error, no file returned,  Video error: \n{}\n{}".format(ret[1], cmdR))
 						return "error, no file returned"
-					return "ok, bytes transfered: "+unicode(fs)+unit
+					return "ok, bytes transfered: {}{}".format(fs, unit)
 				except	Exception, e:
 					self.indiLOG.log(40,u"in Line {} has error={}  Video error".format(sys.exc_traceback.tb_lineno, e))
 				return "error:"+unicode(e)
@@ -4666,10 +4678,10 @@ class Plugin(indigo.PluginBase):
 			else:
 				session = requests.Session()
 
-				if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR login with: "+url)
+				if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR login with: {}".format(url) )
 
 				resp	= session.get(url, stream=True)
-				if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR response: "+unicode(resp.status_code)+";   %d"%(len(resp.content)/1024)+"[kB]" )
+				if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR response {}[kB]: {}; ".format(len(resp.content)/1024, resp.status_code) )
 				if unicode(resp.status_code) == "200":
 					f = open(fileName,"wb")
 					f.write(resp.content)
@@ -5063,7 +5075,7 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(10,u"..setup dicts  ..")
 		delDEV = {}
 		for dev in indigo.devices.iter(self.pluginId):
-			if dev.deviceTypeId in[u"client",u"camera"]: continue
+			if dev.deviceTypeId in[u"client",u"camera","NVR-video","NVR"]: continue
 			if u"status" not in dev.states:
 				self.indiLOG.log(10,u"{} has no status".format(dev.name))
 				continue
