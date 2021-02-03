@@ -261,11 +261,10 @@
 
  
     <Field    id="unifiCloudKeyIP"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
-		<Label>..ipNumber of controller</Label>  
+		<Label>..ipNumber of controller (do not use "localhost")</Label>  
 	</Field>
 
-   <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="192.168.1.x" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
-		<Label>..ipNumber of controller</Label>  
+   <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" hidden="yes"> 
 	</Field>
 
 	<Field    id="unifiCloudKeySiteName" 	type="menu" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
@@ -273,7 +272,7 @@
 				<List class="self" filter="" method="filterunifiCloudKeyListOfSiteNames" dynamicReload="false"/>
 	</Field>
    <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-		<Label>in most caeses do not touch this, it will auto adapt</Label>  
+		<Label>in most cases do not touch this, it will auto adapt</Label>  
 	</Field>
 
     <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 

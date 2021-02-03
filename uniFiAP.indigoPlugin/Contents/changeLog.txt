@@ -1,3 +1,9 @@
+changes in V 7.34.317 @ 2021-02-03
+==================  
+   
+1.  added more info to error message for bad data received from ap/switches..
+2. in config made one field hidden (should heve been anyway)
+
 changes in V 7.34.316 @ 2021-01-26
 ==================  
    
