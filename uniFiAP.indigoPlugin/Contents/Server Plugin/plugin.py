@@ -366,7 +366,9 @@ class Plugin(indigo.PluginBase):
 		self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get(u"unifiCloudKeyListOfSiteNames", "[]"))
 		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
 
-		self.numberForUDM									= {"AP":4,"SW":12}
+		self.numberForUDM									= {u"AP":4,u"SW":12}
+
+		self.refreshCallbackMethodAlreadySet 				= u"no" 
 
 		self.unifiControllerOS 								= ""
 		self.unifiApiWebPage								= ""
@@ -2597,7 +2599,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------  setconfig default values	---------
 	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict):
-		if refreshCallbackMethodAlreadySet == u"yes": return 
+		if self.refreshCallbackMethodAlreadySet == u"yes": return 
 		valuesDict["unifiCloudKeySiteName"] = self.unifiCloudKeySiteName
 		self.refreshCallbackMethodAlreadySet = u"yes" # only do it once after called 
 		return valuesDict
@@ -4484,7 +4486,7 @@ class Plugin(indigo.PluginBase):
 							if not self.setunifiCloudKeySiteName(method = "curl"): continue
 
 						#cmdDATA  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
-						cmdDATA  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataDictSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
+						cmdDATA  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
 
 						if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: {}".format(cmdDATA) )
 						if startText !="":					 	self.indiLOG.log(10,u"Connection: {}".format(startText) )
@@ -7085,12 +7087,12 @@ class Plugin(indigo.PluginBase):
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
 								except	Exception, e:
 									if unicode(e) != u"None":
-										msgF = total.replace("\n","").replace("\r","")
+										msgF = total.replace("\r","\n")
 										self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-										self.indiLOG.log(20,u"..  in receiving DICTs for {}-{};  for details check unifi logfile  at: /Library/Application Support/Perceptive Automation/Indigo x.y/Logs/com.karlwachs.uniFiAP/plugin.log; ".format(uType, ipNumber))
+										self.indiLOG.log(20,u"..  in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.logFile ))
 										self.indiLOG.log(10,u".. ping test:  {}".format(" ok " if self.testAPandPing(ipNumber,uType) else "ping test bad") )
 										self.indiLOG.log(10,u".. ssh test:   {}".format(" ok " if self.testServerIfOK(ipNumber,uType) else "ssh test bad") )
-										self.indiLOG.log(10,u".. uid/passwd:>{}<>{}<".format(self.getUidPasswd(uType,ipNumber)) )
+										self.indiLOG.log(10,u".. uid/passwd:>{}<".format(self.getUidPasswd(uType, ipNumber)) )
 										self.indiLOG.log(10,u".. JSON len:{}; {}...\n...  {}".format(len(total),msgF[0:100], msgF[-40:]) )
 										self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorCount"]+=1
 										errorCount+=1
@@ -7227,7 +7229,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(40,u"testServerIf ssh connection to server failed, cmd: {}".format(cmd) )
 				ret1, ok = self.fixHostsFile(ret,ipNumber)
 				if not ok: 
-					self.indiLOG.log(40,u"testServerIfOK, will retry ")
+					self.indiLOG.log(40,u"testServerIfOK failed, will retry ")
 					ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
 
 			test = ret[0].lower()
@@ -7243,10 +7245,10 @@ class Plugin(indigo.PluginBase):
 					if self.connectParams[u"promptOnServer"][ipNumber]  == ret[0][-nPrompt:]:
 						return True
 				if ipNumber not in self.connectParams[u"promptOnServer"]: self.connectParams[u"promptOnServer"][ipNumber] = ""
-				self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in:'{}'; \nret:{}".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  ret[0][-nPrompt:], nPrompt, ret[0][-10:], ret[0]) )
+				self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>> :{}...{} <<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  ret[0][-nPrompt:], nPrompt,  ret[0:100], ret[-100:]) )
 				self.connectParams[u"promptOnServer"][ipNumber] = ret[0][-nPrompt:]
 				self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
-				self.indiLOG.log(10,u"testServerIfOK: =========== prompts: \n{}".format(self.connectParams[u"promptOnServer"]))
+				self.indiLOG.log(10,u"testServerIfOK: =========== known prompts: \n{}".format(self.connectParams[u"promptOnServer"]))
 				return True
 
 			self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, ret[0]) )
