@@ -1,8 +1,10 @@
-changes in V 7.34.319 @ 2021-02-03
+changes in V 7.34.320 @ 2021-02-04
 ==================  
    
 1. added more info to error message for bad data received from ap/switches..
 2. in config made one field hidden (should heve been anyway)
+3. properly save userid and passwords after set in config
+4. fixed curl/requests for getting port number
 
 
 changes in V 7.34.316 @ 2021-01-26

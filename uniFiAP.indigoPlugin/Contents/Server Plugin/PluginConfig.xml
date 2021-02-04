@@ -142,12 +142,18 @@
     </Field>
 
 
-    <Field    id="unfiCurl"              	type="menu" defaultValue="/usr/bin/curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+    <Field    id="requestOrcurl"              	type="menu" defaultValue="curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
     <Label>Use curl or python-requests for web page access:</Label> 
+        <List>
+            <Option value="curl"			>curl</Option>
+            <Option value="requests"  		>python requests</Option>
+        </List>
+    </Field>
+   <Field    id="curlPath"              	type="menu" defaultValue="/usr/bin/curl"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+    <Label>path to curl:</Label> 
         <List>
             <Option value="/usr/bin/curl"			>/usr/bin/curl  (std install)</Option>
             <Option value="/usr/local/bin/curl"		>/usr/local/bin/curl (eg homebrew upgrade)</Option>
-            <Option value="requests"  				>python requests</Option>
         </List>
     </Field>
 

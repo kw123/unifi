@@ -403,10 +403,15 @@ class Plugin(indigo.PluginBase):
 		self.useStrictToLogin								= self.pluginPrefs.get(u"useStrictToLogin", False)
 		self.unifiControllerSession							= ""
 
-		self.unfiCurl										= self.pluginPrefs.get(u"unfiCurl", "/usr/bin/curl")
-		if self.unfiCurl == "curl" or len(self.unfiCurl) < 4:
-			self.unfiCurl									= "/usr/bin/curl"
-			self.pluginPrefs["unfiCurl"] 					= self.unfiCurl
+		self.curlPath										= self.pluginPrefs.get(u"curlPath", "/usr/bin/curl")
+		indigo.server.log("curl:{}".format(self.curlPath) )
+		if len(self.curlPath) < 4:
+			self.curlPath									= "/usr/bin/curl"
+			self.pluginPrefs[u"curlPath"] 					= self.curlPath
+		indigo.server.log("curl:{}".format(self.curlPath) )
+
+		self.requestOrcurl										= self.pluginPrefs.get(u"requestOrcurl", u"curl")
+		indigo.server.log("curl:{}, {}".format(self.curlPath, self.requestOrcurl) )
 
 		self.expectPath 									= "/usr/bin/expect"
 
@@ -1029,7 +1034,8 @@ class Plugin(indigo.PluginBase):
 
 			self.connectParams[u"UserID"][u"unixDevs"]	= valuesDict[u"unifiUserID"]
 			self.connectParams[u"PassWd"][u"unixDevs"]	= valuesDict[u"unifiPassWd"]
-			self.unfiCurl								= valuesDict[u"unfiCurl"]
+			self.curlPath									= valuesDict[u"curlPath"]
+			self.requestOrcurl								= valuesDict[u"requestOrcurl"]
 
 
 			self.unifiCloudKeyIP						= valuesDict[u"unifiCloudKeyIP"]
@@ -1325,7 +1331,8 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"ignoreNeighborForFing".ljust(40)				+	unicode(self.ignoreNeighborForFing))
 			self.myLog( text=u"expirationTime".ljust(40)					+	unicode(self.expirationTime).ljust(3)+u" [sec]" )
 			self.myLog( text=u"sleep in main loop  ".ljust(40)				+	unicode(self.loopSleep).ljust(3)+u" [sec]" )
-			self.myLog( text=u"use curl or request".ljust(40)				+	self.unfiCurl )
+			self.myLog( text=u"use curl or request".ljust(40)				+	self.requestOrcurl )
+			self.myLog( text=u"curl path".ljust(40)							+	self.curlPath )
 			self.myLog( text=u"cpu used since restart: ".ljust(40) 			+	self.getCPU(self.myPID) )
 			self.myLog( text=u"" ,mType=u" ")
 			self.myLog( text=u"====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events",mType=u" " )
@@ -1863,15 +1870,15 @@ class Plugin(indigo.PluginBase):
 			else:
 				url = u"https://"+self.ipNumbersOf[u"VD"]+ u":7443/api/2.0/camera/"+"?apiKey=" + self.nvrVIDEOapiKey
 
-			if self.unfiCurl.find(u"curl") > -1:
-				cmdL  = self.unfiCurl+u" --insecure -c /tmp/nvrCookie --data '"+json.dumps({u"username":self.connectParams[u"UserID"][u"nvrWeb"],u"password":self.connectParams[u"PassWd"][u"nvrWeb"]})+u"' 'https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login'"
+			if self.requestOrcurl.find(u"curl") > -1:
+				cmdL  = self.curlPath+u" --insecure -c /tmp/nvrCookie --data '"+json.dumps({u"username":self.connectParams[u"UserID"][u"nvrWeb"],u"password":self.connectParams[u"PassWd"][u"nvrWeb"]})+u"' 'https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login'"
 				if data =={} or data =="": dataDict = u""
 				else:					   dataDict = u" --data '"+json.dumps(data)+"' "
 				if	 cmdType == u"put":	  cmdTypeUse= u" -X PUT "
 				elif cmdType == u"post":  cmdTypeUse= u" -X post "
 				elif cmdType == u"get":	  cmdTypeUse= u"     "
 				else:					  cmdTypeUse= u" "
-				cmdR = self.unfiCurl+u" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + u"'" +url+ u"'"
+				cmdR = self.curlPath+u" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + u"'" +url+ u"'"
 
 				try:
 					try:
@@ -1910,7 +1917,7 @@ class Plugin(indigo.PluginBase):
 
 
 			#############does not work on OSX  el capitan ssl lib too old  ##########
-			elif self.unfiCurl ==u"requests":
+			elif self.requestOrcurl ==u"requests":
 				if self.unifiNVRSession =="" or (time.time() - self.lastNVRCookie) > 300:
 					self.unifiNVRSession  = requests.Session()
 					urlLogin  = u"https://"+self.ipNumbersOf[u"VD"]+u":7443/api/login"
@@ -4340,7 +4347,7 @@ class Plugin(indigo.PluginBase):
 
 				for port in self.tryHTTPPorts:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
-					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
+					cmdOS = self.curlPath+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(cmdOS, ret) )
 					if ret in self.HTTPretCodes: 
@@ -4388,8 +4395,8 @@ class Plugin(indigo.PluginBase):
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
 				textRET	= self.unifiControllerSession.get(urlSite,   cookies=cookies, headers=headers, verify=False).text
 				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
-			elif method == "curl":
-				cmdSite  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+			elif method == "curlPath":
+				cmdSite  = self.curlPath+u" --insecure -b /tmp/unifiCookie 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
 				ret = subprocess.Popen(cmdSite, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 				textRET	= ret[0].decode(u"utf8")
 				ret1 	= ret[1].decode(u"utf8")
@@ -4453,10 +4460,10 @@ class Plugin(indigo.PluginBase):
 					continue
 
 				# now execute commands
-				if self.unfiCurl.find(u"curl") > -1 and self.unifiControllerOS == u"std":
+				if self.requestOrcurl.find(u"curl") > -1 and self.unifiControllerOS == u"std":
 					#cmdL  = curl  --insecure -c /tmp/unifiCookie -H "Content-Type: application/json"  --data '{"username":"karlwachs","password":"457654aA.unifi"}' https://192.168.1.2:8443/api/login
-					#cmdL  = self.unfiCurl+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams[u"UserID"]["webCTRL"],"password":self.connectParams[u"PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
-					cmdLogin  = self.unfiCurl+u" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({u"username":self.connectParams[u"UserID"][u"webCTRL"],u"password":self.connectParams[u"PassWd"][u"webCTRL"],u"strict":self.useStrictToLogin})+u"' 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+u"'"
+					#cmdL  = self.curlPath+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams[u"UserID"]["webCTRL"],"password":self.connectParams[u"PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
+					cmdLogin  = self.curlPath+u" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({u"username":self.connectParams[u"UserID"][u"webCTRL"],u"password":self.connectParams[u"PassWd"][u"webCTRL"],u"strict":self.useStrictToLogin})+u"' 'https://"+self.unifiCloudKeyIP+u":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+u"'"
 					if dataSEND =={}: 	dataSendSTR = ""
 					else:		 		dataSendSTR = u" --data '"+json.dumps(dataSEND)+"' "
 					if	 cmdType == u"put":	 						cmdTypeUse= u" -X PUT "
@@ -4488,10 +4495,10 @@ class Plugin(indigo.PluginBase):
 
 
 						if self.unifiCloudKeySiteName == "":
-							if not self.setunifiCloudKeySiteName(method = "curl"): continue
+							if not self.setunifiCloudKeySiteName(method = "curlPath"): continue
 
 						#cmdDATA  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
-						cmdDATA  = self.unfiCurl+u" --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
+						cmdDATA  = self.curlPath+u" --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
 
 						if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: {}".format(cmdDATA) )
 						if startText !="":					 	self.indiLOG.log(10,u"Connection: {}".format(startText) )
@@ -4639,7 +4646,7 @@ class Plugin(indigo.PluginBase):
 	def getSnapshotfromCamera(self, indigoCameraId, fileName):
 		try:
 			dev		= indigo.devices[int(indigoCameraId)]
-			cmdR	= self.unfiCurl +" 'http://"+dev.states[u"ip"] +"/snap.jpeg' > "+ fileName
+			cmdR	= self.curlPath +" 'http://"+dev.states[u"ip"] +"/snap.jpeg' > "+ fileName
 			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR with: {}".format(cmdR) )
 			ret 	= subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromCamera response: {}".format(ret))
@@ -4656,8 +4663,8 @@ class Plugin(indigo.PluginBase):
 		try:
 			camApiKey = indigo.devices[int(indigoCameraId)].states[u"apiKey"]
 			url			= "http://"+self.ipNumbersOf[u"VD"] +":7080/api/2.0/snapshot/camera/"+camApiKey+"?force=true&width="+unicode(width)+"&apiKey="+self.nvrVIDEOapiKey
-			if self.unfiCurl.find(u"curl") > -1:
-				cmdR	= self.unfiCurl+" -o '" + fileName +"'  '"+ url+"'"
+			if self.requestOrcurl.find(u"curl") > -1:
+				cmdR	= self.curlPath+" -o '" + fileName +"'  '"+ url+"'"
 				try:
 					if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: {}".format(cmdR) )
 					ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[1]
