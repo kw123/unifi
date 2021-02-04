@@ -64,7 +64,7 @@ class Plugin(indigo.PluginBase):
 
 
 		self.quitNow					= ""
-		self.updateConnectParams		= False
+		self.updateConnectParams		= time.time() - 100
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
 		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split("Indigo")[0]
@@ -291,7 +291,7 @@ class Plugin(indigo.PluginBase):
 		self.tryHTTPPorts 		= ["443","8443"]
 		self.HTTPretCodes		= { "200": {"os":"unifi_os", "unifiApiLoginPath":"/api/auth/login", "unifiApiWebPage":"/proxy/network/api/s" },
 									"302": {"os":"std",      "unifiApiLoginPath":"/api/login",      "unifiApiWebPage":"/api/s" }  }
-
+ 		self.OKControllerOS = [u"std","unifi_os"]
 
 		self.connectParams = copy.copy(self.connectParamsDefault)
 		try: 	
@@ -640,6 +640,8 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def isValidIP(self, ip0):
+		if ip0 == u"localhost": 						return True
+
 		ipx = ip0.split(u".")
 		if len(ipx) != 4:								return False
 
@@ -984,7 +986,6 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			rebootRequired								= ""
-			self.updateConnectParams 					= False
 			self.lastUnifiCookieCurl					= 0
 			self.lastUnifiCookieRequests				= 0
 
@@ -1267,7 +1268,8 @@ class Plugin(indigo.PluginBase):
 			if rebootRequired != "":
 				self.indiLOG.log(30,u"restart " + rebootRequired)
 				self.quitNow = u"config changed"
-				self.updateConnectParams =  True
+			self.updateConnectParams  = time.time() - 100
+			valuesDict[u"connectParams"] = json.dumps(self.connectParams)
 
 			self.setLogfile(unicode(valuesDict[u"logFileActive2"]),config=True)
 
@@ -1668,7 +1670,7 @@ class Plugin(indigo.PluginBase):
 
 	def buttonResetPromptsCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		self.connectParams[u"promptOnServer"] = {}
-		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+		self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
 		indigo.server.savePluginPrefs()	
 		self.quitNow = u"restart due to prompt settings reset"
 		self.indiLOG.log(30,u" reset prompts, initating restart")
@@ -4340,7 +4342,7 @@ class Plugin(indigo.PluginBase):
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
 					cmdOS = self.unfiCurl+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
-					#self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(port, ret) )
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(cmdOS, ret) )
 					if ret in self.HTTPretCodes: 
 						self.unifiCloudKeyPort = port
 						self.unifiControllerOS = self.HTTPretCodes[ret]["os"]
@@ -4349,7 +4351,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
 						return True
 					else:
-						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test:{}, expecting {} ".format(port, ret, self.HTTPretCodes) )
+						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test>{}< expecting {} ".format(port, ret, self.HTTPretCodes) )
 
 				self.sleep(1)
 				
@@ -4446,6 +4448,9 @@ class Plugin(indigo.PluginBase):
 				if not self.getunifiOSAndPort(): 
 					self.executeCMDOnControllerReset(wait=False)
 					continue
+				if self.unifiControllerOS not in self.OKControllerOS:
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"unifiControllerOS not set : {}".format(self.unifiControllerOS) )
+					continue
 
 				# now execute commands
 				if self.unfiCurl.find(u"curl") > -1 and self.unifiControllerOS == u"std":
@@ -4463,7 +4468,7 @@ class Plugin(indigo.PluginBase):
 
 
 
-					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"Connection: {}".format(cmdLogin) )
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"executeCMDOnController: {}".format(cmdLogin) )
 					try:
 						if time.time() - self.lastUnifiCookieCurl > 100: # re-login every 90 secs
 							ret = subprocess.Popen(cmdLogin, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
@@ -4543,6 +4548,7 @@ class Plugin(indigo.PluginBase):
 						resp  = self.unifiControllerSession.post(url,  headers={"Accept": "application/json", "Content-Type": "application/json", "referer": "/login"}, data = dataLogin, verify=False)
 						if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"Connection: requests login url:{}, dataLogin: {} ...".format(url, dataLogin) )
 						if self.decideMyLog(u"ConnectionRET"): self.indiLOG.log(10,u"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
+
 						try: loginDict = json.loads(resp.text)
 						except	Exception, e:
 							self.indiLOG.log(40,u"Connection: in Line {} has error={}   ".format(sys.exc_traceback.tb_lineno, e) )
@@ -5520,22 +5526,23 @@ class Plugin(indigo.PluginBase):
 		self.lastMinuteCheck	= datetime.datetime.now().minute
 		self.lastMinute10Check	= datetime.datetime.now().minute/10
 		self.pluginStartTime 	= time.time()
-		indigo.server.log( u"initialized ... looping")
-		self.indiLOG.log(10,u"initialized ... looping")
+		self.indiLOG.log(20,u"initialized ... looping")
 		indigo.server.savePluginPrefs()	
 		self.lastcreateEntryInUnifiDevLog = time.time() 
 		try:
 			self.quitNow = ""
 			while self.quitNow == "":
 				self.sleep(self.loopSleep)
-				if self.updateConnectParams:
-					self.updateConnectParams  = False
-					self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+				if time.time() - self.updateConnectParams > 0 :
+					self.updateConnectParams  = time.time() + 100
+					#self.indiLOG.log(10,u"saving updated connect parameters from config")
+					self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
+					indigo.server.savePluginPrefs()	
 	 
 				self.countLoop += 1
 				ret = self.doTheLoop()
 				if ret !="ok":
-					self.indiLOG.log(10,u"LOOP   return break: >>"+ret+"<<")
+					self.indiLOG.log(10,u"LOOP   return break: >>{}<<".format(ret) )
 					break
 		except	Exception, e:
 			if unicode(e) != u"None":
@@ -5658,7 +5665,7 @@ class Plugin(indigo.PluginBase):
 		if self.quitNow == "": self.quitNow = u" restart / stop requested "
 		if self.quitNow == u"config changed":
 			self.resetDataStats(calledFrom="postLoop")
-		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+		self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
 
 		if True:
 			for ll in range(len(self.devsEnabled[u"SW"])):
@@ -7087,11 +7094,11 @@ class Plugin(indigo.PluginBase):
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
 								except	Exception, e:
 									if unicode(e) != u"None":
-										msgF = total.replace("\r","\n")
+										msgF = total.replace("\r","")
 										self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-										self.indiLOG.log(20,u"..  in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.logFile ))
-										self.indiLOG.log(10,u".. ping test:  {}".format(" ok " if self.testAPandPing(ipNumber,uType) else "ping test bad") )
-										self.indiLOG.log(10,u".. ssh test:   {}".format(" ok " if self.testServerIfOK(ipNumber,uType) else "ssh test bad") )
+										self.indiLOG.log(20,u".. in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.logFile ))
+										self.indiLOG.log(10,u".. ping test:  {}".format(" ok " if self.testAPandPing(ipNumber,uType)  else " bad") )
+										self.indiLOG.log(10,u".. ssh test:   {}".format(" ok " if self.testServerIfOK(ipNumber,uType) else " bad") )
 										self.indiLOG.log(10,u".. uid/passwd:>{}<".format(self.getUidPasswd(uType, ipNumber)) )
 										self.indiLOG.log(10,u".. JSON len:{}; {}...\n...  {}".format(len(total),msgF[0:100], msgF[-40:]) )
 										self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorCount"]+=1
@@ -7221,8 +7228,9 @@ class Plugin(indigo.PluginBase):
 				subprocess.Popen(cmd+" &", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				return 
 
-			ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
-			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(ret[0]))
+			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+			xx = ret[0].replace("\r","")
+			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(xx))
 
 			## check if we need to fix unknown host in .ssh/known_hosts
 			if len(ret[1]) > 0:
@@ -7230,9 +7238,10 @@ class Plugin(indigo.PluginBase):
 				ret1, ok = self.fixHostsFile(ret,ipNumber)
 				if not ok: 
 					self.indiLOG.log(40,u"testServerIfOK failed, will retry ")
-					ret = (subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate())
+					ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+					xx = ret[0].replace("\r","")
 
-			test = ret[0].lower()
+			test = xx.lower()
 			tags = [u"welcome",u"unifi",u"debian",u"edge",u"busybox",u"ubiquiti",u"ubnt",u"login"]
 			loggedIn = False
 			for tag in tags:
@@ -7242,16 +7251,16 @@ class Plugin(indigo.PluginBase):
 			if loggedIn:
 				nPrompt = 3
 				if ipNumber in self.connectParams[u"promptOnServer"]:
-					if self.connectParams[u"promptOnServer"][ipNumber]  == ret[0][-nPrompt:]:
+					if self.connectParams[u"promptOnServer"][ipNumber]  == xx[-nPrompt:]:
 						return True
 				if ipNumber not in self.connectParams[u"promptOnServer"]: self.connectParams[u"promptOnServer"][ipNumber] = ""
-				self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>> :{}...{} <<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  ret[0][-nPrompt:], nPrompt,  ret[0:100], ret[-100:]) )
-				self.connectParams[u"promptOnServer"][ipNumber] = ret[0][-nPrompt:]
+				self.indiLOG.log(10,u"testServerIfOK: =========== to {}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>> :{}...\n{} <<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:], nPrompt,  xx[0:100], xx[-100:]) )
+				self.connectParams[u"promptOnServer"][ipNumber] = xx[-nPrompt:]
 				self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
 				self.indiLOG.log(10,u"testServerIfOK: =========== known prompts: \n{}".format(self.connectParams[u"promptOnServer"]))
 				return True
 
-			self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, ret[0]) )
+			self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, xx) )
 			return False
 		except	Exception, e:
 			if unicode(e) != u"None":
