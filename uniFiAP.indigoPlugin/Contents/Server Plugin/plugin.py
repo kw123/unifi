@@ -406,14 +406,11 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerSession							= ""
 
 		self.curlPath										= self.pluginPrefs.get(u"curlPath", "/usr/bin/curl")
-		indigo.server.log("curl:{}".format(self.curlPath) )
 		if len(self.curlPath) < 4:
 			self.curlPath									= "/usr/bin/curl"
 			self.pluginPrefs[u"curlPath"] 					= self.curlPath
-		indigo.server.log("curl:{}".format(self.curlPath) )
 
 		self.requestOrcurl										= self.pluginPrefs.get(u"requestOrcurl", u"curl")
-		indigo.server.log("curl:{}, {}".format(self.curlPath, self.requestOrcurl) )
 
 		self.expectPath 									= "/usr/bin/expect"
 
@@ -907,43 +904,20 @@ class Plugin(indigo.PluginBase):
 	def getPrefsConfigUiValues(self):
 		try:
 			(valuesDict, errorsDict) = super(Plugin, self).getPrefsConfigUiValues()
-			"""
-			valuesDict[u"gwPrompt"]			= self.connectParams[u"promptOnServer"][u"GWtail"]
-			valuesDict[u"udPrompt"]			= self.connectParams[u"promptOnServer"][u"UDtail"]
-			valuesDict[u"apPrompt"]			= self.connectParams[u"promptOnServer"][u"APtail"]
-			valuesDict[u"swPrompt"]			= self.connectParams[u"promptOnServer"][u"SWtail"]
-			valuesDict[u"vdPrompt"]			= self.connectParams[u"promptOnServer"][u"VDtail"]
 
-			valuesDict[u"GWdict"]			= self.connectParams[u"promptOnServer"][u"GWtail"]
-			valuesDict[u"UDdict"]			= self.connectParams[u"promptOnServer"][u"UDtail"]
-			valuesDict[u"APdict"]			= self.connectParams[u"promptOnServer"][u"APtail"]
-			valuesDict[u"SWdict"]			= self.connectParams[u"promptOnServer"][u"SWtail"]
-			valuesDict[u"VDdict"]			= self.connectParams[u"promptOnServer"][u"VDtail"]
-			valuesDict[u"GWctrl"]			= self.connectParams[u"promptOnServer"][u"GWtail"]
+			valuesDict[u"unifiUserID"]				= self.connectParams[u"UserID"][u"unixDevs"]
+			valuesDict[u"unifiUserIDUDM"]			= self.connectParams[u"UserID"][u"unixUD"]
+			valuesDict[u"nvrUNIXUserID"]			= self.connectParams[u"UserID"][u"unixNVR"]
+			valuesDict[u"nvrWebUserID"]				= self.connectParams[u"UserID"][u"nvrWeb"]
+			valuesDict[u"unifiCONTROLLERUserID"]	= self.connectParams[u"UserID"][u"webCTRL"]
 
-			valuesDict[u"GWtailCommand"]	= self.connectParams[u"commandOnServer"][u"GWtail"]
-			valuesDict[u"GWdictCommand"]	= self.connectParams[u"commandOnServer"][u"GWdict"]
-			valuesDict[u"UDtailCommand"]	= self.connectParams[u"commandOnServer"][u"UDtail"]
-			valuesDict[u"UDdictCommand"]	= self.connectParams[u"commandOnServer"][u"UDdict"]
-			valuesDict[u"SWtailCommand"]	= self.connectParams[u"commandOnServer"][u"SWtail"]
-			valuesDict[u"SWdictCommand"]	= self.connectParams[u"commandOnServer"][u"SWdict"]
-			valuesDict[u"APtailCommand"]	= self.connectParams[u"commandOnServer"][u"APtail"]
-			valuesDict[u"APdictCommand"]	= self.connectParams[u"commandOnServer"][u"APdict"]
-			valuesDict[u"VDtailCommand"]	= self.connectParams[u"commandOnServer"][u"VDtail"]
-			valuesDict[u"VDdictCommand"]	= self.connectParams[u"commandOnServer"][u"VDdict"]
-			"""
-
-			valuesDict[u"unifiUserID"]		= self.connectParams[u"UserID"][u"unixDevs"]
-			valuesDict[u"unifiUserIDUDM"]	= self.connectParams[u"UserID"][u"unixUD"]
-			valuesDict[u"nvrUNIXUserID"]	= self.connectParams[u"UserID"][u"unixNVR"]
-			valuesDict[u"nvrWebUserID"]		= self.connectParams[u"UserID"][u"nvrWeb"]
-
-			valuesDict[u"unifiPassWd"]		= self.connectParams[u"PassWd"][u"unixDevs"]
-			valuesDict[u"unifiPassWdUDM"]	= self.connectParams[u"PassWd"][u"unixUD"]
-			valuesDict[u"nvrUNIXPassWd"]	= self.connectParams[u"PassWd"][u"unixNVR"]
+			valuesDict[u"unifiPassWd"]				= self.connectParams[u"PassWd"][u"unixDevs"]
+			valuesDict[u"unifiPassWdUDM"]			= self.connectParams[u"PassWd"][u"unixUD"]
+			valuesDict[u"nvrUNIXPassWd"]			= self.connectParams[u"PassWd"][u"unixNVR"]
+			valuesDict[u"unifiCONTROLLERPassWd"]	= self.connectParams[u"PassWd"][u"webCTRL"]
 
 
-			valuesDict[u"GWtailEnable"]		= self.connectParams[u"enableListener"][u"GWtail"]
+			valuesDict[u"GWtailEnable"]				= self.connectParams[u"enableListener"][u"GWtail"]
 			valuesDict[u"refreshCallbackMethod"]	= "setfilterunifiCloudKeyListOfSiteNames"
 			self.refreshCallbackMethodAlreadySet	= "no"
 
@@ -959,31 +933,7 @@ class Plugin(indigo.PluginBase):
 		if userCancelled == False:
 			pass
 		return
-	def buttonsetConfigToSelectedControllerTypeCALLBACK(self, valuesDict):
-		try:
-			controllerType = valuesDict[u"unifiControllerType"]
-			if   controllerType == "UDM":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
-				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= True
 
-			elif controllerType == "UDMPro":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
-				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= True
-
-			else:
-				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
-				valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= False
-
-			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
-
-		except	Exception, e:
-			if unicode(e) != u"None":
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
-		return valuesDict
-		
 
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# This routine is called once the user has exited the preferences dialog
@@ -1119,33 +1069,6 @@ class Plugin(indigo.PluginBase):
 			valuesDict[u"expTimeMultiplier"]			= self.expTimeMultiplier
 
 			self.fixExpirationTime						= valuesDict[u"fixExpirationTime"]
-
-
-			"""
-			self.connectParams[u"promptOnServer"][u"GWtail"], rebootRequired		= self.getNewValusDictField(u"gwPrompt",		 valuesDict, self.connectParams[u"promptOnServer"][u"GWtail"], rebootRequired)
-			self.connectParams[u"promptOnServer"][u"UDtail"], rebootRequired		= self.getNewValusDictField(u"udPrompt",		 valuesDict, self.connectParams[u"promptOnServer"][u"UDtail"], rebootRequired)
-			self.connectParams[u"promptOnServer"][u"APtail"], rebootRequired		= self.getNewValusDictField(u"apPrompt",		 valuesDict, self.connectParams[u"promptOnServer"][u"APtail"], rebootRequired)
-			self.connectParams[u"promptOnServer"][u"SWtail"], rebootRequired		= self.getNewValusDictField(u"swPrompt",		 valuesDict, self.connectParams[u"promptOnServer"][u"SWtail"], rebootRequired)
-			self.connectParams[u"promptOnServer"][u"VDtail"], rebootRequired		= self.getNewValusDictField(u"vdPrompt",		 valuesDict, self.connectParams[u"promptOnServer"][u"VDtail"], rebootRequired)
-
-			self.connectParams[u"promptOnServer"][u"GWdict"] 					= self.connectParams[u"promptOnServer"][u"GWtail"]
-			self.connectParams[u"promptOnServer"][u"UDdict"]						= self.connectParams[u"promptOnServer"][u"UDtail"]
-			self.connectParams[u"promptOnServer"][u"APdict"] 					= self.connectParams[u"promptOnServer"][u"APtail"]
-			self.connectParams[u"promptOnServer"][u"SWdict"] 					= self.connectParams[u"promptOnServer"][u"SWtail"]
-			self.connectParams[u"promptOnServer"][u"VDdict"] 					= self.connectParams[u"promptOnServer"][u"VDtail"]
-			self.connectParams[u"promptOnServer"][u"GWctrl"] 					= self.connectParams[u"promptOnServer"][u"GWtail"]
-
-			self.connectParams[u"commandOnServer"][u"GWtail"], rebootRequired = self.getNewValusDictField(u"GWtailCommand", valuesDict, self.connectParams[u"commandOnServer"][u"GWtail"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"GWdict"], rebootRequired = self.getNewValusDictField(u"GWdictCommand", valuesDict, self.connectParams[u"commandOnServer"][u"GWdict"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"UDtail"], rebootRequired = self.getNewValusDictField(u"UDtailCommand", valuesDict, self.connectParams[u"commandOnServer"][u"UDtail"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"UDdict"], rebootRequired = self.getNewValusDictField(u"UDdictCommand", valuesDict, self.connectParams[u"commandOnServer"][u"UDdict"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"SWtail"], rebootRequired = self.getNewValusDictField(u"SWtailCommand", valuesDict, self.connectParams[u"commandOnServer"][u"SWtail"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"SWdict"], rebootRequired = self.getNewValusDictField(u"SWdictCommand", valuesDict, self.connectParams[u"commandOnServer"][u"SWdict"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"APtail"], rebootRequired = self.getNewValusDictField(u"APtailCommand", valuesDict, self.connectParams[u"commandOnServer"][u"APtail"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"APdict"], rebootRequired = self.getNewValusDictField(u"APdictCommand", valuesDict, self.connectParams[u"commandOnServer"][u"APdict"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"VDtail"], rebootRequired = self.getNewValusDictField(u"VDtailCommand", valuesDict, self.connectParams[u"commandOnServer"][u"VDtail"], rebootRequired)
-			self.connectParams[u"commandOnServer"][u"VDdict"], rebootRequired = self.getNewValusDictField(u"VDdictCommand", valuesDict, self.connectParams[u"commandOnServer"][u"VDdict"], rebootRequired)
-			"""
 
 			## AP parameters
 			acNew = [False for i in range(_GlobalConst_numberOfAP)]
@@ -1291,6 +1214,33 @@ class Plugin(indigo.PluginBase):
 			return (False, valuesDict, valuesDict)
 
 
+	####-----------------  data stats menu items	---------
+	def buttonsetConfigToSelectedControllerTypeCALLBACK(self, valuesDict):
+		try:
+			controllerType = valuesDict[u"unifiControllerType"]
+			if   controllerType == "UDM":
+				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
+				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
+				valuesDict[u"ipUDMON"]	 			= True
+
+			elif controllerType == "UDMPro":
+				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
+				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
+				valuesDict[u"ipUDMON"]	 			= True
+
+			else:
+				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
+				valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
+				valuesDict[u"ipUDMON"]	 			= False
+
+			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
+
+		except	Exception, e:
+			if unicode(e) != u"None":
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
+		return valuesDict
+		
+
 
 
 	####-----------------	 ---------
@@ -1334,7 +1284,7 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"count_APDL_inPortCount".ljust(40)			+	unicode(self.count_APDL_inPortCount) )
 			self.myLog( text=u"enableBroadCastEvents".ljust(40)				+	unicode(self.enableBroadCastEvents) )
 			self.myLog( text=u"ignoreNeighborForFing".ljust(40)				+	unicode(self.ignoreNeighborForFing))
-			self.myLog( text=u"expirationTime".ljust(40)					+	unicode(self.expirationTime).ljust(3)+u" [sec]" )
+			self.myLog( text=u"expirationTime - default".ljust(40)			+	unicode(self.expirationTime).ljust(3)+u" [sec]" )
 			self.myLog( text=u"sleep in main loop  ".ljust(40)				+	unicode(self.loopSleep).ljust(3)+u" [sec]" )
 			self.myLog( text=u"use curl or request".ljust(40)				+	self.requestOrcurl )
 			self.myLog( text=u"curl path".ljust(40)							+	self.curlPath )
@@ -5541,10 +5491,18 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(20,u"initialized ... looping")
 		indigo.server.savePluginPrefs()	
 		self.lastcreateEntryInUnifiDevLog = time.time() 
+
 		try:
 			self.quitNow = ""
-			while self.quitNow == "":
-				self.sleep(self.loopSleep)
+			while True:
+				sl = max(1., self.loopSleep / 20. )
+				sli = int(self.loopSleep / sl)
+				for ii in range(sli):
+					if self.quitNow != "": break
+					self.sleep(sl)
+
+				if self.quitNow != "": break
+
 				if time.time() - self.updateConnectParams > 0 :
 					self.updateConnectParams  = time.time() + 100
 					#self.indiLOG.log(10,u"saving updated connect parameters from config")
@@ -5553,7 +5511,7 @@ class Plugin(indigo.PluginBase):
 	 
 				self.countLoop += 1
 				ret = self.doTheLoop()
-				if ret !="ok":
+				if ret != "ok":
 					self.indiLOG.log(10,u"LOOP   return break: >>{}<<".format(ret) )
 					break
 		except	Exception, e:
@@ -5584,10 +5542,15 @@ class Plugin(indigo.PluginBase):
 			if u"saveCamerasStats"		 in self.pendingCommand: self.saveCameraEventsStatus = True;  self.saveCamerasStats(force = True)
 			self.pendingCommand =[]
 
+		if self.quitNow != "": return "break"
+
 		self.getCamerasIntoIndigo(periodCheck = True)
 		self.saveCamerasStats()
 		self.saveDataStats()
 		self.saveMACdata()
+
+		if self.quitNow != "": return "break"
+
 		part = u"main"+unicode(random.random()); self.blockAccess.append(part)
 		for ii in range(90):
 			if len(self.blockAccess) == 0 or self.blockAccess[0] == part: break # "my turn?
@@ -5599,11 +5562,15 @@ class Plugin(indigo.PluginBase):
 		self.checkOnChanges()
 		self.executeUpdateStatesList()
 
+		if self.quitNow != "": return "break"
+
 		self.periodCheck()
 		self.executeUpdateStatesList()
 		self.sendUpdatetoFingscanNOW()
 		if	 self.statusChanged ==1:  self.setGroupStatus()
 		elif self.statusChanged ==2:  self.setGroupStatus(init=True)
+
+		if self.quitNow != "": return "break"
 
 
 		if len(self.devNeedsUpdate) > 0:
@@ -5627,9 +5594,12 @@ class Plugin(indigo.PluginBase):
 			self.lastMinuteCheck = datetime.datetime.now().minute
 			self.statusChanged = max(1,self.statusChanged)
 
+			if self.quitNow != "": return "break"
+
 			self.getUDMpro_sensors()
 
 
+			if self.quitNow != "": return "break"
 
 			if self.VIDEOEnabled and self.vmMachine !="":
 				if u"VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command
@@ -5644,13 +5614,14 @@ class Plugin(indigo.PluginBase):
 
 				if self.checkforUnifiSystemDevicesState == "reboot":
 					self.quitNow ="new devices"
-					self.checkforUnifiSystemDevicesState =""
+					self.checkforUnifiSystemDevicesState = ""
 					return "new devices"
 
 
 				if self.lastHourCheck != datetime.datetime.now().hour:
 					self.lastHourCheck = datetime.datetime.now().hour
 
+					if self.quitNow != "": return "break"
 
 					self.addFirstSeenToStates()
 					self.saveupDownTimers()
