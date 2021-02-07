@@ -307,15 +307,17 @@ class Plugin(indigo.PluginBase):
 		except:	
 			pass
 
-		if self.connectParams[u"UserID"][u"unixDevs"] == "": self.connectParams[u"UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiUserID","")
-		if self.connectParams[u"UserID"][u"unixUD"]   == "": self.connectParams[u"UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiUserIDUDM","")
-		if self.connectParams[u"UserID"][u"unixNVR"]  == "": self.connectParams[u"UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXUserID","")
-		if self.connectParams[u"UserID"][u"nvrWeb"]   == "": self.connectParams[u"UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebUserID","")
+		if self.connectParams[u"UserID"][u"unixDevs"] == "": 	self.connectParams[u"UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiUserID","")
+		if self.connectParams[u"UserID"][u"unixUD"]   == "": 	self.connectParams[u"UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiUserIDUDM","")
+		if self.connectParams[u"UserID"][u"unixNVR"]  == "": 	self.connectParams[u"UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXUserID","")
+		if self.connectParams[u"UserID"][u"nvrWeb"]   == "": 	self.connectParams[u"UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebUserID","")
+		if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERUserID","")
 
-		if self.connectParams[u"PassWd"][u"unixDevs"] == "": self.connectParams[u"PassWd"][u"unixDevs"] = self.pluginPrefs.get(u"unifiPassWd","")
-		if self.connectParams[u"PassWd"][u"unixUD"]   == "": self.connectParams[u"PassWd"][u"unixUD"]   = self.pluginPrefs.get(u"unifiPassWdUDM","")
-		if self.connectParams[u"PassWd"][u"unixNVR"]  == "": self.connectParams[u"PassWd"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXPassWd","")
-		if self.connectParams[u"PassWd"][u"nvrWeb"]   == "": self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebPassWd","")
+		if self.connectParams[u"PassWd"][u"unixDevs"] == "": 	self.connectParams[u"PassWd"][u"unixDevs"] = self.pluginPrefs.get(u"unifiPassWd","")
+		if self.connectParams[u"PassWd"][u"unixUD"]   == "": 	self.connectParams[u"PassWd"][u"unixUD"]   = self.pluginPrefs.get(u"unifiPassWdUDM","")
+		if self.connectParams[u"PassWd"][u"unixNVR"]  == "": 	self.connectParams[u"PassWd"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXPassWd","")
+		if self.connectParams[u"PassWd"][u"nvrWeb"]   == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebPassWd","")
+		if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERPassWd","")
 
 
 		self.stop 											= []
@@ -1004,8 +1006,6 @@ class Plugin(indigo.PluginBase):
 			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
 			self.ignoreNewClients						= valuesDict[u"ignoreNewClients"]
 			self.loopSleep								= float(valuesDict[u"loopSleep"])
-			self.connectParams[u"UserID"]["webCTRL"]	= valuesDict[u"unifiCONTROLLERUserID"]
-			self.connectParams[u"PassWd"]["webCTRL"]	= valuesDict[u"unifiCONTROLLERPassWd"]
 			self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
 			self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
 
@@ -1032,8 +1032,13 @@ class Plugin(indigo.PluginBase):
 			self.connectParams[u"PassWd"][u"unixUD"]		= valuesDict[u"unifiPassWdUDM"]
 			self.useStrictToLogin							= valuesDict[u"useStrictToLogin"]
 
-			self.connectParams[u"UserID"][u"unixDevs"]	= valuesDict[u"unifiUserID"]
-			self.connectParams[u"PassWd"][u"unixDevs"]	= valuesDict[u"unifiPassWd"]
+			self.connectParams[u"UserID"][u"webCTRL"]		= valuesDict[u"unifiCONTROLLERUserID"]
+			self.connectParams[u"PassWd"][u"webCTRL"]		= valuesDict[u"unifiCONTROLLERPassWd"]
+
+			self.connectParams[u"UserID"][u"unixDevs"]		= valuesDict[u"unifiUserID"]
+			self.connectParams[u"PassWd"][u"unixDevs"]		= valuesDict[u"unifiPassWd"]
+
+
 			self.curlPath									= valuesDict[u"curlPath"]
 			self.requestOrcurl								= valuesDict[u"requestOrcurl"]
 

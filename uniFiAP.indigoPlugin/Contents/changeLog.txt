@@ -1,3 +1,9 @@
+changes in V 7.34.321 @ 2021-02-07
+==================  
+   
+1. fix password for unifi http access
+
+
 changes in V 7.34.320 @ 2021-02-04
 ==================  
    
