@@ -355,6 +355,7 @@ class Plugin(indigo.PluginBase):
 		self.unifigetBlockedClientsDeltaTime		 		= int(self.pluginPrefs.get(u"unifigetBlockedClientsDeltaTime",999999999))
 		self.unifigetLastSeenDeltaTime		 				= int(self.pluginPrefs.get(u"unifigetLastSeenDeltaTime",999999999))
 		self.lastCheckForUDMUserReport						= time.time()
+		self.lastupdateDevStateswRXTXbytes					= time.time() - 100
 		self.updateDescriptions								= self.pluginPrefs.get(u"updateDescriptions", True)
 		self.ignoreNeighborForFing							= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
 		self.ignoreNewNeighbors								= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
@@ -3449,6 +3450,75 @@ class Plugin(indigo.PluginBase):
 		return
 
 	####-----------------	 ---------
+	def updateDevStateswRXTXbytes(self):
+		try:
+			if time.time() - self.lastupdateDevStateswRXTXbytes < 200: return 
+			self.lastupdateDevStateswRXTXbytes = time.time()
+			#self.indiLOG.log(10,"updateDevStateswRXTXbytes start")
+			en = int( time.time()  ) * 1000
+			st = en - 300*1000
+			data = self.executeCMDOnController(dataSEND={u"attrs": [u"tx_bytes", u"rx_bytes", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.user", jsonAction=u"returnData", cmdType=u"post")
+			#indigo.server.log("updateDevStateswRXTXbytes start data:{}".format(data))
+
+			if len(data) ==0: return
+			MACbytes = {}
+			tNow = int(time.time()*1000)
+			anyUpdate = False
+			maxDT = 0
+			for rec in data:
+				#{"rx_bytes":1090.4761904761904,"tx_bytes":1428.904761904762,"time":1613157900000,"user":"b8:27:eb:c8:c7:ab","o":"user","oid":"b8:27:eb:c8:c7:ab"},
+				if "user" not in rec or "time" not in rec or "tx_bytes" not in rec: 
+					self.indiLOG.log(10,"updateDevStateswRXTXbytes user...  not in rec:{}".format(rec))
+					continue
+
+				maxDT = max( maxDT, tNow - rec["time"] )
+				if tNow - rec["time"] > 605*1000: 
+					self.indiLOG.log(10,"updateDevStateswRXTXbytes bad time tNow:{}; recT:{}; dt:{}; rec:{}".format(tNow, rec["time"],  tNow - rec["time"], rec))
+					continue 
+				try: 	
+					## rx and tx are flipped in response 
+					MACbytes[rec["user"]] = {"txBytes":int(rec["rx_bytes"]),"rxBytes":int(rec["tx_bytes"])}
+				except: 
+					self.indiLOG.log(10,"updateDevStateswRXTXbytes  bad data rec:{}".format(rec))
+					pass
+
+			if self.decideMyLog(u"Special"): self.indiLOG.log(10,"updateDevStateswRXTXbytes, maxDT:{}  MACBYTES:{}".format(maxDT/1000, MACbytes))
+			for dev in indigo.devices.iter(u"props.isUniFi"):
+				if not dev.enabled: continue
+				mac = dev.address
+				if "rx_Bytes_Last5Minutes" in dev.states:
+					if mac in MACbytes:
+						tx =  MACbytes[mac]["txBytes"]
+						rx =  MACbytes[mac]["rxBytes"]
+					else:
+						tx =  0
+						rx =  0
+
+					if dev.states["rx_Bytes_Last5Minutes"] != rx:
+						anyUpdate = True
+						self.addToStatesUpdateList(dev.id,u"rx_Bytes_Last5Minutes", rx)
+					if dev.states["tx_Bytes_Last5Minutes"] != tx:
+						anyUpdate = True
+						self.addToStatesUpdateList(dev.id,u"tx_Bytes_Last5Minutes", tx)
+
+			if anyUpdate:
+				self.executeUpdateStatesList()
+
+		except	Exception, e:
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return
+
+
+	####-----------------	 ---------
+	def buttonConfirmPrint7DaysWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+
+		en = int( time.time() - (time.time() % 3600 ) ) * 1000
+		st = en - 360000*12&7 # 7 days
+		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.ap", jsonAction=u"returnData", cmdType=u"post")
+		self.printWifiStatReport(data, u"== 7 days WiFi-AP stat report ==")
+
+
+	####-----------------	 ---------
 	def buttonConfirmPrint48HoursWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
 		en = int( time.time() - (time.time() % 3600) ) * 1000
@@ -3459,11 +3529,12 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def buttonConfirmPrint5MinutesWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
-		en = int( time.time() - (time.time() % 3600) ) * 1000
+		en = int( time.time()  ) * 1000
 		st = en - 360000*4 #  4 hours
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.ap", jsonAction=u"returnData", cmdType=u"post")
 		self.printWifiStatReport(data, u"== 5 minutes WiFi-AP stat report ==")
 		return
+
 
 	####-----------------	 ---------
 	def printWifiStatReport(self, data, headLine):
@@ -3471,8 +3542,8 @@ class Plugin(indigo.PluginBase):
 		out+= u"##".ljust(4)
 		out+= u"timeStamp".ljust(21)
 		out+= u"num_sta".rjust(8)
-		out+= u"rxBytes".rjust(12)
-		out+= u"txBytes".rjust(12)
+		out+= u"rxBytes".rjust(17)
+		out+= u"txBytes".rjust(17)
 		out+= u"\n"
 		ii=0
 		lastap = ""
@@ -3492,11 +3563,11 @@ class Plugin(indigo.PluginBase):
 			else:				  ll+= (" ").rjust(8)
 
 			if u"rx_bytes" in item:
-				ll+= (u"{0:,d}".format(int(item[u"rx_bytes"]))).rjust(12)
-			else:				  ll+= (u" ").rjust(12)
+				ll+= (u"{0:,d}".format(int(item[u"rx_bytes"]))).rjust(17)
+			else:				  ll+= (u" ").rjust(17)
 			if u"tx_bytes" in item:
-				ll+= (u"{0:,d}".format(int(item[u"tx_bytes"]))).rjust(12)
-			else:				  ll+= (u" ").rjust(12)
+				ll+= (u"{0:,d}".format(int(item[u"tx_bytes"]))).rjust(17)
+			else:				  ll+= (u" ").rjust(17)
 
 			out+=ll+(u"\n")
 		self.indiLOG.log(10,u"unifi-Report ")
@@ -3505,9 +3576,17 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
+	def buttonConfirmPrint5MinutesWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+		en = int( time.time()  ) * 1000
+		st = en - 360000*4 # 4 hours 
+		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.site", jsonAction=u"returnData", cmdType=u"post")
+		self.unifsystemReport2(data,u"== 5 minutes WAN report ==")
+		return
+
+	####-----------------	 ---------
 	def buttonConfirmPrint48HoursWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 2*86400000
+		st = en - 2*86400000 # 2 days
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.site", jsonAction=u"returnData", cmdType=u"post")
 		self.unifsystemReport2(data,u"== 48 HOUR WAN report ==")
 		return
@@ -3515,7 +3594,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def buttonConfirmPrint7DaysWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 7*86400000
+		st = en - 7*86400000  # 7 days
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.site", jsonAction=u"returnData", cmdType=u"post")
 		self.unifsystemReport2(data,u"== 7 DAY WAN report ==")
 		return
@@ -3686,23 +3765,23 @@ class Plugin(indigo.PluginBase):
 			if u"wan-rx_bytes" in item:
 				ll+= (u"{0:,d}".format(int(item[u"wan-rx_bytes"]))).rjust(20)
 			else:
-				ll+= (u" ").ljust(17)
+				ll+= (u" ").ljust(20)
 
 			if u"wan-tx_bytes" in item:
 				ll+= (u"{0:,d}".format(int(item[u"wan-tx_bytes"]))).rjust(20)
 			else:
-				ll+= (" ").ljust(17)
+				ll+= (" ").ljust(20)
 
 			for item2 in item:
-				if item2 ==u"lan-num_sta":	continue
-				if item2 ==u"wlan-num_sta":	continue
-				if item2 ==u"num_sta":		continue
-				if item2 ==u"wan-rx_bytes":	continue
-				if item2 ==u"wan-tx_bytes":	continue
-				if item2 ==u"time":			continue
-				if item2 ==u"oid":			continue
-				if item2 ==u"site":			continue
-				ll+=unicode(item2)+u":"+unicode(item[item2])+u";...."
+				if item[item2] == u"lan-num_sta":	continue
+				if item[item2] == u"wlan-num_sta":	continue
+				if item[item2] == u"num_sta":		continue
+				if item[item2] == u"wan-rx_bytes":	continue
+				if item[item2] == u"wan-tx_bytes":	continue
+				if item[item2] == u"time":			continue
+				if item[item2] == u"oid":			continue
+				if item[item2] == u"site":			continue
+				ll+= "  "+ unicode(item2)+u":"+unicode(item[item2])+u";...."
 
 			out+=ll+(u"\n")
 		self.indiLOG.log(10,u"unifi-Report ")
@@ -5611,6 +5690,8 @@ class Plugin(indigo.PluginBase):
 
 			self.getUDMpro_sensors()
 
+			if datetime.datetime.now().minute%5 == 0: 
+				self.updateDevStateswRXTXbytes()
 
 			if self.quitNow != "": return "break"
 

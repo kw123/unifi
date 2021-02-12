@@ -1,3 +1,14 @@
+changes in V 7.35.323 @ 2021-02-12
+==================  
+   
+1. added rx_Bytes_last5Minutes and tx ... to unifi client dev states
+   this gets updated once every 5 minutes and shows the # of bytes as integer 
+   time bins are 0-5 5-10  ... minutes
+   if eg time is 12:07 it shows the bytes from time bin 12:00-12:05 
+
+2. added some more reports for wan and wifi stats
+
+
 changes in V 7.35.322 @ 2021-02-11
 ==================  
    

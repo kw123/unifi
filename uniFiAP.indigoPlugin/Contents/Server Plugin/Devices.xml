@@ -245,6 +245,16 @@
 					<TriggerLabel>upDownSetting</TriggerLabel>
 					<ControlPageLabel>upDownSetting</ControlPageLabel>
 				</State>
+				<State id="tx_Bytes_Last5Minutes">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>tx_Bytes_Last5Minutes</TriggerLabel>
+					<ControlPageLabel>tx_Bytes_Last5Minutes</ControlPageLabel>
+				</State>
+				<State id="rx_Bytes_Last5Minutes">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>srx_Bytes_Last5Minutes</TriggerLabel>
+					<ControlPageLabel>rx_Bytes_Last5Minutes</ControlPageLabel>
+				</State>
 
 				<!-- wifi	  -->
 				<State id="GHz">
