@@ -157,12 +157,12 @@
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint5MinutesWanInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label82" type="label"> <Label>Print 48 hours WAN-stats:</Label> </Field>
+			<Field	id="Label82" type="label"> <Label>Print  hours WAN-stats:</Label> </Field>
 			<Field	  id="confirm82" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HoursWanInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label84" type="label"> <Label>Print 7 days WAN-stats:</Label> </Field>
+			<Field	id="Label84" type="label"> <Label>Print  days WAN-stats:</Label> </Field>
 			<Field	  id="confirm84" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint7DaysWanInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
@@ -173,12 +173,12 @@
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint5MinutesWiFiInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			
-			<Field	id="Label92" type="label"> <Label>Print 48 hours Wifi-AP stats:</Label> </Field>
+			<Field	id="Label92" type="label"> <Label>Print  hours Wifi-AP stats:</Label> </Field>
 			<Field	  id="confirm92" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HoursWiFiInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label93" type="label"> <Label>Print 7 days Wifi-AP stats:</Label> </Field>
+			<Field	id="Label93" type="label"> <Label>Print  days Wifi-AP stats:</Label> </Field>
 			<Field	  id="confirm94" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint7DaysWiFiInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>

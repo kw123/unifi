@@ -1,4 +1,4 @@
-changes in V 7.35.323 @ 2021-02-12
+changes in V 7.35.324 @ 2021-02-12
 ==================  
    
 1. added rx_Bytes_last5Minutes and tx ... to unifi client dev states

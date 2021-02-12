@@ -3513,26 +3513,26 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmPrint7DaysWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
 		en = int( time.time() - (time.time() % 3600 ) ) * 1000
-		st = en - 360000*12&7 # 7 days
+		st = en - 3600*1000*12&7 # 7 days
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.ap", jsonAction=u"returnData", cmdType=u"post")
-		self.printWifiStatReport(data, u"== 7 days WiFi-AP stat report ==")
+		self.printWifiStatReport(data, u"==  days WiFi-AP stat report ==")
 
 
 	####-----------------	 ---------
 	def buttonConfirmPrint48HoursWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
 		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 360000*48 # 
+		st = en - 3600*1000*48 # 
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.ap", jsonAction=u"returnData", cmdType=u"post")
-		self.printWifiStatReport(data, u"== 48 hours WiFi-AP stat report ==")
+		self.printWifiStatReport(data, u"==  hours WiFi-AP stat report ==")
 
 	####-----------------	 ---------
 	def buttonConfirmPrint5MinutesWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
 		en = int( time.time()  ) * 1000
-		st = en - 360000*4 #  4 hours
+		st = en - 3600*1000*4 #  4 hours
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.ap", jsonAction=u"returnData", cmdType=u"post")
-		self.printWifiStatReport(data, u"== 5 minutes WiFi-AP stat report ==")
+		self.printWifiStatReport(data, u"==  minutes WiFi-AP stat report ==")
 		return
 
 
@@ -3578,7 +3578,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def buttonConfirmPrint5MinutesWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time()  ) * 1000
-		st = en - 360000*4 # 4 hours 
+		st = en - 3600 *1000*4 # 4 hours 
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.site", jsonAction=u"returnData", cmdType=u"post")
 		self.unifsystemReport2(data,u"== 5 minutes WAN report ==")
 		return
@@ -3586,17 +3586,17 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def buttonConfirmPrint48HoursWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 2*86400000 # 2 days
+		st = en - 2*86400*1000 # 2 days
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.site", jsonAction=u"returnData", cmdType=u"post")
-		self.unifsystemReport2(data,u"== 48 HOUR WAN report ==")
+		self.unifsystemReport2(data,u"==  HOUR WAN report ==")
 		return
 
 	####-----------------	 ---------
 	def buttonConfirmPrint7DaysWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 7*86400000  # 7 days
+		st = en - 7*86400 *1000  # 7 days
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.site", jsonAction=u"returnData", cmdType=u"post")
-		self.unifsystemReport2(data,u"== 7 DAY WAN report ==")
+		self.unifsystemReport2(data,u"==  DAY WAN report ==")
 		return
 
 
@@ -3773,14 +3773,15 @@ class Plugin(indigo.PluginBase):
 				ll+= (" ").ljust(20)
 
 			for item2 in item:
-				if item[item2] == u"lan-num_sta":	continue
-				if item[item2] == u"wlan-num_sta":	continue
-				if item[item2] == u"num_sta":		continue
-				if item[item2] == u"wan-rx_bytes":	continue
-				if item[item2] == u"wan-tx_bytes":	continue
-				if item[item2] == u"time":			continue
-				if item[item2] == u"oid":			continue
-				if item[item2] == u"site":			continue
+				if item2 == u"lan-num_sta":		continue
+				if item2 == u"wlan-num_sta":	continue
+				if item2 == u"num_sta":			continue
+				if item2 == u"wan-rx_bytes":	continue
+				if item2 == u"wan-tx_bytes":	continue
+				if item2 == u"time":			continue
+				if item2 == u"oid":				continue
+				if item2 == u"site":			continue
+				if item2 == u"o":				continue
 				ll+= "  "+ unicode(item2)+u":"+unicode(item[item2])+u";...."
 
 			out+=ll+(u"\n")
