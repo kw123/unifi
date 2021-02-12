@@ -1,3 +1,13 @@
+changes in V 7.35.322 @ 2021-02-11
+==================  
+   
+1. now all "post" function work for the new unifi op-sys.  ("get" worked fine)
+   eg set AP-led on/off
+   get wan / ap stats 
+   etc
+
+
+
 changes in V 7.34.322 @ 2021-02-07
 ==================  
    

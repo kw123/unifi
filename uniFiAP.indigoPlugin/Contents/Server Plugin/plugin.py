@@ -367,7 +367,7 @@ class Plugin(indigo.PluginBase):
 		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", "")
 		self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get(u"unifiCloudKeyListOfSiteNames", "[]"))
 		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
-
+		self.csrfToken 										= ""
 		self.numberForUDM									= {u"AP":4,u"SW":12}
 
 		self.refreshCallbackMethodAlreadySet 				= u"no" 
@@ -469,11 +469,11 @@ class Plugin(indigo.PluginBase):
 		self.readDictEverySeconds[u"SW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
 		self.readDictEverySeconds[u"UD"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
 		self.devStateChangeList								= {}
-		self.deviceUp[u"AP"]									= {}
-		self.deviceUp[u"SW"]									= {}
-		self.deviceUp[u"GW"]									= {}
-		self.deviceUp[u"VD"]									= {}
-		self.deviceUp[u"UD"]									= {}
+		self.deviceUp[u"AP"]								= {}
+		self.deviceUp[u"SW"]								= {}
+		self.deviceUp[u"GW"]								= {}
+		self.deviceUp[u"VD"]								= {}
+		self.deviceUp[u"UD"]								= {}
 		self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
 		self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
 
@@ -3449,20 +3449,30 @@ class Plugin(indigo.PluginBase):
 		return
 
 	####-----------------	 ---------
-	def buttonConfirmPrint5MinutesInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		if self.unifiControllerOS == "unifi_os":
-			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
-			return 
-			
-		en = int( time.time() - (time.time() % 3600) ) * 1000
-		st = en - 43200000 # 86400000/2 = 1/2 day
-		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.ap", jsonAction=u"returnData", cmdType=u"post")
+	def buttonConfirmPrint48HoursWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 
-		out =u"== 5 minutes AP stst report =="+"\n"
+		en = int( time.time() - (time.time() % 3600) ) * 1000
+		st = en - 360000*48 # 
+		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.ap", jsonAction=u"returnData", cmdType=u"post")
+		self.printWifiStatReport(data, u"== 48 hours WiFi-AP stat report ==")
+
+	####-----------------	 ---------
+	def buttonConfirmPrint5MinutesWiFiInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
+
+		en = int( time.time() - (time.time() % 3600) ) * 1000
+		st = en - 360000*4 #  4 hours
+		data = self.executeCMDOnController(dataSEND={u"attrs": [u"rx_bytes", u"tx_bytes", u"num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/5minutes.ap", jsonAction=u"returnData", cmdType=u"post")
+		self.printWifiStatReport(data, u"== 5 minutes WiFi-AP stat report ==")
+		return
+
+	####-----------------	 ---------
+	def printWifiStatReport(self, data, headLine):
+		out = headLine+"\n"
 		out+= u"##".ljust(4)
 		out+= u"timeStamp".ljust(21)
 		out+= u"num_sta".rjust(8)
-		out+= u"Bytes".rjust(12)
+		out+= u"rxBytes".rjust(12)
+		out+= u"txBytes".rjust(12)
 		out+= u"\n"
 		ii=0
 		lastap = ""
@@ -3481,8 +3491,11 @@ class Plugin(indigo.PluginBase):
 				ll+= unicode(item[u"num_sta"]).rjust(8)
 			else:				  ll+= (" ").rjust(8)
 
-			if u"bytes" in item:
-				ll+= (u"{0:,d}".format(int(item[u"bytes"]))).rjust(12)
+			if u"rx_bytes" in item:
+				ll+= (u"{0:,d}".format(int(item[u"rx_bytes"]))).rjust(12)
+			else:				  ll+= (u" ").rjust(12)
+			if u"tx_bytes" in item:
+				ll+= (u"{0:,d}".format(int(item[u"tx_bytes"]))).rjust(12)
 			else:				  ll+= (u" ").rjust(12)
 
 			out+=ll+(u"\n")
@@ -3492,25 +3505,20 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def buttonConfirmPrint48HourInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		if self.unifiControllerOS == "unifi_os":
-			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
-			return 
+	def buttonConfirmPrint48HoursWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 2*86400000
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/hourly.site", jsonAction=u"returnData", cmdType=u"post")
-		self.unifsystemReport2(data,u"== 48 HOUR report ==")
+		self.unifsystemReport2(data,u"== 48 HOUR WAN report ==")
+		return
 
 	####-----------------	 ---------
-	def buttonConfirmPrint7DayInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
-		if self.unifiControllerOS == "unifi_os":
-			self.indiLOG.log(30,u"unifi-Report  /stat/report/ ... not implemented for unifi_os")
-			return 
+	def buttonConfirmPrint7DaysWanInfoFromControllerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		en = int( time.time() - (time.time() % 3600) ) * 1000
 		st = en - 7*86400000
 		data = self.executeCMDOnController(dataSEND={u"attrs": [u"bytes",u"wan-tx_bytes",u"wan-rx_bytes",u"wan-tx_bytes", u"num_sta", u"wlan-num_sta", u"lan-num_sta", u"time"], u"start": st, u"end": en}, pageString=u"/stat/report/daily.site", jsonAction=u"returnData", cmdType=u"post")
-		self.unifsystemReport2(data,u"== 7 DAY report ==")
-
+		self.unifsystemReport2(data,u"== 7 DAY WAN report ==")
+		return
 
 
 	####-----------------	 ---------
@@ -4517,11 +4525,14 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(40,u"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP,resp.text))
 							self.executeCMDOnControllerReset(wait=True)
 							continue
+
 						if  resp.status_code != requests.codes.ok:
 							self.indiLOG.log(40,u"UNIFI executeCMDOnController  login url:{}\ngives, ok not found or status_code:{} not in [{}]\n  error: {}\n".format(url,resp.status_code, requests.codes.ok, resp.text[0:300]) )
 							self.executeCMDOnControllerReset(wait=True)
 							continue
-							
+						if 'X-CSRF-Token' in resp.headers:
+							self.csrfToken = resp.headers['X-CSRF-Token']
+				
 
 						self.lastUnifiCookieRequests = time.time()
 		
@@ -4529,6 +4540,8 @@ class Plugin(indigo.PluginBase):
 					if dataSEND =={}: 	dataSendSTR = ""
 					else:		  		dataSendSTR = json.dumps(dataSEND)
 					headers = {"Accept": "application/json", "Content-Type": "application/json"}
+					if self.csrfToken != "":
+						headers['X-CSRF-Token'] = self.csrfToken
 
 					cookies_dict = requests.utils.dict_from_cookiejar(self.unifiControllerSession.cookies)
 					if self.unifiControllerOS == "unifi_os":
@@ -6895,12 +6908,12 @@ class Plugin(indigo.PluginBase):
 
 
 				if ( (time.time()- lastForcedRestartTimeStamp) > minWaitbeforeRestart) or lastForcedRestartTimeStamp <0: # init comm
-							if lastForcedRestartTimeStamp> 0:
+							if lastForcedRestartTimeStamp > 0:
 								restartCount +=1
-								if self.decideMyLog(u"Expect"):
-									if restartCount > 20: ddx = 30
-									else:				  ddx = 20
-									self.indiLOG.log(ddx,u"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
+								if   restartCount > 20:	logLevel = 30; restartCount = 0
+								elif restartCount > 10:	logLevel = 20
+								else:				  	logLevel = 10
+								self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
 
 								self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 								self.connectParams[u"promptOnServer"][ipNumber] = ""
@@ -7234,12 +7247,20 @@ class Plugin(indigo.PluginBase):
 			if loggedIn:
 				nPrompt = 3
 				if ipNumber in self.connectParams[u"promptOnServer"]:
-					if self.connectParams[u"promptOnServer"][ipNumber]  == xx[-nPrompt:]:
+					if self.connectParams[u"promptOnServer"][ipNumber]  == xx[-nPrompt:]: 
 						return True
-				if ipNumber not in self.connectParams[u"promptOnServer"]: self.connectParams[u"promptOnServer"][ipNumber] = ""
-				self.indiLOG.log(10,u"testServerIfOK: =========== to {}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>> :{}...\n{} <<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:], nPrompt,  xx[0:100], xx[-100:]) )
+					else:
+						self.indiLOG.log(10,u"testServerIfOK: =========== {}; prompt not found;  old:'{}', new:'{}'".format(ipNumber, self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:]) )
+						pass
+				else:
+					self.connectParams[u"promptOnServer"][ipNumber] == ""
+					self.indiLOG.log(10,u"testServerIfOK: =========== ipNumber:{} not in connectParams".format(ipNumber) )
+
+				self.indiLOG.log(10,u"testServerIfOK: =========== to {}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>>{}...\n{}<<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:], nPrompt,  xx[0:100], xx[-100:]) )
+
 				self.connectParams[u"promptOnServer"][ipNumber] = xx[-nPrompt:]
 				self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
+
 				self.indiLOG.log(10,u"testServerIfOK: =========== known prompts: \n{}".format(self.connectParams[u"promptOnServer"]))
 				return True
 

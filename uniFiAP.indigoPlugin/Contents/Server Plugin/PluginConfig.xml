@@ -431,15 +431,16 @@
 		<Label>Gateway (GW/router) active:..................................................</Label>  
 	</Field>
 
+    <Field    id="GWtailEnable"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+		<Label>run message listener process on Gateway</Label>  
+	</Field>
     <Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="false" fontSize="small" fontColor="darkgrey"> 
 	<Label>.                                                                Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info.
 .                                                                The USG3 in some software versions does not show any relevant info in the message logfile, 
 .                                                                   then you will see a lot of listener restart message for GWtail 
-.                                                                   ==> disable the message listener process</Label>  </Field>
+.                                                                   ==> disable the message listener process
+</Label>  </Field>
 
-    <Field    id="GWtailEnable"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
-		<Label>run message listener process on Gateway</Label>  
-	</Field>
 
     <Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
         <Label>...read GW database dump every:</Label>

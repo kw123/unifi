@@ -149,21 +149,30 @@
 			</Field>
 			<Field id="simpleSeparator7" type="separator"/>
 
+
 			<Field	id="LabelprintStats" type="label"> <Label>Print stats- not implemented fror Unifi Op-sys:</Label> </Field>
-			<Field	id="Label8" type="label"> <Label>Print 7 day stats:</Label> </Field>
+			<Field	id="Label8" type="label"> <Label>Print 7 days WAN-stats:</Label> </Field>
 			<Field	  id="confirm8" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint7DayInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint7DaysWanInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label9" type="label"> <Label>Print 48 hour stats:</Label> </Field>
+			<Field	id="Label9" type="label"> <Label>Print 48 hours WAN-stats:</Label> </Field>
 			<Field	  id="confirm9" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HourInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HoursWanInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label91" type="label"> <Label>Print 5 Minutes stats:</Label> </Field>
+
+
+			<Field	id="Label91" type="label"> <Label>Print 5 Minutes Wifi-AP stats:</Label> </Field>
 			<Field	  id="confirm91" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint5MinutesInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint5MinutesWiFiInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
+			
+			<Field	id="Label92" type="label"> <Label>Print 48 hours Wifi-AP stats:</Label> </Field>
+			<Field	  id="confirm92" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrint48HoursWiFiInfoFromControllerCALLBACK</CallbackMethod>
+			</Field>
+
 			
 			<Field id="simpleSeparator101" type="separator"/>
 			<Field	id="Label10" type="label"> <Label>Print W-lan Config (passwords will be printed!!):</Label> </Field>
