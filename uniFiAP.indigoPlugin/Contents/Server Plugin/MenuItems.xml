@@ -99,11 +99,26 @@
 			</Field>
 			<Field id="simpleSeparator51" type="separator"/>
 
-			<Field	id="Label6" type="label"> <Label>Print Alarm info:</Label> </Field>
+			<Field	id="Label511" type="label"> <Label>Print DeepPacketInfo (must be switched on):</Label> </Field>
+			<Field	  id="confirm511" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintDPIFromControllerCALLBACK</CallbackMethod>
+			</Field>
+
+
+			<Field id="simpleSeparator52" type="separator"/>
+			<Field	id="Label521" type="label"> <Label>Print list of backups on system:</Label> </Field>
+			<Field	  id="confirm521" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintListOfBackupsFromControllerCALLBACK</CallbackMethod>
+			</Field>
+
+
+			<Field id="simpleSeparator6" type="separator"/>
+
+			<Field	id="Label60" type="label"> <Label>Print Alarm info:</Label> </Field>
 			<Field	  id="confirm6" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintAlarmInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
-			<Field id="simpleSeparator6" type="separator"/>
+			<Field id="simpleSeparator60" type="separator"/>
 
 
 			<Field	id="Label61" type="label"> <Label>Print WiFi channel info:</Label> </Field>
@@ -150,7 +165,7 @@
 			<Field id="simpleSeparator7" type="separator"/>
 
 
-			<Field	id="LabelprintStats" type="label"> <Label>Print stats- not implemented fror Unifi Op-sys:</Label> </Field>
+			<Field	id="LabelprintStats" type="label"> <Label>Stats WAN - WiFi:</Label> </Field>
 
 			<Field	id="Label81" type="label"> <Label>Print 5 Minutes hours WAN-stats:</Label> </Field>
 			<Field	  id="confirm81" type="button" tooltip="" >
@@ -189,24 +204,33 @@
 			<Field	  id="confirm10" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintWlanConfInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
-
+<!-->  this one does not work .. covered by other 
 			<Field id="simpleSeparator111" type="separator"/>
 			<Field	id="Label11" type="label"> <Label>Print UGA setup parameters:</Label> </Field>
 			<Field	  id="confirm11" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>executeMCAconfigDumpOnGW</CallbackMethod>
 			</Field>
-
+-->
 		</ConfigUI>
 	</MenuItem>
 
-	<MenuItem id="printDataStats">
-		<Name>PRINT communication stats</Name>
-		<CallbackMethod>buttonPrintStatsCALLBACK</CallbackMethod>
-	</MenuItem>
+	<MenuItem id="dataStats">
+		<Name>Communication stats - print, clear</Name>
+		<ConfigUI>
+			<Field	id="Label11" type="label"> 
+				<Label>PRINT communication stats:</Label> 
+			</Field>
+			<Field	  id="confirmprint" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonPrintStatsCALLBACK</CallbackMethod>
+			</Field>
 
-	<MenuItem id="zeroDataStats">
-		<Name> ... Zero stats</Name>
-		<CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
+			<Field	id="Label12" type="label"> 
+				<Label>Zero stats:</Label> 
+			</Field>
+			<Field	  id="confirmclear" type="button" tooltip="" >
+				<Label>Click to </Label><Title>CLEAR </Title> <CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
+			</Field>
+		</ConfigUI>
 	</MenuItem>
 
 	<MenuItem id="logMACs">
@@ -232,46 +256,56 @@
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="ignoreMACs">
-		<Name>(UN)IGNORE UniFi clients with specific MAC</Name>
+		<Name>(UN)IGNORE UniFi clients</Name>
 		<ConfigUI>
-		<Field id="ignoreLabel" type="label"> <Label>select MACs to COMPLETELY ignore:</Label> </Field>
-			<Field	   id="MACdeviceSelected" type="menu" defaultValue="">
-				<Label>select which MAC # / device:</Label>
-				<List class="self" filter="" method="filterMACunifiAndCameraOnly"  dynamicReload="false"/>
-			</Field>
-			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
-				<Label>Click to  START ignoring</Label><Title>IGNORE </Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
-			</Field>
-		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
-			<Field	   id="MACdeviceIgnored" type="menu" defaultValue="">
-				<Label>select which MAC # / device:</Label>
-				<List class="self" filter="" method="filterMACunifiIgnored"  dynamicReload="false"/>
-			</Field>
-			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
-				<Label>Click to  STOP  ignoring</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
-	<MenuItem id="ignoreMACspecial">
-		<Name>(UN)IGNORE UniFi clients with partial MAC</Name>
-		<ConfigUI>
-		<Field id="ignoreLabel" type="label"> <Label>set partial MAC to be ignored eg xx:AD:12:xx:56:xx 
-  would ignore MACs with any xx and AD 12 56 in the specified positions:</Label> </Field>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
 			</Field>
-			<Field   id="MACspecialIgnore" type="textfield" defaultValue="">
-				<Label>set MAX #:</Label>
+			<Field id="ignoreLabel0" type="label"> 
+				<Label>.. this will effect the plugin only, nothing gets set in UNIFI</Label> 
 			</Field>
-			<Field	  id="confirmIgnore" type="button" tooltip="this gets reset after restart of the plugin" >
+			<Field id="simpleSeparator0" type="separator"/>
+			<Field id="ignoreLabel0" type="label"> 
+				<Label>(UN)-SET IGNORE UniFi clients with specific MAC ==============</Label> 
+			</Field>
+			<Field id="ignoreLabel1" type="label"> 
+				<Label>select MACs to COMPLETELY ignore:</Label> 
+			</Field>
+			<Field	   id="MACdeviceSelected" type="menu" defaultValue="">
+				<Label>select device:</Label>
+				<List class="self" filter="" method="filterMACunifiAndCameraOnly"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmIgnore1" type="button"  >
+				<Label>Click to  START ignoring</Label><Title>ADD </Title> <CallbackMethod>buttonConfirmStartIgnoringCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="unignoreLabel3" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
+			<Field	   id="MACdeviceIgnored" type="menu" defaultValue="">
+				<Label>select device #:</Label>
+				<List class="self" filter="" method="filterMACunifiIgnored"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmUnIgnore0" type="button" tooltip="" >
+				<Label>Click to  STOP  ignoring</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopIgnoringCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="simpleSeparator2" type="separator"/>
+			<Field id="ignoreLabel10" type="label"> 
+				<Label>(UN)-SET IGNORE  UniFi clients with partial MAC ==============</Label> 
+			</Field>
+			<Field id="ignoreLabel11" type="label"> 
+				<Label>xx:AD:12:xx:56:xx ignores MACs with any xx and AD 12 56</Label> 
+			</Field>
+			<Field   id="MACspecialIgnore" type="textfield" defaultValue="">
+				<Label>set MAC #:</Label>
+			</Field>
+			<Field	  id="confirmIgnore10" type="button" >
 				<Label>Click to  START ignoring</Label><Title>ADD </Title> <CallbackMethod>buttonConfirmStartIgnoringSpecialMACCALLBACK</CallbackMethod>
 			</Field>
-		<Field id="unignoreLabel" type="label"> <Label>select MACs to UN ignore:</Label>  </Field>
+			<Field id="unignoreLabel10" type="label"> <Label>UN ignore:</Label>  </Field>
 			<Field	   id="MACspecialUNIgnored" type="menu" defaultValue="">
-				<Label>select which MAC # / device:</Label>
+				<Label>select MAC #:</Label>
 				<List class="self" filter="" method="filterMACspecialUNIgnore"  dynamicReload="false"/>
 			</Field>
-			<Field	  id="confirmUnIgnore" type="button" tooltip="" >
+			<Field	  id="confirmUnIgnore10" type="button" tooltip="" >
 				<Label>Click to  STOP  ignoring</Label><Title>REMOVE </Title> <CallbackMethod>buttonConfirmStopIgnoringSpecialMACCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
@@ -814,11 +848,11 @@ it will make the plugin restart </Label>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-	<MenuItem id="reconnectWiFiDevice">
-		<Name>Re-CONNECT a wifi device</Name>
+	<MenuItem id="reconnectWiFiClient">
+		<Name>Re-CONNECT a wifi client (kick)</Name>
 		<ConfigUI>
 			<Field	   id="selectedDevice" type="menu" defaultValue="0">
-				<Label>select UniFi-CLient Wifi device:</Label>
+				<Label>select client Wifi device:</Label>
 				<List class="self" filter="" method="filterWiFiDevice"	dynamicReload="no"/>
 			</Field>
 			<Field	  id="confirmReconnect" type="button" tooltip="" >
@@ -827,8 +861,8 @@ it will make the plugin restart </Label>
 		</ConfigUI>
 	</MenuItem>
 
-	<MenuItem id="blockDevice">
-		<Name>(UN) BLOCK a device / client</Name>
+	<MenuItem id="blockClient">
+		<Name>(UN) BLOCK a client</Name>
 		<ConfigUI>
 			<Field	   id="selectedDevice" type="menu" defaultValue="0">
 				<Label>select UniFi-CLient device:</Label>
@@ -843,25 +877,16 @@ it will make the plugin restart </Label>
 		</ConfigUI>
 	</MenuItem>
 
-	<MenuItem id="rebootUNIFIdevice">
-		<Name>REBOOT a UniFi system device </Name>
-		<ConfigUI>
-			<Field	   id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
-				<Label>select which device:</Label>
-				<List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
-			</Field>
-			<Field	  id="confirmReboot" type="button" tooltip="" >
-				<Label>Click to reboot</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
-
-
 	<MenuItem id="enableDisableUniFiAPDevice">
-		<Name>EN-DISABLE a UniFi AP device </Name>
+		<Name>EN-DISABLE - reboot a UniFi device </Name>
 		<ConfigUI>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
+
 			<Field	id="Label01" type="label"> 
-			<Label> This will disable(re enable) the functionality of the selected AP, like in the controller /Config/managedevcie/disable-enable </Label> </Field>
+				<Label> This will disable(re enable) the functionality of the selected AP, like in the controller /Config/manage device/disable-enable </Label> 
+			</Field>
 			<Field	   id="apDeviceSelected" type="menu" defaultValue="system">
 				<Label>select which device:</Label>
 				<List class="self" filter="" method="filterAPdevices"  dynamicReload="false"/>
@@ -871,6 +896,42 @@ it will make the plugin restart </Label>
 			</Field>
 			<Field	  id="confirmD" type="button" tooltip="" >
 				<Label>Click to DISABLE </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmDisableAPConllerCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="simpleSeparator1" type="separator"/>
+			<Field	id="Label11" type="label"> 
+				<Label> This will RE-PROVISION the selected unifi device</Label>
+			</Field>
+			<Field	   id="selectedUnifiDeviceProvision" type="menu" defaultValue="system">
+				<Label>select which device:</Label>
+				<List class="self" filter="" method="filterUNIFIsystemDevice"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmProvision" type="button" tooltip="" >
+				<Label>Click to RESTART </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmProvisionUnifiDeviceConllerCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="simpleSeparator2" type="separator"/>
+			<Field	id="Label21" type="label"> 
+				<Label> This will RESTART (through controller) the selected unifi device</Label>
+			</Field>
+			<Field	   id="selectedUnifiDevice" type="menu" defaultValue="system">
+				<Label>select which device:</Label>
+				<List class="self" filter="" method="filterUNIFIsystemDevice"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmRestart" type="button" tooltip="" >
+				<Label>Click to RESTART </Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmRestartUnifiDeviceConllerCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="simpleSeparator5" type="separator"/>
+			<Field	id="Label51" type="label"> 
+				<Label> This will REBOOT (through ssh to device) the selected unifi device</Label>
+			 </Field>
+			<Field	   id="rebootUNIFIdeviceSelected" type="menu" defaultValue="system">
+				<Label>select which device:</Label>
+				<List class="self" filter="" method="filterUnifiDevices"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="confirmReboot" type="button" tooltip="" >
+				<Label>Click to reboot</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmrebootCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -895,7 +956,7 @@ it will make the plugin restart </Label>
 	</MenuItem>
 
 
-	<MenuItem id="APledON">
+	<MenuItem id="APledONoff">
 		<Name>Set AP LEDs ON/off</Name>
 		<ConfigUI>
 			<Field	  id="confirm1" type="button" tooltip="" >

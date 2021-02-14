@@ -1,3 +1,11 @@
+changes in V 7.36.324 @ 2021-02-14
+==================  
+   
+1. added some more reports for  backups, DPI ,...
+2. some beautification in menus, combined things, fixed some spelling
+
+
+
 changes in V 7.35.324 @ 2021-02-12
 ==================  
    
