@@ -379,6 +379,7 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerOS 								= ""
 		self.unifiApiWebPage								= ""
 		self.unifiApiLoginPath								= ""
+		self.overWriteControllerPort						= self.pluginPrefs.get(u"overWriteControllerPort", "")
 		self.unifiCloudKeyPort								= ""
 		self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", "std")
 		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
@@ -595,7 +596,6 @@ class Plugin(indigo.PluginBase):
 		self.checkforUnifiSystemDevicesState 				= "start"
 
 		self.killIfRunning("", "")
-		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
 
 		try: 	os.mkdir(self.indigoPreferencesPluginDir+"backup")
 		except: pass
@@ -998,9 +998,13 @@ class Plugin(indigo.PluginBase):
 
 
 			self.unifiCloudKeyIP						= valuesDict[u"unifiCloudKeyIP"]
-			self.unifiCloudKeyPort						= valuesDict[u"unifiCloudKeyPort"]
+			if self.overWriteControllerPort != valuesDict[u"overWriteControllerPort"]:
+				rebootRequired							+= u"controller port overwrite changed"
+			self.overWriteControllerPort				= valuesDict[u"overWriteControllerPort"]
+
 			self.unifiCloudKeyMode						= valuesDict[u"unifiCloudKeyMode"]
 			self.unifiCloudKeySiteName					= valuesDict[u"unifiCloudKeySiteName"]
+
 			if type("") != self.unifiCloudKeySiteName: self.unifiCloudKeySiteName = ""
 			if len(self.unifiCloudKeySiteName) < 3: self.unifiCloudKeySiteName = ""
 			valuesDict[u"unifiCloudKeySiteName"] = self.unifiCloudKeySiteName
@@ -1033,8 +1037,6 @@ class Plugin(indigo.PluginBase):
 				if self.unifiCloudKeyMode == u"ONreportsOnly": 
 					self.unifiCloudKeyMode == u"UDM"
 					valuesDict[u"unifiCloudKeyMode"] = "UDM"
-			self.unifiApiWebPage						= valuesDict[u"unifiApiWebPage"]
-			self.unifiApiLoginPath						= valuesDict[u"unifiApiLoginPath"]
 			try: 	self.controllerWebEventReadON		= int(valuesDict[u"controllerWebEventReadON"])
 			except: self.controllerWebEventReadON		= -1
 			if self.unifiControllerType == "UDMpro":
@@ -1325,6 +1327,7 @@ class Plugin(indigo.PluginBase):
 			self.myLog( text=u"Controller Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType )
 			self.myLog( text=u"use strict:true for web login".ljust(40)		+	unicode(self.useStrictToLogin)[0] )
 			self.myLog( text=u"Controller port#".ljust(40)					+	self.unifiCloudKeyPort )
+			self.myLog( text=u"overWriteControllerPort".ljust(40)			+	self.overWriteControllerPort )
 			self.myLog( text=u"Controller site Name".ljust(40)				+	self.unifiCloudKeySiteName )
 			self.myLog( text=u"Controller site NameList ".ljust(40)			+	unicode(self.unifiCloudKeyListOfSiteNames) )
 
@@ -3259,7 +3262,12 @@ class Plugin(indigo.PluginBase):
 				if u"useWhichMAC" in props and props[u"useWhichMAC"] == u"MAClan":
 					MAC = dev.states[u"MAClan"]
 			self.indiLOG.log(10,u"unifi-Report getting _id for AP {}  /stat/device/{}".format(dev.name, MAC) )
-			jData= self.executeCMDOnController(dataSEND={}, pageString=u"/stat/device/"+MAC, jsonAction=u"returnData", cmdType=u"get")
+			jData = self.executeCMDOnController(dataSEND={}, pageString=u"/stat/device/"+MAC, jsonAction=u"returnData", cmdType=u"get")
+
+			if len(jData) == 0 and self.unifiCloudKeyPort == "": 
+				self.indiLOG.log(10,u"unifi-Report:  controller not setup, skipping other querries" )
+				break
+
 			for dd in jData:
 				if u"_id" not in dd:
 					self.indiLOG.log(10,"unifi-Report _id not in data")
@@ -4521,11 +4529,19 @@ class Plugin(indigo.PluginBase):
 			ret 			= ""
 			for ii in range(3):
 				# get port and which unifi os:
-				if self.unifiControllerOS != "" and self.unifiCloudKeyPort in self.tryHTTPPorts: return True
-				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, self.tryHTTPPorts ) )
+				if self.unifiControllerOS != "" and (
+					self.unifiCloudKeyPort in self.tryHTTPPorts or (
+						self.unifiCloudKeyPort == self.overWriteControllerPort and self.overWriteControllerPort !=""
+					) 
+				) : return True
+				if self.overWriteControllerPort != "":
+					tryport = [self.overWriteControllerPort]
+				else:
+					tryport = self.tryHTTPPorts
+				self.indiLOG.log(10,u"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS, self.unifiCloudKeyIP, tryport ) )
 				self.executeCMDOnControllerReset()
 
-				for port in self.tryHTTPPorts:
+				for port in tryport:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
 					cmdOS = self.curlPath+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
@@ -4543,7 +4559,7 @@ class Plugin(indigo.PluginBase):
 				self.sleep(1)
 				
 			if self.unifiControllerOS == "": 
-				self.indiLOG.log(30,u"getunifiOSAndPort bad return from unifi controller {}, no os and / port found, tried ports:{}".format(self.unifiCloudKeyIP, self.tryHTTPPorts) )
+				self.indiLOG.log(30,u"getunifiOSAndPort bad return from unifi controller {}, no os and / port found, tried ports:{}".format(self.unifiCloudKeyIP, tryport) )
 
 		except	Exception, e:
 			if unicode(e) != u"None":
@@ -4635,10 +4651,10 @@ class Plugin(indigo.PluginBase):
 				# get port and which unifi os:
 				if not self.getunifiOSAndPort(): 
 					self.executeCMDOnControllerReset(wait=False)
-					continue
+					return []
 				if self.unifiControllerOS not in self.OKControllerOS:
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"unifiControllerOS not set : {}".format(self.unifiControllerOS) )
-					continue
+					return []
 
 				# now execute commands
 				#### use curl 
@@ -5270,6 +5286,8 @@ class Plugin(indigo.PluginBase):
 
 		self.writeJson(dataVersion, fName=self.indigoPreferencesPluginDir + "dataVersion")
 
+		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
+
 		## if video enabled
 		if self.VIDEOEnabled and self.vmMachine !="":
 			self.buttonVboxActionStartCALLBACK()
@@ -5735,7 +5753,6 @@ class Plugin(indigo.PluginBase):
 		self.lastcreateEntryInUnifiDevLog = time.time() 
 
 		try:
-			self.quitNow = ""
 			while True:
 				sl = max(1., self.loopSleep / 20. )
 				sli = int(self.loopSleep / sl)
@@ -7484,7 +7501,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(10,u"testServerIfOK: =========== {}; prompt not found;  old:'{}', new:'{}'".format(ipNumber, self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:]) )
 						pass
 				else:
-					self.connectParams[u"promptOnServer"][ipNumber] == ""
+					self.connectParams[u"promptOnServer"][ipNumber] = ""
 					self.indiLOG.log(10,u"testServerIfOK: =========== ipNumber:{} not in connectParams".format(ipNumber) )
 
 				self.indiLOG.log(10,u"testServerIfOK: =========== to {}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>>{}...\n{}<<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:], nPrompt,  xx[0:100], xx[-100:]) )
@@ -10151,7 +10168,7 @@ class Plugin(indigo.PluginBase):
 						self.addToStatesUpdateList(dev.id,u"adhoc", adhoc)
 						self.setupBasicDeviceStates(dev, MAC, xType, "", "", "", u" status up        neighbor DICT new neighbor", "DC-NB-2   ")
 						self.executeUpdateStatesList()
-						indigo.variable.updateValue(u"Unifi_New_Device", u"{}".format(dev.nameMAC) )
+						indigo.variable.updateValue(u"Unifi_New_Device", u"{}".format(dev.name) )
 						dev = indigo.devices[dev.id]
 						self.setupStructures(xType, dev, MAC)
 				self.executeUpdateStatesList()

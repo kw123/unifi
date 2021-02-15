@@ -7,21 +7,21 @@
 
 				<Field id="printConfig" type="button"> 
 					<Label>PRINT Config parameters to logfile </Label> 
-					<Title>CONFIRM</Title><CallbackMethod>printConfigMenu</CallbackMethod>
+					<Title>PRINT</Title><CallbackMethod>printConfigMenu</CallbackMethod>
 				</Field>
 
 				<Field id="simpleSeparator1" type="separator"/>
 
 				<Field id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
 					<Label>Print All info for all MAC numbers</Label>
-					<Title>CONFIRM </Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
+					<Title>PRINT</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
 				</Field>
 
 				<Field id="simpleSeparator2" type="separator"/>
 
 				<Field id="PrintOverview" type="button"> 
 					<Label>PRINT overview info for UniFi devices to logfile </Label> 
-					<Title>CONFIRM</Title><CallbackMethod>printALLUNIFIsreducedMenue</CallbackMethod>
+					<Title>PRINT</Title><CallbackMethod>printALLUNIFIsreducedMenue</CallbackMethod>
 				</Field>
 
 				<Field id="simpleSeparator3" type="separator"/>
@@ -32,8 +32,8 @@
 					<List class="self" filter="" method="filterMAC"	 dynamicReload="false"/>
 				</Field>
 				<Field id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
-					<Label>Click to	 PRINT </Label>
-					<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
+					<Label>Click to</Label>
+					<Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
 				</Field>
 
 		</ConfigUI>

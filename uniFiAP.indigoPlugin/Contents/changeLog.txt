@@ -1,3 +1,13 @@
+changes in V 7.36.325 @ 2021-02-15
+==================  
+   
+1. added option in config to overwrite controller port number
+   normal action is to autodetect the port# [443, 8443]
+   it will still check if connection ok
+2. fixed error on config 
+3. fixed error in testServerIfOK
+4. fixed error in SensorDevice
+
 changes in V 7.36.324 @ 2021-02-14
 ==================  
    

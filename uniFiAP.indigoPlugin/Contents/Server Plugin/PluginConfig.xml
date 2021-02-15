@@ -231,7 +231,7 @@
  
  
     <Field id="infoLabel217" 				type="label"> 
-		<Label>== Controller info (for controller commands and UDM WiFi info):  </Label>  
+		<Label>== Controller info (for controller commands):  </Label>  
 	</Field>
   <Field    id="unifiControllerType"  	type="menu"  defaultValue="std"  > 
 		<Label>.. controller Type:</Label> 
@@ -279,6 +279,13 @@
 	</Field>
    <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>in most cases do not touch this, it will auto adapt</Label>  
+	</Field>
+
+	<Field    id="overWriteControllerPort" 	type="textfield" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
+		<Label>.. controller port #, leave empty for auto detect</Label>  
+	</Field>
+   <Field id="overWriteControllerPortLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>use this option only if port # is not 8443 or 443 or if you ahve another system that uses one of these ports</Label>  
 	</Field>
 
     <Field    id="unifigetBlockedClientsDeltaTime"  type="menu"  defaultValue="180"   tooltip="after plugin action for (un)block it will do an auto refresh, this is only for the cases where a device is (un)blocked through the web interface, it will create a BIG data dunp and transfer"  > 
