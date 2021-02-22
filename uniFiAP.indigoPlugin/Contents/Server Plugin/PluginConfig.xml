@@ -278,7 +278,7 @@
  		</List>
 	</Field>
 	<Field id="infoLabeluseDBInfoForWhichDevices" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
-	<Label>When enabled plugin will check the controller db info for lastup_time if other info suggest up->down to confirm  or supspend up->down for "expirationtime" seconds 
+	<Label>When enabled plugin will check the controller db info for last_seen time if other info suggest up->down to confirm  or supspend up->down for "expirationtime" seconds 
 This might be usefull if the communication with the individual AP gives sometimes faulty down info.
 This info is slow for down -> up info, might take several minutes before a devices shows up in the controller
 ==> requires "use controler info" = ON
@@ -345,6 +345,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
 	</Field>
 
+<!--
 	<Field    id="readDictEverySecondsUD"   type="menu" defaultValue="60" visibleBindingId="ipUDMON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
 		<Label>...read UDM database dump every:</Label>
 		<List>
@@ -358,7 +359,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 			<Option value="120"   >2  minutes</Option>
 		</List>
 	</Field>
-
+-->
 	<Field    id="ipUDM"   					type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUDMON" visibleBindingValue="true"> 
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
@@ -368,6 +369,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
+<!--
 	<Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipUDMON" visibleBindingValue="true" > 
 		<Label>...read UDM (NOT-pro) controller web page event log for tracking wifi devices every:</Label>
 		<List>
@@ -380,13 +382,14 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 			<Option value="-1"    >off</Option>
 		</List>
 	</Field>
-
+-->
 
 	<Field id="simpleSeparatorapON" 			type="separator"/>
 
 	<Field id="apON" 						type="checkbox"  defaultValue="true"   > 
 		<Label>Show AP section........................................................:</Label>  
 	</Field>
+<!--
 
 	<Field id="readDictEverySecondsAP"   	type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
 		<Label>...read database dump of APs every:</Label>
@@ -401,7 +404,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 			<Option value="120"   >2  minutes</Option>
 		</List>
 	</Field>
-
+-->
 
 	<Field    id="ipON0" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
 	<Field    id="ip0"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>
@@ -443,7 +446,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 .                                                                   ==> disable the message listener process
 </Label>  </Field>
 
-
+<!--
 	<Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
 		<Label>...read GW database dump every:</Label>
 		<List>
@@ -457,7 +460,7 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 			<Option value="120"   >2  minutes</Option>
 		</List>
 	</Field>
-
+-->
 	<Field    id="ipUGA"   type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUGAON" visibleBindingValue="true"> 
 		<Label>- ipNumber of your GW:</Label>  
 	</Field>

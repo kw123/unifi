@@ -110,7 +110,7 @@
 				</List>
 			</Field>
 			<Field id="infoLabeluseDBInfoForDownCheck" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
-			<Label>When enabled plugin will check the controller db info for lastseen_time if other info suggest up->down to confirm  or supspend up->down.
+			<Label>When enabled plugin will check the controller db info for last_seen time if other info suggest up->down to confirm  or supspend up->down.
 This might be usefull if the communication with the individual AP gives sometimes faulty down info.
 If in config enabled for all or off, this setting is ignored, this setting is only used if in config it is set to "per device"</Label>  </Field>
 

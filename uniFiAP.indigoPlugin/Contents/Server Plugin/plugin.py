@@ -467,11 +467,11 @@ class Plugin(indigo.PluginBase):
 		self.MACloglist										= {}
 
 		self.readDictEverySeconds							= {}
-		self.readDictEverySeconds[u"AP"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 60) ))
-		self.readDictEverySeconds[u"GW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
-		self.readDictEverySeconds[u"SW"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
-		self.readDictEverySeconds[u"UD"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
-		self.readDictEverySeconds[u"DB"]					= unicode(int(self.pluginPrefs.get(u"readDictEverySecondsDB", 40) ))
+		self.readDictEverySeconds[u"AP"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 60) ))
+		self.readDictEverySeconds[u"GW"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
+		self.readDictEverySeconds[u"SW"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
+		self.readDictEverySeconds[u"UD"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
+		self.readDictEverySeconds[u"DB"]					= 40 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsDB", 40) ))
 		self.getcontrollerDBForClientsLast					= 0
 		self.devStateChangeList								= {}
 		self.deviceUp[u"AP"]								= {}
@@ -1062,13 +1062,14 @@ class Plugin(indigo.PluginBase):
 			for d in _debugAreas:
 				if valuesDict[u"debug"+d]: self.debugLevel.append(d)
 
-			for TT in[u"AP",u"GW",u"SW"]:
-				try:	xx			 = unicode(int(valuesDict[u"readDictEverySeconds"+TT]))
-				except: xx			 = u"120"
-				if xx != self.readDictEverySeconds[TT]:
-					self.readDictEverySeconds[TT]				  = xx
-					valuesDict[u"readDictEverySeconds"+TT]		  = xx
-					rebootRequired	+= u" readDictEverySeconds  changed; "
+			if False:
+				for TT in[u"AP",u"GW",u"SW"]:
+					try:	xx			 = unicode(int(valuesDict[u"readDictEverySeconds"+TT]))
+					except: xx			 = u"120"
+					if xx != self.readDictEverySeconds[TT]:
+						self.readDictEverySeconds[TT]				  = xx
+						valuesDict[u"readDictEverySeconds"+TT]		  = xx
+						rebootRequired	+= u" readDictEverySeconds  changed; "
 
 
 			try:	xx			 = int(valuesDict[u"restartIfNoMessageSeconds"])
@@ -1356,8 +1357,8 @@ class Plugin(indigo.PluginBase):
 
 			self.myLog( text=u"Controller API WebPage".ljust(40)			+	self.unifiApiWebPage )
 			self.myLog( text=u"Controller API login WebPage".ljust(40)		+	self.unifiApiLoginPath )
-			self.myLog( text=u"get blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+u"[sec]" )
-			self.myLog( text=u"get lastseen info from Cntr every".ljust(40) +	unicode(self.unifigetLastSeenDeltaTime)+u"[sec]" )
+			#self.myLog( text=u"get blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+u"[sec]" )
+			#self.myLog( text=u"get lastseen info from Cntr every".ljust(40) +	unicode(self.unifigetLastSeenDeltaTime)+u"[sec]" )
 			self.myLog( text=u"" ,mType=u" ")
 			self.myLog( text=u"====== VIDEO / camera NVR stuff ----------------------",mType=u" " )
 			self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=u" " )
