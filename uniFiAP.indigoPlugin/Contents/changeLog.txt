@@ -1,3 +1,21 @@
+changes in V 7.37.326 @ 2021-02-21
+==================  
+   
+1. added option to ALSO use unifi controller db info for UP --> down
+   enable in config for all/per-device/ non  unifi cleint devices
+   if per-device: edit unifi client device in indigo and set to on/off
+   it is doing an https get requtest to /stat/alluser and checks for last_seen
+   if internal lastUp is expired it will check if last seen is later and will overwrite ie extending the expiration timer
+
+
+changes in V 7.36.326 @ 2021-02-19
+==================  
+   
+1. added check if unix prompt is only 2 characters, was looking for 3 characters
+   eg '\n# '  --> '# '
+
+
+
 changes in V 7.36.325 @ 2021-02-15
 ==================  
    

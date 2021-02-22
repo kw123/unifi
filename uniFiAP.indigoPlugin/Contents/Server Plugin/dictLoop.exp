@@ -25,7 +25,6 @@ expect "Permission denied" {send \003\r"; exit 1}
 sleep 2
 expect *
 send "\r"
-expect -re $
 expect "$promptOnServer" {puts "startxxxx\r";}
 sleep 1.0
 

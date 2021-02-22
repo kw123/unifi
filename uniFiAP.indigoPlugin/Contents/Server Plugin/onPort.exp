@@ -19,6 +19,8 @@ expect {
 set timeout 3
 expect "Permission denied" {send \003\r"; exit 1}
 sleep 1
+expect *
+send "\r"
 
 expect "$endToken" {
     sleep 0.1
