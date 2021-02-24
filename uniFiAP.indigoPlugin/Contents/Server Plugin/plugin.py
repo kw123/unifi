@@ -100,8 +100,8 @@ class Plugin(indigo.PluginBase):
 
 		date_Format = { logging.THREADDEBUG: "%d %H:%M:%S",
 						logging.DEBUG:       "%d %H:%M:%S",
-						logging.INFO:        "%H:%M:%S",
-						logging.WARNING:     "%H:%M:%S",
+						logging.INFO:        "%d %H:%M:%S",
+						logging.WARNING:     "%d %H:%M:%S",
 						logging.ERROR:       "%Y-%m-%d %H:%M:%S",
 						logging.CRITICAL:    "%Y-%m-%d %H:%M:%S" }
 		formatter = LevelFormatter(fmt="%(msg)s", datefmt="%Y-%m-%d %H:%M:%S", level_fmts=formats, level_date=date_Format)
@@ -345,7 +345,7 @@ class Plugin(indigo.PluginBase):
 		self.menuXML										= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
 		self.pluginPrefs[u"menuXML"]						= json.dumps(self.menuXML)
 		self.restartRequest									= {}
-
+		self.lastMessageReceivedInListener					= {}
 		self.blockAccess 									= []
 		self.waitForMAC2vendor 								= False
 		self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
@@ -383,7 +383,7 @@ class Plugin(indigo.PluginBase):
 		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", "ON")
 		if self.unifiControllerType.find(u"UDM") > -1:
 			self.unifiCloudKeyMode == u"ON"
-			self.pluginPrefs[u"unifiCloudKeyMode"] 		= u"ON"
+			self.pluginPrefs[u"unifiCloudKeyMode"] 			= u"ON"
 
 		try:
 			self.controllerWebEventReadON 					= int(self.pluginPrefs.get(u"controllerWebEventReadON",u"-1"))
@@ -416,12 +416,12 @@ class Plugin(indigo.PluginBase):
 
 		self.expectPath 									= "/usr/bin/expect"
 
-		self.restartIfNoMessageSeconds						= int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 600))
+		self.restartIfNoMessageSeconds						= 130 #int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 130))
 		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
 		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
-		self.loopSleep										= float(self.pluginPrefs.get(u"loopSleep", 4))
-		self.timeoutDICT									= unicode(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
+		self.loopSleep										= 8     # float(self.pluginPrefs.get(u"loopSleep", 8))
+		self.timeoutDICT									= u"10" #unicode(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
 		self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
 		self.folderNameNeighbors							= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
 		self.folderNameVariables							= self.pluginPrefs.get(u"folderNameVariables", "UNIFI")
@@ -448,7 +448,7 @@ class Plugin(indigo.PluginBase):
 		self.numberOfActive									= {}
 
 
-		self.createEntryInUnifiDevLogActive					= self.pluginPrefs.get(u"createEntryInUnifiDevLogActive",	False)
+		self.createEntryInUnifiDevLogActive					= True #self.pluginPrefs.get(u"createEntryInUnifiDevLogActive",	False)
 		self.lastcreateEntryInUnifiDevLog 					= time.time()
 
 		self.updateStatesList								= {}
@@ -972,7 +972,7 @@ class Plugin(indigo.PluginBase):
 			self.sendBroadCastEventsList				= []
 			self.ignoreNewNeighbors						= valuesDict[u"ignoreNewNeighbors"]
 			self.ignoreNewClients						= valuesDict[u"ignoreNewClients"]
-			self.loopSleep								= float(valuesDict[u"loopSleep"])
+			#self.loopSleep								= float(valuesDict[u"loopSleep"])
 			self.unifiControllerBackupON				= valuesDict[u"unifiControllerBackupON"]
 			self.ControllerBackupPath					= valuesDict[u"ControllerBackupPath"]
 
@@ -1031,7 +1031,7 @@ class Plugin(indigo.PluginBase):
 				rebootRequired							+= u" MACVendor lookup changed; "
 			self.enableMACtoVENDORlookup				= valuesDict[u"enableMACtoVENDORlookup"]
 
-			self.createEntryInUnifiDevLogActive			= valuesDict[u"createEntryInUnifiDevLogActive"]
+			#self.createEntryInUnifiDevLogActive			= valuesDict[u"createEntryInUnifiDevLogActive"]
 
 
 	#new for UDM (pro)
@@ -1052,10 +1052,12 @@ class Plugin(indigo.PluginBase):
 			if self.unifiControllerType == "UDMpro":
 					self.controllerWebEventReadON		= -1 
 
+			"""
 			xx											= unicode(int(valuesDict[u"timeoutDICT"]))
 			if xx != self.timeoutDICT:
 				rebootRequired	+= " timeoutDICT  changed; "
 				self.timeoutDICT						= xx
+			"""
 
 			##
 			self.debugLevel = []
@@ -1248,12 +1250,12 @@ class Plugin(indigo.PluginBase):
 		try:
 			controllerType = valuesDict[u"unifiControllerType"]
 			if   controllerType == "UDM":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
+				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
 				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
 				valuesDict[u"ipUDMON"]	 			= True
 
 			elif controllerType == "UDMPro":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"UDM"
+				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
 				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
 				valuesDict[u"ipUDMON"]	 			= True
 
@@ -1386,10 +1388,10 @@ class Plugin(indigo.PluginBase):
 			for ll in range(len(self.ipNumbersOf[u"SW"])):
 				self.myLog( text=self.ipNumbersOf[u"SW"][ll].ljust(20) 		+	unicode(self.devsEnabled[u"SW"][ll]).replace("True","T").replace("False","F") )
 			self.myLog( text=u"",mType=u" ")
-			self.myLog( text=self.ipNumbersOf[u"GW"].ljust(20) 				+	unicode(self.devsEnabled[u"GW"])+"  USG/UGA  gateway/router " )
+			self.myLog( text=self.ipNumbersOf[u"GW"].ljust(20) 				+	unicode(self.devsEnabled[u"GW"]).replace("True","T").replace("False","F")+"  USG/UGA  gateway/router " )
 
-			self.myLog( text=self.unifiCloudKeyIP.ljust(20) 				+	u"      Controller / cloud Key IP#" )
-			self.myLog( text=self.ipNumbersOf[u"VD"].ljust(20)				+	u"      Video NVR-IP#" )
+			self.myLog( text=self.unifiCloudKeyIP.ljust(20) 				+	u"   Controller / cloud Key IP#" )
+			self.myLog( text=self.ipNumbersOf[u"VD"].ljust(20)				+	u"   Video NVR-IP#" )
 			self.myLog( text=u"----------------------------------------------------",mType=u"  ")
 
 			self.myLog( text=u"")
@@ -7102,7 +7104,7 @@ class Plugin(indigo.PluginBase):
 					self.MAC2INDIGO[xType][MAC][u"last_seen"] = -1
 					lastSeen = -1
 
-				if self.decideMyLog(u"DBinfo", MAC=MAC): self.indiLOG.log(10,u"controlDB  {:15s}      client:{}".format(MAC, client) )
+				#if self.decideMyLog(u"DBinfo", MAC=MAC): self.indiLOG.log(10,u"controlDB  {:15s}      client:{}".format(MAC, client) )
 				if self.decideMyLog(u"DBinfo", MAC=MAC): self.indiLOG.log(10,u"controlDB  {:15s}      delta delta(now-previous):{:9.0f}, dt lastseen{:9.0f} lastSeen:{:9.0f}".format(MAC, lastSeen - previousSeen, time.time()-lastSeen, lastSeen) )
 
 
@@ -7174,12 +7176,16 @@ class Plugin(indigo.PluginBase):
 			msgSleep					= 1
 			restartCount				= -1
 			lastMSG						= ""
+			lastOKMessage				= -1
+
 			if repeatRead < 0:
 				minWaitbeforeRestart 	= 9999999999999999
 			else:
 				minWaitbeforeRestart	= max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
 
 			self.testServerIfOK(ipNumber,uType)
+			if uType.find("tail") > -1:
+				self.lastMessageReceivedInListener[ipNumber] = time.time()
 
 			while True:
 				if self.pluginState == "stop" or not self.connectParams[u"enableListener"][uType]: 
@@ -7191,6 +7197,9 @@ class Plugin(indigo.PluginBase):
 					self.sleep(20)
 					continue
 
+				if lastOKMessage > 0 and lastOKMessage > self.lastMessageReceivedInListener[ipNumber]: 
+					self.lastMessageReceivedInListener[ipNumber] = lastOKMessage
+
 				if len(self.restartRequest) > 0:
 					if uType in self.restartRequest:
 						if self.restartRequest[uType] == apnS:
@@ -7200,46 +7209,46 @@ class Plugin(indigo.PluginBase):
 							del self.restartRequest[uType]
 
 
-				if ( (time.time()- lastForcedRestartTimeStamp) > minWaitbeforeRestart) or lastForcedRestartTimeStamp <0: # init comm
-							if lastForcedRestartTimeStamp > 0:
-								restartCount +=1
-								if   restartCount > 20:	logLevel = 30; restartCount = 0
-								elif restartCount > 10:	logLevel = 20
-								else:				  	logLevel = 10
-								self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {}   @ {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
+				if ( (time.time()- lastForcedRestartTimeStamp) > minWaitbeforeRestart) or lastForcedRestartTimeStamp < 0: # init comm
+					if lastForcedRestartTimeStamp > 0:
+						restartCount +=1
+						if   restartCount > 20:	logLevel = 30; restartCount = 0
+						elif restartCount > 10:	logLevel = 20
+						else:				  	logLevel = 10
+						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
 
-								self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
-								self.connectParams[u"promptOnServer"][ipNumber] = ""
-							else:
-								self.indiLOG.log(10,u"getMessages: launching listener for: {}  @ {}".format(uType, ipNumber) )
+						self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
+						self.connectParams[u"promptOnServer"][ipNumber] = ""
+					else:
+						self.indiLOG.log(10,u"getMessages: launching listener for: {} / {}".format(uType, ipNumber) )
 
-							try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
-							except:	pass
+					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
+					except:	pass
 
-							self.killIfRunning(ipNumber,self.connectParams[u"expectCmdFile"][uType] )
-							if not self.testServerIfOK(ipNumber,uType):
-								self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber]) )
-								time.sleep(15)
-								self.msgListenerActive[uType] = 0
-								continue
-							if uType=="VDtail":
-								self.setAccessToLog(ipNumber,uType)
-							ListenProcessFileHandle, msg = self.startConnect(ipNumber,uType)
-							if self.decideMyLog(u"Expect"):
-								try: 	pid = ListenProcessFileHandle.pid
-								except:	pid = "not defined"
-								self.indiLOG.log(10,u"getMessages: ListenProcess started for uType: {};  ip: {}, prompt:'{}', pid:{}".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber], pid) )
+					self.killIfRunning(ipNumber,self.connectParams[u"expectCmdFile"][uType] )
+					if not self.testServerIfOK(ipNumber,uType):
+						self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber]) )
+						time.sleep(15)
+						self.msgListenerActive[uType] = 0
+						continue
+					if uType=="VDtail":
+						self.setAccessToLog(ipNumber,uType)
+					ListenProcessFileHandle, msg = self.startConnect(ipNumber,uType)
+					if self.decideMyLog(u"Expect"):
+						try: 	pid = ListenProcessFileHandle.pid
+						except:	pid = "not defined"
+						self.indiLOG.log(10,u"getMessages: ListenProcess started for uType: {};  ip: {}, prompt:'{}', pid:{}".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber], pid) )
 
 
-							if msg != "":
-								if errorCount%10 == 0:
-									self.indiLOG.log(40,u"getMessages: (2 connect)  error in listener {}, to  @ {}".format(uType, ipNumber) )
-								self.sleep(15)
-								continue
-							self.msgListenerActive[uType] = time.time()
+					if msg != "":
+						if errorCount%10 == 0:
+							self.indiLOG.log(40,u"getMessages: (2 connect)  error in listener {}, to  @ {}".format(uType, ipNumber) )
+						self.sleep(15)
+						continue
+					self.msgListenerActive[uType] = time.time()
 
-							connectErrorCount = 0
-							lastForcedRestartTimeStamp = time.time()
+					connectErrorCount = 0
+					lastForcedRestartTimeStamp = time.time()
 
 
 				self.sleep(msgSleep)
@@ -7328,7 +7337,7 @@ class Plugin(indigo.PluginBase):
 
 
 				######### for tail logfile
-					if uType.find(u"dict") ==-1:
+					if uType.find(u"dict") == -1:
 						## fill the queue and send to the method that uses it
 						if		unifiDeviceType == "AP":
 							self.deviceUp[u"AP"][ipNumber] = time.time()
@@ -7345,6 +7354,7 @@ class Plugin(indigo.PluginBase):
 							continue
 						self.logQueue.put((linesFromServer,ipNumber,apN, uType,unifiDeviceType))
 						linesFromServer = ""
+						lastOKMessage   = time.time()
 						self.updateIndigoWithLogData()	#####################  here we call method to do something with the data
 
 
@@ -7476,23 +7486,24 @@ class Plugin(indigo.PluginBase):
 	def createEntryInUnifiDevLog(self):
 		try:
 			if not self.createEntryInUnifiDevLogActive: return 
-			if time.time() - self.lastcreateEntryInUnifiDevLog < 80: return 
+			if time.time() - self.lastcreateEntryInUnifiDevLog < 12: return 
 			self.lastcreateEntryInUnifiDevLog = time.time()
+			doTestIflastMsg = 80 # do a test if last msg from listener is > xx sec ago 
+			if self.decideMyLog(u"Special"):self.indiLOG.log(10,u"createEntryInUnifiDevLog: testing if we should do test ok, now:{}; lastmsgs:\n{}".format(time.time(), self.lastMessageReceivedInListener ))
 
 			if self.devsEnabled[u"GW"] and not self.devsEnabled[u"UD"]:
-				self.testServerIfOK( self.ipNumbersOf[u"GW"], u"GW", batch=True)
+				ipN = self.ipNumbersOf[u"GW"]
+				if ipN in self.lastMessageReceivedInListener and  time.time() - self.lastMessageReceivedInListener[ipN] > doTestIflastMsg: 
+					self.testServerIfOK( ipN, u"GW", batch=True)
 
-			if self.numberOfActive[u"AP"] > 0:
-				for ll in range(_GlobalConst_numberOfAP):
-					if self.devsEnabled[u"AP"][ll]:
-						if (self.unifiControllerType == "UDM" or self.controllerWebEventReadON > 0) and ll == self.numberForUDM[u"AP"]: continue
-						self.testServerIfOK( self.ipNumbersOf[u"AP"][ll], u"AP", batch=True)
-
-			if self.numberOfActive[u"SW"] > 0:
-				for ll in range(_GlobalConst_numberOfSW):
-					if self.devsEnabled[u"SW"][ll]:
-						if self.unifiControllerType.find(u"UDM") > -1 and ll == self.numberForUDM[u"SW"]: continue
-						self.testServerIfOK( self.ipNumbersOf[u"SW"][ll], u"SW", batch=True)
+			for aa in [u"AP",u"SW"]:
+				if self.numberOfActive[aa] > 0:
+					for ll in range(len(self.devsEnabled[aa])):
+						if self.devsEnabled[aa][ll]:
+							if (self.unifiControllerType == "UDM" or self.controllerWebEventReadON > 0) and ll == self.numberForUDM[aa]: continue
+							ipN = self.ipNumbersOf[aa][ll]
+							if ipN in self.lastMessageReceivedInListener  and  time.time() - self.lastMessageReceivedInListener[ipN] > doTestIflastMsg: 
+								self.testServerIfOK( ipN, aa, batch=True)
 	
 		except	Exception, e:
 			if unicode(e) != u"None":
@@ -7510,13 +7521,17 @@ class Plugin(indigo.PluginBase):
 				return False
 
 			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
-			if self.decideMyLog(u"Expect"): self.indiLOG.log(10,u"testServerIfOK: {}".format(cmd) )
+
+
+			if ipNumber in self.lastMessageReceivedInListener: self.lastMessageReceivedInListener[ipNumber] = time.time()
 
 			if batch:
 				#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"testServer ssh to {}-{} to create log entry using:{}".format(uType, ipNumber, cmd) )
+				if self.decideMyLog(u"Expect"): self.indiLOG.log(10,u"testServerIfOK: batch {}".format(cmd) )
 				subprocess.Popen(cmd+" &", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				return 
 
+			if self.decideMyLog(u"Expect"): self.indiLOG.log(10,u"testServerIfOK: {}".format(cmd) )
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 			xx = ret[0].replace("\r","")
 			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(xx))
@@ -7543,13 +7558,11 @@ class Plugin(indigo.PluginBase):
 					if self.connectParams[u"promptOnServer"][ipNumber]  == xx[-nPrompt:]: 
 						return True
 					else:
-						self.indiLOG.log(10,u"testServerIfOK: =========== {}; prompt not found;  old:'{}', new:'{}'".format(ipNumber, self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:]) )
+						self.indiLOG.log(10,u"testServerIfOK: =========== {}; prompt not found or reset by restart;  old:'{}', new candidate:'{}'".format(ipNumber, self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:]) )
 						pass
 				else:
 					self.connectParams[u"promptOnServer"][ipNumber] = ""
 					self.indiLOG.log(10,u"testServerIfOK: =========== ipNumber:{} not in connectParams".format(ipNumber) )
-
-				self.indiLOG.log(10,u"testServerIfOK: =========== to {}  ssh response, setting promp from:'{}' to:'{}' using last {} chars in \nret>>>>{}...\n{}<<<< ".format(ipNumber,  self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]),  xx[-nPrompt:], nPrompt,  xx[0:100], xx[-100:]) )
 
 				prompt= xx[-nPrompt:]
 				# remove new line from prompts would screw up expect, does not like newline in variables ...
@@ -7559,6 +7572,9 @@ class Plugin(indigo.PluginBase):
 
 				if   newL	== 0: 				prompt = prompt[1:]
 				elif newL	== len(prompt)-1:	prompt = prompt[:-1]
+				nPrompt = len(prompt)
+				self.indiLOG.log(10,u"testServerIfOK: =========== for {}  ssh response, setting promp to:'{}' using last {} chars in ...{}<<<< ".format(ipNumber,  prompt, nPrompt,   xx[-20:]) )
+
 
 				self.connectParams[u"promptOnServer"][ipNumber] = prompt
 				

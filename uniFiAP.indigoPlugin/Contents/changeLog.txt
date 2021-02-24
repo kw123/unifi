@@ -1,4 +1,4 @@
-changes in V 7.37.327 @ 2021-02-22
+changes in V 7.37.328 @ 2021-02-23
 ==================  
    
 1. added option to ALSO use unifi controller db info for UP --> down
@@ -7,7 +7,7 @@ changes in V 7.37.327 @ 2021-02-22
    it is doing an https get requtest to /stat/alluser and checks for last_seen
    if internal lastUp is expired it will check if last seen is later and will overwrite ie extending the expiration timer
 2. fixed some spelling and removed options for read xx every yy secs, all set to 60 / 40 now fixed
-
+3. made several optios fixed = removed from config
 
 changes in V 7.36.326 @ 2021-02-19
 ==================  

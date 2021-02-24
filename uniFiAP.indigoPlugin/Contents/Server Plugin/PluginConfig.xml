@@ -87,11 +87,10 @@
 		<Label>Trigger FINGSCAN:</Label>
 	</Field>
 
+<!-->
 	<Field    id="loopSleep"   				type="menu" defaultValue="8" tooltip="how long should the plugin pause in each loop">
 		<Label>sleep parameter in loop:</Label>
 		<List>
-			<Option value="0.5"  >1/2 second for testing</Option>
-			<Option value="1"    >1 second for testing</Option>
 			<Option value="2"    >2 seconds for testing</Option>
 			<Option value="4"    >4 seconds </Option>
 			<Option value="8"    >8 seconds, default</Option>
@@ -102,34 +101,26 @@
 	<Field    id="timeoutDICT"   			type="menu" defaultValue="10" tooltip="how long should expect script wait for database dump command:  mca-dump">
 		<Label>timeout for expect DICT:</Label>
 		<List>
-			<Option value="5"     >5 seconds </Option>
 			<Option value="10"    >10 seconds </Option>
 			<Option value="15"    >15 seconds </Option>
 			<Option value="20"    >20 seconds, default</Option>
 			<Option value="25"    >25 seconds</Option>
 			<Option value="30"    >30 seconds</Option>
 			<Option value="35"    >35 seconds</Option>
-			<Option value="40"    >40 seconds</Option>
-			<Option value="60"    >1 minute </Option>
-			<Option value="120"   >2 minutes</Option>
 		</List>
 	</Field>
 
-	<Field    id="restartIfNoMessageSeconds"	type="menu" defaultValue="180" tooltip="if no message for xx time,  the  message tracking /  db dump   commands will be re-issued">
-		<Label>restart connection to Unifi Device if no message for:</Label>
+	<Field    id="restartIfNoMessageSeconds"	type="menu" defaultValue="120" tooltip="if no message for xx time,  the  message tracking /  db dump   commands will be re-issued">
+		<Label>restart listener connection to Unifi Device if no message for:</Label>
 		<List>
 			<Option value="20"    >20 seconds (for testing only)</Option>
-			<Option value="40"    >40 seconds (for testing only)</Option>
 			<Option value="60"    >1  minutes</Option>
 			<Option value="90"    >90 seconds</Option>
-			<Option value="120"   >2  minutes</Option>
-			<Option value="180"   >3  minutes, default</Option>
-			<Option value="300"   >5  minutes </Option>
-			<Option value="420"   >7  minutes </Option>
-			<Option value="600"   >10 minutes</Option>
+			<Option value="120"   >2  minutes, default</Option>
+			<Option value="180"   >3  minutes</Option>
 		</List>
 	</Field>
-
+-->
 	<Field  id="enableMACtoVENDORlookup" 	type="menu" defaultValue="21"  alignText="right">
     			<List>
     			<Option value="0"  >disable </Option>
@@ -272,17 +263,20 @@
 	<Field    id="useDBInfoForWhichDevices"   		type="menu" defaultValue="all" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON" tooltip="uses an https get /stat/alluser to get info of last_seen">
 		<Label>Use unifi controler db info for Up -> Down:</Label>
 		<List>
-			<Option value="all"   		>use for ALL unifi client devices</Option>
-			<Option value="perDevice"	>use PERDEVICE- only if enabled in unifi client device edit</Option>
-			<Option value="off"			>OFF</Option>
+			<Option value="all"   		>ALL unifi client devices, ignores individual dev settings</Option>
+			<Option value="perDevice"	>PER-DEVICE:   only if enabled in unifi client dev edit</Option>
+			<Option value="off"			>OFF, ignores individual dev settings</Option>
  		</List>
 	</Field>
 	<Field id="infoLabeluseDBInfoForWhichDevices" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
 	<Label>When enabled plugin will check the controller db info for last_seen time if other info suggest up->down to confirm  or supspend up->down for "expirationtime" seconds 
-This might be usefull if the communication with the individual AP gives sometimes faulty down info.
+This might be usefull if the individual AP gives sometimes faulty down info.
 This info is slow for down -> up info, might take several minutes before a devices shows up in the controller
-==> requires "use controler info" = ON
-ALL and OFF will ignore individual device settings</Label>  </Field>
+==> req. "use controler info"=ON
+ALL and OFF will ignore individual
+device settings
+</Label> 
+	 </Field>
 
 
 
@@ -439,11 +433,9 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 	<Field    id="GWtailEnable"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>run message listener process on Gateway</Label>  
 	</Field>
-	<Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="false" fontSize="small" fontColor="darkgrey"> 
-	<Label>.                                                                Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info.
-.                                                                The USG3 in some software versions does not show any relevant info in the message logfile, 
-.                                                                   then you will see a lot of listener restart message for GWtail 
-.                                                                   ==> disable the message listener process
+	<Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info. The USG (newer versions) does not show any relevant info in the message logfile, then you will see a lot of listener restart message for GWtail. 
+Then disable listener process
 </Label>  </Field>
 
 <!--
@@ -689,10 +681,10 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 	<Field    id="debugPing"          type="checkbox"  defaultValue="false"    > <Label>... (11) Ping WOL:</Label>  </Field>
 	<Field    id="debugUDM"           type="checkbox"  defaultValue="false"    > <Label>... (12) UDM:</Label>  </Field>
 	<Field    id="debugIgnoreMAC"     type="checkbox"  defaultValue="false"    > <Label>... (13) ignore MAC:</Label>  </Field>
-	<Field    id="debugDBinfo"        type="checkbox"  defaultValue="false"    > <Label>... (14) get last up time from controller db:</Label>  </Field>
+	<Field    id="debugDBinfo"        type="checkbox"  defaultValue="false"    > <Label>... (14) controller db http get client info:</Label>  </Field>
 	<Field    id="debugSpecial"       type="checkbox"  defaultValue="false"    > <Label>... (19) Special debug for development:</Label>  </Field>
 	<Field    id="debugall"           type="checkbox"  defaultValue="false"    > <Label>... (20) all of the above = everything:</Label>  </Field>
-	<Field    id="logFileActive2"     type="menu"      defaultValue="standard" > <Label> send DETAILED logs to ..:</Label>
+	<Field    id="logFileActive2"     type="menu"      defaultValue="indigo"   > <Label> send DETAILED logs to ..:</Label>
 		<List>
 			<Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
 		</List>
@@ -720,14 +712,14 @@ ALL and OFF will ignore individual device settings</Label>  </Field>
 .           In general max value for best performance. 
 .           32k seems to cover 99% of packages. Each listener stream will use one of the buffers
 .           Small read buffer will do several reads when data is &gt; buffer size</Label>  </Field>
-
-	<Field id="infoLabel331" type="label"> <Label>-- unifi device message log entries: </Label>  </Field>
+<!--
+	<Field id="infoLabel331" type="label"> <Label> .. unifi device message log entries: </Label>  </Field>
 	<Field    id="createEntryInUnifiDevLogActive" type="checkbox"  defaultValue="false"   > 
 		<Label>.. create message log entries on unifi devices:</Label>  
 	</Field>
 <Field id="infoLabel332" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
 <Label> set to active if you get frequent warnings: no message for xx seconds, restart listener</Label>  </Field>
-
+-->
 
 
 </PluginConfig>
