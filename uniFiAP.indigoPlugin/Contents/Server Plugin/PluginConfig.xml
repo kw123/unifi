@@ -697,7 +697,7 @@ Then disable listener process
 	<Field id="simpleSeparator230" type="separator"/>
 	<Field id="infoLabel228" type="label"> <Label>=== EXPERTs only
   -- Readbuffer: </Label>  </Field>
-	<Field    id="readBuffer" type="menu"  defaultValue="32767"  > 
+	<Field    id="readBuffer" type="menu"  defaultValue="16384"  > 
 		<Label>.. Size of buffer for reading input streams:</Label>  
    		<List>
 			<Option value="2048"  > 2048</Option>
@@ -708,10 +708,11 @@ Then disable listener process
 			<Option value="65536" > 65536</Option>
 		</List>
 	</Field>
-<Field id="infoLabel229" type="label" > <Label>.           For Mojave error 22: reduce buffer size until error disappears
+<Field id="infoLabel229" type="label" > <Label>.           For error 22: reduce buffer size until error disappears
 .           In general max value for best performance. 
 .           32k seems to cover 99% of packages. Each listener stream will use one of the buffers
-.           Small read buffer will do several reads when data is &gt; buffer size</Label>  </Field>
+.           Small read buffer will do several reads when data is &gt; buffer size, 
+.           When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  </Field>
 <!--
 	<Field id="infoLabel331" type="label"> <Label> .. unifi device message log entries: </Label>  </Field>
 	<Field    id="createEntryInUnifiDevLogActive" type="checkbox"  defaultValue="false"   > 

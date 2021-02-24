@@ -5681,13 +5681,15 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			while True:
-				sl = max(1., self.loopSleep / 20. )
+				#self.indiLOG.log(10,u"looping, quitNow= >>{}<<".format(self.quitNow ) )
+				sl = max(1., self.loopSleep / 10. )
 				sli = int(self.loopSleep / sl)
 				for ii in range(sli):
 					if self.quitNow != "": break
 					self.sleep(sl)
 
 				if self.quitNow != "": break
+
 
 				if time.time() - self.updateConnectParams > 0 :
 					self.updateConnectParams  = time.time() + 100
@@ -5859,7 +5861,7 @@ class Plugin(indigo.PluginBase):
 		self.killIfRunning("", "")
 
 		self.saveupDownTimers()
-
+		return 
 
 
 
@@ -7115,6 +7117,7 @@ class Plugin(indigo.PluginBase):
 					continue
 
 				try: 
+					changed = False
 					dev = indigo.devices[self.MAC2INDIGO[u"UN"][MAC][u"devId"]]
 					if self.decideMyLog(u"DBinfo", MAC=MAC): 
 							self.indiLOG.log(10,u"controlDB  {:15s}  {:15s} {:32s};   delta lastUp:{:9.0f}, lastSeen-DB:{:9.0f}*{:9.0f}*{:9.0f}".format(
@@ -7127,15 +7130,20 @@ class Plugin(indigo.PluginBase):
 
 					if u"first_seen" in self.MAC2INDIGO[u"UN"][MAC]:
 						if u"firstSeen" in dev.states and dev.states[u"firstSeen"] != self.MAC2INDIGO[u"UN"][MAC][u"first_seen"]:
-							dev.updateStateOnServer("firstSeen",self.MAC2INDIGO[u"UN"][MAC][u"first_seen"])
+							changed = True
+							self.addToStatesUpdateList(dev.id,u"firstSeen",  self.MAC2INDIGO[u"UN"][MAC][u"first_seen"])
 
 					if u"use_fixedip" in self.MAC2INDIGO[u"UN"][MAC]:
 						if u"useFixedIP" in dev.states and dev.states[u"useFixedIP"] != self.MAC2INDIGO[u"UN"][MAC][u"use_fixedip"]:
-							dev.updateStateOnServer(u"useFixedIP",self.MAC2INDIGO[u"UN"][MAC][u"use_fixedip"])
+							changed = True
+							self.addToStatesUpdateList(dev.id,u"useFixedIP",  self.MAC2INDIGO[u"UN"][MAC][u"use_fixedip"])
 
 					if u"blocked" in dev.states:
 						if dev.states[u"blocked"] != self.MAC2INDIGO[u"UN"][MAC]["blocked"]:
-							dev.updateStateOnServer(u"blocked",listOfBlockedClients[MAC]["blocked"])
+							changed = True
+							self.addToStatesUpdateList(dev.id,u"blocked",  self.MAC2INDIGO[u"UN"][MAC][u"blocked"])
+					if changed:
+						self.executeUpdateStatesList()
 
 				except	Exception, e:
 					if unicode(e) != u"None":
@@ -7215,7 +7223,7 @@ class Plugin(indigo.PluginBase):
 						if   restartCount > 20:	logLevel = 30; restartCount = 0
 						elif restartCount > 10:	logLevel = 20
 						else:				  	logLevel = 10
-						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount,lastMSG[0:80],  lastMSG[-30:] )  )
+						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount, len(lastMSGl), astMSG[0:80],  lastMSG[-100:] )  )
 
 						self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 						self.connectParams[u"promptOnServer"][ipNumber] = ""
@@ -7262,7 +7270,7 @@ class Plugin(indigo.PluginBase):
 
 				## force a logfile respnse by logging in. this is needed to make the tail -f pis send a message to make sure we are still alive
 				if (time.time() - lastForcedRestartTimeStamp) > max(30.,minWaitbeforeRestart*0.9):
-					if	uType.find(u"tail") >- 1:
+					if uType.find(u"tail") >- 1:
 						if (time.time() - lastTestServer) > 30:
 							testServerCount +=1
 							if testServerCount > 1:
@@ -7281,8 +7289,7 @@ class Plugin(indigo.PluginBase):
 				## should we stop?, is our IP number listed?
 				if ipNumber in self.stop:
 					self.indiLOG.log(10,uType+ "getMessage: stop = True for ip# {}".format(ipNumber) )
-					while self.stop.count(ipNumber) > 0:
-						self.stop.remove(ipNumber)
+					self.stop.remove(ipNumber)
 					return
 
 				## here we actually read the stuff
@@ -7299,7 +7306,7 @@ class Plugin(indigo.PluginBase):
 							try: out+= u"fileNo: {}".format(ListenProcessFileHandle.stdout.fileno() )
 							except: pass
 							if unicode(e).find(u"[Errno 22]") > -1:  # "Errno 22" is  general read error "wrong parameter"
-								out+= u" ..      try lowering read buffer parameter in config" 
+								out+= u" ..      try lowering/increasing read buffer parameter in config" 
 								self.indiLOG.log(30,out)
 							else:
 								self.indiLOG.log(40,out)
@@ -7315,7 +7322,6 @@ class Plugin(indigo.PluginBase):
 					return
 
 				if linesFromServer != "":
-					lastMSG = linesFromServer
 					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"] += 1
 					self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"] += len(linesFromServer)
 					lastForcedRestartTimeStamp = time.time()
@@ -7338,6 +7344,7 @@ class Plugin(indigo.PluginBase):
 
 				######### for tail logfile
 					if uType.find(u"dict") == -1:
+						lastMSG = linesFromServer
 						## fill the queue and send to the method that uses it
 						if		unifiDeviceType == "AP":
 							self.deviceUp[u"AP"][ipNumber] = time.time()
@@ -7345,7 +7352,7 @@ class Plugin(indigo.PluginBase):
 							self.deviceUp[u"GW"][ipNumber] = time.time()
 						elif	unifiDeviceType == "VD":
 							self.deviceUp[u"VD"][ipNumber] = time.time()
-							self.msgListenerActive[uType] = time.time()
+							self.msgListenerActive[uType]  = time.time()
 
 						errorCount = 0
 						if linesFromServer.find(u"ThisIsTheAliveTestFromUnifiToPlugin") > -1:
@@ -7361,17 +7368,18 @@ class Plugin(indigo.PluginBase):
 					######### for Dicts
 					else:
 						total += linesFromServer
+						lastMSG = total
 						ppp = total.split(self.connectParams[u"startDictToken"][uType])
-						#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"linesFromServer  uType:{};  splitting:startDict:{};  ppp:{},  {} .... {}".format(uType, self.connectParams[u"startDictToken"][uType], len(ppp), total[0:100],total[-100:]  ) )
+						if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"data read from Unifi Dev: {} uType:{};  splitting:startDict:{};  len ppp:{}-total:{}, \ndata={}\n-----\n {}".format(ipNumber, uType, self.connectParams[u"startDictToken"][uType], len(ppp), len(total), unicode(total[0:100]), unicode(total[-100:]) ) )
 
 						if len(ppp) == 2:
-							#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"linesFromServer   found endDictToken:{}, ? {} ".format( self.connectParams[u"endDictToken"][uType], ppp[1].find(self.connectParams[u"endDictToken"][uType]) ) )
-							if ppp[1].find(self.connectParams[u"endDictToken"][uType]) >-1:
-								dictData0 = ppp[len(ppp) - 1].lstrip("\r\n")
+							endTokenPos = ppp[1].find(self.connectParams[u"endDictToken"][uType])
+							if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...1 found endDictToken:{} @ pos:{} ".format( self.connectParams[u"endDictToken"][uType], endTokenPos ) )
+							if endTokenPos >-1:
+								dictData0 = ppp[1].lstrip("\r\n")
 
 								try:
-									ok = True
-									dictData= dictData0.split(self.connectParams[u"endDictToken"][uType])[0]
+									dictData = dictData0.split(self.connectParams[u"endDictToken"][uType])[0]
 									## remove last line
 									if dictData[-1] !="}":
 										ppp = dictData.rfind("}")
@@ -7388,9 +7396,11 @@ class Plugin(indigo.PluginBase):
 										self.deviceUp[u"SW"][ipNumber]	= time.time()
 										self.deviceUp[u"UD"]			= time.time()
 										self.deviceUp[u"GW"][ipNumber]	= time.time()
-									#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"linesFromServer   theDict: {} ... {}; ipNumber:{}, apN:{}, uType:{}, unifiDeviceType:{}".format( dictData[0:10] ,  dictData[-10:], ipNumber, apN, uType, unifiDeviceType ) )
+									if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...2   theDict: {} ... {};".format( dictData[0:30] ,  dictData[-30:] ) )
+									linesFromServer = ""
 									self.logQueueDict.put((theDict, ipNumber, apN, uType, unifiDeviceType))
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
+
 								except	Exception, e:
 									if unicode(e) != u"None":
 										msgF = total.replace("\r","")
@@ -7489,7 +7499,7 @@ class Plugin(indigo.PluginBase):
 			if time.time() - self.lastcreateEntryInUnifiDevLog < 12: return 
 			self.lastcreateEntryInUnifiDevLog = time.time()
 			doTestIflastMsg = 80 # do a test if last msg from listener is > xx sec ago 
-			if self.decideMyLog(u"Special"):self.indiLOG.log(10,u"createEntryInUnifiDevLog: testing if we should do test ok, now:{}; lastmsgs:\n{}".format(time.time(), self.lastMessageReceivedInListener ))
+			#if self.decideMyLog(u"Special"):self.indiLOG.log(10,u"createEntryInUnifiDevLog: testing if we should do test ok, now:{}; lastmsgs:\n{}".format(time.time(), self.lastMessageReceivedInListener ))
 
 			if self.devsEnabled[u"GW"] and not self.devsEnabled[u"UD"]:
 				ipN = self.ipNumbersOf[u"GW"]

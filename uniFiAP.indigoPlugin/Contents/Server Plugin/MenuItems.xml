@@ -643,7 +643,7 @@
 				<Field	  id="resetprompts" type="button" tooltip="" >
 					<Label>Reset prompt(s) used for ssh ... </Label><Title>Reset </Title><CallbackMethod>buttonResetPromptsCALLBACK</CallbackMethod>
 				</Field>
-			<Field id="resetprompts2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Field id="resetpromptslabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
 			<Label>This will reset the prompt-tag used in expect script
 it will make the plugin restart </Label> 
 			</Field>
