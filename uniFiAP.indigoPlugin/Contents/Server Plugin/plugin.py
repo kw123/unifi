@@ -7227,7 +7227,7 @@ class Plugin(indigo.PluginBase):
 						if   restartCount > 20:	logLevel = 30; restartCount = 0
 						elif restartCount > 10:	logLevel = 20
 						else:				  	logLevel = 10
-						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount, len(lastMSG), astMSG[0:80],  lastMSG[-100:] )  )
+						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount, len(lastMSG), lastMSG[0:80],  lastMSG[-100:] )  )
 
 						self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 						self.connectParams[u"promptOnServer"][ipNumber] = ""
