@@ -7191,9 +7191,13 @@ class Plugin(indigo.PluginBase):
 			else:
 				minWaitbeforeRestart	= max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
 
+			self.sleep(max(0.5,min(4,float(apN/2.))))
+			
+
 			self.testServerIfOK(ipNumber,uType)
 			if uType.find("tail") > -1:
 				self.lastMessageReceivedInListener[ipNumber] = time.time()
+
 
 			while True:
 				if self.pluginState == "stop" or not self.connectParams[u"enableListener"][uType]: 
@@ -7223,7 +7227,7 @@ class Plugin(indigo.PluginBase):
 						if   restartCount > 20:	logLevel = 30; restartCount = 0
 						elif restartCount > 10:	logLevel = 20
 						else:				  	logLevel = 10
-						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount, len(lastMSGl), astMSG[0:80],  lastMSG[-100:] )  )
+						self.indiLOG.log(logLevel,u"getMessages: forcing restart of listener for: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - lastForcedRestartTimeStamp), minWaitbeforeRestart, restartCount, len(lastMSG), astMSG[0:80],  lastMSG[-100:] )  )
 
 						self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 						self.connectParams[u"promptOnServer"][ipNumber] = ""
@@ -7370,7 +7374,7 @@ class Plugin(indigo.PluginBase):
 						total += linesFromServer
 						lastMSG = total
 						ppp = total.split(self.connectParams[u"startDictToken"][uType])
-						if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"data read from Unifi Dev: {} uType:{};  splitting:startDict:{};  len ppp:{}-total:{}, \ndata={}\n-----\n {}".format(ipNumber, uType, self.connectParams[u"startDictToken"][uType], len(ppp), len(total), unicode(total[0:100]), unicode(total[-100:]) ) )
+						if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"data read from Unifi Dev: {} uType:{}; len(split):{};total:{}; splitting:>>{}<< startDict:\ndata={}\n-.-.-\n {}<<<<".format(ipNumber, uType, len(ppp), len(total), self.connectParams[u"startDictToken"][uType], unicode(total[0:100]).replace("\n","").replace("\r",""), unicode(total[-100:]).replace("\n","").replace("\r","") ) )
 
 						if len(ppp) == 2:
 							endTokenPos = ppp[1].find(self.connectParams[u"endDictToken"][uType])
@@ -7396,7 +7400,7 @@ class Plugin(indigo.PluginBase):
 										self.deviceUp[u"SW"][ipNumber]	= time.time()
 										self.deviceUp[u"UD"]			= time.time()
 										self.deviceUp[u"GW"][ipNumber]	= time.time()
-									if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...2   theDict: {} ... {};".format( dictData[0:30] ,  dictData[-30:] ) )
+									if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...2 theDict: {} -.-.- {}<<<<".format( dictData[0:40].replace("\n","").replace("\r","") ,  dictData[-40:].replace("\n","").replace("\r","") ) )
 									linesFromServer = ""
 									self.logQueueDict.put((theDict, ipNumber, apN, uType, unifiDeviceType))
 									self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
