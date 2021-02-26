@@ -4740,8 +4740,11 @@ class Plugin(indigo.PluginBase):
 								dictRET		= json.loads(respText)
 							except	Exception, e:
 								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-								self.indiLOG.log(40,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}".format(self.unifiControllerOS, cmdType, url))
-								self.indiLOG.log(40,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, unicode(respText)[0:800]))
+								self.indiLOG.log(20,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}".format(self.unifiControllerOS, cmdType, url))
+								if  respText.find("error=Expecting object") > -1:
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, respText))
+								else:
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}...{}".format(retCode, respText[0:200], respText[-200:]) )
 								self.executeCMDOnControllerReset(wait=True)
 								continue
  

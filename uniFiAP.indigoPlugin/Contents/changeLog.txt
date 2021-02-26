@@ -1,4 +1,4 @@
-changes in V 7.37.333 @ 2021-02-26
+changes in V 7.37.334 @ 2021-02-26
 ==================  
    
 1. added option to ALSO use unifi controller db info for UP --> down
@@ -10,6 +10,7 @@ changes in V 7.37.333 @ 2021-02-26
 3. made several optios fixed = removed from config
 4. tuned debug statements for dict/ message reads
 5. fixed memory leak in getmessages
+6. added debug statement for unci controller bad json object return
 
 changes in V 7.36.326 @ 2021-02-19
 ==================  
