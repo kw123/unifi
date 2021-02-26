@@ -1,4 +1,4 @@
-changes in V 7.37.332 @ 2021-02-25
+changes in V 7.37.333 @ 2021-02-26
 ==================  
    
 1. added option to ALSO use unifi controller db info for UP --> down
@@ -9,6 +9,7 @@ changes in V 7.37.332 @ 2021-02-25
 2. fixed some spelling and removed options for read xx every yy secs, all set to 60 / 40 now fixed
 3. made several optios fixed = removed from config
 4. tuned debug statements for dict/ message reads
+5. fixed memory leak in getmessages
 
 changes in V 7.36.326 @ 2021-02-19
 ==================  
