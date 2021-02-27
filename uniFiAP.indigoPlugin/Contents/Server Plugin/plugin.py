@@ -4748,9 +4748,9 @@ class Plugin(indigo.PluginBase):
 								if  unicode(e).find("error=Expecting object") > -1:
 									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, resp.text))
 								elif  unicode(e).find("ordinal not in range") > -1:
-									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, resp.text))
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {} ".format(retCode, resp.text))
 								else:
-									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}...{}".format(retCode, resp.text[0:200], resp.text[-200:]) )
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}....{}".format(retCode, resp.text[0:200], resp.text[-200:]) )
 								self.executeCMDOnControllerReset(wait=True)
 								continue
  
