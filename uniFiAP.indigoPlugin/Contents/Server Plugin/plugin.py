@@ -1649,6 +1649,7 @@ class Plugin(indigo.PluginBase):
 	def buttonRestartGWListenerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		self.restartRequest[u"GWtail"] = u"GW"
 		self.restartRequest[u"GWdict"] = u"GW"
+		self.indiLOG.log(10,u"menu RestartGWListener:{}".format(self.restartRequest))
 		return
 
 
@@ -1656,11 +1657,13 @@ class Plugin(indigo.PluginBase):
 		if valuesDict[u"pickAP"] != u"-1":
 			self.restartRequest[u"APtail"] = valuesDict[u"pickAP"]
 			self.restartRequest[u"APdict"] = valuesDict[u"pickAP"]
+		self.indiLOG.log(10,u"menu RestartAPListener:{}".format(self.restartRequest))
 		return
 
 	def buttonRestartSWListenerCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
 		if valuesDict[u"pickSW"] != "-1":
 			self.restartRequest[u"SWdict"] = valuesDict[u"pickSW"]
+		self.indiLOG.log(10,u"menu RestartSWListener:{}".format(self.restartRequest))
 		return
 
 	def buttonResetPromptsCALLBACK(self, valuesDict=None, filter="", typeId="", devId=""):
@@ -4629,8 +4632,8 @@ class Plugin(indigo.PluginBase):
 						if startText !="":					 	self.indiLOG.log(10,u"Connection: {}".format(startText) )
 						try:
 							ret = subprocess.Popen(cmdDATA, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-							ret0 = ret[0].decode(u"utf8")
-							ret1 = ret[1].decode(u"utf8")
+							ret0 = ret[0]#.decode(u"utf8")
+							ret1 = ret[1]#.decode(u"utf8")
 							try:
 								dictRET = json.loads(ret0)
 							except :
@@ -4728,23 +4731,26 @@ class Plugin(indigo.PluginBase):
 							respText 	= ""
 							dictRET		= ""
 
-							if	 cmdType == "put":	 							resp = self.unifiControllerSession.put(url,  json=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
-							elif cmdType == "post":	 							resp = self.unifiControllerSession.post(url, json=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
-							elif cmdType == "get":	 							resp = self.unifiControllerSession.get(url,                    cookies=cookies, headers=headers, allow_redirects=False, verify=False, stream=False)
-							#elif self.unifiControllerType.find(u"UDM") > -1:	resp = self.unifiControllerSession.get(url,  data=dataSendSTR, cookies=cookies, headers=headers, verify=False, stream=True)
-							else:					 							resp = self.unifiControllerSession.put(url,  data=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
+							if	 cmdType == "put":	 resp = self.unifiControllerSession.put(url,  json=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
+							elif cmdType == "post":	 resp = self.unifiControllerSession.post(url, json=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
+							elif cmdType == "get":	 resp = self.unifiControllerSession.get(url,                    cookies=cookies, headers=headers, allow_redirects=False, verify=False, stream=False)
+							else:					 resp = self.unifiControllerSession.put(url,  data=dataSendSTR, cookies=cookies, headers=headers, allow_redirects=False, verify=False)
   
 							try:
 								retCode		= resp.status_code 
-								respText 	= resp.text
+								respText 	= resp.text#.decode("utf8")
+								if self.decideMyLog(u"ConnectionRET"):	
+									self.indiLOG.log(10,u"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(respText) )
 								dictRET		= json.loads(respText)
 							except	Exception, e:
-								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+								self.indiLOG.log(30,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 								self.indiLOG.log(20,u"executeCMDOnController has error, os:{}; cmdType:{}, url:{}".format(self.unifiControllerOS, cmdType, url))
-								if  respText.find("error=Expecting object") > -1:
-									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, respText))
+								if  unicode(e).find("error=Expecting object") > -1:
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, resp.text))
+								elif  unicode(e).find("ordinal not in range") > -1:
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}".format(retCode, resp.text))
 								else:
-									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}...{}".format(retCode, respText[0:200], respText[-200:]) )
+									self.indiLOG.log(20,u"executeCMDOnController  retCode:{}, resp: {}...{}".format(retCode, resp.text[0:200], resp.text[-200:]) )
 								self.executeCMDOnControllerReset(wait=True)
 								continue
  
@@ -4755,11 +4761,9 @@ class Plugin(indigo.PluginBase):
 								continue
 
 							self.lastUnifiCookieRequests = time.time()
+
 							if 'X-CSRF-Token' in resp.headers:
 								self.csrfToken = resp.headers['X-CSRF-Token']
-
-							if self.decideMyLog(u"ConnectionRET"):	
-								self.indiLOG.log(10,u"Reconnect: executeCMDOnController resp.text:>>{}<<<...".format(respText) )
 
 							if  jsonAction == u"print":
 								self.indiLOG.log(10,u"Reconnect: executeCMDOnController info\n{}".format(json.dumps(dictRET["data"],sort_keys=True, indent=2)) )
@@ -7207,7 +7211,7 @@ class Plugin(indigo.PluginBase):
 					self.sleep(20)
 					continue
 
-				retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines = self.checkIfRestartNeeded( goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, restartCount, uType, ipNumber, apN, lastMSG, ListenProcessFileHandle)
+				retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines = self.checkIfRestartNeeded( goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle)
 				if retCode == 2: continue
 
 				self.sleep(msgSleep)
@@ -7256,14 +7260,13 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def checkIfRestartNeeded(self, goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, restartCount, uType, ipNumber, apN, lastMSG, ListenProcessFileHandle):
+	def checkIfRestartNeeded(self, goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle):
 		try:
 			retCode = 0
 			if len(self.restartRequest) > 0:
 				if uType in self.restartRequest:
-					if self.restartRequest[uType] == apN:
-						if self.decideMyLog(u"Expect"):
-							self.indiLOG.log(10,u"getMessages: {}    restart requested ".format(self.restartRequest) )
+					if self.restartRequest[uType] == apnS:
+						self.indiLOG.log(10,u"getMessages: {}    restart requested by menue ".format(self.restartRequest) )
 						goodDataReceivedTime	= -1
 						del self.restartRequest[uType]
 
@@ -7274,7 +7277,9 @@ class Plugin(indigo.PluginBase):
 					if   restartCount > 20:	logLevel = 30; restartCount = 0
 					elif restartCount > 10:	logLevel = 20
 					else:				  	logLevel = 10
-					self.indiLOG.log(logLevel,u"getMessages: combinedLinesfor: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} .. {}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - goodDataReceivedTime), minWaitbeforeRestart, restartCount, len(lastMSG), lastMSG[0:80],  lastMSG[-100:] )  )
+
+					lsm = lastMSG.replace("\n","")
+					self.indiLOG.log(logLevel,u"getMessages: combinedLinesfor: {} / {}  after {} sec without message:{}, limitforRestart:{}, restartCount:{}, len(msg):{}; lastMSG:{} ....\n{}".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, int(time.time() - goodDataReceivedTime), minWaitbeforeRestart, restartCount, len(lsm), lsm[0:80],  lsm[-100:] )  )
 
 					self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 					self.connectParams[u"promptOnServer"][ipNumber] = ""
