@@ -34,7 +34,7 @@ send "\r"
         sleep 0.2
         expect "$promptOnServer"
         send "$cmd \r"
-        sleep 3
+        sleep 4
         expect *
         send "\r"
         expect "$promptOnServer"
