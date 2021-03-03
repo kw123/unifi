@@ -5433,6 +5433,7 @@ class Plugin(indigo.PluginBase):
 		self.pluginState   = "run"
 
 
+
 		if self.VIDEOEnabled:
 
 			self.indiLOG.log(10,u"..setup NVR -1 getNVRIntoIndigo")
@@ -5454,6 +5455,14 @@ class Plugin(indigo.PluginBase):
 
 
 		self.getcontrollerDBForClients()
+
+		self.consumeDataThread = {u"log":{},u"dict":{}}
+		self.consumeDataThread[u"log"][u"status"]  = u"run"
+		self.consumeDataThread[u"log"][u"thread"]  = threading.Thread(name=u'comsumeLogData', target=self.comsumeLogData)
+		self.consumeDataThread[u"log"][u"thread"].start()
+		self.consumeDataThread[u"dict"][u"status"] = u"run"
+		self.consumeDataThread[u"dict"][u"thread"] = threading.Thread(name=u'comsumeDictData', target=self.comsumeDictData)
+		self.consumeDataThread[u"dict"][u"thread"].start()
 
 		try:
 			self.trAPLog  = {}
@@ -5882,6 +5891,9 @@ class Plugin(indigo.PluginBase):
 		if self.quitNow == u"config changed":
 			self.resetDataStats(calledFrom="postLoop")
 		self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
+
+		self.consumeDataThread[u"log"][u"status"]  = u"stop"
+		self.consumeDataThread[u"dict"][u"status"] = u"stop"
 
 		if True:
 			for ll in range(len(self.devsEnabled[u"SW"])):
@@ -7196,9 +7208,13 @@ class Plugin(indigo.PluginBase):
 				except	Exception, e:
 					if unicode(e).find(u"None") == -1:
 						self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+						if unicode(e).find(u"timeout waiting for response")>-1:
+							self.getcontrollerDBForClientsLast = time.time()
+							nextCheck = self.getcontrollerDBForClientsLast + float(self.readDictEverySeconds[u"DB"])
+							return 
 
 			## try to sync w controller update, repeat faster if no change
-			dt = time.time() - self.getcontrollerDBForClientsPrevious
+			#dt = time.time() - self.getcontrollerDBForClientsPrevious
 			### logic here.. to complicated, just take fixed delta 
 			self.getcontrollerDBForClientsLast = time.time()
 			nextCheck = self.getcontrollerDBForClientsLast + float(self.readDictEverySeconds[u"DB"])
@@ -7245,25 +7261,30 @@ class Plugin(indigo.PluginBase):
 				self.lastMessageReceivedInListener[ipNumber] = time.time()
 			lastOkRestart				= time.time()
 
+			printNow = False
+			lastPrintCheck = time.time() -5
+			dateStamp = []
+			spDebug = True
+			consumeDataTime = 0
 			while True:
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 0. after while True   datetimestamps:{}".format(unicode(dateStamp).replace(" ","").replace("'","").replace("u","")))
+
+				if spDebug and self.decideMyLog(u"Special"): 
+					dateStamp.append([datetime.datetime.now().strftime(u"%M:%S.%f")[0:7]])
+					if len(dateStamp) > 4:
+						dateStamp.pop(0)
+					if  (time.time()-lastPrintCheck > 5) and consumeDataTime < -1: 
+						lastPrintCheck = time.time()
+						printNow = True
+					else:
+						printNow = False
+
+
 				if self.pluginState == "stop" or not self.connectParams[u"enableListener"][uType]: 
 					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
 					except:	pass
 					break
-
-				if ipNumber in self.suspendedUnifiSystemDevicesIP:
-					self.sleep(20)
-					continue
-
-			
-				self.sleep(min(15,msgSleep))
-				if False and self.decideMyLog(u"Special")  and (time.time()-lastRestartCheck > 0.15) and uType.find("dict") ==-1 and ipNumber == "192.168.1.3": self.indiLOG.log(10,u"checkIfRestartNeeded: {}-{}-{}; rC={}; msgSleep:{:.1f}; lastRestartCheck:{:.1f}; dT:{:.1f}, min wait:{:.1f}, check?:{:.1f}, T/F:{}".format(uType, ipNumber, apnS, restartCount, msgSleep, time.time()-lastRestartCheck, time.time() - goodDataReceivedTime, minWaitbeforeRestart,(time.time() - goodDataReceivedTime), (time.time() - goodDataReceivedTime) > minWaitbeforeRestart) )
-
-				retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart = \
-					self.checkIfRestartNeeded( 
-						goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart
-					)
-				if retCode == 2: continue
 
 					## should we stop?, is our IP number listed?
 				if ipNumber in self.stop:
@@ -7271,10 +7292,36 @@ class Plugin(indigo.PluginBase):
 					self.stop.remove(ipNumber)
 					return
 
+				if ipNumber in self.suspendedUnifiSystemDevicesIP:
+					self.sleep(20)
+					continue
+
+				self.sleep(min(15, msgSleep))
+
+				if printNow: 
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 1. after sleep  {}-{}-{}; rC={}; msgSleep:{:.1f}; lastRestartCheck:{:.1f}; dT:{:.1f}, min wait:{:.1f}, check?:{:.1f}, T/F:{}".format(uType, ipNumber, apnS, restartCount, msgSleep, time.time()-lastRestartCheck, time.time() - goodDataReceivedTime, minWaitbeforeRestart,(time.time() - goodDataReceivedTime), (time.time() - goodDataReceivedTime) > minWaitbeforeRestart) )
+
+				retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart = \
+					self.checkIfRestartNeeded( 
+						goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart
+					)
+
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 2. after checkIfRestartNeeded")
+
+				if retCode == 2: continue
+
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 3. after retCode == 2: continue ")
 				## here we actually read the stuff
 				goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime = self.readFromUnifiBox( goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, newlinesFromServer, newDataStartTime)
 				if newlinesFromServer == "": continue
 
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 4. after readFromUnifiBox")
 				# command from plugin
 				if self.pluginState == "stop": 
 					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
@@ -7284,21 +7331,34 @@ class Plugin(indigo.PluginBase):
 				goodDataReceivedTime = self.checkIfErrorReceived( goodDataReceivedTime, newlinesFromServer, uType, ipNumber)
 				if goodDataReceivedTime == 1: continue
 
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 5. after checkIfErrorReceived")
 
 				######### for tail logfile
+				consumeDataTime = time.time()
 				if uType.find(u"tail") > -1:
 					goodDataReceivedTime, lastMSG = self.checkAndPrepTail(newlinesFromServer, goodDataReceivedTime, ipNumber, uType, unifiDeviceType, apN)
 
 					######### for Dicts
 				else:
 					goodDataReceivedTime, combinedLines, lastMSG = self.checkAndPrepDict( newlinesFromServer, goodDataReceivedTime, combinedLines, ipNumber, uType, unifiDeviceType, minWaitbeforeRestart, apN, newDataStartTime)
+				consumeDataTime -= time.time()
+				if consumeDataTime < -1:
+					if  self.decideMyLog(u"Special"): 
+						self.indiLOG.log(10,u"getMessages: consume data needed > 10 secc;  {}-{}-{}; DT:{:.1f}[sec] len(MSG):{:} lastMSG:{:}".format(uType, ipNumber, apnS,-consumeDataTime,len(lastMSG), lastMSG[-100:].replace("\r","")) )
+					msgSleep = 0
+
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 6. after checkAndPrepTail")
 
 				if self.statusChanged > 0:
 					self.setGroupStatus()
 
-				if goodDataReceivedTime > time.time() -1:
-					if len(self.sendUpdateToFingscanList) > 0: self.sendUpdatetoFingscanNOW()
-					if len(self.sendBroadCastEventsList)  > 0: self.sendBroadCastNOW()
+				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
+				if printNow:
+					self.indiLOG.log(10,u"checkIfRestartNeeded: 7. after sendBroadCastNOW")
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -7486,7 +7546,6 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(10,u"getMessage: {} {} ThisIsTheAliveTestFromUnifiToPlugin received ".format(uType, ipNumber))
 			else:
 				self.logQueue.put((newlinesFromServer,ipNumber,apN, uType,unifiDeviceType))
-				self.updateIndigoWithLogData()	#####################  here we call method to do something with the data
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -7536,7 +7595,6 @@ class Plugin(indigo.PluginBase):
 						if False and self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...2::{} theDict: {} -.-.- {}<<<<".format( ipNumber, dictData[0:40].replace("\n","").replace("\r","") ,  dictData[-90:].replace("\n","").replace("\r","") ) )
 						combinedLines = ""
 						self.logQueueDict.put((theDict, ipNumber, apN, uType, unifiDeviceType))
-						self.updateIndigoWithDictData2()  #####################	 here we call method to do something with the data
 						goodDataReceivedTime = time.time()
 						self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] -= 30
 
@@ -7833,51 +7891,84 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def updateIndigoWithLogData(self):
-		try:
-			while not self.logQueue.empty():
-				item = self.logQueue.get()
+	def comsumeLogData(self):# , startTime):
+		self.sleep(1)
+		self.indiLOG.log(10,u"comsumeLogData:  process starting")
+		nextItem = ""
+		lines	 = ""
+		ipNumber = ""
+		while True:
+			try:
+				if self.pluginState == "stop" or self.consumeDataThread[u"log"][u"status"] == u"stop": 
+					self.indiLOG.log(30,u"comsumeLogData: stopping process due to stop request")
+					return  
+				self.sleep(0.1)
+				consumedTimeQueue = time.time()
+				while not self.logQueue.empty():
+					if self.pluginState == "stop" or self.consumeDataThread[u"log"][u"status"] == u"stop": 
+						self.indiLOG.log(30,u"comsumeLogData:  stopping process due to stop request")
+						return 
 
-				lines			= item[0].split("\r\n")
-				ipNumber		= item[1]
-				apN				= item[2]
-				try: 	apNint	= int(item[2])
-				except: apNint	= -1
-				uType			= item[3]
-				xType			= item[4]
+					nextItem = self.logQueue.get()
 
-				## update device-ap with new timestamp, it is up
-				if self.decideMyLog(u"Log"): self.indiLOG.log(10,u"MS-------  {:13s}#{}   {}  {} .. {}".format(ipNumber, apN, uType, xType, lines) )
+					lines			= nextItem[0].split("\r\n")
+					ipNumber		= nextItem[1]
+					apN				= nextItem[2]
+					try: 	apNint	= int(nextItem[2])
+					except: apNint	= -1
+					uType			= nextItem[3]
+					xType			= nextItem[4]
 
-				if ( (uType.find(u"SW") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"SW"]) and self.debugDevs[u"SW"][apNint]) or
-				     (uType.find(u"AP") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"AP"]) and self.debugDevs[u"AP"][apNint]) or 
-				     (uType.find(u"GW") > -1  and self.debugDevs[u"GW"]) ): 
-					self.indiLOG.log(10,u"DEVdebug   {} dev #:{:2d} uType:{}, xType{}, logmessage:\n{}".format(ipNumber, apNint, uType, xType, "\n".join(lines)) )
+					## update device-ap with new timestamp, it is up
+					if self.decideMyLog(u"Log"): self.indiLOG.log(10,u"MS-------  {:13s}#{}   {}  {} .. {}".format(ipNumber, apN, uType, xType, unicode(nextItem[0])[0:100]) )
 
-				### update lastup for unifi devices
-				if xType in self.MAC2INDIGO:
-					for MAC in self.MAC2INDIGO[xType]:
-						if xType== u"UN" and self.testIgnoreMAC(MAC, fromSystem="log"): continue
-						if ipNumber == self.MAC2INDIGO[xType][MAC][u"ipNumber"]:
-							self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
-							break
+					if ( (uType.find(u"SW") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"SW"]) and self.debugDevs[u"SW"][apNint]) or
+						 (uType.find(u"AP") > -1 and apNint >= 0 and apNint < len(self.debugDevs[u"AP"]) and self.debugDevs[u"AP"][apNint]) or 
+						 (uType.find(u"GW") > -1  and self.debugDevs[u"GW"]) ): 
+						self.indiLOG.log(10,u"DEVdebug   {} dev #:{:2d} uType:{}, xType{}, logmessage:\n{}".format(ipNumber, apNint, uType, xType, "\n".join(lines)) )
 
-				if	 uType == "APtail":
-					self.doAPmessages(lines, ipNumber, apN)
-				elif uType == "GWtail":
-					self.doGWmessages(lines, ipNumber, apN)
-				elif uType == "SWtail":
-					self.doSWmessages(lines, ipNumber, apN)
-				elif uType == "VDtail":
-					self.doVDmessages(lines, ipNumber, apN)
+					### update lastup for unifi devices
+					if xType in self.MAC2INDIGO:
+						for MAC in self.MAC2INDIGO[xType]:
+							if xType == u"UN" and self.testIgnoreMAC(MAC, fromSystem="log"): continue
+							if ipNumber == self.MAC2INDIGO[xType][MAC][u"ipNumber"]:
+								self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
+								break
 
-				self.executeUpdateStatesList()
+					consumedTime = time.time()
 
-			self.logQueue.task_done()
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+					if	 uType == "APtail":
+						self.doAPmessages(lines, ipNumber, apN)
+					elif uType == "GWtail":
+						self.doGWmessages(lines, ipNumber, apN)
+					elif uType == "SWtail":
+						self.doSWmessages(lines, ipNumber, apN)
+					elif uType == "VDtail":
+						self.doVDmessages()
+					consumedTime -= time.time()
+					if consumedTime < -3.0: logLevel = 20
+					else:					logLevel = 10
+					if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTime < -0.4) :
+						self.indiLOG.log(logLevel,u"comsumeLogData    excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
 
+					self.logQueue.task_done()
+
+				#self.logQueue.task_done()
+					if len(self.sendUpdateToFingscanList) > 0: self.sendUpdatetoFingscanNOW()
+					if len(self.sendBroadCastEventsList)  > 0: self.sendBroadCastNOW()
+
+				consumedTimeQueue -= time.time()
+				if consumedTimeQueue < -5.0: logLevel = 20
+				else:						 logLevel = 10
+				if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTimeQueue < -0.6) :
+					self.indiLOG.log(logLevel,u"comsumeLogData  T excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
+
+
+			except	Exception, e:
+				if unicode(e).find(u"None") == -1:
+					self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		self.indiLOG.log(30,u"comsumeLogData:  stopping process (3)")
+		return 
 
 
 	####-----------------	 ---------
@@ -8547,18 +8638,48 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	### for the dict,
 	####-----------------	 ---------
-	def updateIndigoWithDictData2(self):
-		try:
-			while not self.logQueueDict.empty():
-				next = self.logQueueDict.get()
-				#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"updateIndigoWithDictData2 type:{}, len:{},  next:{}".format(type(next), len(next), next) )
-				self.updateIndigoWithDictData( next[0], next[1], next[2], next[3], next[4] )
-			self.logQueueDict.task_done()
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+	def comsumeDictData(self):#, startTime):
+		self.sleep(1)
+		self.indiLOG.log(10,u"comsumeDictData: process starting")
+		nextItem = "     "
+		while True:
+			try:
+				if self.pluginState == "stop" or self.consumeDataThread[u"dict"][u"status"] == u"stop": 
+					self.indiLOG.log(30,u"comsumeDictData: stopping process due to stop request")
+					return 
+				consumedTimeQueue = time.time()
+				self.sleep(0.1)
+				while not self.logQueueDict.empty():
+					if self.pluginState == "stop" or self.consumeDataThread[u"dict"][u"status"] == u"stop": 
+						self.indiLOG.log(30,u"comsumeDictData: stopping process due to stop request")
+						return 
 
-		if len(self.sendUpdateToFingscanList) >0: self.sendUpdatetoFingscanNOW()
+					nextItem = self.logQueueDict.get()
+					consumedTime = time.time()
+					self.updateIndigoWithDictData( nextItem[0], nextItem[1], nextItem[2], nextItem[3], nextItem[4] )
+					consumedTime -= time.time()
+
+					if consumedTime < -3.0:	logLevel = 20
+					else:					logLevel = 10
+					if logLevel == 20 or (self.decideMyLog(u"Special")  and consumedTime < -.4):
+						self.indiLOG.log(logLevel,u"comsumeDictData   excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  next:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
+
+					self.logQueueDict.task_done()
+
+					if len(self.sendUpdateToFingscanList) > 0: self.sendUpdatetoFingscanNOW()
+					if len(self.sendBroadCastEventsList)  > 0: self.sendBroadCastNOW()
+
+				consumedTimeQueue -= time.time()
+				if consumedTimeQueue < -5.0:	logLevel = 20
+				else:							logLevel = 10
+				if logLevel == 20  or (self.decideMyLog(u"Special")  and consumedTimeQueue < -.6):
+					self.indiLOG.log(logLevel,u"comsumeDictData T excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  next:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
+	
+			except	Exception, e:
+				if unicode(e).find(u"None") == -1:
+					self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		self.indiLOG.log(30,u"comsumeDictData: stopping process (3)")
+		return 
 
 
 

@@ -1,4 +1,4 @@
-changes in V 7.37.340 @ 2021-02-28
+changes in V 7.37.341 @ 2021-03-02
 ==================  
    
 1. added option to ALSO use unifi controller db info for UP --> down
@@ -13,7 +13,11 @@ changes in V 7.37.340 @ 2021-02-28
 6. added debug statement for unifi controller bad json object return
 6. added timeout =(3.,10.) to http -requests 
 7. manage debug logs in case of failure for ssh and http
-8. added forceed restart every xx hours for listener as option in  config / advanced
+8. added forced restart every xx hours for listener as option in  config / advanced
+9. re-wrote queue management and threads to receive and consume messages. # of listener restarts is down significantly
+   significant improvemnet of performance
+
+
 
 changes in V 7.36.326 @ 2021-02-19
 ==================  
