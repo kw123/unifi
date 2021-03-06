@@ -7600,12 +7600,13 @@ class Plugin(indigo.PluginBase):
 
 					except	Exception, e:
 						if unicode(e).find(u"None") == -1:
+							errText = u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e)
 							pingTest = self.testAPandPing(ipNumber,uType) 
 							okTest = self.testServerIfOK(ipNumber,uType) 
 							retryPeriod = float(self.readDictEverySeconds[uType[0:2]]) + 10.
-							if time.time() - self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] < retryPeriod or not pingTest or not okTest:
+							if True or time.time() - self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] < retryPeriod or not pingTest or not okTest:
 								msgF = combinedLines.replace("\r","").replace("\n","")
-								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+								self.indiLOG.log(40,errText)
 								self.indiLOG.log(20,u"checkAndPrepDict JSON len:{}; {}...\n...  {}".format(len(combinedLines),msgF[0:100], msgF[-40:]) )
 								self.indiLOG.log(20,u".... in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.logFile ))
 								self.indiLOG.log(10,u".... ping test:  {}".format(" ok " if pingTest  else " bad") )
