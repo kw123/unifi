@@ -336,6 +336,176 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 
+	<Device type="sensor" id="camera_protect">
+		<Name>camera</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectCamera"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
+
+				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
+				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
+
+
+			<Field	  id="eventThumbnailOn"		  type="checkbox"  defaultValue="true"	>
+				<Label>copy thumbnail pics from protect system for events</Label>
+			</Field>
+			<Field    id="thumbnailwh"   type="menu" defaultValue="640/480" > 
+			<Label>..event/snapshot image width(# of pixels) if supported:</Label>  
+				<List>
+					<Option value="240/180"			> 240/180</Option>
+					<Option value="320/240"			> 320/240</Option>
+					<Option value="480/320"			> 480/320</Option>
+					<Option value="640/480"			> 640/480 (low)</Option>
+					<Option value="720/540"			> 720/540</Option>
+					<Option value="1024/768"		> 1024/768 (med)</Option>
+					<Option value="1080/810"		> 1080/810</Option>
+					<Option value="1920/1440"		> 1920/1440 (high) </Option>
+					<Option value="2048/1536"		> 2048/1536 (max)</Option>
+				</List>
+			</Field>
+
+			<Field	  id="eventHeatmapOn"		  type="checkbox"  defaultValue="true"	>
+				<Label>copy heatmap pics from protect system for events</Label>
+			</Field>
+			<Field    id="heatmapwh"   type="menu" defaultValue="320/240" > 
+			<Label>..event/snapshot image width(# of pixels) if supported:</Label>  
+				<List>
+					<Option value="240/180"			> 240/180</Option>
+					<Option value="320/240"			> 320/240</Option>
+					<Option value="480/320"			> 480/320</Option>
+				</List>
+			</Field>
+
+
+		</ConfigUI>
+
+		<States>
+			<State id="status">
+					<ValueType>String</ValueType>
+					<TriggerLabel>status</TriggerLabel>
+					<ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+					<ValueType>number</ValueType>
+					<TriggerLabel>eventNumber</TriggerLabel>
+					<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
+			<State id="lastEventStart">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastEventStart</TriggerLabel>
+					<ControlPageLabel>lastEventStart</ControlPageLabel>
+			</State>
+			<State id="lastEventStop">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastEventStop</TriggerLabel>
+					<ControlPageLabel>lastEventStop</ControlPageLabel>
+			</State>
+			<State id="lastEventLength">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>lastEventLength</TriggerLabel>
+					<ControlPageLabel>lastEventLength</ControlPageLabel>
+			</State>
+			<State id="MAC">
+					<ValueType>string</ValueType>
+					<TriggerLabel>MAC</TriggerLabel>
+					<ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="ip">
+					<ValueType>string</ValueType>
+					<TriggerLabel>ip</TriggerLabel>
+					<ControlPageLabel>ip</ControlPageLabel>
+			</State>
+			<State id="name">
+					<ValueType>string</ValueType>
+					<TriggerLabel>nameOnNVR</TriggerLabel>
+					<ControlPageLabel>nameOnNVR</ControlPageLabel>
+			</State>
+			<State id="id">
+					<ValueType>string</ValueType>
+					<TriggerLabel>id</TriggerLabel>
+					<ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+					<ValueType>string</ValueType>
+					<TriggerLabel>type</TriggerLabel>
+					<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+					<ValueType>string</ValueType>
+					<TriggerLabel>connectedSince</TriggerLabel>
+					<ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastSeen</TriggerLabel>
+					<ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+					<ValueType>string</ValueType>
+					<TriggerLabel>firmwareVersion</TriggerLabel>
+					<ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isAdopted</TriggerLabel>
+					<ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isConnected</TriggerLabel>
+					<ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isManaged">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isManaged</TriggerLabel>
+					<ControlPageLabel>isManaged</ControlPageLabel>
+			</State>
+			<State id="isMicEnabled">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isMicEnabled</TriggerLabel>
+					<ControlPageLabel>isMicEnabled</ControlPageLabel>
+			</State>
+			<State id="modelKey">
+					<ValueType>string</ValueType>
+					<TriggerLabel>modelKey</TriggerLabel>
+					<ControlPageLabel>modelKey</ControlPageLabel>
+			</State>
+			<State id="recordingSettingsMode">
+					<ValueType>string</ValueType>
+					<TriggerLabel>recordingSettingsMode</TriggerLabel>
+					<ControlPageLabel>recordingSettingsMode</ControlPageLabel>
+			</State>
+			<State id="recordingSettingsTriggerValue">
+					<ValueType>string</ValueType>
+					<TriggerLabel>recordingSettingsTriggerValue</TriggerLabel>
+					<ControlPageLabel>recordingSettingsTriggerValue</ControlPageLabel>
+			</State>
+
+			<State id="eventJpeg">
+					<ValueType>string</ValueType>
+					<TriggerLabel>eventJpeg</TriggerLabel>
+					<ControlPageLabel>eventJpeg</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastStatusChange</TriggerLabel>
+					<ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+					<ValueType>String</ValueType>
+					<TriggerLabel>displayStatus</TriggerLabel>
+					<ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+
+
+		</States>
+	</Device>
+
+
+
 	<Device type="sensor" id="camera">
 		<Name>camera</Name>
 		<UiDisplayStateId>displayStatus</UiDisplayStateId>

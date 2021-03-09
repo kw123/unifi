@@ -1,3 +1,15 @@
+changes in V 7.38.342 @ 2021-03-02
+==================  
+1. added support for unif protect cameras
+   - get cameras from unif systems and create indigo devices
+   - listen to events, create dev states for start / end / delta time 
+    get thumbnails jpegs and or heatmap jpegs 
+   - get snap shots through menu and or actions
+   - set parameters of cameras, currently only in menus
+ ==> to enable: set camera to protect in config (just above debug)
+                and set repeat frequencies ...
+
+
 changes in V 7.37.342 @ 2021-03-02
 ==================  
 1. fixed:  in Line 7608 has error='module' object has no attribute 'exc_traceback'

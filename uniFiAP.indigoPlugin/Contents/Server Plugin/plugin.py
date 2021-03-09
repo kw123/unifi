@@ -325,15 +325,17 @@ class Plugin(indigo.PluginBase):
 		##indigo.server.log(u" connectParams:{}".format(self.connectParams))
 
 		self.stop 											= []
+		self.PROTECT 										= {}
 
 
 		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indio/unifi/"))
+		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	self.MAChome))
 		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
 		self.unifiNVRSession								= ""
 		self.nvrVIDEOapiKey									= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
 
-
+		self.refreshProtectCameras							= float(self.pluginPrefs.get(u"refreshProtectCameras",180.))
+		self.protecEventSleepTime 							= float(self.pluginPrefs.get(u"protecEventSleepTime",4.))
 		self.vmMachine										= self.pluginPrefs.get(u"vmMachine",  "")
 		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
 		self.vmDisk											= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
@@ -565,21 +567,27 @@ class Plugin(indigo.PluginBase):
 
 
 		#####  check video parameters
-		enableVideoSwitch									= self.pluginPrefs.get(u"enableVideoSwitch", False)
+		self.cameraSystem										= self.pluginPrefs.get(u"cameraSystem", "off")
 
-		try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
-		except: self.unifiVIDEONumerOfEvents				= 1000
-		self.cameras						 				= {}
-		self.saveCameraEventsStatus			 				= False
+		self.cameras							 				= {}
+		self.ipNumbersOf[u"VD"] 								= ""
+		self.VIDEOUP											= 0
+		self.unifiVIDEONumerOfEvents 							= 0
+		if self.cameraSystem == "nvr":
+			try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
+			except: self.unifiVIDEONumerOfEvents				= 1000
+			self.cameras						 				= {}
+			self.saveCameraEventsStatus			 				= False
 
-		ip0 												= self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
-		self.ipNumbersOf[u"VD"] 							= ip0
-		self.VIDEOEnabled  									= False
-		self.VIDEOUP										= 0
-		if enableVideoSwitch:
+			ip0 												= self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
+			self.ipNumbersOf[u"VD"] 							= ip0
+			self.VIDEOUP										= 0
 			if self.isValidIP(ip0) and self.connectParams[u"UserID"][u"unixNVR"] != "" and self.connectParams[u"PassWd"][u"unixNVR"] != "":
-				self.VIDEOEnabled 							= True
-				self.VIDEOUP	 							= time.time()
+				self.VIDEOUP	 								= time.time()
+		elif self.cameraSystem == "protect":
+			pass
+		else:
+			pass
 
 		self.lastCheckForNVR 								= 0
 
@@ -884,6 +892,14 @@ class Plugin(indigo.PluginBase):
 
 			return
 
+
+	def getMenuActionConfigUiValues(self):
+		valuesDict = indigo.Dict()
+		errorMsgDict = indigo.Dict()
+		valuesDict["caeraSystemType"] = self.xx
+		return (valuesDict, errorMsgDict)
+
+
 	####-----------------	 ---------
 	def validateDeviceConfigUi(self, valuesDict, typeId, devId):
 		try:
@@ -979,6 +995,8 @@ class Plugin(indigo.PluginBase):
 
 			self.unifiControllerOS							= ""
 
+			self.refreshProtectCameras						= float(valuesDict[u"refreshProtectCameras"])
+			self.protecEventSleepTime						= float(valuesDict[u"protecEventSleepTime"])
 		
 			self.cameraEventWidth							= int(valuesDict[u"cameraEventWidth"])
 			self.imageSourceForEvent						= valuesDict[u"imageSourceForEvent"]
@@ -1208,18 +1226,20 @@ class Plugin(indigo.PluginBase):
 			self.vboxPath								= self.completePath(valuesDict[u"vboxPath"])
 			self.changedImagePath						= self.completePath(valuesDict[u"changedImagePath"])
 			self.vmDisk									= valuesDict[u"vmDisk"]
-			enableVideoSwitch							= valuesDict[u"enableVideoSwitch"]
+			enableVideoSwitch							= valuesDict[u"cameraSystem"]
 			ip0											= valuesDict[u"nvrIP"]
 
-			if self.ipNumbersOf[u"VD"] != ip0 :
-				rebootRequired	+= u" VIDEO ipNumber changed;"
-				self.indiLOG.log(10,u"IP# old:{}, new:{}".format(self.ipNumbersOf[u"VD"], ip0) )
 
-			if self.VIDEOEnabled != enableVideoSwitch:
+			if self.cameraSystem != enableVideoSwitch:
 				rebootRequired	+= u" video enabled/disabled;"
 
-			self.VIDEOEnabled		= enableVideoSwitch
-			self.ipNumbersOf[u"VD"]	= ip0
+			self.cameraSystem = enableVideoSwitch
+			if self.cameraSystem =="nvr":
+				self.ipNumbersOf[u"VD"]	= ip0
+				if self.ipNumbersOf[u"VD"] != ip0 :
+					rebootRequired	+= u" VIDEO ipNumber changed;"
+					self.indiLOG.log(10,u"IP# old:{}, new:{}".format(self.ipNumbersOf[u"VD"], ip0) )
+
 
 			self.enablecheckforUnifiSystemDevicesState = valuesDict["enablecheckforUnifiSystemDevicesState"]
 
@@ -1366,22 +1386,25 @@ class Plugin(indigo.PluginBase):
 			#self.myLog( text=u"get blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+u"[sec]" )
 			#self.myLog( text=u"get lastseen info from Cntr every".ljust(40) +	unicode(self.unifigetLastSeenDeltaTime)+u"[sec]" )
 			self.myLog( text=u"" ,mType=u" ")
-			self.myLog( text=u"====== VIDEO / camera NVR stuff ----------------------",mType=u" " )
-			self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=u" " )
-			self.myLog( text=u"  ssh NVR-UNIXUserID@NVR-IP ",mType=u" ")
-			self.myLog( text=u"NVR-VIDEO enabled".ljust(40)					+	unicode(self.VIDEOEnabled)[0] )
-			self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+	self.connectParams[u"UserID"][u"unixNVR"] )
-			self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+	self.connectParams[u"PassWd"][u"unixNVR"] )
-			self.myLog( text=u"VD tailCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"VDtail"] )
-			self.myLog( text=u"VD dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"VDdict"] )
-			self.myLog( text=u"= getting snapshots and reading and changing parameters",mType=u" " )
-			self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://NVR-IP#:  ....   for commands and read parameters ",mType=u" " )
-			self.myLog( text=u"  requests(http://IP-NVR:7080/api/2.0/snapshot/camera/**camApiKey**?force=true&width=1024&apiKey=nvrAPIkey,stream=True)  for snap shots",mType=u" " )
-			self.myLog( text=u"imageSourceForSnapShot".ljust(40)			+	self.imageSourceForSnapShot )
-			self.myLog( text=u"imageSourceForEvent".ljust(40)				+	self.imageSourceForEvent )
-			self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+	self.connectParams[u"UserID"][u"nvrWeb"] )
-			self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+	self.connectParams[u"PassWd"][u"nvrWeb"] )
-			self.myLog( text=u"NVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey )
+			self.myLog( text=u"====== camera NVR stuff ---------------------------",mType=u" " )
+			self.myLog( text=u"Camera enabled".ljust(40)					+	self.cameraSystem )
+			if self.cameraSystem =="nvr":
+				self.myLog( text=u"=  get camera DB config and listen to recording event logs",mType=u" " )
+				self.myLog( text=u"  ssh NVR-UNIXUserID@NVR-IP ",mType=u" ")
+				self.myLog( text=u"NVR-UNIXUserID".ljust(40)					+	self.connectParams[u"UserID"][u"unixNVR"] )
+				self.myLog( text=u"NVR-UNIXpasswd".ljust(40)					+	self.connectParams[u"PassWd"][u"unixNVR"] )
+				self.myLog( text=u"VD tailCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"VDtail"] )
+				self.myLog( text=u"VD dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"VDdict"] )
+				self.myLog( text=u"= getting snapshots and reading and changing parameters",mType=u" " )
+				self.myLog( text=u"  curl data={WEB-UserID:..,WEB-PassWd:..} https://NVR-IP#:  ....   for commands and read parameters ",mType=u" " )
+				self.myLog( text=u"  requests(http://IP-NVR:7080/api/2.0/snapshot/camera/**camApiKey**?force=true&width=1024&apiKey=nvrAPIkey,stream=True)  for snap shots",mType=u" " )
+				self.myLog( text=u"imageSourceForSnapShot".ljust(40)			+	self.imageSourceForSnapShot )
+				self.myLog( text=u"imageSourceForEvent".ljust(40)				+	self.imageSourceForEvent )
+				self.myLog( text=u"NVR-WEB-UserID".ljust(40)					+	self.connectParams[u"UserID"][u"nvrWeb"] )
+				self.myLog( text=u"NVR-WEB-passWd".ljust(40)					+	self.connectParams[u"PassWd"][u"nvrWeb"] )
+				self.myLog( text=u"NVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey )
+			elif self.cameraSystem =="protect":
+				pass
 			self.myLog( text=u"",mType=u" ")
 			self.myLog( text=u"AP ip#			  enabled / disabled")
 			for ll in range(len(self.ipNumbersOf[u"AP"])):
@@ -1735,7 +1758,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRLEDCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRLEDCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"enableStatusLed":valuesDict[u"camLED"] == "1"})
+		valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"enableStatusLed":valuesDict[u"camLED"] == "1"})
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1743,7 +1766,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRSoundsCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRSoundsCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"systemSoundsEnabled":valuesDict[u"camSounds"] == "1"} )
+		valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"systemSoundsEnabled":valuesDict[u"camSounds"] == "1"} )
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1751,7 +1774,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRenableSpeakerCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRenableSpeakerCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"enableSpeaker":valuesDict[u"enableSpeaker"] == "1", "speakerVolume":int(valuesDict[u"enableSpeaker"])} )
+		valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"enableSpeaker":valuesDict[u"enableSpeaker"] == "1", "speakerVolume":int(valuesDict[u"enableSpeaker"])} )
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1759,36 +1782,37 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRmicVolumeCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRmicVolumeCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		valuesDict[u"retCodeCam"] = self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"micVolume":int(valuesDict[u"micVolume"])} )
+		valuesDict[u"msg"] = self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"micVolume":int(valuesDict[u"micVolume"])} )
 		return valuesDict
 
 	####-----------------	 ---------
 	def buttonSendCommandToNVRRecordCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToNVRRecordCALLBACK(valuesDict= action1.props)
+
 	def buttonSendCommandToNVRRecordCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
 		if valuesDict[u"postPaddingSecs"] =="-1" and valuesDict[u"prePaddingSecs"] =="-1":
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
 					{"recordingSettings":{"motionRecordEnabled": valuesDict[u"motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict[u"fullTimeRecordEnabled"] == "1", 'channel': valuesDict[u"channel"]}
 					} )
 		elif valuesDict[u"postPaddingSecs"] !="-1" and valuesDict[u"prePaddingSecs"] !="-1":
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
 					{"recordingSettings":{"motionRecordEnabled": valuesDict[u"motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict[u"fullTimeRecordEnabled"] == "1", 'channel': valuesDict[u"channel"],
 					"postPaddingSecs": int(valuesDict[u"postPaddingSecs"]),
 					"prePaddingSecs": int(valuesDict[u"prePaddingSecs"]) }
 					} )
 		elif valuesDict[u"postPaddingSecs"] !="-1":
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
 					{"recordingSettings":{"motionRecordEnabled": valuesDict[u"motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict[u"fullTimeRecordEnabled"] == "1", 'channel': valuesDict[u"channel"],
 					"postPaddingSecs": int(valuesDict[u"postPaddingSecs"]) }
 					} )
 		elif valuesDict[u"prePaddingSecs"] !="-1":
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],
 					{"recordingSettings":{"motionRecordEnabled": valuesDict[u"motionRecordEnabled"] == "1","fullTimeRecordEnabled": valuesDict[u"fullTimeRecordEnabled"] == "1", 'channel': valuesDict[u"channel"],
 					"prePaddingSecs": int(valuesDict[u"prePaddingSecs"]) }
 					} )
 		else:
-			valuesDict[u"retCodeCam"]="bad selection for recording"
+			valuesDict[u"msg"]="bad selection for recording"
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1798,10 +1822,10 @@ class Plugin(indigo.PluginBase):
 		self.addToMenuXML(valuesDict)
 		xxx = valuesDict[u"irLedMode"]
 		if xxx.find(u"auto") >-1:
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict[u"enableExternalIr"]),"irLedMode":"auto" }} )
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict[u"enableExternalIr"]),"irLedMode":"auto" }} )
 		else:# for manual 0/100/255 level
 			xxx = xxx.split("-")
-			valuesDict[u"retCodeCam"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict[u"enableExternalIr"]),"irLedMode":xxx[0], "irLedLevel": int(xxx[1])}  } )
+			valuesDict[u"msg"],x =  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],{"ispSettings":{"enableExternalIr": int(valuesDict[u"enableExternalIr"]),"irLedMode":xxx[0], "irLedLevel": int(xxx[1])}  } )
 		return valuesDict
 	####-----------------	 ---------
 	def buttonSendCommandToNVRvideostreamingCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
@@ -1813,7 +1837,7 @@ class Plugin(indigo.PluginBase):
 		error, ret = self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"],"", cmdType=u"get")
 		if u"channels" not in ret[0] or len(ret[0][u"channels"]) !=3 : # something went wrong
 			self.indiLOG.log(40,u"videostreaming error: {}     \n>>{}<<".format(error, ret))
-			valuesDict[u"retCodeCam"] = error
+			valuesDict[u"msg"] = error
 			return valuesDict
 
 		# modify the required ones
@@ -1824,7 +1848,7 @@ class Plugin(indigo.PluginBase):
 		channels[channel][u"isRtspEnabled"]  = valuesDict[u"isRtspEnabled"]  == u"1"
 		# send back
 		error, data=  self.setupNVRcmd(valuesDict[u"cameraDeviceSelected"], {u"channels":channels}, cmdType=u"put")
-		valuesDict[u"retCodeCam"]=error
+		valuesDict[u"msg"]=error
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1832,8 +1856,8 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToNVRgetSnapshotCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToNVRgetSnapshotCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		if   self.imageSourceForSnapShot == u"imageFromNVR": 	valuesDict[u"retCodeCam"] = self.getSnapshotfromNVR(valuesDict[u"cameraDeviceSelected"], valuesDict[u"widthOfImage"], valuesDict[u"fileNameOfImage"] )
-		elif self.imageSourceForSnapShot == u"imageFromCamera":	valuesDict[u"retCodeCam"] = self.getSnapshotfromCamera(valuesDict[u"cameraDeviceSelected"],                          valuesDict[u"fileNameOfImage"] )
+		if   self.imageSourceForSnapShot == u"imageFromNVR": 	valuesDict[u"msg"] = self.getSnapshotfromNVR(valuesDict[u"cameraDeviceSelected"], valuesDict[u"widthOfImage"], valuesDict[u"fileNameOfImage"] )
+		elif self.imageSourceForSnapShot == u"imageFromCamera":	valuesDict[u"msg"] = self.getSnapshotfromCamera(valuesDict[u"cameraDeviceSelected"],                          valuesDict[u"fileNameOfImage"] )
 		return valuesDict
 
 	####-----------------	 ---------
@@ -1842,8 +1866,7 @@ class Plugin(indigo.PluginBase):
 		dev = indigo.devices[int(devId)]
 		try:
 			if not self.isValidIP(self.ipNumbersOf[u"VD"]): return u"error IP",""
-			if not self.VIDEOEnabled:					 	return u"error enabled",""
-			if not self.VIDEOEnabled:					 	return u"error enabled",""
+			if self.cameraSystem != "nvr":					 	return u"error enabled",""
 			if len(self.nvrVIDEOapiKey) < 5:				return u"error apikey",""
 
 			if payload != "":  payload[u'name']= dev.states[u"nameOnNVR"]
@@ -2086,7 +2109,7 @@ class Plugin(indigo.PluginBase):
 		return
 
 	####-----------------	 ---------
-	def buttonprintCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
+	def buttonprintNVRCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
 		maxEvents= int(valuesDict[u"maxEvents"])
 		totEvents= 0
 		for MAC in self.cameras:
@@ -2118,7 +2141,7 @@ class Plugin(indigo.PluginBase):
 		return
 
 	####-----------------	 ---------
-	def buttonresetCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
+	def buttonresetNVRCameraEventsCALLBACK(self,valuesDict, typeId="", devId=""):
 		for dev in indigo.devices.iter(u"props.isCamera"):
 			dev.updateStateOnServer(u"eventNumber",0)
 			self.indiLOG.log(10,u"reset event number for {}".format(dev.name) )
@@ -2129,132 +2152,18 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def buttonPrintCameraSystemCALLBACK(self,valuesDict, typeId="", devId=""):
-		self.pendingCommand.append("getCamerasFromNVR-print")
+	def buttonPrintNVRCameraSystemCALLBACK(self,valuesDict, typeId="", devId=""):
+		if self.cameraSystem == "nvr":
+			self.pendingCommand.append("getNVRCamerasFromMongoDB-print")
+		elif self.cameraSystem == "protect":
+			self.pendingCommand.append("getProtectamerasInfo-print")
 
 	####-----------------	 ---------
-	def buttonrefreshCameraSystemCALLBACK(self,valuesDict, typeId="", devId=""):
-		self.pendingCommand.append("getConfigFromNVR")
-
-
-
-	####-----------------	 ---------
-	def getCamerasFromNVR(self,doPrint = False, action=[]):
-		try:
-			timeElapsed = time.time()
-			info	= {u"users":{}, u"cameras":[], u"NVR":{}}
-			USERs	= []
-			ACCOUNTs= []
-			cmdstr	= ["\"mongo 127.0.0.1:7441/av --quiet --eval  'db.", ".find().forEach(printjsononeline)'  | sed 's/^\s*//' \"" ]
-
-			#self.indiLOG.log(10," into getCamerasFromNVR action :{}".format(action))
-			if u"system" in action:
-				USERs			= self.getMongoData(cmdstr[0]+u"user"   +cmdstr[1])
-				ACCOUNTs		= self.getMongoData(cmdstr[0]+u"account"+cmdstr[1])
-
-				if len(USERs)>0 and len(ACCOUNTs) >0:
-					for account in ACCOUNTs:
-						##self.myLog( text="getCamerasFromNVR account dict: "+unicode(account))
-						if u"_id" in account and u"username" in account and u"name" in account:
-							ID =  account[u"_id"]
-							info[u"users"][ID] ={u"userName":account[u"username"], u"name":account[u"name"]}
-							for user in USERs:
-								##self.myLog( text="getCamerasFromNVR user dict: "+unicode(user))
-								if u"accountId" in user and ID == user[u"accountId"]:
-									##self.myLog( text="getCamerasFromNVR accountId ok and id found:"+ID)
-									if u"apiKey" in user and u"enableApiAccess" in user:
-										##self.myLog( text="getCamerasFromNVR apiKey found <<"+ user["apiKey"]+"<<    enableApiAccess>>"+unicode(user["enableApiAccess"]))
-										info[u"users"][ID][u"apiKey"]			= user[u"apiKey"]
-										info[u"users"][ID][u"enableApiAccess"]	= user[u"enableApiAccess"]
-									else:
-										if u"enableApiAccess" in user and user[u"enableApiAccess"]: # its enabled, but no api key
-											self.indiLOG.log(40,u"getCamerasFromNVR camera users   bad enableApiAccess / apiKey info for id:{}\n{} UNIFI error".format(ID, USERs))
-										else:
-											if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"UNIFI error  getCamerasFromNVR camera users   enableApiAccess disabled info for id:{}\n{}".format(ID, USERs))
-						else:
-										self.indiLOG.log(40,u"getCamerasFromNVR camera ACCOUNT bad _id / username / name info:\n{}".format(ACCOUNTs))
-
-				server = self.getMongoData(cmdstr[0]+u"server" +cmdstr[1])
-				if len(server) >0:
-					info[u"NVR"]		= server[0]
-
-			#self.indiLOG.log(10," into getCamerasFromNVR info :{}".format(info))
-			if u"cameras" in action:
-				info[u"cameras"]	 = self.executeCMDonNVR( {}, "",  cmdType=u"get")
-				if len(info[u"cameras"]) <1:
-					info[u"cameras"] = self.getMongoData(cmdstr[0]+u"camera" +cmdstr[1])
-				if len(info[u"cameras"]) >0: self.fillCamerasIntoIndigo(info[u"cameras"], calledFrom=u"getCamerasFromNVR")
-
-
-			##self.myLog( text=unicode(info))
-
-			if doPrint:
-				self.printCameras(info)
-			return info
-
-
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-		return {}
-
-	####-----------------	 ---------
-	def printCameras(self, info):
-		keepList = [u"name",u"uuid",u"host",u"model",u"_id",u"firmwareVersion",u"systemInfo",u"mac",u"controllerHostAddress",u"controllerHostPort",u"deviceSettings",u"networkStatus",u"status",u"analyticsSettings",u"channels",u"ispSettings" ]
-		out = u""
-		try:
-			if u"NVR" in info:
-				self.myLog( text=u"--====================++++++++++++++++++++++++++++++++++++++++====================--",mType=u"System info-NVR:")
-				for key in info[u"NVR"]:
-					self.myLog( text=unicode(info[u"NVR"][key]),mType=u"  "+key )
-
-				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- users:")
-			if u"users" in info:
-				nn = 0
-				for user in info[u"users"]:
-					out = ""
-					for item in ["name","apiKey","enableApiAccess"] :
-						out+=(item+":"+unicode(info["users"][user][item])+"; ").ljust(30)
-					self.myLog( text=out.strip("; "),mType= (info[u"users"][user][u"userName"]).ljust(18)+u" # "+ unicode(nn))
-					nn+=1
-
-
-			if u"cameras" in info:
-				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- cameras:")
-				for camera in info[u"cameras"]:
-					self.myLog( text=u"--===============--" , mType=camera[u"name"])
-					for item in camera:
-						if item ==u"name": continue
-						if item in keepList or keepList == [u"*"]:
-							if item == u"channels":
-								nn = 0
-								for channel in camera[item]:
-									out = (u"bitrates: "+unicode(channel[u"minBitrate"])+".."+unicode(channel[u"maxBitrate"])) .ljust(30)
-									for	 prop in [u"enabled",u"isRtmpsEnabled",u"isRtspEnabled"]:
-										if prop in channel:
-											out+= prop+u": "+unicode(channel[prop])+u";  "
-									out = out.strip(";....")
-									self.myLog( text=out, mType=u"              channel#"+unicode(nn) )
-									nn+=1
-							elif item == "status":
-								status = camera[item]
-								out = ""
-								for	 prop in [u"remotePort",u"remoteHost"]:
-									if prop in status:
-										out+= prop+":"+unicode(status[prop])+u"; "
-								out = out.strip("; ")
-								self.myLog( text=out, mType=u"              status" )
-								for nn in range(len(status[u"recordingStatus"])):
-									out	 =	(u"motionRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"motionRecordingEnabled"])).ljust(30)
-									out += u"; fullTimeRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"fullTimeRecordingEnabled"])
-									self.myLog( text=out, mType=u"           recordingSt:#"+unicode(nn) )
-							else:
-								self.myLog( text=(item+":").ljust(25)+json.dumps(camera[item]) )
-
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}\n printCameras camera system info:\n{}".format(sys.exc_traceback.tb_lineno, e, json.dumps(out,sort_keys=True, indent=2)) )
-		return
+	def buttonrefreshNVRCameraSystemCALLBACK(self,valuesDict, typeId="", devId=""):
+		if self.cameraSystem == "nvr":
+			self.pendingCommand.append("getConfigFromNVR")
+		elif self.cameraSystem == "protect":
+			self.pendingCommand.append("getConfigFromProtect")
 
 	####-----------------	 ---------
 	def getMongoData(self, cmdstr, uType=u"VDdict"):
@@ -2637,8 +2546,12 @@ class Plugin(indigo.PluginBase):
 	def filterCameraDevice(self, filter="", valuesDict=None, typeId="", devId=""):
 
 		xList = []
-		for dev in indigo.devices.iter(u"props.isCamera"):
-			xList.append([dev.id,dev.name])
+		if self.cameraSystem == u"nvr":	
+			for dev in indigo.devices.iter(u"props.isCamera"):
+				xList.append([dev.id,dev.name])
+		if self.cameraSystem == u"protect":	
+			for dev in indigo.devices.iter(u"props.isProtectCamera"):
+				xList.append([dev.id,dev.name])
 		return sorted(xList, key=lambda x: x[1])
 
 
@@ -4474,6 +4387,7 @@ class Plugin(indigo.PluginBase):
 
 				for port in tryport:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
+					# curl --insecure  -I -s -o /dev/null -w "%{http_code}" 'https://192.168.1.2:8443'
 					cmdOS = self.curlPath+u" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+u":"+port+u"'"
 					ret = subprocess.Popen(cmdOS, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
 					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(10,u"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(cmdOS, ret) )
@@ -4519,10 +4433,12 @@ class Plugin(indigo.PluginBase):
 	def setunifiCloudKeySiteName(self, method="response", cookies="", headers="" ):
 		try:
 			if method == "response":
+				# curl --insecure -b /tmp/unifiCookie 'https://192.168.1.2:443/proxy/network/api/self/sites'
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
 				textRET	= self.unifiControllerSession.get(urlSite,   cookies=cookies, headers=headers, verify=False).text
 				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
 			elif method == "curlPath":
+				# curl --insecure -b /tmp/unifiCookie 'https://192.168.1.2:443/api/self/sites'
 				cmdSite  = self.curlPath+u" --insecure -b /tmp/unifiCookie 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
 				ret = subprocess.Popen(cmdSite, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 				textRET	= ret[0].decode(u"utf8")
@@ -4571,7 +4487,7 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def executeCMDOnController(self, dataSEND={}, pageString=u"",jsonAction=u"returnData", startText="", cmdType=u"put", cmdTypeForce = False, repeatIfFailed=True):
+	def executeCMDOnController(self, dataSEND={}, pageString=u"",jsonAction=u"returnData", startText="", cmdType=u"put", cmdTypeForce = False, repeatIfFailed=True, raw=False, protect=False):
 
 		try:
 			if not self.isValidIP(self.unifiCloudKeyIP): return []
@@ -4667,6 +4583,9 @@ class Plugin(indigo.PluginBase):
 							if  jsonAction == u"returnData":
 								#self.writeJson(dictRET["data"], fName=self.indigoPreferencesPluginDir+"dict-Controller-"+pageString.replace("/","_").replace(" ","-").replace(":","=").strip("_")+".txt", sort=True, doFormat=True )
 								return dictRET[u"data"]
+							if  jsonAction == u"protect":
+								#self.writeJson(dictRET["data"], fName=self.indigoPreferencesPluginDir+"dict-Controller-"+pageString.replace("/","_").replace(" ","-").replace(":","=").strip("_")+".txt", sort=True, doFormat=True )
+								return dictRET
 
 							return []
 
@@ -4730,47 +4649,79 @@ class Plugin(indigo.PluginBase):
 						if not self.setunifiCloudKeySiteName(method="response", cookies=cookies, headers=headers ): continue
 				
 						
-					url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
+					if protect:
+						url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/protect/"+pageString.strip("/")
+					else:
+						url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+"/"+pageString.strip("/")
 
 					if self.decideMyLog(u"ConnectionCMD"):	self.indiLOG.log(10,u"Connection: requests:{};\nheader:{};\ndataSEND:{};\ncookies:{};\ncmdType:{}".format(url, headers, dataSEND, cookies,cmdType) )
 					if startText !="":						self.indiLOG.log(10,u"Connection: requests: startText{},".format(startText) )
 					try:
-							retCode		= ""
-							respText 	= ""
-							dictRET		= ""
+							retCode			= ""
+							respText 		= ""
+							dictRET			= ""
+							rawData			= ""
+							if raw:	
+								setStream	= True
+							else:
+								setStream	= False
+							timeused		= 0
 
-							if	 cmdType == "put":	 resp = self.unifiControllerSession.put(url,  json=dataSEND, cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.))
-							elif cmdType == "post":	 resp = self.unifiControllerSession.post(url, json=dataSEND, cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.))
-							elif cmdType == "get":	 resp = self.unifiControllerSession.get(url,                 cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=False)
-							else:					 resp = self.unifiControllerSession.put(url,  json=dataSEND, cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.))
+							if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+							elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+							elif cmdType == "get":	
+								if dataSEND == {}:
+													resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+								else:
+									if protect: # get protect needs params= not json=
+													resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=(3.,10.), stream=setStream)
+													if setStream: 
+														rawData = resp.raw.read()
+														#self.indiLOG.log(10,u"executeCMDOnController protect  url:{} params:{}; stream:{}, len(resp.raw.read):{}".format(url, dataSEND, setStream, len(rawData) ))
+									else:
+													resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+
+							elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+							else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
 								
 							try:
 								retCode		= copy.copy(resp.status_code )
 								respText 	= copy.copy(resp.text)
+								retStatus	= resp.status_code
 								##respText 	= respText.decode("utf8")
 								timeused 	= resp.elapsed.total_seconds()	
 								if self.decideMyLog(u"ConnectionRET"):	
 									self.indiLOG.log(10,u"executeCMDOnController retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}\n>>>{}<<<".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url, respText))
 								headers 	= copy.copy(resp.headers)
-								dictRET		= json.loads(respText)
+
+								if not raw:
+									dictRET	= json.loads(respText)
+
 								resp.close()
 								
 							except	Exception, e:
 								if iii > 0:
+									errText = unicode(e)
 									self.indiLOG.log(30,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 									self.indiLOG.log(20,u"executeCMDOnController has error, retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url))
-									self.printHttpError(unicode(e), respText)
+									self.printHttpError(errText, respText)
 								self.executeCMDOnControllerReset(wait=True)
 								try: resp.close()
 								except: pass
 								continue
  
-
-							if dictRET["meta"]["rc"] != "ok":
-								if iii == 0:
-									self.indiLOG.log(40,u"error:>> url:{}, resp:{}".format(url, respText[0:100]))
-								self.executeCMDOnControllerReset(wait=True)
-								continue
+							if protect:
+								if retCode != requests.codes.ok:
+									if iii == 0:
+										self.indiLOG.log(40,u"error:>> url:{}, resp code:{}".format(url, retCode))
+									self.executeCMDOnControllerReset(wait=True)
+									continue
+							else:
+								if dictRET["meta"]["rc"] != "ok":
+									if iii == 0:
+										self.indiLOG.log(40,u"error:>> url:{}, resp:{}".format(url, respText[0:100]))
+									self.executeCMDOnControllerReset(wait=True)
+									continue
 
 							self.lastUnifiCookieRequests = time.time()
 
@@ -4781,11 +4732,11 @@ class Plugin(indigo.PluginBase):
 								self.indiLOG.log(10,u"Reconnect: executeCMDOnController info\n{}".format(json.dumps(dictRET["data"],sort_keys=True, indent=2)) )
 								return dictRET["data"]
 
-							if jsonAction == "returnData":
-								#self.writeJson(dataDict["data"], fName=self.indigoPreferencesPluginDir+"dict-Controller-"+pageString.replace("/","_").replace(" ","-").replace(":","=").strip("_")+".txt", sort=True, doFormat=True )
-								return dictRET["data"]
+							if raw:								return rawData
+							elif jsonAction == "returnData":	return dictRET["data"]
+							elif jsonAction == "protect":		return dictRET
+							else:								return []
 
-							return []
 					except	Exception, e:
 						self.indiLOG.log(40,u"in Line {} has error={}   Connection".format(sys.exc_traceback.tb_lineno, e) )
 
@@ -5264,7 +5215,7 @@ class Plugin(indigo.PluginBase):
 		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
 
 		## if video enabled
-		if self.VIDEOEnabled and self.vmMachine !="":
+		if self.cameraSystem == "nvr" and self.vmMachine !="":
 			self.buttonVboxActionStartCALLBACK()
 
 ######## this for fixing the change from mac to MAC in states
@@ -5332,7 +5283,8 @@ class Plugin(indigo.PluginBase):
 			if dev.deviceTypeId == u"gateway":
 				self.setupStructures(u"GW", dev, MAC)
 
-			self.setImageAndStatus(dev, dev.states[u"status"], force=True)
+			if "isProtectCamera" not in props:
+				self.setImageAndStatus(dev, dev.states[u"status"], force=True)
 
 			if u"created" in dev.states and dev.states[u"created"] == "":
 				self.addToStatesUpdateList(dev.id,u"created", nowDT.strftime(u"%Y-%m-%d %H:%M:%S"))
@@ -5434,17 +5386,16 @@ class Plugin(indigo.PluginBase):
 
 
 
-		if self.VIDEOEnabled:
+		if self.cameraSystem == "nvr":
 
 			self.indiLOG.log(10,u"..setup NVR -1 getNVRIntoIndigo")
 			self.testServerIfOK(self.ipNumbersOf[u"VD"], "VDdict")
 			self.getNVRIntoIndigo(force= True)
-			self.indiLOG.log(10,u"..setup NVR -2 getCamerasIntoIndigo")
-			self.getCamerasIntoIndigo(force=True)
+			self.indiLOG.log(10,u"..setup NVR -2 getNVRCamerastoIndigo")
+			self.getNVRCamerastoIndigo(force=True)
 			self.indiLOG.log(10,u"..setup NVR -3 saveCameraEventsStatus")
 			self.saveCameraEventsStatus=True; self.saveCamerasStats(force=False)
 
-		###########	 set up threads	 ########
 
 				### start video logfile listening
 			self.trVDLog = ""
@@ -5452,6 +5403,16 @@ class Plugin(indigo.PluginBase):
 			self.trVDLog  = threading.Thread(name=u'getMessages-VD-log', target=self.getMessages, args=(self.ipNumbersOf[u"VD"],0,u"VDtail",500,))
 			self.trVDLog.start()
 			self.sleep(0.2)
+
+		self.lastRefreshProtect  = 0
+
+		self.getProtectIntoIndigo()
+		self.protectThread = {u"thread":"", u"status":""}
+		if self.cameraSystem == u"protect":
+			self.protectThread[u"status"]  = u"run"
+			self.protectThread[u"thread"]  = threading.Thread(name=u'get-protectevents', target=self.getProtectEvents)
+			self.protectThread[u"thread"].start()
+
 
 
 		self.getcontrollerDBForClients()
@@ -5723,7 +5684,6 @@ class Plugin(indigo.PluginBase):
 			return
 
 		indigo.server.savePluginPrefs()
-
 		self.lastDayCheck		= -1
 		self.lastHourCheck		= datetime.datetime.now().hour
 		self.lastMinuteCheck	= datetime.datetime.now().minute
@@ -5778,15 +5738,15 @@ class Plugin(indigo.PluginBase):
 				return "new Devices"
 
 		if self.pendingCommand != []:
-			if u"getCamerasFromNVR-print" in self.pendingCommand: self.getCamerasFromNVR(doPrint = True, action=["system","cameras"])
-			if u"getCamerasIntoIndigo"	 in self.pendingCommand: self.getCamerasIntoIndigo(force = True)
-			if u"getConfigFromNVR"		 in self.pendingCommand: self.getNVRIntoIndigo(force = True); self.getCamerasIntoIndigo(force = True)
+			if u"getNVRCamerasFromMongoDB-print" in self.pendingCommand: self.getNVRCamerasFromMongoDB(doPrint = True, action=["system","cameras"])
+			if u"getNVRCamerastoIndigo"	 in self.pendingCommand: self.getNVRCamerastoIndigo(force = True)
+			if u"getConfigFromNVR"		 in self.pendingCommand: self.getNVRIntoIndigo(force = True); self.getNVRCamerastoIndigo(force = True)
 			if u"saveCamerasStats"		 in self.pendingCommand: self.saveCameraEventsStatus = True;  self.saveCamerasStats(force = True)
 			self.pendingCommand =[]
 
 		if self.quitNow != "": return "break"
 
-		self.getCamerasIntoIndigo(periodCheck = True)
+		self.getNVRCamerastoIndigo(periodCheck = True)
 		self.saveCamerasStats()
 		self.saveDataStats()
 		self.saveMACdata()
@@ -5845,7 +5805,7 @@ class Plugin(indigo.PluginBase):
 
 			if self.quitNow != "": return "break"
 
-			if self.VIDEOEnabled and self.vmMachine !="":
+			if self.cameraSystem == "nvr" and self.vmMachine !="":
 				if u"VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command
 					self.msgListenerActive["VDtail"] = time.time()
 					self.buttonVboxActionStartCALLBACK()
@@ -6072,6 +6032,7 @@ class Plugin(indigo.PluginBase):
 
 		return
 
+
 	####-----------------	 ---------
 	def periodCheck(self):
 		try:
@@ -6085,7 +6046,10 @@ class Plugin(indigo.PluginBase):
 			self.checkcProfile()
 
 			self.getNVRIntoIndigo()
-			self.getCamerasIntoIndigo(periodCheck = True)
+			self.getNVRCamerastoIndigo(periodCheck = True)
+
+			self.getProtectIntoIndigo()
+
 			self.saveCamerasStats()
 			self.saveDataStats()
 			self.saveMACdata()
@@ -6095,6 +6059,7 @@ class Plugin(indigo.PluginBase):
 			for dev in indigo.devices.iter(self.pluginId):
 
 				try:
+					if dev.deviceTypeId == u"camera_protect": continue
 					if dev.deviceTypeId == u"camera": continue
 					if dev.deviceTypeId == u"NVR": continue
 					if u"MAC" not in dev.states: continue
@@ -6539,7 +6504,7 @@ class Plugin(indigo.PluginBase):
 		self.lastSaveDataStats	= time.time() -60
 		try:
 			f=open(self.indigoPreferencesPluginDir+"dataStats","r")
-			self.dataStats= json.loads(f.read())
+			self.dataStats = json.loads(f.read())
 			f.close()
 			if u"tcpip" not in self.dataStats:
 				self.resetDataStats( calledFrom="readDataStats 1")
@@ -6551,8 +6516,8 @@ class Plugin(indigo.PluginBase):
 	### init,save,write data stats for receiving messages
 	####-----------------	 --------- END
 
-	####-----------------	 --------- START
-	####------ camera io ---	-------
+
+	####------ camera  ---	-------START
 	def resetCamerasStats(self):
 		self.cameras={}
 		self.saveCameraEventsStatus = True
@@ -6590,7 +6555,7 @@ class Plugin(indigo.PluginBase):
 	def readCamerasStats(self):
 		try:
 			f=open(self.indigoPreferencesPluginDir+"CamerasStats","r")
-			self.cameras= json.loads(f.read())
+			self.cameras = json.loads(f.read())
 			f.close()
 			self.saveCameraEventsStatus = True
 			self.saveCamerasStats()
@@ -6601,6 +6566,33 @@ class Plugin(indigo.PluginBase):
 		return
 
 
+	####-----------------	 ---------
+	def getIfinDict(self,inDict, inText, default=""):
+		if inText not in inDict: return default
+		return inDict[inText]
+
+	####------ camera PROTEC ---	-------END
+
+	####------ camera NVR ---	-------START
+
+	####-----------------	 ---------
+	def getNVRCamerastoIndigo(self, force = False, periodCheck = False):
+		try:
+			if periodCheck: test = 300
+			else:			test = 30
+			if time.time() - self.lastCheckForCAMERA < test and not force: return
+			self.lastCheckForCAMERA = time.time()
+			timeElapsed = time.time()
+			if self.cameraSystem != "nvr":					return
+			if not self.isValidIP(self.ipNumbersOf[u"VD"]): return
+			info = self.getNVRCamerasFromMongoDB(action=["cameras"])
+			if len(info) < 1:
+				self.sleep(1)
+				info = self.getNVRCamerasFromMongoDB(action=["cameras"])
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 	####-----------------	 ---------
 	def getNVRIntoIndigo(self,force= False):
@@ -6608,10 +6600,10 @@ class Plugin(indigo.PluginBase):
 			if time.time() - self.lastCheckForNVR < 451 and not force: return
 			self.lastCheckForNVR = time.time()
 			if not self.isValidIP(self.ipNumbersOf[u"VD"]): return
-			if not self.VIDEOEnabled:				   		return
+			if self.cameraSystem != "nvr":			   		return
 
 
-			info =self.getCamerasFromNVR( action=["system"])
+			info =self.getNVRCamerasFromMongoDB( action=["system"])
 
 			if len(info["NVR"]) < 2:
 				for dev in indigo.devices.iter(u"props.isNVR"):
@@ -6728,36 +6720,6 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def updateStatewCheck(self,dev, state , value, check = "", NotEq = False):
-		if state not in dev.states:		   return False
-		if NotEq:
-			if dev.states[state] != check: return False
-		else:
-			if state == check:			   return False
-		if dev.states[state]  ==  value:   return False
-		self.addToStatesUpdateList(dev.id,state,  value )
-		return True
-
-	####-----------------	 ---------
-	def getCamerasIntoIndigo(self, force = False, periodCheck = False):
-		try:
-			if periodCheck: test = 300
-			else:			test = 30
-			if time.time() - self.lastCheckForCAMERA < test and not force: return
-			self.lastCheckForCAMERA = time.time()
-			timeElapsed = time.time()
-			if not self.isValidIP(self.ipNumbersOf[u"VD"]): return
-			if not self.VIDEOEnabled:					 return
-			info =self.getCamerasFromNVR(action=["cameras"])
-			if len(info) < 1:
-				self.sleep(1)
-				info =self.getCamerasFromNVR(action=["cameras"])
-
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-
-	####-----------------	 ---------
 	def fillCamerasIntoIndigo(self,camJson, calledFrom=""):
 		try:
 			## self.myLog( text=u"fillCamerasIntoIndigo called from: "+calledFrom)
@@ -6852,8 +6814,144 @@ class Plugin(indigo.PluginBase):
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-	####------ camera io ---	-------
-	####-----------------	 --------- END
+
+
+
+	####-----------------	 ---------
+	def getNVRCamerasFromMongoDB(self, doPrint = False, action=[]):
+		try:
+			timeElapsed = time.time()
+			info	= {u"users":{}, u"cameras":[], u"NVR":{}}
+			USERs	= []
+			ACCOUNTs= []
+			cmdstr	= ["\"mongo 127.0.0.1:7441/av --quiet --eval  'db.", ".find().forEach(printjsononeline)'  | sed 's/^\s*//' \"" ]
+
+			#self.indiLOG.log(10," into getNVRCamerasFromMongoDB action :{}".format(action))
+			if u"system" in action:
+				USERs			= self.getMongoData(cmdstr[0]+u"user"   +cmdstr[1])
+				ACCOUNTs		= self.getMongoData(cmdstr[0]+u"account"+cmdstr[1])
+
+				if len(USERs)>0 and len(ACCOUNTs) >0:
+					for account in ACCOUNTs:
+						##self.myLog( text="getNVRCamerasFromMongoDB account dict: "+unicode(account))
+						if u"_id" in account and u"username" in account and u"name" in account:
+							ID =  account[u"_id"]
+							info[u"users"][ID] ={u"userName":account[u"username"], u"name":account[u"name"]}
+							for user in USERs:
+								##self.myLog( text="getNVRCamerasFromMongoDB user dict: "+unicode(user))
+								if u"accountId" in user and ID == user[u"accountId"]:
+									##self.myLog( text="getNVRCamerasFromMongoDB accountId ok and id found:"+ID)
+									if u"apiKey" in user and u"enableApiAccess" in user:
+										##self.myLog( text="getNVRCamerasFromMongoDB apiKey found <<"+ user["apiKey"]+"<<    enableApiAccess>>"+unicode(user["enableApiAccess"]))
+										info[u"users"][ID][u"apiKey"]			= user[u"apiKey"]
+										info[u"users"][ID][u"enableApiAccess"]	= user[u"enableApiAccess"]
+									else:
+										if u"enableApiAccess" in user and user[u"enableApiAccess"]: # its enabled, but no api key
+											self.indiLOG.log(40,u"getNVRCamerasFromMongoDB camera users   bad enableApiAccess / apiKey info for id:{}\n{} UNIFI error".format(ID, USERs))
+										else:
+											if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"UNIFI error  getNVRCamerasFromMongoDB camera users   enableApiAccess disabled info for id:{}\n{}".format(ID, USERs))
+						else:
+										self.indiLOG.log(40,u"getNVRCamerasFromMongoDB camera ACCOUNT bad _id / username / name info:\n{}".format(ACCOUNTs))
+
+				server = self.getMongoData(cmdstr[0]+u"server" +cmdstr[1])
+				if len(server) >0:
+					info[u"NVR"]		= server[0]
+
+			#self.indiLOG.log(10," into getNVRCamerasFromMongoDB info :{}".format(info))
+			if u"cameras" in action:
+				info[u"cameras"]	 = self.executeCMDonNVR( {}, "",  cmdType=u"get")
+				if len(info[u"cameras"]) <1:
+					info[u"cameras"] = self.getMongoData(cmdstr[0]+u"camera" +cmdstr[1])
+				if len(info[u"cameras"]) >0: self.fillCamerasIntoIndigo(info[u"cameras"], calledFrom=u"getNVRCamerasFromMongoDB")
+
+
+			##self.myLog( text=unicode(info))
+
+			if doPrint:
+				self.printNVRCameras(info)
+			return info
+
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return {}
+
+	####-----------------	 ---------
+	def printNVRCameras(self, info):
+		keepList = [u"name",u"uuid",u"host",u"model",u"_id",u"firmwareVersion",u"systemInfo",u"mac",u"controllerHostAddress",u"controllerHostPort",u"deviceSettings",u"networkStatus",u"status",u"analyticsSettings",u"channels",u"ispSettings" ]
+		out = u""
+		try:
+			if u"NVR" in info:
+				self.myLog( text=u"--====================++++++++++++++++++++++++++++++++++++++++====================--",mType=u"System info-NVR:")
+				for key in info[u"NVR"]:
+					self.myLog( text=unicode(info[u"NVR"][key]),mType=u"  "+key )
+
+				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- users:")
+			if u"users" in info:
+				nn = 0
+				for user in info[u"users"]:
+					out = ""
+					for item in ["name","apiKey","enableApiAccess"] :
+						out+=(item+":"+unicode(info["users"][user][item])+"; ").ljust(30)
+					self.myLog( text=out.strip("; "),mType= (info[u"users"][user][u"userName"]).ljust(18)+u" # "+ unicode(nn))
+					nn+=1
+
+
+			if u"cameras" in info:
+				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- cameras:")
+				for camera in info[u"cameras"]:
+					self.myLog( text=u"--===============--" , mType=camera[u"name"])
+					for item in camera:
+						if item ==u"name": continue
+						if item in keepList or keepList == [u"*"]:
+							if item == u"channels":
+								nn = 0
+								for channel in camera[item]:
+									out = (u"bitrates: "+unicode(channel[u"minBitrate"])+".."+unicode(channel[u"maxBitrate"])) .ljust(30)
+									for	 prop in [u"enabled",u"isRtmpsEnabled",u"isRtspEnabled"]:
+										if prop in channel:
+											out+= prop+u": "+unicode(channel[prop])+u";  "
+									out = out.strip(";....")
+									self.myLog( text=out, mType=u"              channel#"+unicode(nn) )
+									nn+=1
+							elif item == "status":
+								status = camera[item]
+								out = ""
+								for	 prop in [u"remotePort",u"remoteHost"]:
+									if prop in status:
+										out+= prop+":"+unicode(status[prop])+u"; "
+								out = out.strip("; ")
+								self.myLog( text=out, mType=u"              status" )
+								for nn in range(len(status[u"recordingStatus"])):
+									out	 =	(u"motionRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"motionRecordingEnabled"])).ljust(30)
+									out += u"; fullTimeRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"fullTimeRecordingEnabled"])
+									self.myLog( text=out, mType=u"           recordingSt:#"+unicode(nn) )
+							else:
+								self.myLog( text=(item+":").ljust(25)+json.dumps(camera[item]) )
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}\n printNVRCameras system info:\n{}".format(sys.exc_traceback.tb_lineno, e, json.dumps(out,sort_keys=True, indent=2)) )
+		return
+
+
+
+	####------ camera NVR ----------END
+
+
+
+	####-----------------	 ---------
+	def updateStatewCheck(self,dev, state , value, check = "", NotEq = False):
+		if state not in dev.states:		   return False
+		if NotEq:
+			if dev.states[state] != check: return False
+		else:
+			if state == check:			   return False
+		if dev.states[state]  ==  value:   return False
+		self.addToStatesUpdateList(dev.id,state,  value )
+		return True
+
 
 
 
@@ -7422,7 +7520,7 @@ class Plugin(indigo.PluginBase):
 				retCode = 2
 				combinedLines = ""
 				time.sleep(15)
-				return retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, total, lastRestartCheck, lastOkRestart
+				return retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart
 
 			if uType=="VDtail":
 				self.setAccessToLog(ipNumber,uType)
@@ -7970,6 +8068,422 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		self.indiLOG.log(30,u"comsumeLogData:  stopping process (3)")
 		return 
+
+
+
+
+	###########################################
+	####------ camera PROTEC ---	-------START
+	###########################################
+	def getProtectIntoIndigo(self):
+		try:
+			if self.cameraSystem != u"protect":										return
+			if time.time() - self.lastRefreshProtect < self.refreshProtectCameras: 	return
+			elapsedTime 	= time.time()
+			systemInfoProtect = self.executeCMDOnController(dataSEND={}, pageString=u"api/bootstrap/", jsonAction=u"protect", cmdType=u"get", protect=True)
+			#self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
+			self.lastRefreshProtect  = time.time() - 100
+
+			if len(systemInfoProtect) == 0: 										return
+			if u"cameras" not in systemInfoProtect: 								return 
+
+
+			for camera in systemInfoProtect[u"cameras"]:
+				states = {}
+				states[u"id"] 								= self.getIfinDict(camera,u"id",default="1234567890")
+				MAC 										= self.getIfinDict(camera,u"mac",default="00:00:00:00:00:00")
+				states[u"MAC"] 								= MAC[0:2]+":"+MAC[2:4]+":"+MAC[4:6]+":"+MAC[6:8]+":"+MAC[8:10]+":"+MAC[10:12]
+				states[u"ip"]		 						= self.getIfinDict(camera,u"host")
+				states[u"name"] 							= self.getIfinDict(camera,u"name")
+				states[u"status"] 							= self.getIfinDict(camera,u"state")
+				states[u"type"] 							= self.getIfinDict(camera,u"type")
+				states[u"firmwareVersion"] 					= self.getIfinDict(camera,u"firmwareVersion")
+				states[u"isAdopted"] 						= self.getIfinDict(camera,u"isAdopted", default=False)
+				states[u"isConnected"] 						= self.getIfinDict(camera,u"isConnected", default=False)
+				states[u"isManaged"] 						= self.getIfinDict(camera,u"isManaged", default=False)
+				states[u"isMicEnabled"] 					= self.getIfinDict(camera,u"isMicEnabled", default=False)
+				states[u"modelKey"] 						= self.getIfinDict(camera,u"modelKey")
+				states[u"recordingSettingsMode"] 			= self.getIfinDict(camera[u"recordingSettings"], u"mode")
+				states[u"recordingSettingsTriggerValue"] 	= self.getIfinDict(camera[u"recordingSettings"], u"minMotionEventTrigger")
+				states[u"lastSeen"] 		= datetime.datetime.fromtimestamp(camera[u"lastSeen"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+				states[u"connectedSince"] 	= datetime.datetime.fromtimestamp(camera[u"connectedSince"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+				devId = -1
+				for dev in indigo.devices.iter(u"props.isProtectCamera"):
+					if states[u"id"] == dev.states["id"]:
+						devId = dev.id
+						break
+				if devId == -1:
+					try:
+						dev = indigo.device.create(
+							protocol		=indigo.kProtocol.Plugin,
+							address			= states[u"MAC"],
+							name 			= "Camera_Protect_"+states[u"name"] +"_"+MAC ,
+							description		="",
+							pluginId		=self.pluginId,
+							deviceTypeId	="camera_protect",
+							props			={"isProtectCamera":True, "eventThumbnailOn":True, "eventHeatmapOn":True, "eventThumbnailOn":"640/480", "eventHeatmapOn":"320/240", "SupportsOnState":True},
+							folder			=self.folderNameIDCreated,
+							)
+						devId = dev.id
+					except	Exception, e:
+						if unicode(e).find(u"None") == -1:
+							self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+						continue
+				if devId ==-1:
+					self.indiLOG.log(40,u"dev not found ")
+					continue
+
+				dev = indigo.devices[devId]
+				for state in states:
+					if dev.states[state] != states[state]:
+						self.addToStatesUpdateList(dev.id,state, states[state])
+
+				if states[u"id"]  not in self.PROTECT:
+					self.PROTECT[states[u"id"]] = {"devId":dev.id, "lastEventId":"", "startTime":0, u"endTime":0}
+				if self.PROTECT[states[u"id"]]["devId"] != dev.id:
+					self.PROTECT[states[u"id"]]["devId"] = dev.id
+
+			self.executeUpdateStatesList()
+			self.lastRefreshProtect  = time.time()
+			#self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
+	
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return
+
+
+
+	####-----------------	 ---------
+	def getProtectEvents(self):# , startTime):
+		self.indiLOG.log(10,u"getProtectEvents:  process starting")
+		lastGetEvent = time.time()
+		lastsecs = 1
+		lastId = ""
+		cameras = {}
+		cameras["dummy"] = {"lastEventId":"", "startTime":0, u"endTime": 0}
+		while True:
+			try:
+				refreshCameras = False
+				if self.pluginState == "stop" or self.protectThread[u"status"] == u"stop": 
+					self.indiLOG.log(30,u"getProtectEvents: stopping process due to stop request")
+					return  
+				self.sleep(0.5)
+				if self.PROTECT == {}: continue
+				if time.time() - lastGetEvent < self.protecEventSleepTime: continue
+
+
+				lastGetEvent	= time.time()
+				endTime 		= int(time.time() * 1000)
+				startTime		= endTime - int(max(1,self.protecEventSleepTime/2)) *1000
+				dataDict 		= {"end": str(endTime), "start": str(startTime)}
+				elapsedTime 	= time.time()
+				events = self.executeCMDOnController(dataSEND=dataDict, pageString=u"api/events/", jsonAction=u"protect", cmdType=u"get", protect=True)
+				#self.indiLOG.log(10,u"getProtectEvents: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
+				
+				if events !=[]:
+					# event{u'smartDetectEvents': [], u'end': 1615254499794, u'smartDetectTypes': [], u'camera': u'603fe05602f2a503e70003f4', u'partition': None, u'thumbnail': u'e-6046d3cf03b1a503e7006c86', u'heatmap': u'e-6046d3cf03b1a503e7006c86', u'start': 1615254478863, u'score': 42, u'modelKey': u'event', u'type': u'motion', u'id': u'6046d3cf03b1a503e7006c86'}
+
+					for event in events:
+						if u"camera" not in event: continue
+						if u"id"     not in event: continue
+						updateDev = False
+						cameraId = event[u"camera"]
+						if cameraId not in self.PROTECT:
+							self.PROTECT[cameraId] = {"lastEventId":"", "lastEventStart":0, u"lastEventStop":0,"devId":-1}
+							refreshCameras = True
+							 
+						lastId = self.PROTECT[cameraId]["lastEventId"]
+						newId = event[u"id"]
+
+						if lastId != newId:
+							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; new event      {}".format(cameraId, newId))
+							self.PROTECT[cameraId]["lastEventStart"] = event[u"start"]/1000.
+							self.PROTECT[cameraId]["lastEventStop"]  = self.PROTECT[cameraId]["lastEventStart"] -1.
+							updateDev = True
+						
+
+						if event[u"end"] is not None  and self.PROTECT[cameraId]["lastEventStop"] == self.PROTECT[cameraId]["lastEventStart"] -1.:
+							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; event ended    {}".format(cameraId, newId))
+							self.PROTECT[cameraId]["lastEventStop"] = event[u"end"]/1000.
+							updateDev = True
+							if self.PROTECT[cameraId]["devId"] >0:
+								dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
+								props = dev.pluginProps
+								if "eventThumbnailOn" in props and props["eventThumbnailOn"]:
+									wh = props["thumbnailwh"].split("/")
+									params = {
+										"accessKey": "",
+										"h": wh[1],
+										"w": wh[0],
+									}
+									data = self.executeCMDOnController(dataSEND=params, pageString=u"api/thumbnails/{}".format(event["thumbnail"]), jsonAction=u"protect", cmdType=u"get", protect=True,raw=True)
+									if len(data) > 0:
+										f = open(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_snapshot.jpeg","wb")
+										f.write(data)
+										f.close()
+								if "eventHeatmapOn" in props and props["eventThumbnailOn"]:
+									wh = props["heatmapwh"].split("/")
+									params = {
+										"accessKey": "",
+										"h": wh[1],
+										"w": wh[0],
+									}
+									data = self.executeCMDOnController(dataSEND=params, pageString=u"api/heatmaps/{}".format(event["heatmap"]), jsonAction=u"protect", cmdType=u"get", protect=True,raw=True)
+									if len(data) > 0:
+										f = open(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_heatmap.jpeg","wb")
+										f.write(data)
+										f.close()
+
+						else:
+							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; repeat event#: {}".format(cameraId, newId))
+							pass
+
+						self.PROTECT[cameraId]["lastEventId"] = newId
+
+						if updateDev:
+							try:
+								dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
+								if dev.states["lastEventStart"] != datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["lastEventStart"]).strftime(u"%Y-%m-%d %H:%M:%S"):
+									self.addToStatesUpdateList(dev.id,"lastEventStart", datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["lastEventStart"]).strftime(u"%Y-%m-%d %H:%M:%S"))
+								if dev.states["lastEventStop"] != datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["lastEventStop"]).strftime(u"%Y-%m-%d %H:%M:%S"):
+									self.addToStatesUpdateList(dev.id,"lastEventStop", datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["lastEventStop"]).strftime(u"%Y-%m-%d %H:%M:%S"))
+								if dev.states["lastEventLength"] != (self.PROTECT[cameraId]["lastEventStop"] - self.PROTECT[cameraId]["lastEventStart"]):
+									self.addToStatesUpdateList(dev.id,"lastEventLength", int(self.PROTECT[cameraId]["lastEventStop"] - self.PROTECT[cameraId]["lastEventStart"]) )
+							except	Exception, e:
+								if unicode(e).find(u"None") == -1:
+									self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+					self.executeUpdateStatesList()
+				lastsecs = self.protecEventSleepTime
+				#self.indiLOG.log(10,u"getProtectEvents: elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
+				if refreshCameras:
+					self.lastRefreshProtect = 0
+
+			except	Exception, e:
+				if unicode(e).find(u"None") == -1:
+					self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+					self.sleep(10)
+		self.indiLOG.log(30,u"comsumeLogData:  stopping process (3)")
+		return 
+	####-----------------	 ---------
+	####-----send commd parameters to cameras through protect ------
+	####-----------------	 ---------
+	def buttonSendCommandToProtectLEDCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectLEDCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectLEDCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		area = u"speakerSettings"
+		payload ={area:{}}
+		payload[area]["blinkRate"] 		= int(valuesDict[u"blinkRate"])
+		payload[area]["isEnabled"] 		= valuesDict[u"camLEDenabled"] == "1"
+		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+		ok = True
+		if area not in data: ok = False
+		elif data[area]["blinkRate"]	!= payload[area]["blinkRate"]: ok = False
+		elif data[area]["isEnabled"] 	!= payload[area]["isEnabled"]: ok = False
+
+		valuesDict["msg"] =  u"ok"  if ok else  u"error"
+		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		self.addToMenuXML(valuesDict)
+		return valuesDict
+
+
+	####-----------------	 ---------
+	def buttonSendCommandToProtectenableSpeakerCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectenableSpeakerCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectenableSpeakerCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		self.addToMenuXML(valuesDict)
+		"""
+        "speakerSettings": {
+        	"areSystemSoundsEnabled": true, 
+        	"isEnabled": true, 
+        	"volume": 100
+		}
+		"""
+		area = u"speakerSettings"
+		payload ={area:{}}
+		payload[area]["areSystemSoundsEnabled"] 	= valuesDict[u"areSystemSoundsEnabled"] == "1"
+		payload[area]["isEnabled"] 					= valuesDict[u"isEnabled"] == "1"
+		payload[area]["volume"] 					= int(valuesDict[u"volume"])
+		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+		ok = True
+		if area not in data: ok = False
+		elif data[area]["areSystemSoundsEnabled"]	!= payload[area]["areSystemSoundsEnabled"]: ok = False
+		elif data[area]["isEnabled"] 				!= payload[area]["isEnabled"]: ok = False
+		elif data[area]["volume"] 					!= payload[area]["volume"]: ok = False
+
+		valuesDict["msg"] =  u"ok"  if ok else  u"error"
+		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		return valuesDict
+
+	####-----------------	 ---------
+	def buttonSendCommandToProtectmicVolumeCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectmicVolumeCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectmicVolumeCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		self.addToMenuXML(valuesDict)
+		area = u"speakerSettings"
+		payload ={area:int(valuesDict[u"micVolume"])}
+		data = self.setupProtectcmd(valuesDict[u"cameraDeviceSelected"],payload )
+		ok = True
+		if area not in data: ok = False
+		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		return valuesDict
+
+	####-----------------	 ---------
+	def buttonSendCommandToProtectRecordCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectRecordCALLBACK(valuesDict= action1.props)
+
+	def buttonSendCommandToProtectRecordCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		self.addToMenuXML(valuesDict)
+		"""
+      "recordingSettings": {
+        "enablePirTimelapse": false, 
+        "endMotionEventDelay": 3000, 
+        "geofencing": "off", 
+        "minMotionEventTrigger": 2000, 
+        "mode": "motion", 				never, motion, always, smartDetect
+        "motionAlgorithm": "stable", 
+        "postPaddingSecs": 10, 
+        "prePaddingSecs": 5, 
+        "suppressIlluminationSurge": false, 
+        "useNewMotionAlgorithm": false
+      }, 
+		 {u'suppressIlluminationSurge': False, u'postPaddingSecs': 10, u'geofencing': u'off', u'motionAlgorithm': u'stable', u'prePaddingSecs': 1, u'enablePirTimelapse': False, u'minMotionEventTrigger': 0, u'mode': u'motion', u'useNewMotionAlgorithm': False, u'endMotionEventDelay': 3000} 
+		"""
+		area = u"recordingSettings"
+		payload ={area:{}}
+		if valuesDict[u"prePaddingSecs"] != "-1":
+			payload[area]["prePaddingSecs"] 	= int(valuesDict[u"prePaddingSecs"])
+		if valuesDict[u"postPaddingSecs"] != "-1":
+			payload[area]["postPaddingSecs"] 	= int(valuesDict[u"postPaddingSecs"])
+		payload[area]["minMotionEventTrigger"] 	= int(valuesDict[u"minMotionEventTrigger"])
+		payload[area]["mode"] 					= valuesDict[u"motionRecordEnabledProtect"]
+		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+		ok = True
+		if area not in data: ok = False
+		elif data[area]["prePaddingSecs"] 		!= payload[area]["prePaddingSecs"]: ok = False
+		elif data[area]["postPaddingSecs"] 		!= payload[area]["postPaddingSecs"]: ok = False
+		elif data[area]["minMotionEventTrigger"] != payload[area]["minMotionEventTrigger"]:ok = False
+		elif data[area]["mode"] 					!= payload[area]["volume"]: ok = False
+
+		valuesDict["msg"] =  u"ok"  if ok else  u"error"
+		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+
+		return valuesDict
+
+	####-----------------	 ---------
+	def buttonSendCommandToProtectIRCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectIRCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectIRCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		"""
+      "ispSettings": {
+        "aeMode": "auto", 
+        "brightness": 50, 
+        "contrast": 50, 
+        "dZoomCenterX": 50, 
+        "dZoomCenterY": 50, 
+        "dZoomScale": 0, 
+        "dZoomStreamId": 4, 
+        "denoise": 50, 
+        "focusMode": "ztrig", 
+        "focusPosition": 0, 
+        "hue": 50, 
+        "icrSensitivity": 0, 
+        "irLedLevel": 255, 
+        "irLedMode": "auto", 
+        "is3dnrEnabled": true, 
+        "isAggressiveAntiFlickerEnabled": false, 
+        "isAutoRotateEnabled": false, 
+        "isExternalIrEnabled": false, 
+        "isFlippedHorizontal": false, 
+        "isFlippedVertical": false, 
+        "isLdcEnabled": true, 
+        "isPauseMotionEnabled": false, 
+        "saturation": 50, 
+        "sharpness": 50, 
+        "touchFocusX": 0, 
+        "touchFocusY": 0, 
+        "wdr": 1, 
+        "zoomPosition": 0
+      }, 
+
+
+09 11:37:20 setupProtectcmd  {'ispSettings': {'icrSensitivity': 1, 'irLedMode': u'autoFilterOnly', 'irLedLevel': 100}} , devid:1965914261, name:Camera_Protect_Reserve-UVC G3  Flex_7483C23FD3E5; id:603fe05602f2a503e70003f4
+09 11:37:20 setupProtectcmd returned data: {u'icrSensitivity': 1, u'sharpness': 50, u'isPauseMotionEnabled': False, u'isLdcEnabled': True, u'zoomPosition': 0, u'touchFocusX': 0, u'touchFocusY': 0, u'isAggressiveAntiFlickerEnabled': False, u'is3dnrEnabled': True, u'isExternalIrEnabled': False, u'denoise': 50, u'dZoomStreamId': 4, u'irLedLevel': 100, u'aeMode': u'auto', u'contrast': 50, u'dZoomScale': 0, u'hue': 50, u'saturation': 50, u'isFlippedHorizontal': False, u'focusPosition': 0, u'isAutoRotateEnabled': True, u'irLedMode': u'autoFilterOnly', u'focusMode': u'ztrig', u'isFlippedVertical': False, u'brightness': 50, u'wdr': 1, u'dZoomCenterX': 50, u'dZoomCenterY': 50} 
+		"""
+
+		area = u"ispSettings"
+		payload ={area:{}}
+		payload[area]["irLedMode"] 		= valuesDict[u"irLedMode"]
+		payload[area]["icrSensitivity"] 	= int(valuesDict[u"icrSensitivity"])
+		payload[area]["irLedLevel"] 		= int(valuesDict[u"irLedLevel"])
+		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+		ok = True
+		if area not in data: ok = False
+		elif data[area]["irLedMode"] 		!= payload[area]["irLedMode"]: ok = False
+		elif data[area]["icrSensitivity"] 	!= payload[area]["icrSensitivity"]: ok = False
+		elif data[area]["irLedLevel"] 		!= payload[area]["irLedLevel"]:ok = False
+
+		valuesDict["msg"] =  u"ok"  if ok else  u"error"
+		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+
+		self.addToMenuXML(valuesDict)
+		return valuesDict
+
+####-----------------	 ---------
+	def buttonrefreshProtectCameraSystemCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		self.addToMenuXML(valuesDict)
+		self.refreshProtectCameras = 0
+		return valuesDict
+
+	####-----------------	 ---------
+	def buttonSendCommandToProtectgetSnapshotCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectgetSnapshotCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectgetSnapshotCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		camId = valuesDict[u"cameraDeviceSelected"]
+		wh = valuesDict[u"whofImage"].split("/")
+		fName = valuesDict[u"fileNameOfImage"] 
+		dev = indigo.devices[int(camId)]
+		self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
+
+		params = {
+				"accessKey": "",
+				"h": wh[1],
+				"ts": str(int(time.time())*1000),
+				"force": "true",
+				"w": wh[0],
+		}
+
+		data = self.executeCMDOnController(dataSEND=params, pageString=u"api/cameras/{}/snapshot".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType="get", raw=True)
+		self.addToMenuXML(valuesDict)
+
+		if len(data) < 10:
+			self.indiLOG.log(10,u"getSnapshot  no data returned data length {} ".format(len(data)))
+			return valuesDict
+		self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
+		f = open(fName,"wb")
+		f.write(data)
+		f.close()
+		return valuesDict
+
+
+	####-----------------	 ---------
+	def setupProtectcmd(self, devId, payload,cmdType="patch"):
+
+		dev = indigo.devices[int(devId)]
+		try:
+			if self.cameraSystem != "protect":				return u"error protect not enabled"
+			self.indiLOG.log(10,u"setupProtectcmd  {} , devid:{}, name:{}; id:{}".format(payload, dev.id, dev.name, dev.states["id"]))
+					
+			data = self.executeCMDOnController(dataSEND=payload, pageString=u"cameras/{}".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType=cmdType)
+			return data
+		except	Exception, e:
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
+	###########################################
+	####------ camera PROTEC ---	-------END
+	###########################################
 
 
 	####-----------------	 ---------

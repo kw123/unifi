@@ -541,37 +541,42 @@ Then disable listener process
 
 
 	<Field id="simpleSeparatorvideo0" 			type="separator"/>
-	<Field id="vdON" type="checkbox"  defaultValue="true"    > <Label>Show Video section............................................................:</Label>  </Field>
-	<Field id="infoLabelvideo1" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                       ---only if you use UniFi Video - NVR:</Label>  </Field>
-	<Field id="enableVideoSwitch" type="checkbox"  defaultValue="false"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>Enable / disable Video/ camera .............................................:</Label>  </Field>
+	<Field id="cameraSystem" type="menu"  defaultValue="true"    > 
+		<Label>Cameras:...                                                         :</Label>  
+			<List>
+			<Option value="off"     >off</Option>
+			<Option value="nvr"     >UniFi Video - NVR deprecated</Option>
+			<Option value="protect" >Unifi Protect</Option>
+			</List>
+	</Field>
 
 
-	<Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+	<Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..UserID for UniFi NVR web login(empty=off):</Label>
 	</Field>
-	<Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+	<Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..Password for UniFi NVR web login, no " ' please:</Label>
 	</Field>
 
-	<Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+	<Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..UserID for UniFi NVR unix box(empty=off):</Label>
 	</Field>
-	<Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true">
+	<Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..Password for UniFi NVR unix box no, " ' please:</Label>
 	</Field>
-	<Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="vdON" visibleBindingValue="true" readonly="true">
+	<Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr" readonly="true">
 		<Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
 	</Field>
 
 <!--
-	<Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="vdON" visibleBindingValue="true">
+	<Field    id="vdPrompt"   type="textfield" defaultValue="vbox-unifi" visibleBindingId="cameraSystem" visibleBindingValue="true">
 		<Label>..Prompt for UniFi NVR unix box:</Label>
 	</Field>
 --> 
-   <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="vdON" visibleBindingValue="true"> 
-   	<Label>- ipNumber of your NVR:</Label>  
+   <Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
+   	<Label>- ipNumber of your camera system:</Label>  
 	</Field>
-	<Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="vdON"    visibleBindingValue="true"> 
+	<Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
 		<Label>.. get event images:</Label>  
 			<List>
 			<Option value="noImage"               > no image</Option>
@@ -580,7 +585,7 @@ Then disable listener process
 			<Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
 			</List>
 	</Field>
-	<Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="vdON"    visibleBindingValue="true"> 
+	<Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
 		<Label>.. get snapshot images:</Label>  
 			<List>
 			<Option value="noImage"               > no image</Option>
@@ -588,7 +593,7 @@ Then disable listener process
 			<Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
 			</List>
 	</Field>
-	<Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="vdON" visibleBindingValue="true"> 
+	<Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
    	<Label>..event/snapshot image width(# of pixels) if supported:</Label>  
 			<List>
 			<Option value="240"         > 240</Option>
@@ -600,10 +605,35 @@ Then disable listener process
 			<Option value="1080"        > 1080</Option>
 			<Option value="1920"        > 1920 (high) </Option>
 			<Option value="2048"        > 2048 (max)</Option>
+			<Option value="3840"        > 3840 (max - G4)</Option>
+			</List>
+	</Field>
+	<Field    id="protecEventSleepTime"   type="menu" defaultValue="4" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+   	<Label>..event query system every:</Label>  
+			<List>
+			<Option value="1"   >1 seconds</Option>
+			<Option value="2"   >2 seconds</Option>
+			<Option value="3"   >3 seconds</Option>
+			<Option value="4"   >4 seconds(default)</Option>
+			<Option value="5"   >5 seconds</Option>
+			<Option value="6"   >6 seconds</Option>
+			</List>
+	</Field>
+	<Field    id="refreshProtectCameras"   type="menu" defaultValue="180" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+   	<Label>.. get camera update every xx secs:</Label>  
+			<List>
+			<Option value="20"   >20 seconds</Option>
+			<Option value="40"   >40 seconds</Option>
+			<Option value="60"   >60 seconds</Option>
+			<Option value="90"   >90 seconds</Option>
+			<Option value="120"  >2 minutes</Option>
+			<Option value="180"  >3 minutes(default)</Option>
+			<Option value="240"  >4 minutes</Option>
+			<Option value="300"  >5 minutes</Option>
 			</List>
 	</Field>
 
-	<Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="vdON" visibleBindingValue="true"> 
+	<Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
 		<Label>..Keep x number of events history in Indigo plugin:</Label>  
 			<List>
 			<Option value="10"          > 10</Option>
@@ -617,11 +647,11 @@ Then disable listener process
 			</List>
 	</Field>
 
-	<Field    id="VDtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="vdON" visibleBindingValue="true"     > 
+	<Field    id="VDtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"     > 
 	<Label>.. Video tail command(empty=off):</Label>  
 	</Field>
-	<Field id="infoLabelVDtailCommand" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> .../usr/bin/tail -F pathTo motion.log</Label>  </Field>
-	<Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="vdON" visibleBindingValue="true"   hidden="false"       > 
+	<Field id="infoLabelVDtailCommand" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> .../usr/bin/tail -F pathTo motion.log</Label>  </Field>
+	<Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"   hidden="false"       > 
 	<Label>.. Video dict command(no="):</Label>  
 		<List>
 			<Option value="not implemented"      > not implemented </Option>
@@ -629,37 +659,37 @@ Then disable listener process
 	</Field>
 
     
-	<Field id="infoLabelvideo3" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                        ---if the MAC has access to the UniFi Video clips -------- </Label>  </Field>
-	<Field    id="videoPath" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/video"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
+	<Field id="infoLabelvideo3" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---if the MAC has access to the UniFi Video clips -------- </Label>  </Field>
+	<Field    id="videoPath" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/video"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
 		<Label>.. path to NVR video directory:</Label>  
 	</Field>
-	<Field id="infoLabelvideovideoPath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ... source of image files</Label>  </Field>
+	<Field id="infoLabelvideovideoPath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="true" alignText="right"> <Label> ... source of image files</Label>  </Field>
 
-	<Field    id="changedImagePath" type="textfield"  defaultValue="/Users/YOURID/indigo/unifi/eventPic.jpg"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
-		<Label>.. target path to most recent event image:</Label>  
+	<Field    id="changedImagePath" type="textfield"  defaultValue="/Users/YOURID/....."  visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" tooltip="enter fully qualified path"       > 
+		<Label>.. target path to most recent event image(s):</Label>  
 	</Field>
-	<Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> .../CamName_event.jpg </Label>  </Field>
+	<Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="true" alignText="right"> <Label> .../CamName_event.jpg </Label>  </Field>
 
-	<Field id="infoLabelvideo2" type="label"  visibleBindingId="vdON" visibleBindingValue="true"> <Label>.                                        ---only if you use VM machine to host UniFi NVR -------- </Label>  </Field>
+	<Field id="infoLabelvideo2" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---only if you use VM machine to host UniFi NVR -------- </Label>  </Field>
 
-	<Field    id="vmMachine" type="textfield"  defaultValue="ubuntu"  visibleBindingId="vdON" visibleBindingValue="true" tooltip="name of the system you gave it in VBOX app "          > 
+	<Field    id="vmMachine" type="textfield"  defaultValue="ubuntu"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="name of the system you gave it in VBOX app "          > 
 		<Label>.. name of VM machine used(empty=off):</Label>  
 	</Field>
-	<Field id="infoLabelvideovmMachine" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
+	<Field id="infoLabelvideovmMachine" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
 
-	<Field    id="vboxPath" type="textfield"  defaultValue="/Applications/VirtualBox.app/Contents/MacOS/"  visibleBindingId="vdON" visibleBindingValue="true" > 
+	<Field    id="vboxPath" type="textfield"  defaultValue="/Applications/VirtualBox.app/Contents/MacOS/"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" > 
 		<Label>.. path to VM box app:</Label>  
 	</Field>
-	<Field id="infoLabelvideovboxPath" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
+	<Field id="infoLabelvideovboxPath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
 
-	<Field    id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="vdON" visibleBindingValue="true" tooltip="fully qualified path to disk image"       > 
+	<Field    id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="fully qualified path to disk image"       > 
 		<Label>.. path to VM box disk image file:</Label>  
 	</Field>
 
-	<Field    id="mountPathVM" type="textfield"  defaultValue="/home/yourid/osx"  visibleBindingId="vdON" visibleBindingValue="true" tooltip=""       > 
+	<Field    id="mountPathVM" type="textfield"  defaultValue="/home/yourid/osx"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
 		<Label>.. Mount path on VM box for images:</Label>  
 	</Field>
-	<Field id="infoLabelvideovmDisk" type="label"  visibleBindingId="vdON" visibleBindingValue="true" alignText="right"> <Label> ...for VBoxManage compress</Label>  </Field>
+	<Field id="infoLabelvideovmDisk" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage compress</Label>  </Field>
 
 	<Field id="simpleSeparator222" type="separator"/>
 

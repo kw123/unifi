@@ -4,7 +4,7 @@
 
 
     <Action id="CAMERAledOnoff">
-        <Name>CAMERAS LED set ON off</Name>
+        <Name>CAMERAS LED set ON off-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRLEDCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -24,7 +24,7 @@
 
 
     <Action id="CAMERAsoundOnoff">
-        <Name>CAMERAS sound  ON off</Name>
+        <Name>CAMERAS sound  ON off-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRSoundsCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -42,7 +42,7 @@
     </Action>
 
     <Action id="CAMERAspeakerOnoff">
-        <Name>CAMERAS speaker volume</Name>
+        <Name>CAMERAS speaker volume-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRenableSpeakerCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -77,7 +77,7 @@
 
 
     <Action id="CAMERAirOnoff">
-        <Name>CAMERAS IR  ON off</Name>
+        <Name>CAMERAS IR  ON off-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRIRCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -107,7 +107,7 @@
 
 
     <Action id="CAMERAmicVolume">
-        <Name>CAMERAS mic volume</Name>
+        <Name>CAMERAS mic volume-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRmicVolumeCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -136,7 +136,7 @@
 
 
     <Action id="CAMERArecOnoff">
-        <Name>CAMERAS record ON off</Name>
+        <Name>CAMERAS record ON off-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRRecordCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field     id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -190,7 +190,7 @@
 
 
     <Action id="CAMERAstreamOnoff">
-        <Name>CAMERAS Streaming  ON off</Name>
+        <Name>CAMERAS Streaming  ON off-old video system</Name>
         <CallbackMethod>buttonSendCommandToNVRvideostreamingCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field id="cameraDeviceSelected" type="menu" defaultValue="" >
@@ -232,23 +232,60 @@
 
 
     <Action id="CAMERAsnapshot">
-        <Name>CAMERAS get Snapshot</Name>
-        <CallbackMethod>buttonSendCommandToNVRgetSnapshotCALLBACKaction</CallbackMethod>        
+        <Name>CAMERAS get Snapshot-old video system</Name>
+        <CallbackMethod>buttonSendCommandToProtectgetSnapshotCALLBACKaction</CallbackMethod>        
         <ConfigUI>
             <Field id="cameraDeviceSelected" type="menu" defaultValue="" >
                 <Label>select camera device:</Label>
                 <List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
             </Field>
 
-            <Field     id="widthOfImage" type="textfield" defaultValue="1024" >
+           <Field     id="widthOfImage" type="textfield" defaultValue="1024" >
                 <Label>width of image(pixels):</Label>
            </Field>
 
             <Field     id="fileNameOfImage" type="textfield" defaultValue="/users/" >
-                <Label>file name of image on MAC use .jpeg:</Label>
+                <Label>file path/name of image on MAC, use .jpeg:</Label>
            </Field>
         </ConfigUI>
     </Action>
+
+
+
+
+
+
+    <Action id="CAMERAsnapshotProtect">
+        <Name>CAMERAS get Snapshot</Name>
+        <CallbackMethod>buttonSendCommandToProtectgetSnapshotCALLBACKaction</CallbackMethod>        
+        <ConfigUI>
+            <Field id="cameraDeviceSelected" type="menu" defaultValue="" >
+                <Label>select camera device:</Label>
+                <List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
+            </Field>
+
+             <Field     id="whofImage" type="menu" defaultValue="1024/768" >
+                <Label>width/height of image(pixels):</Label>
+				<List>
+					<Option value="240/180"			> 240/180</Option>
+					<Option value="320/240"			> 320/240</Option>
+					<Option value="480/320"			> 480/320</Option>
+					<Option value="640/480"			> 640/480 (low)</Option>
+					<Option value="720/540"			> 720/540</Option>
+					<Option value="1024/768"		> 1024/768 (med)</Option>
+					<Option value="1080/810"		> 1080/810</Option>
+					<Option value="1920/1440"		> 1920/1440 (high) </Option>
+					<Option value="2048/1536"		> 2048/1536 (max)</Option>
+				</List>
+           </Field>
+
+            <Field     id="fileNameOfImage" type="textfield" defaultValue="/users/" >
+                <Label>file path/name of image on MAC, use .jpeg:</Label>
+           </Field>
+        </ConfigUI>
+    </Action>
+
+
 
 
 
