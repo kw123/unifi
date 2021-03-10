@@ -48,7 +48,7 @@ _GlobalConst_numberOfSW	 = 13
 _GlobalConst_numberOfGroups = 20
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
 _GlobalConst_dTypes			= [u"UniFi",u"gateway",u"DHCP",u"SWITCH",u"Device-AP",u"Device-SW-5",u"Device-SW-8",u"Device-SW-10",u"Device-SW-11",u"Device-SW-18",u"Device-SW-26",u"Device-SW-52",u"neighbor"]
-_debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"ExpectRET",u"Video",u"Fing",u"BC",u"Ping",u"all",u"Special",u"UDM",u"IgnoreMAC",u"DBinfo"]
+_debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"ExpectRET",u"Video",u"Fing",u"BC",u"Ping",u"Protect",u"all",u"Special",u"UDM",u"IgnoreMAC",u"DBinfo"]
 _numberOfPortsInSwitch		= [5, 8, 10, 11, 18, 26, 52]
 ################################################################################
 # noinspection PyUnresolvedReferences,PySimplifyBooleanCheck,PySimplifyBooleanCheck
@@ -339,7 +339,6 @@ class Plugin(indigo.PluginBase):
 		self.vmMachine										= self.pluginPrefs.get(u"vmMachine",  "")
 		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
 		self.vmDisk											= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
-		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	"/Users/karlwachs/indigo/unifi/"))
 		self.mountPathVM									= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
 		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
 		self.unifiNVRSession								= ""
@@ -4144,7 +4143,7 @@ class Plugin(indigo.PluginBase):
 			if len(self.changedImagePath) > 5:
 				self.menuXML[u"fileNameOfImage"] = self.changedImagePath+u"nameofCamera.jpeg"
 			else:
-				self.menuXML[u"fileNameOfImage"] = self.indigoPreferencesPluginDir+u"nameofCamera.jpeg"
+				self.menuXML[u"fileNameOfImage"] = u"/tmp/nameofCamera.jpeg"
 		self.menuXML[u"snapShotTextMethod"] = self.imageSourceForSnapShot
 
 		for item in self.menuXML:
@@ -4712,13 +4711,13 @@ class Plugin(indigo.PluginBase):
  
 							if protect:
 								if retCode != requests.codes.ok:
-									if iii == 0:
+									if iii == 1:
 										self.indiLOG.log(40,u"error:>> url:{}, resp code:{}".format(url, retCode))
 									self.executeCMDOnControllerReset(wait=True)
 									continue
 							else:
 								if dictRET["meta"]["rc"] != "ok":
-									if iii == 0:
+									if iii == 1:
 										self.indiLOG.log(40,u"error:>> url:{}, resp:{}".format(url, respText[0:100]))
 									self.executeCMDOnControllerReset(wait=True)
 									continue
@@ -8081,7 +8080,7 @@ class Plugin(indigo.PluginBase):
 			if time.time() - self.lastRefreshProtect < self.refreshProtectCameras: 	return
 			elapsedTime 	= time.time()
 			systemInfoProtect = self.executeCMDOnController(dataSEND={}, pageString=u"api/bootstrap/", jsonAction=u"protect", cmdType=u"get", protect=True)
-			#self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
 			self.lastRefreshProtect  = time.time() - 100
 
 			if len(systemInfoProtect) == 0: 										return
@@ -8179,10 +8178,9 @@ class Plugin(indigo.PluginBase):
 				dataDict 		= {"end": str(endTime), "start": str(startTime)}
 				elapsedTime 	= time.time()
 				events = self.executeCMDOnController(dataSEND=dataDict, pageString=u"api/events/", jsonAction=u"protect", cmdType=u"get", protect=True)
-				#self.indiLOG.log(10,u"getProtectEvents: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
 				
 				if events !=[]:
-					# event{u'smartDetectEvents': [], u'end': 1615254499794, u'smartDetectTypes': [], u'camera': u'603fe05602f2a503e70003f4', u'partition': None, u'thumbnail': u'e-6046d3cf03b1a503e7006c86', u'heatmap': u'e-6046d3cf03b1a503e7006c86', u'start': 1615254478863, u'score': 42, u'modelKey': u'event', u'type': u'motion', u'id': u'6046d3cf03b1a503e7006c86'}
+					if self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
 
 					for event in events:
 						if u"camera" not in event: continue
@@ -8197,14 +8195,14 @@ class Plugin(indigo.PluginBase):
 						newId = event[u"id"]
 
 						if lastId != newId:
-							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; new event      {}".format(cameraId, newId))
+							if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camera:{}; new event      {}".format(cameraId, newId))
 							self.PROTECT[cameraId]["lastEventStart"] = event[u"start"]/1000.
 							self.PROTECT[cameraId]["lastEventStop"]  = self.PROTECT[cameraId]["lastEventStart"] -1.
 							updateDev = True
 						
 
 						if event[u"end"] is not None  and self.PROTECT[cameraId]["lastEventStop"] == self.PROTECT[cameraId]["lastEventStart"] -1.:
-							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; event ended    {}".format(cameraId, newId))
+							if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camera:{}; event ended    {}".format(cameraId, newId))
 							self.PROTECT[cameraId]["lastEventStop"] = event[u"end"]/1000.
 							updateDev = True
 							if self.PROTECT[cameraId]["devId"] >0:
@@ -8256,7 +8254,7 @@ class Plugin(indigo.PluginBase):
 
 					self.executeUpdateStatesList()
 				lastsecs = self.protecEventSleepTime
-				#self.indiLOG.log(10,u"getProtectEvents: elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
+				if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
 				if refreshCameras:
 					self.lastRefreshProtect = 0
 
@@ -8272,19 +8270,23 @@ class Plugin(indigo.PluginBase):
 	def buttonSendCommandToProtectLEDCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToProtectLEDCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectLEDCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-		area = u"speakerSettings"
-		payload ={area:{}}
-		payload[area]["blinkRate"] 		= int(valuesDict[u"blinkRate"])
-		payload[area]["isEnabled"] 		= valuesDict[u"camLEDenabled"] == "1"
-		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
-		ok = True
-		if area not in data: ok = False
-		elif data[area]["blinkRate"]	!= payload[area]["blinkRate"]: ok = False
-		elif data[area]["isEnabled"] 	!= payload[area]["isEnabled"]: ok = False
+		try:
+			area = u"ledSettings"
+			payload ={area:{}}
+			payload[area]["blinkRate"] 		= int(valuesDict[u"blinkRate"])
+			payload[area]["isEnabled"] 		= valuesDict[u"camLEDenabled"] == "1"
+			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+			ok = True
+			if area not in data: ok = False
+			elif data[area]["blinkRate"]	!= payload[area]["blinkRate"]: ok = False
+			elif data[area]["isEnabled"] 	!= payload[area]["isEnabled"]: ok = False
 
-		valuesDict["msg"] =  u"ok"  if ok else  u"error"
-		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
-		self.addToMenuXML(valuesDict)
+			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			self.addToMenuXML(valuesDict)
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 
@@ -8293,40 +8295,48 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToProtectenableSpeakerCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectenableSpeakerCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		"""
-        "speakerSettings": {
-        	"areSystemSoundsEnabled": true, 
-        	"isEnabled": true, 
-        	"volume": 100
-		}
-		"""
-		area = u"speakerSettings"
-		payload ={area:{}}
-		payload[area]["areSystemSoundsEnabled"] 	= valuesDict[u"areSystemSoundsEnabled"] == "1"
-		payload[area]["isEnabled"] 					= valuesDict[u"isEnabled"] == "1"
-		payload[area]["volume"] 					= int(valuesDict[u"volume"])
-		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
-		ok = True
-		if area not in data: ok = False
-		elif data[area]["areSystemSoundsEnabled"]	!= payload[area]["areSystemSoundsEnabled"]: ok = False
-		elif data[area]["isEnabled"] 				!= payload[area]["isEnabled"]: ok = False
-		elif data[area]["volume"] 					!= payload[area]["volume"]: ok = False
+		try:
+			"""
+			"speakerSettings": {
+				"areSystemSoundsEnabled": true, 
+				"isEnabled": true, 
+				"volume": 100
+			}
+			"""
+			area = u"speakerSettings"
+			payload ={area:{}}
+			payload[area]["areSystemSoundsEnabled"] 	= valuesDict[u"areSystemSoundsEnabled"] == "1"
+			payload[area]["isEnabled"] 					= valuesDict[u"isEnabled"] == "1"
+			payload[area]["volume"] 					= int(valuesDict[u"volume"])
+			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+			ok = True
+			if area not in data: ok = False
+			elif data[area]["areSystemSoundsEnabled"]	!= payload[area]["areSystemSoundsEnabled"]: ok = False
+			elif data[area]["isEnabled"] 				!= payload[area]["isEnabled"]: ok = False
+			elif data[area]["volume"] 					!= payload[area]["volume"]: ok = False
 
-		valuesDict["msg"] =  u"ok"  if ok else  u"error"
-		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 	####-----------------	 ---------
 	def buttonSendCommandToProtectmicVolumeCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToProtectmicVolumeCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectmicVolumeCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-		self.addToMenuXML(valuesDict)
-		area = u"speakerSettings"
-		payload ={area:int(valuesDict[u"micVolume"])}
-		data = self.setupProtectcmd(valuesDict[u"cameraDeviceSelected"],payload )
-		ok = True
-		if area not in data: ok = False
-		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		try:
+			self.addToMenuXML(valuesDict)
+			area = u"micVolume"
+			payload ={area:int(valuesDict[area])}
+			data = self.setupProtectcmd(valuesDict[u"cameraDeviceSelected"],payload )
+			ok = True
+			if area not in data: ok = False
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 	####-----------------	 ---------
@@ -8335,99 +8345,107 @@ class Plugin(indigo.PluginBase):
 
 	def buttonSendCommandToProtectRecordCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
-		"""
-      "recordingSettings": {
-        "enablePirTimelapse": false, 
-        "endMotionEventDelay": 3000, 
-        "geofencing": "off", 
-        "minMotionEventTrigger": 2000, 
-        "mode": "motion", 				never, motion, always, smartDetect
-        "motionAlgorithm": "stable", 
-        "postPaddingSecs": 10, 
-        "prePaddingSecs": 5, 
-        "suppressIlluminationSurge": false, 
-        "useNewMotionAlgorithm": false
-      }, 
-		 {u'suppressIlluminationSurge': False, u'postPaddingSecs': 10, u'geofencing': u'off', u'motionAlgorithm': u'stable', u'prePaddingSecs': 1, u'enablePirTimelapse': False, u'minMotionEventTrigger': 0, u'mode': u'motion', u'useNewMotionAlgorithm': False, u'endMotionEventDelay': 3000} 
-		"""
-		area = u"recordingSettings"
-		payload ={area:{}}
-		if valuesDict[u"prePaddingSecs"] != "-1":
-			payload[area]["prePaddingSecs"] 	= int(valuesDict[u"prePaddingSecs"])
-		if valuesDict[u"postPaddingSecs"] != "-1":
-			payload[area]["postPaddingSecs"] 	= int(valuesDict[u"postPaddingSecs"])
-		payload[area]["minMotionEventTrigger"] 	= int(valuesDict[u"minMotionEventTrigger"])
-		payload[area]["mode"] 					= valuesDict[u"motionRecordEnabledProtect"]
-		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
-		ok = True
-		if area not in data: ok = False
-		elif data[area]["prePaddingSecs"] 		!= payload[area]["prePaddingSecs"]: ok = False
-		elif data[area]["postPaddingSecs"] 		!= payload[area]["postPaddingSecs"]: ok = False
-		elif data[area]["minMotionEventTrigger"] != payload[area]["minMotionEventTrigger"]:ok = False
-		elif data[area]["mode"] 					!= payload[area]["volume"]: ok = False
+		try:
+			"""
+		  "recordingSettings": {
+			"enablePirTimelapse": false, 
+			"endMotionEventDelay": 3000, 
+			"geofencing": "off", 
+			"minMotionEventTrigger": 2000, 
+			"mode": "motion", 				never, motion, always, smartDetect
+			"motionAlgorithm": "stable", 
+			"postPaddingSecs": 10, 
+			"prePaddingSecs": 5, 
+			"suppressIlluminationSurge": false, 
+			"useNewMotionAlgorithm": false
+		  }, 
+			 {u'suppressIlluminationSurge': False, u'postPaddingSecs': 10, u'geofencing': u'off', u'motionAlgorithm': u'stable', u'prePaddingSecs': 1, u'enablePirTimelapse': False, u'minMotionEventTrigger': 0, u'mode': u'motion', u'useNewMotionAlgorithm': False, u'endMotionEventDelay': 3000} 
+			"""
+			area = u"recordingSettings"
+			payload ={area:{}}
+			if valuesDict[u"prePaddingSecs"] != "-1":
+				payload[area]["prePaddingSecs"] 	= int(valuesDict[u"prePaddingSecs"])
+			if valuesDict[u"postPaddingSecs"] != "-1":
+				payload[area]["postPaddingSecs"] 	= int(valuesDict[u"postPaddingSecs"])
+			payload[area]["minMotionEventTrigger"] 	= int(valuesDict[u"minMotionEventTrigger"])
+			payload[area]["mode"] 					= valuesDict[u"motionRecordEnabledProtect"]
+			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+			ok = True
+			if area not in data: ok = False
+			elif data[area]["prePaddingSecs"] 		!= payload[area]["prePaddingSecs"]: ok = False
+			elif data[area]["postPaddingSecs"] 		!= payload[area]["postPaddingSecs"]: ok = False
+			elif data[area]["minMotionEventTrigger"] != payload[area]["minMotionEventTrigger"]:ok = False
+			elif data[area]["mode"] 					!= payload[area]["volume"]: ok = False
 
-		valuesDict["msg"] =  u"ok"  if ok else  u"error"
-		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 	####-----------------	 ---------
 	def buttonSendCommandToProtectIRCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToProtectIRCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectIRCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-		"""
-      "ispSettings": {
-        "aeMode": "auto", 
-        "brightness": 50, 
-        "contrast": 50, 
-        "dZoomCenterX": 50, 
-        "dZoomCenterY": 50, 
-        "dZoomScale": 0, 
-        "dZoomStreamId": 4, 
-        "denoise": 50, 
-        "focusMode": "ztrig", 
-        "focusPosition": 0, 
-        "hue": 50, 
-        "icrSensitivity": 0, 
-        "irLedLevel": 255, 
-        "irLedMode": "auto", 
-        "is3dnrEnabled": true, 
-        "isAggressiveAntiFlickerEnabled": false, 
-        "isAutoRotateEnabled": false, 
-        "isExternalIrEnabled": false, 
-        "isFlippedHorizontal": false, 
-        "isFlippedVertical": false, 
-        "isLdcEnabled": true, 
-        "isPauseMotionEnabled": false, 
-        "saturation": 50, 
-        "sharpness": 50, 
-        "touchFocusX": 0, 
-        "touchFocusY": 0, 
-        "wdr": 1, 
-        "zoomPosition": 0
-      }, 
+		try:
+			"""
+		  "ispSettings": {
+			"aeMode": "auto", 
+			"brightness": 50, 
+			"contrast": 50, 
+			"dZoomCenterX": 50, 
+			"dZoomCenterY": 50, 
+			"dZoomScale": 0, 
+			"dZoomStreamId": 4, 
+			"denoise": 50, 
+			"focusMode": "ztrig", 
+			"focusPosition": 0, 
+			"hue": 50, 
+			"icrSensitivity": 0, 
+			"irLedLevel": 255, 
+			"irLedMode": "auto", 
+			"is3dnrEnabled": true, 
+			"isAggressiveAntiFlickerEnabled": false, 
+			"isAutoRotateEnabled": false, 
+			"isExternalIrEnabled": false, 
+			"isFlippedHorizontal": false, 
+			"isFlippedVertical": false, 
+			"isLdcEnabled": true, 
+			"isPauseMotionEnabled": false, 
+			"saturation": 50, 
+			"sharpness": 50, 
+			"touchFocusX": 0, 
+			"touchFocusY": 0, 
+			"wdr": 1, 
+			"zoomPosition": 0
+		  }, 
 
 
-09 11:37:20 setupProtectcmd  {'ispSettings': {'icrSensitivity': 1, 'irLedMode': u'autoFilterOnly', 'irLedLevel': 100}} , devid:1965914261, name:Camera_Protect_Reserve-UVC G3  Flex_7483C23FD3E5; id:603fe05602f2a503e70003f4
-09 11:37:20 setupProtectcmd returned data: {u'icrSensitivity': 1, u'sharpness': 50, u'isPauseMotionEnabled': False, u'isLdcEnabled': True, u'zoomPosition': 0, u'touchFocusX': 0, u'touchFocusY': 0, u'isAggressiveAntiFlickerEnabled': False, u'is3dnrEnabled': True, u'isExternalIrEnabled': False, u'denoise': 50, u'dZoomStreamId': 4, u'irLedLevel': 100, u'aeMode': u'auto', u'contrast': 50, u'dZoomScale': 0, u'hue': 50, u'saturation': 50, u'isFlippedHorizontal': False, u'focusPosition': 0, u'isAutoRotateEnabled': True, u'irLedMode': u'autoFilterOnly', u'focusMode': u'ztrig', u'isFlippedVertical': False, u'brightness': 50, u'wdr': 1, u'dZoomCenterX': 50, u'dZoomCenterY': 50} 
-		"""
+	09 11:37:20 setupProtectcmd  {'ispSettings': {'icrSensitivity': 1, 'irLedMode': u'autoFilterOnly', 'irLedLevel': 100}} , devid:1965914261, name:Camera_Protect_Reserve-UVC G3  Flex_7483C23FD3E5; id:603fe05602f2a503e70003f4
+	09 11:37:20 setupProtectcmd returned data: {u'icrSensitivity': 1, u'sharpness': 50, u'isPauseMotionEnabled': False, u'isLdcEnabled': True, u'zoomPosition': 0, u'touchFocusX': 0, u'touchFocusY': 0, u'isAggressiveAntiFlickerEnabled': False, u'is3dnrEnabled': True, u'isExternalIrEnabled': False, u'denoise': 50, u'dZoomStreamId': 4, u'irLedLevel': 100, u'aeMode': u'auto', u'contrast': 50, u'dZoomScale': 0, u'hue': 50, u'saturation': 50, u'isFlippedHorizontal': False, u'focusPosition': 0, u'isAutoRotateEnabled': True, u'irLedMode': u'autoFilterOnly', u'focusMode': u'ztrig', u'isFlippedVertical': False, u'brightness': 50, u'wdr': 1, u'dZoomCenterX': 50, u'dZoomCenterY': 50} 
+			"""
 
-		area = u"ispSettings"
-		payload ={area:{}}
-		payload[area]["irLedMode"] 		= valuesDict[u"irLedMode"]
-		payload[area]["icrSensitivity"] 	= int(valuesDict[u"icrSensitivity"])
-		payload[area]["irLedLevel"] 		= int(valuesDict[u"irLedLevel"])
-		data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
-		ok = True
-		if area not in data: ok = False
-		elif data[area]["irLedMode"] 		!= payload[area]["irLedMode"]: ok = False
-		elif data[area]["icrSensitivity"] 	!= payload[area]["icrSensitivity"]: ok = False
-		elif data[area]["irLedLevel"] 		!= payload[area]["irLedLevel"]:ok = False
+			area = u"ispSettings"
+			payload ={area:{}}
+			payload[area]["irLedMode"] 		= valuesDict[u"irLedMode"]
+			payload[area]["icrSensitivity"] 	= int(valuesDict[u"icrSensitivity"])
+			payload[area]["irLedLevel"] 		= int(valuesDict[u"irLedLevel"])
+			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+			ok = True
+			if area not in data: ok = False
+			elif data[area]["irLedMode"] 		!= payload[area]["irLedMode"]: ok = False
+			elif data[area]["icrSensitivity"] 	!= payload[area]["icrSensitivity"]: ok = False
+			elif data[area]["irLedLevel"] 		!= payload[area]["irLedLevel"]:ok = False
 
-		valuesDict["msg"] =  u"ok"  if ok else  u"error"
-		self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 
-		self.addToMenuXML(valuesDict)
+			self.addToMenuXML(valuesDict)
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 ####-----------------	 ---------
@@ -8440,30 +8458,34 @@ class Plugin(indigo.PluginBase):
 	def buttonSendCommandToProtectgetSnapshotCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToProtectgetSnapshotCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectgetSnapshotCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
-		camId = valuesDict[u"cameraDeviceSelected"]
-		wh = valuesDict[u"whofImage"].split("/")
-		fName = valuesDict[u"fileNameOfImage"] 
-		dev = indigo.devices[int(camId)]
-		self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
+		try:
+			camId = valuesDict[u"cameraDeviceSelected"]
+			wh = valuesDict[u"whofImage"].split("/")
+			fName = valuesDict[u"fileNameOfImage"] 
+			dev = indigo.devices[int(camId)]
+			self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
 
-		params = {
-				"accessKey": "",
-				"h": wh[1],
-				"ts": str(int(time.time())*1000),
-				"force": "true",
-				"w": wh[0],
-		}
+			params = {
+					"accessKey": "",
+					"h": wh[1],
+					"ts": str(int(time.time())*1000),
+					"force": "true",
+					"w": wh[0],
+			}
 
-		data = self.executeCMDOnController(dataSEND=params, pageString=u"api/cameras/{}/snapshot".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType="get", raw=True)
-		self.addToMenuXML(valuesDict)
+			data = self.executeCMDOnController(dataSEND=params, pageString=u"api/cameras/{}/snapshot".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType="get", raw=True)
+			self.addToMenuXML(valuesDict)
 
-		if len(data) < 10:
-			self.indiLOG.log(10,u"getSnapshot  no data returned data length {} ".format(len(data)))
-			return valuesDict
-		self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
-		f = open(fName,"wb")
-		f.write(data)
-		f.close()
+			if len(data) < 10:
+				self.indiLOG.log(10,u"getSnapshot  no data returned data length {} ".format(len(data)))
+				return valuesDict
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
+			f = open(fName,"wb")
+			f.write(data)
+			f.close()
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 
@@ -8473,7 +8495,7 @@ class Plugin(indigo.PluginBase):
 		dev = indigo.devices[int(devId)]
 		try:
 			if self.cameraSystem != "protect":				return u"error protect not enabled"
-			self.indiLOG.log(10,u"setupProtectcmd  {} , devid:{}, name:{}; id:{}".format(payload, dev.id, dev.name, dev.states["id"]))
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd  {} , devid:{}, name:{}; id:{}".format(payload, dev.id, dev.name, dev.states["id"]))
 					
 			data = self.executeCMDOnController(dataSEND=payload, pageString=u"cameras/{}".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType=cmdType)
 			return data
@@ -8505,11 +8527,11 @@ class Plugin(indigo.PluginBase):
 				##if self.decideMyLog(u"Video"):	 self.myLog( text="msg: "+line,mType = "MS-VD----")
 				#self.myLog( text=ipNumber+"     "+ line, mType = "MS-VD----")
 				## this is an event tring:
-# logversion 1:
-###1524837857.747 2018-04-27 09:04:17.747/CDT: INFO   Camera[F09FC2C1967B] type:start event:105 clock:58199223 (UVC G3 Micro) in ApplicationEvtBus-15
-###1524837862.647 2018-04-27 09:04:22.647/CDT: INFO   Camera[F09FC2C1967B] type:stop event:105 clock:58204145 (UVC G3 Micro) in ApplicationEvtBus-18
-## new format logVersion 2:
-#1561518324.741 2019-06-25 22:05:24.741/CDT: INFO   [uv.analytics.motion] [AnalyticsService] [FCECDA1F1532|LivingRoom-Window-Flex] MotionEvent type:start event:1049 clock:111842854 in AnalyticsEvtBus-0
+				# logversion 1:
+				###1524837857.747 2018-04-27 09:04:17.747/CDT: INFO   Camera[F09FC2C1967B] type:start event:105 clock:58199223 (UVC G3 Micro) in ApplicationEvtBus-15
+				###1524837862.647 2018-04-27 09:04:22.647/CDT: INFO   Camera[F09FC2C1967B] type:stop event:105 clock:58204145 (UVC G3 Micro) in ApplicationEvtBus-18
+				## new format logVersion 2:
+				#1561518324.741 2019-06-25 22:05:24.741/CDT: INFO   [uv.analytics.motion] [AnalyticsService] [FCECDA1F1532|LivingRoom-Window-Flex] MotionEvent type:start event:1049 clock:111842854 in AnalyticsEvtBus-0
 
 				itemsRaw = (line.strip()).split(" INFO ")
 				if len(itemsRaw) < 2:

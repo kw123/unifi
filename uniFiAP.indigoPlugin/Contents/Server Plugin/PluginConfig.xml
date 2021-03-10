@@ -609,7 +609,7 @@ Then disable listener process
 			</List>
 	</Field>
 	<Field    id="protecEventSleepTime"   type="menu" defaultValue="4" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..event query system every:</Label>  
+   	<Label>..query system for new vents every:</Label>  
 			<List>
 			<Option value="1"   >1 seconds</Option>
 			<Option value="2"   >2 seconds</Option>
@@ -620,7 +620,7 @@ Then disable listener process
 			</List>
 	</Field>
 	<Field    id="refreshProtectCameras"   type="menu" defaultValue="180" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>.. get camera update every xx secs:</Label>  
+   	<Label>.. get camera update every:</Label>  
 			<List>
 			<Option value="20"   >20 seconds</Option>
 			<Option value="40"   >40 seconds</Option>
@@ -668,7 +668,7 @@ Then disable listener process
 	<Field    id="changedImagePath" type="textfield"  defaultValue="/Users/YOURID/....."  visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" tooltip="enter fully qualified path"       > 
 		<Label>.. target path to most recent event image(s):</Label>  
 	</Field>
-	<Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="true" alignText="right"> <Label> .../CamName_event.jpg </Label>  </Field>
+	<Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" alignText="right"> <Label> the directory must already exist </Label>  </Field>
 
 	<Field id="infoLabelvideo2" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---only if you use VM machine to host UniFi NVR -------- </Label>  </Field>
 
@@ -712,6 +712,7 @@ Then disable listener process
 	<Field    id="debugUDM"           type="checkbox"  defaultValue="false"    > <Label>... (12) UDM:</Label>  </Field>
 	<Field    id="debugIgnoreMAC"     type="checkbox"  defaultValue="false"    > <Label>... (13) ignore MAC:</Label>  </Field>
 	<Field    id="debugDBinfo"        type="checkbox"  defaultValue="false"    > <Label>... (14) controller db http get client info:</Label>  </Field>
+	<Field    id="debugProtect"       type="checkbox"  defaultValue="false"    > <Label>... (15) Protect camera ... :</Label>  </Field>
 	<Field    id="debugSpecial"       type="checkbox"  defaultValue="false"    > <Label>... (19) Special debug for development:</Label>  </Field>
 	<Field    id="debugall"           type="checkbox"  defaultValue="false"    > <Label>... (20) all of the above = everything:</Label>  </Field>
 	<Field    id="logFileActive2"     type="menu"      defaultValue="indigo"   > <Label> send DETAILED logs to ..:</Label>

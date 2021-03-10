@@ -763,7 +763,7 @@ it will make the plugin restart </Label>
 			</Field>
 			<Field id="simpleSeparatorLED" type="separator"/>
 
-			<Field	   id="motionRecordEnabledProtect" type="menu" defaultValue="0"   >
+			<Field	   id="motionRecordEnabledProtect" type="menu" defaultValue="motion"   >
 				<Label>=== MOTION  ...                            mode:</Label>
 				 <List>
 					<Option value="never"	 >never</Option>
@@ -796,7 +796,7 @@ it will make the plugin restart </Label>
 			</Field>
 
 			<Field	   id="minMotionEventTrigger" type="textfield" defaultValue="100"   >
-				<Label>... min motion trigger 0-10000:</Label>
+				<Label>... min motion trigger threshold 0-10000:</Label>
 			</Field>
 
 			<Field	  id="sendrecordtoProtect" type="button" tooltip="" >

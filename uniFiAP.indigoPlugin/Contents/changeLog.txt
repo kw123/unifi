@@ -1,13 +1,21 @@
-changes in V 7.38.342 @ 2021-03-02
+changes in V 7.38.343 @ 2021-03-09
 ==================  
 1. added support for unif protect cameras
    - get cameras from unif systems and create indigo devices
    - listen to events, create dev states for start / end / delta time 
-    get thumbnails jpegs and or heatmap jpegs 
+     get thumbnails jpegs and or heatmap jpegs 
+        enable / disable / configure in camera device edit 
    - get snap shots through menu and or actions
    - set parameters of cameras, currently only in menus
+   - same functions in menue and actions for settting camera parameters
+   - added debug for protect in config 
  ==> to enable: set camera to protect in config (just above debug)
                 and set repeat frequencies ...
+
+=== with this new functionality you can trigger on any change in dev/state["lastEventStart"]
+       for new events
+       and with dev/state["lastEventStop"] on the end of the event
+
 
 
 changes in V 7.37.342 @ 2021-03-02
