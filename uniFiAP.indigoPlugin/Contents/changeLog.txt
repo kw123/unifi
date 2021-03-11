@@ -1,16 +1,23 @@
-changes in V 7.38.343 @ 2021-03-09
+changes in V 7.38.344 @ 2021-03-10
 ==================  
-1. added support for unif protect cameras
+1. added support for unifi protect cameras
    - get cameras from unif systems and create indigo devices
-   - listen to events, create dev states for start / end / delta time 
+   - the plugin will listen to events, create dev states for start / stop / delta time 
      get thumbnails jpegs and or heatmap jpegs 
         enable / disable / configure in camera device edit 
-   - get snap shots through menu and or actions
-   - set parameters of cameras, currently only in menus
-   - same functions in menue and actions for settting camera parameters
+   - get snap shots through menu or actions
+   - set parameters of cameras in menu and actions
    - added debug for protect in config 
  ==> to enable: set camera to protect in config (just above debug)
                 and set repeat frequencies ...
+     all camears connected / adopted by protect will be cretaed in the folder unifi_created.
+==> to use:
+    1. trigger on any change camera xx dev/states["lastEventStart"] ==> new movement at camera xx
+    2. by setting the path to teh thumbnail in config thumbnail of the events are copiued there as
+       cameraname_snapshot.jpeg
+
+2. added option to switch off queries to infi controller when you have osx13.x and lower and unifi controller v 6.x
+
 
 === with this new functionality you can trigger on any change in dev/state["lastEventStart"]
        for new events

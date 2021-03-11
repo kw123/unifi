@@ -766,6 +766,7 @@ it will make the plugin restart </Label>
 			<Field	   id="motionRecordEnabledProtect" type="menu" defaultValue="motion"   >
 				<Label>=== MOTION  ...                            mode:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="never"	 >never</Option>
 					<Option value="motion"	 >motion</Option>
 					<Option value="smartDetect"	 >smartDetect</Option>
@@ -807,6 +808,7 @@ it will make the plugin restart </Label>
 			<Field	   id="areSystemSoundsEnabled" type="menu" defaultValue="0" tooltip="" >
 				<Label>=== System Sounds                   Enabled:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="1"	 >ON</Option>
 				 </List>
@@ -815,6 +817,7 @@ it will make the plugin restart </Label>
 			<Field	   id="isEnabled" type="menu" defaultValue="0" tooltip="" >
 				<Label>Speaker                            Enabled:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="1"	 >ON</Option>
 				 </List>
@@ -823,6 +826,7 @@ it will make the plugin restart </Label>
 			<Field	   id="volume" type="menu" defaultValue="100"  >
 				<Label> ... Volume:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="10"	 >10</Option>
 					<Option value="20"	 >20</Option>
@@ -845,6 +849,7 @@ it will make the plugin restart </Label>
 			<Field	   id="micVolume" type="menu" defaultValue="100"  >
 				<Label>=== Mic                                     ... Volume:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="10"	 >10</Option>
 					<Option value="20"	 >20</Option>
 					<Option value="30"	 >30</Option>
@@ -866,6 +871,7 @@ it will make the plugin restart </Label>
 			<Field	   id="irLedMode" type="menu" defaultValue="auto" tooltip="" >
 				<Label>=== IR LED                            ...     IR mode:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="on"				>on</Option>
 					<Option value="off"				>off</Option>
 					<Option value="auto"			>auto</Option>
@@ -880,6 +886,7 @@ it will make the plugin restart </Label>
 			<Field	   id="icrSensitivity" type="menu" defaultValue="1" tooltip="" >
 				<Label> ...     IR activation sen level:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	>low</Option>
 					<Option value="1"	>med</Option>
 					<Option value="2"	>high</Option>

@@ -179,7 +179,7 @@
 
 	<Field id="infoLabelDifferentUIDs" 		type="label" 			visibleBindingId="unifiCloudKeyMode"   fontSize="small" fontColor="darkgrey"> 
 		<Label>.           There can be several sets of UID-password - They can all be the same depending on YOUR setup on the controller
-.           1. the UID-password  you use to login via web browser (http) to your controller
+.           1. the UID-password  you use to login via web browser (http) to your UniFi controller
 .           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
 .           3. the unix UID-passwd    when you ssh in terminal to the UDM pro </Label>  
 	</Field>
@@ -190,6 +190,10 @@
 
 	<Field    id="unifiCONTROLLERPassWd"   	type="textfield" 	defaultValue="" >
 		<Label>...  password:</Label>
+	</Field>
+   <Field id="unifiControllerTypeLabel2"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>for UniFi controller v 6.x  MAC OS 10.14 or greater is neeed. MAC OS 10.13 and lower do not support the proper ssl/tsl security required by unifi controller v 6.x software
+Leave userid and password blank if you want to disable querying the controller</Label>  
 	</Field>
 
 	<Field    id="useStrictToLogin"       	type="checkbox"  	defaultValue="false"  > 
@@ -230,6 +234,7 @@
 			<Option value="std"   	>unifi controller: mac, rpi, cloud key </Option>
 			<Option value="UDM"     >UDM 	</Option>
 			<Option value="UDMPro"  >UDM-pro </Option>
+			<Option value="off"   	>off</Option>
 		</List>
 	</Field>
 
@@ -249,6 +254,7 @@
 			<Option value="ONreportsOnly"  >only manual reports</Option>
 			<Option value="ON"             >ON  = all functions</Option>
 			<Option value="UDM"            >UDM mode for WiFi, no reports (included in ON)</Option>
+			<Option value="off"            >off </Option>
 		</List>
 	</Field>
 
@@ -338,22 +344,6 @@ device settings
    <Field     id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="yes"> 
 		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
 	</Field>
-
-<!--
-	<Field    id="readDictEverySecondsUD"   type="menu" defaultValue="60" visibleBindingId="ipUDMON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-		<Label>...read UDM database dump every:</Label>
-		<List>
-			<Option value="5"     > 5 seconds for testing</Option>
-			<Option value="10"    >10 seconds for testing</Option>
-			<Option value="20"    >20 seconds for testing</Option>
-			<Option value="30"    >30 seconds for testing</Option>
-			<Option value="40"    >40 seconds </Option>
-			<Option value="60"    >1  minutes, default</Option>
-			<Option value="90"    >90 seconds</Option>
-			<Option value="120"   >2  minutes</Option>
-		</List>
-	</Field>
--->
 	<Field    id="ipUDM"   					type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUDMON" visibleBindingValue="true"> 
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
@@ -363,42 +353,11 @@ device settings
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
-<!--
-	<Field    id="controllerWebEventReadON" type="menu" defaultValue="-1" visibleBindingId="ipUDMON" visibleBindingValue="true" > 
-		<Label>...read UDM (NOT-pro) controller web page event log for tracking wifi devices every:</Label>
-		<List>
-			<Option value="5"     > 5 seconds for testing</Option>
-			<Option value="10"    >10 seconds </Option>
-			<Option value="20"    >20 seconds</Option>
-			<Option value="30"    >30 seconds</Option>
-			<Option value="40"    >40 seconds</Option>
-			<Option value="60"    >1  minute</Option>
-			<Option value="-1"    >off</Option>
-		</List>
-	</Field>
--->
-
 	<Field id="simpleSeparatorapON" 			type="separator"/>
 
 	<Field id="apON" 						type="checkbox"  defaultValue="true"   > 
 		<Label>Show AP section........................................................:</Label>  
 	</Field>
-<!--
-
-	<Field id="readDictEverySecondsAP"   	type="menu" defaultValue="60" visibleBindingId="apON" visibleBindingValue="true"  tooltip="the DICTs contain all current info on the AP and GA ..">
-		<Label>...read database dump of APs every:</Label>
-		<List>
-			<Option value="5"     > 5 seconds for testing</Option>
-			<Option value="10"    >10 seconds for testing</Option>
-			<Option value="20"    >20 seconds for testing </Option>
-			<Option value="30"    >30 seconds </Option>
-			<Option value="40"    >40 seconds </Option>
-			<Option value="60"    >1  minutes, default</Option>
-			<Option value="90"    >90 seconds</Option>
-			<Option value="120"   >2  minutes</Option>
-		</List>
-	</Field>
--->
 
 	<Field    id="ipON0" 	type="checkbox"  defaultValue="false"  		visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
 	<Field    id="ip0"   	type="textfield" defaultValue="192.168.1.x" visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>

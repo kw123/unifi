@@ -268,6 +268,7 @@
              <Field     id="camLEDenabled" type="menu" defaultValue="0" >
                 <Label>LED set ON off:</Label>
                  <List>
+					<Option value="-1"				>do not change</Option>
                     <Option value="0"    >off</Option>
                     <Option value="1"    >ON</Option>
                  </List>
@@ -291,6 +292,7 @@
 			<Field	   id="areSystemSoundsEnabled" type="menu" defaultValue="0" tooltip="" >
 				<Label>=== System Sounds                   Enabled:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="1"	 >ON</Option>
 				 </List>
@@ -299,6 +301,7 @@
 			<Field	   id="isEnabled" type="menu" defaultValue="0" tooltip="" >
 				<Label>Speaker                            Enabled:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="1"	 >ON</Option>
 				 </List>
@@ -307,6 +310,7 @@
 			<Field	   id="volume" type="menu" defaultValue="100"  >
 				<Label> ... Volume:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	 >off</Option>
 					<Option value="10"	 >10</Option>
 					<Option value="20"	 >20</Option>
@@ -336,6 +340,7 @@
 			<Field	   id="irLedMode" type="menu" defaultValue="auto" tooltip="" >
 				<Label>=== IR LED                            ...     IR mode:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="on"				>on</Option>
 					<Option value="off"				>off</Option>
 					<Option value="auto"			>auto</Option>
@@ -350,6 +355,7 @@
 			<Field	   id="icrSensitivity" type="menu" defaultValue="1" tooltip="" >
 				<Label> ...     IR activation sen level:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="0"	>low</Option>
 					<Option value="1"	>med</Option>
 					<Option value="2"	>high</Option>
@@ -369,6 +375,7 @@
             <Field     id="micVolume" type="menu" defaultValue="0">
                 <Label>Mic Volume:</Label>
                  <List>
+					<Option value="-1"				>do not change</Option>
                     <Option value="0"    >0</Option>
                     <Option value="10"   >10</Option>
                     <Option value="20"   >20</Option>
@@ -399,6 +406,7 @@
 			<Field	   id="motionRecordEnabledProtect" type="menu" defaultValue="motion"   >
 				<Label>=== MOTION  ...                            mode:</Label>
 				 <List>
+					<Option value="-1"				>do not change</Option>
 					<Option value="never"	 >never</Option>
 					<Option value="motion"	 >motion</Option>
 					<Option value="smartDetect"	 >smartDetect</Option>
