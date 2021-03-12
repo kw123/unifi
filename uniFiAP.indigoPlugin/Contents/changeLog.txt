@@ -1,27 +1,40 @@
-changes in V 7.38.344 @ 2021-03-10
+changes in V 7.38.345 @ 2021-03-11
 ==================  
 1. added support for unifi protect cameras
-   - get cameras from unif systems and create indigo devices
-   - the plugin will listen to events, create dev states for start / stop / delta time 
+   - get cameras from unifi systems and create indigo devices
+   - the plugin will listen to events, create dev states for start time / end time/ time length of event 
      get thumbnails jpegs and or heatmap jpegs 
-        enable / disable / configure in camera device edit 
-   - get snap shots through menu or actions
-   - set parameters of cameras in menu and actions
-   - added debug for protect in config 
+        enable / disable / configure thumbnails in camera device edit 
+     events are also setting variables:
+        Unifi_Camera_Event_Date  date string of last event; eg "2021-03-11 22:33:26"
+        Unifi_Camera_with_Event  device name of camera of last event; eg "Camera_Reserve-UVC G3  Flex"
+        Unifi_Camera_Event_pathtoThumbnail  path to last event thumbnail; eg "/Users/karlwachs/indigo/protect/Camera_Reserve-UVC G3  Flex_snapshot.jpeg"
+
+   - get snap shots through menu or actions at any time, with selectable resolution
+   - set parameters of cameras for IR-LED, status-LED, speaker, mic, motion trigger etc in menu and actions
+   - added debug option for protect in config 
+   - the dev/state "smartDetect" is blank or "vehicle" or "person" if the smart detect option is enabled to detect objects for events
+
  ==> to enable: set camera to protect in config (just above debug)
                 and set repeat frequencies ...
      all camears connected / adopted by protect will be cretaed in the folder unifi_created.
-==> to use:
-    1. trigger on any change camera xx dev/states["lastEventStart"] ==> new movement at camera xx
-    2. by setting the path to teh thumbnail in config thumbnail of the events are copiued there as
-       cameraname_snapshot.jpeg
+
+==> how to use / setup:
+    1. enable protect in config (bottom, above debug section)
+       select "protect"
+       set repeat query for device state checks and event tracking
+       sel path for thumbnails
+    2. Then trigger on any change camera xx dev/states["eventStart"] ==> new movement at camera xx
+       or on variable Unifi_Camera_Event_Date 
+       the path to the thumbnail is in dev/state "eventJpeg" and in variable "Unifi_Camera_Event_pathtoThumbnail" 
+       eg: "/Users/youruserid/Camera_living window G3 Flex_snapshot.jpeg"
+       the thumbnail are only availabe at the end of teh event (dev/states["eventEnd"] is changed to !=-1)
+    3. Get snapshots at anytime: setup action with in unifi action "CAMERAS get Snapshot" then execute  at your pleasure
+       or use menu/cameras/snaphot for testing or onetime pictures
+
 
 2. added option to switch off queries to infi controller when you have osx13.x and lower and unifi controller v 6.x
 
-
-=== with this new functionality you can trigger on any change in dev/state["lastEventStart"]
-       for new events
-       and with dev/state["lastEventStop"] on the end of the event
 
 
 
@@ -536,7 +549,7 @@ changes in V 7.30.191  @ 2020-04-26
 ==================  
 
 1.  fixed error in Line 989 has error=list assignment index out of range
-	for UDM settings in config
+    for UDM settings in config
 
 changes in V 7.30.190  @ 2020-04-26
 ==================  
@@ -702,12 +715,12 @@ changes in V 7.26.153  @ 2018-12-27
 ==================  
 
 1. Getting (un)blocked info from controller immediately after plugin sets / unsets block status (required controller to be set to ON or ON reports
-	Changed the timing interval for regular testing of (un)blocked to GT 60 sec. 
-	As this now only applies to getting changes set directly on the web page of the controller.
-	This check creates a big data data transfer (~60kBytes), hence doing it every 20 secs is not recommended, default is 3 minutes.
+    Changed the timing interval for regular testing of (un)blocked to GT 60 sec. 
+    As this now only applies to getting changes set directly on the web page of the controller.
+    This check creates a big data data transfer (~60kBytes), hence doing it every 20 secs is not recommended, default is 3 minutes.
 
 2. The received controller dicts ( dict-Controller_xxx for  xxx=device, users, ...) is written to the unifi directory next to the AP, switches, etc dict files.
-	This is just FYI
+    This is just FYI
 
 
 3. fixed : error=''dict' object is not callable' in print info 

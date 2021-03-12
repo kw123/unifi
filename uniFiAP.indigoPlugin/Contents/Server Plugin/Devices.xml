@@ -388,56 +388,67 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>status</TriggerLabel>
 					<ControlPageLabel>status</ControlPageLabel>
 			</State>
+
 			<State id="eventNumber">
 					<ValueType>number</ValueType>
 					<TriggerLabel>eventNumber</TriggerLabel>
 					<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
-			<State id="lastEventStart">
+
+			<State id="eventStart">
 					<ValueType>String</ValueType>
-					<TriggerLabel>lastEventStart</TriggerLabel>
-					<ControlPageLabel>lastEventStart</ControlPageLabel>
+					<TriggerLabel>eventStart</TriggerLabel>
+					<ControlPageLabel>eventStart</ControlPageLabel>
 			</State>
-			<State id="lastEventStop">
+
+			<State id="eventEnd">
 					<ValueType>String</ValueType>
-					<TriggerLabel>lastEventStop</TriggerLabel>
-					<ControlPageLabel>lastEventStop</ControlPageLabel>
+					<TriggerLabel>eventEnd</TriggerLabel>
+					<ControlPageLabel>eventEnd</ControlPageLabel>
 			</State>
-			<State id="lastEventLength">
+
+			<State id="eventLength">
 					<ValueType>Number</ValueType>
-					<TriggerLabel>lastEventLength</TriggerLabel>
-					<ControlPageLabel>lastEventLength</ControlPageLabel>
+					<TriggerLabel>eventLength</TriggerLabel>
+					<ControlPageLabel>eventLength</ControlPageLabel>
 			</State>
+
 			<State id="MAC">
 					<ValueType>string</ValueType>
 					<TriggerLabel>MAC</TriggerLabel>
 					<ControlPageLabel>MAC</ControlPageLabel>
 			</State>
+
 			<State id="ip">
 					<ValueType>string</ValueType>
 					<TriggerLabel>ip</TriggerLabel>
 					<ControlPageLabel>ip</ControlPageLabel>
 			</State>
+
 			<State id="name">
 					<ValueType>string</ValueType>
 					<TriggerLabel>nameOnNVR</TriggerLabel>
 					<ControlPageLabel>nameOnNVR</ControlPageLabel>
 			</State>
+
 			<State id="id">
 					<ValueType>string</ValueType>
 					<TriggerLabel>id</TriggerLabel>
 					<ControlPageLabel>id</ControlPageLabel>
 			</State>
+
 			<State id="type">
 					<ValueType>string</ValueType>
 					<TriggerLabel>type</TriggerLabel>
 					<ControlPageLabel>type</ControlPageLabel>
 			</State>
+
 			<State id="connectedSince">
 					<ValueType>string</ValueType>
 					<TriggerLabel>connectedSince</TriggerLabel>
 					<ControlPageLabel>connectedSince</ControlPageLabel>
 			</State>
+
 			<State id="lastSeen">
 					<ValueType>string</ValueType>
 					<TriggerLabel>lastSeen</TriggerLabel>
@@ -448,40 +459,130 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>firmwareVersion</TriggerLabel>
 					<ControlPageLabel>firmwareVersion</ControlPageLabel>
 			</State>
+
 			<State id="isAdopted">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isAdopted</TriggerLabel>
 					<ControlPageLabel>isAdopted</ControlPageLabel>
 			</State>
+
 			<State id="isConnected">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isConnected</TriggerLabel>
 					<ControlPageLabel>isConnected</ControlPageLabel>
 			</State>
+
 			<State id="isManaged">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isManaged</TriggerLabel>
 					<ControlPageLabel>isManaged</ControlPageLabel>
 			</State>
+
+
+			<State id="isExternalIrEnabled">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isExternalIrEnabled</TriggerLabel>
+					<ControlPageLabel>isExternalIrEnabled</ControlPageLabel>
+			</State>
+			<State id="isDark">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isDark</TriggerLabel>
+					<ControlPageLabel>isDark</ControlPageLabel>
+			</State>
+
 			<State id="isMicEnabled">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isMicEnabled</TriggerLabel>
 					<ControlPageLabel>isMicEnabled</ControlPageLabel>
 			</State>
+			<State id="micVolume">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>micVolume</TriggerLabel>
+					<ControlPageLabel>micVolume</ControlPageLabel>
+			</State>
+
+			<State id="hasSpeaker">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>hasSpeaker</TriggerLabel>
+					<ControlPageLabel>hasSpeaker</ControlPageLabel>
+			</State>
+
+			<State id="isSpeakerEnabled">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isSpeakerEnabled</TriggerLabel>
+					<ControlPageLabel>isSpeakerEnabled</ControlPageLabel>
+			</State>
+
+			<State id="speakerVolume">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>speakerVolume</TriggerLabel>
+					<ControlPageLabel>speakerVolume</ControlPageLabel>
+			</State>
+
+			<State id="areSystemSoundsEnabled">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>areSystemSoundsEnabled</TriggerLabel>
+					<ControlPageLabel>areSystemSoundsEnabled</ControlPageLabel>
+			</State>
+
 			<State id="modelKey">
 					<ValueType>string</ValueType>
 					<TriggerLabel>modelKey</TriggerLabel>
 					<ControlPageLabel>modelKey</ControlPageLabel>
 			</State>
-			<State id="recordingSettingsMode">
+
+			<State id="motionRecordingMode">
 					<ValueType>string</ValueType>
-					<TriggerLabel>recordingSettingsMode</TriggerLabel>
-					<ControlPageLabel>recordingSettingsMode</ControlPageLabel>
+					<TriggerLabel>motionRecordingMode</TriggerLabel>
+					<ControlPageLabel>motionRecordingMode</ControlPageLabel>
 			</State>
-			<State id="recordingSettingsTriggerValue">
+
+			<State id="motionMinEventTrigger">
 					<ValueType>string</ValueType>
-					<TriggerLabel>recordingSettingsTriggerValue</TriggerLabel>
-					<ControlPageLabel>recordingSettingsTriggerValue</ControlPageLabel>
+					<TriggerLabel>motionMinEventTrigger</TriggerLabel>
+					<ControlPageLabel>motionMinEventTrigger</ControlPageLabel>
+			</State>
+
+			<State id="smartDetect">
+					<ValueType>string</ValueType>
+					<TriggerLabel>smartDetect</TriggerLabel>
+					<ControlPageLabel>smartDetect</ControlPageLabel>
+			</State>
+
+			<State id="motionPostPaddingSecs">
+					<ValueType>float</ValueType>
+					<TriggerLabel>motionPostPaddingSecs</TriggerLabel>
+					<ControlPageLabel>motionPostPaddingSecs</ControlPageLabel>
+			</State>
+
+			<State id="motionPrePaddingSecs">
+					<ValueType>float</ValueType>
+					<TriggerLabel>motionPrePaddingSecs</TriggerLabel>
+					<ControlPageLabel>motionPrePaddingSecs</ControlPageLabel>
+			</State>
+
+			<State id="motionEndEventDelay">
+					<ValueType>float</ValueType>
+					<TriggerLabel>motionEndEventDelay</TriggerLabel>
+					<ControlPageLabel>motionEndEventDelay</ControlPageLabel>
+			</State>
+
+			<State id="motionSuppressIlluminationSurge">
+					<ValueType>boolean</ValueType>
+					<TriggerLabel>motionSuppressIlluminationSurge</TriggerLabel>
+					<ControlPageLabel>motionSuppressIlluminationSurge</ControlPageLabel>
+			</State>
+
+			<State id="motionAlgorithm">
+					<ValueType>string</ValueType>
+					<TriggerLabel>motionAlgorithm</TriggerLabel>
+					<ControlPageLabel>motionAlgorithm</ControlPageLabel>
+			</State>
+
+			<State id="motionUseNewAlgorithm">
+					<ValueType>boolean</ValueType>
+					<TriggerLabel>motionUseNewAlgorithm</TriggerLabel>
+					<ControlPageLabel>motionUseNewAlgorithm</ControlPageLabel>
 			</State>
 
 			<State id="eventJpeg">
@@ -489,11 +590,13 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>eventJpeg</TriggerLabel>
 					<ControlPageLabel>eventJpeg</ControlPageLabel>
 			</State>
+
 			<State id="lastStatusChange">
 					<ValueType>String</ValueType>
 					<TriggerLabel>lastStatusChange</TriggerLabel>
 					<ControlPageLabel>lastStatusChange</ControlPageLabel>
 			</State>
+
 			<State id="displayStatus">
 					<ValueType>String</ValueType>
 					<TriggerLabel>displayStatus</TriggerLabel>

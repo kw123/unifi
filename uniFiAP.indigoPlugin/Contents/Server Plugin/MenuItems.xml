@@ -265,7 +265,7 @@
 				<Label>.. this will effect the plugin only, nothing gets set in UNIFI</Label> 
 			</Field>
 			<Field id="simpleSeparator0" type="separator"/>
-			<Field id="ignoreLabel0" type="label"> 
+			<Field id="ignoreLabel01" type="label"> 
 				<Label>(UN)-SET IGNORE UniFi clients with specific MAC ==============</Label> 
 			</Field>
 			<Field id="ignoreLabel1" type="label"> 
@@ -779,6 +779,7 @@ it will make the plugin restart </Label>
 				 <List>
 					<Option value="-1"	 >do not change</Option>
 					<Option value="0"	 >off</Option>
+					<Option value="3"	 >3 secs</Option>
 					<Option value="5"	 >5 secs</Option>
 					<Option value="10"	 >10 secs</Option>
 					<Option value="15"	 >10 secs</Option>
@@ -790,14 +791,63 @@ it will make the plugin restart </Label>
 				 <List>
 					<Option value="-1"	 >do not change</Option>
 					<Option value="0"	 >off</Option>
+					<Option value="3"	 >3 secs</Option>
 					<Option value="5"	 >5 secs</Option>
 					<Option value="10"	 >10 secs</Option>
 					<Option value="15"	 >10 secs</Option>
 				 </List>
 			</Field>
 
-			<Field	   id="minMotionEventTrigger" type="textfield" defaultValue="100"   >
-				<Label>... min motion trigger threshold 0-10000:</Label>
+
+			<Field	   id="endMotionEventDelay" type="menu" defaultValue="-1"   >
+				<Label>... end Motion Event Delay:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="500"	 >0.5 sec</Option>
+					<Option value="1000" >1 sec</Option>
+					<Option value="2000" >2 sec</Option>
+					<Option value="3000" >3 sec</Option>
+					<Option value="5000" >5 sec</Option>
+					<Option value="10000" >10 sec</Option>
+				 </List>
+			</Field>
+
+
+			<Field	   id="useNewMotionAlgorithm" type="menu" defaultValue="-1"   >
+				<Label>... use New Motion Algorithm:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="0"	 >off</Option>
+					<Option value="1"	 >on</Option>
+				 </List>
+			</Field>
+
+
+			<Field	   id="motionAlgorithm" type="menu" defaultValue="-1"   >
+				<Label>... use New Motion Algorithm:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="stable" >stable</Option>
+					<Option value="enhanced"	 >enhanced</Option>
+				 </List>
+			</Field>
+
+			<Field	   id="minMotionEventTrigger" type="menu" defaultValue="-1"   >
+				<Label>... min motion trigger threshold:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="0"	 >0 sensitive</Option>
+					<Option value="10"	 >10</Option>
+					<Option value="20"	 >20</Option>
+					<Option value="50"	 >50</Option>
+					<Option value="100"	 >100</Option>
+					<Option value="200"	 >200</Option>
+					<Option value="500"	 >500</Option>
+					<Option value="1000" >1000</Option>
+					<Option value="2000" >2000</Option>
+					<Option value="5000" >5000</Option>
+					<Option value="10000" >10000</Option>
+				 </List>
 			</Field>
 
 			<Field	  id="sendrecordtoProtect" type="button" tooltip="" >
