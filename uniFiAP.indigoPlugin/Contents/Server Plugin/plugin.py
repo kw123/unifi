@@ -8149,11 +8149,11 @@ class Plugin(indigo.PluginBase):
 			for camera in systemInfoProtect[u"cameras"]:
 				try:
 					states = {}
-					states[u"id"] 								= self.getIfinDict(camera,u"id",default="1234567890")
 					MAC 										= self.getIfinDict(camera,u"mac",default="00:00:00:00:00:00")
 					states[u"MAC"] 								= MAC[0:2]+":"+MAC[2:4]+":"+MAC[4:6]+":"+MAC[6:8]+":"+MAC[8:10]+":"+MAC[10:12]
-					states[u"ip"]		 						= self.getIfinDict(camera,u"host")
+					states[u"id"] 								= self.getIfinDict(camera,u"id",default="1234567890")
 					states[u"name"] 							= self.getIfinDict(camera,u"name")
+					states[u"ip"]		 						= self.getIfinDict(camera,u"host")
 					states[u"status"] 							= self.getIfinDict(camera,u"state")
 					states[u"type"] 							= self.getIfinDict(camera,u"type")
 					states[u"firmwareVersion"] 					= self.getIfinDict(camera,u"firmwareVersion")
@@ -8195,7 +8195,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								)
 							devId = dev.id
-							states[u"id"] = devId
+							idToIndigo[states[u"id"]] = devId
 						except	Exception, e:
 							if unicode(e).find(u"None") == -1:
 								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8211,13 +8211,9 @@ class Plugin(indigo.PluginBase):
 						dev = indigo.devices[devId]
 
 					for state in states:
-						if state in states:
 							#self.indiLOG.log(10,u"checking dev {} state:{} := {}".format(dev.name, state, states[state]))
 							if dev.states[state] != states[state]:
 								self.addToStatesUpdateList(dev.id, state, states[state])
-						else:
-							pass
-							#self.indiLOG.log(10,u"checking dev {} state:{} not in states".format(dev.name, state))
 
 					if states[u"id"]  not in self.PROTECT:
 						self.PROTECT[states[u"id"]] = {"events":{},"devId":dev.id}
@@ -8284,7 +8280,7 @@ class Plugin(indigo.PluginBase):
 						updateDev = False
 						cameraId = event[u"camera"]
 						debug = False
-						#if cameraId == "603fe0560372a503e70003f9":	debug = True
+						if cameraId == "604b049d0206a503e700d760":	debug = True
 
 						if debug or self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: *********   event-{}".format(event) )
 

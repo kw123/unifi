@@ -1,6 +1,6 @@
-changes in V 7.38.345 @ 2021-03-11
+changes in V 7.38.346 @ 2021-03-11
 ==================  
-1. added support for unifi protect cameras
+1. added support for unifi protect cameras (this requires mac os 10.14 or higher)
    - get cameras from unifi systems and create indigo devices
    - the plugin will listen to events, create dev states for start time / end time/ time length of event 
      get thumbnails jpegs and or heatmap jpegs 

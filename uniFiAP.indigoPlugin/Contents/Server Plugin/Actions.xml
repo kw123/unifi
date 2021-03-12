@@ -472,6 +472,15 @@
 				 </List>
 			</Field>
 
+			<Field	   id="suppressIlluminationSurge" type="menu" defaultValue="-1"   >
+				<Label>... suppress Illumination Surge:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="0"    >on</Option>
+					<Option value="1"	 >off</Option>
+				 </List>
+			</Field>
+
 			<Field	   id="minMotionEventTrigger" type="menu" defaultValue="-1"   >
 				<Label>... min motion trigger threshold:</Label>
 				 <List>

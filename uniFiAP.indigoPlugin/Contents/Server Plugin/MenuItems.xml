@@ -823,6 +823,15 @@ it will make the plugin restart </Label>
 			</Field>
 
 
+			<Field	   id="suppressIlluminationSurge" type="menu" defaultValue="-1"   >
+				<Label>... suppress Illumination Surge:</Label>
+				 <List>
+					<Option value="-1"	 >do not change</Option>
+					<Option value="0"    >on</Option>
+					<Option value="1"	 >off</Option>
+				 </List>
+			</Field>
+
 			<Field	   id="motionAlgorithm" type="menu" defaultValue="-1"   >
 				<Label>... use New Motion Algorithm:</Label>
 				 <List>
