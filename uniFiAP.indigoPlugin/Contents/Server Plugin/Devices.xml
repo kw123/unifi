@@ -490,6 +490,19 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>isExternalIrEnabled</TriggerLabel>
 					<ControlPageLabel>isExternalIrEnabled</ControlPageLabel>
 			</State>
+
+			<State id="irLedMode">
+					<ValueType>String</ValueType>
+					<TriggerLabel>irLedMode</TriggerLabel>
+					<ControlPageLabel>irLedMode</ControlPageLabel>
+			</State>
+
+			<State id="irLedLevel">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>irLedLevel</TriggerLabel>
+					<ControlPageLabel>irLedLevel</ControlPageLabel>
+			</State>
+
 			<State id="isDark">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isDark</TriggerLabel>
@@ -530,13 +543,13 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>areSystemSoundsEnabled</TriggerLabel>
 					<ControlPageLabel>areSystemSoundsEnabled</ControlPageLabel>
 			</State>
-<!--
+
 			<State id="modelKey">
 					<ValueType>string</ValueType>
 					<TriggerLabel>modelKey</TriggerLabel>
 					<ControlPageLabel>modelKey</ControlPageLabel>
 			</State>
--->
+
 			<State id="motionRecordingMode">
 					<ValueType>string</ValueType>
 					<TriggerLabel>motionRecordingMode</TriggerLabel>

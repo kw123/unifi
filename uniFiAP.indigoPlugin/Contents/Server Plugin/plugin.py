@@ -1637,36 +1637,6 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------  printGroups	  ---------
-	def buttonConfirmPrintProtectDeviceInfoCALLBACK(self, valuesDict, typeId):
-		try:
-			#                1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16
-			#       1234567891123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678901234567890123456789012345678901234567890
-			out  ="Protect Camera devices      START ============================="
-			out +="\nDevName---------------------- MAC#------------- ip#----------- DevType--- FWV----- thumbN-res. lastEvent---- Rec-Mode---- "
-			for dev in indigo.devices.iter(u"props.isProtectCamera"):
-				props = dev.pluginProps
-				out+= u"\n"
-				out+= u"{:30s}".format(dev.name)
-				out+= u"{:18s}".format(dev.states["MAC"])
-				out+= u"{:15s}".format(dev.states["ip"])
-				out+= u"{:11s}".format(dev.states["type"][4:])
-				out+= u"{:9s}".format(dev.states["firmwareVersion"])
-				out+= u"{:1s}".format(unicode(props["eventThumbnailOn"])[0])
-				out+= u"-{:10s}".format(props["thumbnailwh"])
-				out+= u"{:14s}".format(dev.states["eventStart"][6:])
-				out+= u"{:13s}".format(dev.states["motionRecordingMode"])
-			out +="\n                                    Protect Camera devices      END ==============================" 
-			self.indiLOG.log(20,out)
-
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-
-
-
-
-
-	####-----------------  printGroups	  ---------
 	def printGroups(self):
 		try:
 
@@ -8216,7 +8186,7 @@ class Plugin(indigo.PluginBase):
 					states = {}
 					MAC 										= self.getIfinDict(camera,u"mac",default="00:00:00:00:00:00")
 					states[u"MAC"] 								= MAC[0:2]+":"+MAC[2:4]+":"+MAC[4:6]+":"+MAC[6:8]+":"+MAC[8:10]+":"+MAC[10:12]
-					states[u"id"] 								= self.getIfinDict(camera,u"id",default="1234567890")
+					states[u"id"] 								= self.getIfinDict(camera,u"id",default=u"0")
 					states[u"name"] 							= self.getIfinDict(camera,u"name")
 					states[u"ip"]		 						= self.getIfinDict(camera,u"host")
 					states[u"status"] 							= self.getIfinDict(camera,u"state")
@@ -8227,12 +8197,14 @@ class Plugin(indigo.PluginBase):
 					states[u"isManaged"] 						= self.getIfinDict(camera,u"isManaged", default=False)
 					states[u"isDark"] 							= self.getIfinDict(camera,u"isDark", default=False)
 					states[u"hasSpeaker"] 						= self.getIfinDict(camera,u"hasSpeaker", default=False)
-					states[u"isSpeakerEnabled"] 				= self.getIfinDict(camera["speakerSettings"],u"isEnabled", default=False)
-					states[u"isExternalIrEnabled"] 				= self.getIfinDict(camera["ispSettings"],u"isExternalIrEnabled", default=False)
-					states[u"speakerVolume"] 					= int(self.getIfinDict(camera["speakerSettings"],u"volume", default=100))
-					states[u"areSystemSoundsEnabled"] 			= self.getIfinDict(camera["speakerSettings"],u"areSystemSoundsEnabled", default=False)
+					states[u"isSpeakerEnabled"] 				= self.getIfinDict(camera[u"speakerSettings"],u"isEnabled", default=False)
+					states[u"isExternalIrEnabled"] 				= self.getIfinDict(camera[u"ispSettings"],u"isExternalIrEnabled", default=False)
+					states[u"irLedMode"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedMode")
+					states[u"irLedLevel"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedLevel")
+					states[u"speakerVolume"] 					= int(self.getIfinDict(camera[u"speakerSettings"],u"volume", default=100))
+					states[u"areSystemSoundsEnabled"] 			= self.getIfinDict(camera[u"speakerSettings"],u"areSystemSoundsEnabled", default=False)
 					states[u"micVolume"] 						= int(self.getIfinDict(camera,u"micVolume", default=100))
-					#states[u"modelKey"] 						= self.getIfinDict(camera,u"modelKey")
+					states[u"modelKey"] 						= self.getIfinDict(camera,u"modelKey")
 					states[u"motionRecordingMode"] 				= self.getIfinDict(camera[u"recordingSettings"], u"mode")
 					states[u"motionMinEventTrigger"] 			= self.getIfinDict(camera[u"recordingSettings"], u"minMotionEventTrigger")
 					states[u"motionSuppressIlluminationSurge"] 	= self.getIfinDict(camera[u"recordingSettings"], u"suppressIlluminationSurge")
@@ -8243,6 +8215,7 @@ class Plugin(indigo.PluginBase):
 					states[u"motionPrePaddingSecs"] 			= float(self.getIfinDict(camera[u"recordingSettings"], u"prePaddingSecs"))
 					states[u"lastSeen"] 		= datetime.datetime.fromtimestamp(camera[u"lastSeen"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
 					states[u"connectedSince"] 	= datetime.datetime.fromtimestamp(camera[u"connectedSince"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+					#self.indiLOG.log(10,u"camid {}  states {}".format( states[u"id"] , states))
 					devId = -1
 					dev = ""
 					if states[u"id"] not in self.PROTECT:
@@ -8279,7 +8252,7 @@ class Plugin(indigo.PluginBase):
 								continue
 					else:
 						devId = self.PROTECT[states[u"id"]]["devId"]
-
+						dev = indigo.devices[devId]
 					if devId ==-1:
 						self.indiLOG.log(40,u"dev not found ")
 						continue
@@ -8288,7 +8261,7 @@ class Plugin(indigo.PluginBase):
 
 					if dev != "":
 						for state in states:
-						#self.indiLOG.log(10,u"checking dev {} state:{} := {}".format(dev.name, state, states[state]))
+							#self.indiLOG.log(10,u"checking dev {} state:{} := {}".format(dev.name, state, states[state]))
 							if dev.states[state] != states[state]:
 								self.addToStatesUpdateList(devId, state, states[state])
 
@@ -8775,6 +8748,49 @@ class Plugin(indigo.PluginBase):
 			return data
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
+
+	####-----------------  printGroups	  ---------
+	def buttonConfirmPrintProtectDeviceInfoCALLBACK(self, valuesDict, typeId):
+		try:
+			self.lastRefreshProtect = 0
+			self.getProtectIntoIndigo()
+			#                1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16
+			#       1234567891123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678901234567890123456789012345678901234567890
+			out  ="Protect Camera devices      START ============================="
+			out +="\nDevName---------------------- MAC#------------- ip#----------- DevType--- FWV----- thumbN-res. heatMp-res. lastSeen----- lastEvent----  #ofEv Rec-Mode---- isDrk micV spkV irLED.Mode           .Levl"
+			for dev in indigo.devices.iter(u"props.isProtectCamera"):
+				props = dev.pluginProps
+				cameraId = dev.states["id"] 
+				out+= u"\n"
+				out+= u"{:30s}".format(dev.name)
+				out+= u"{:18s}".format(dev.states["MAC"])
+				out+= u"{:15s}".format(dev.states["ip"])
+				out+= u"{:11s}".format(dev.states["type"][4:])
+				out+= u"{:9s}".format(dev.states["firmwareVersion"])
+				out+= u"{:1s}".format(unicode(props["eventThumbnailOn"])[0])
+				out+= u"-{:10s}".format(props["thumbnailwh"])
+				out+= u"{:1s}".format(unicode(props["eventHeatmapOn"])[0])
+				out+= u"-{:10s}".format(props["heatmapwh"])
+				out+= u"{:14s}".format(dev.states["lastSeen"][6:])
+				out+= u"{:14s}".format(dev.states["eventStart"][6:])
+				out+= u"{:6d} ".format(dev.states["eventNumber"])
+				out+= u"{:13s}".format(dev.states["motionRecordingMode"])
+				out+= u"{:5s}".format(unicode(dev.states["isDark"]))
+				out+= u"{:5d}".format(dev.states["micVolume"])
+				out+= u"{:5d}".format(dev.states["speakerVolume"])
+				out+= u" {:5s} ".format(unicode(dev.states["isExternalIrEnabled"]))
+				out+= u"{:15s}".format(dev.states["irLedMode"])
+				out+= u"{:5d}".format(dev.states["irLedLevel"])
+			out +="\n                                    Protect Camera devices      END ==============================" 
+			self.indiLOG.log(20,out)
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
 
 
 	###########################################
