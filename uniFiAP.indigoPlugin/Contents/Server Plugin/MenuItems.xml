@@ -43,14 +43,13 @@
 		<ConfigUI>
 			<Field	id="Label01" type="label"> 
 			<Label>Make sure that retention is set properly in MAINTENANCE in the controller
-			and enable "use controller info mut NOT be off	</Label> </Field>
+			and enable "use controller info must NOT be off	</Label> </Field>
 			<Field id="simpleSeparatorS" type="separator"/>
 
 			<Field	  id="confirm0" type="button" tooltip="" >
 				<Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator0" type="separator"/>
-
 			<Field	id="Label1" type="label"> <Label>Print info for system devices:</Label> </Field>
 			<Field	   id="MACdeviceSelectedsys" type="menu" defaultValue="">
 				<Label>select which MAC # / device:</Label>
@@ -455,7 +454,7 @@ it will make the plugin restart </Label>
 
 		</ConfigUI>
 	</MenuItem>
-	<MenuItem id="dCameras"> <Name>-------------Camera ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
+	<MenuItem id="dCameras"> <Name>-------------Cameras ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
 	<MenuItem id="CameraActionsNVR">
 		<Name>CAMERA - unifi-video (old NVR system) Info and Settings, actions</Name>
@@ -730,12 +729,19 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="CameraActionsProtect">
-		<Name>CAMERA - protect Info and Settings, actions</Name>
+		<Name>CAMERA - protect Info and Settings, actions, print info</Name>
 		<ConfigUI>
 
 			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
 
 			<Field	  id="msg" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
+			<Field id="simpleSeparatormsg" type="separator"/>
+
+			<Field	  id="confirmProtect" type="button" tooltip="" >
+				<Label>Print Protect Device info</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmPrintProtectDeviceInfoCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparatorProtect" type="separator"/>
+
 
 			<Field	   id="cameraDeviceSelected" type="menu" defaultValue="" >
 				<Label>1. Select     ==========>        camera device:</Label>

@@ -1635,6 +1635,37 @@ class Plugin(indigo.PluginBase):
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
+
+	####-----------------  printGroups	  ---------
+	def buttonConfirmPrintProtectDeviceInfoCALLBACK(self, valuesDict, typeId):
+		try:
+			#                1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16
+			#       1234567891123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678901234567890123456789012345678901234567890
+			out  ="Protect Camera devices      START ============================="
+			out +="\nDevName---------------------- MAC#------------- ip#----------- DevType--- FWV----- thumbN-res. lastEvent---- Rec-Mode---- "
+			for dev in indigo.devices.iter(u"props.isProtectCamera"):
+				props = dev.pluginProps
+				out+= u"\n"
+				out+= u"{:30s}".format(dev.name)
+				out+= u"{:18s}".format(dev.states["MAC"])
+				out+= u"{:15s}".format(dev.states["ip"])
+				out+= u"{:11s}".format(dev.states["type"][4:])
+				out+= u"{:9s}".format(dev.states["firmwareVersion"])
+				out+= u"{:1s}".format(unicode(props["eventThumbnailOn"])[0])
+				out+= u"-{:10s}".format(props["thumbnailwh"])
+				out+= u"{:14s}".format(dev.states["eventStart"][6:])
+				out+= u"{:13s}".format(dev.states["motionRecordingMode"])
+			out +="\n                                    Protect Camera devices      END ==============================" 
+			self.indiLOG.log(20,out)
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
+
+
+
 	####-----------------  printGroups	  ---------
 	def printGroups(self):
 		try:
@@ -2576,7 +2607,6 @@ class Plugin(indigo.PluginBase):
 			for dev in indigo.devices.iter(u"props.isCamera"):
 				xList.append([dev.id,dev.name])
 		if self.cameraSystem == u"protect":	
-			
 			for dev in indigo.devices.iter(u"props.isProtectCamera"):
 				for camId in self.PROTECT:
 					if dev.id == self.PROTECT[camId]["devId"]:
@@ -8154,14 +8184,14 @@ class Plugin(indigo.PluginBase):
 				devList = {}
 				MAClist = {}
 				for dev in indigo.devices.iter(u"props.isProtectCamera"):
-					camID = dev.states["id"]
+					cameraId = dev.states["id"]
 					if dev.states["MAC"] in MAClist:
 						self.indiLOG.log(30,u"getProtectIntoIndigo: duplicated MAC number:{} in indigo devices, please delete one : {}, currently ignoring: [{},{}]  ".format(dev.states["MAC"], MAClist[dev.states["MAC"]],  dev.id, dev.name ))
 						continue
 					MAClist[dev.states["MAC"]] = [dev.id, dev.name]
 					if dev.states["id"] not in self.PROTECT:
 						self.PROTECT[dev.states["id"]] = {"events":{}, "devId":dev.id, "MAC":dev.states["MAC"], "lastUpdate":time.time()}
-					devList[camID] = 1
+					devList[cameraId] = 1
 					# clean up wrong status afetr strtup
 					if lD == 0:
 						if dev.states[u"status"] == u"event":
@@ -8171,12 +8201,12 @@ class Plugin(indigo.PluginBase):
 							self.executeUpdateStatesList()
 
 				delList = {}
-				for camId in self.PROTECT:
-					if camId not in devList:
-						delList[camid] = 1
+				for cameraId in self.PROTECT:
+					if cameraId not in devList:
+						delList[cameraId] = 1
 
-				for camID in delList:
-					del self.PROTECT[camId]
+				for cameraId in delList:
+					del self.PROTECT[cameraId]
 			
 				if lD == 0 and self.decideMyLog(u"Protect"):
 					self.indiLOG.log(10,u"getProtectIntoIndigo: starting with dev list: {}".format(self.PROTECT))
@@ -8271,7 +8301,7 @@ class Plugin(indigo.PluginBase):
 								self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 								if unicode(e).find(u"timeout waiting") == -1: 
 									if states[u"id"] in self.PROTECT:
-										self.indiLOG.log(30,u" due to error removing camID: {}  from internal list:{}".format(states[u"id"], self.PROTECT[states[u"id"]]))
+										self.indiLOG.log(30,u" due to error removing cameraId: {}  from internal list:{}".format(states[u"id"], self.PROTECT[states[u"id"]]))
 										del self.PROTECT[states[u"id"]]
 								continue
 
@@ -8292,13 +8322,13 @@ class Plugin(indigo.PluginBase):
 					for eventID in delEvents:
 						del self.PROTECT[cameraId]["events"][eventID]
 
-					if self.PROTECT[camId][u"lastUpdate"] > 24*3600: # we have received no update in > 24 hour 
+					if self.PROTECT[cameraId][u"lastUpdate"] > 24*3600: # we have received no update in > 24 hour 
 						try: 	dev = indigo.devices[self.PROTECT[states[u"id"]]["devId"]]
-						except:	delList[camId] =1
+						except:	delList[cameraId] =1
 
-				for camId in delList:
-					self.indiLOG.log(30,u"removing camID: {} from internal list:{} ,after > 24 hours w not activity and indigo dev does not exists either".format(camId, self.PROTECT[states[u"id"]]))
-					del self.PROTECT[camId]
+				for cameraId in delList:
+					self.indiLOG.log(30,u"removing cameraId: {} from internal list:{} ,after > 24 hours w not activity and indigo dev does not exists either".format(cameraId, self.PROTECT[states[u"id"]]))
+					del self.PROTECT[cameraId]
 
 			self.executeUpdateStatesList()
 			self.lastRefreshProtect  = time.time()

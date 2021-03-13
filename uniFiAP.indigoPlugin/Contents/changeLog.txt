@@ -1,3 +1,8 @@
+changes in V 7.38.348 @ 2021-03-13
+==================  
+1. added camera report menu item in Camera ....
+2. fixed camId not found (in exception handling)
+
 changes in V 7.38.347 @ 2021-03-12
 ==================  
 1. smaller fixes for procted devices
