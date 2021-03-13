@@ -5,6 +5,7 @@ changes in V 7.38.347 @ 2021-03-12
    - handle double devices  eg user has duplicated device, a devices was unmanaged and managed hence the cam-id changes, ..
    - and more exceptions like these 
 
+
 2. now supports protect doorbell
    a door press is indicated as :
    eventType = "ring" instead of motion
