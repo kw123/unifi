@@ -407,6 +407,12 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>eventEnd</ControlPageLabel>
 			</State>
 
+			<State id="eventType">
+					<ValueType>String</ValueType>
+					<TriggerLabel>eventType</TriggerLabel>
+					<ControlPageLabel>eventType</ControlPageLabel>
+			</State>
+
 			<State id="eventLength">
 					<ValueType>Number</ValueType>
 					<TriggerLabel>eventLength</TriggerLabel>
@@ -524,13 +530,13 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>areSystemSoundsEnabled</TriggerLabel>
 					<ControlPageLabel>areSystemSoundsEnabled</ControlPageLabel>
 			</State>
-
+<!--
 			<State id="modelKey">
 					<ValueType>string</ValueType>
 					<TriggerLabel>modelKey</TriggerLabel>
 					<ControlPageLabel>modelKey</ControlPageLabel>
 			</State>
-
+-->
 			<State id="motionRecordingMode">
 					<ValueType>string</ValueType>
 					<TriggerLabel>motionRecordingMode</TriggerLabel>

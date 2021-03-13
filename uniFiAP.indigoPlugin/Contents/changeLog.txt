@@ -1,3 +1,18 @@
+changes in V 7.38.347 @ 2021-03-12
+==================  
+1. smaller fixes for procted devices
+   - handle expections
+   - handle double devices  eg user has duplicated device, a devices was unmanaged and managed hence the cam-id changes, ..
+   - and more exceptions like these 
+
+2. now supports protect doorbell
+   a door press is indicated as :
+   eventType = "ring" instead of motion
+   rest is the same eg status = "event", eb=vent start end and length are the same as for other events
+   ==> as events can come in paralell there can be a motion event starts, the ring event starts and ends before the motion event ends 
+       then the thumbnails will be updated in short sequence and the ring info will be overwritten
+       so the eventType = "ring" will only be visible for a short period of time 
+
 changes in V 7.38.346 @ 2021-03-11
 ==================  
 1. added support for unifi protect cameras (this requires mac os 10.14 or higher)
