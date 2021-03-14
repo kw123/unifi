@@ -740,14 +740,14 @@ it will make the plugin restart </Label>
 			<Field	  id="confirmProtect" type="button" tooltip="" >
 				<Label>Print Protect Device info</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmPrintProtectDeviceInfoCALLBACK</CallbackMethod>
 			</Field>
-			<Field id="simpleSeparatorProtect" type="separator"/>
+			<Field	  id="printsep" type="Label" > <Label>.  =======================================================  .</Label>	 </Field>
 
 
 			<Field	   id="cameraDeviceSelected" type="menu" defaultValue="" >
 				<Label>1. Select     ==========>        camera device:</Label>
 				<List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
 			</Field>
-			<Field	  id="camerasep" type="Label" > <Label>.  =======================================================  .</Label>	 </Field>
+			<Field	  id="camerasep" type="Label" > <Label>.      --------------------------------------------------  .</Label>	 </Field>
 
 			<Field	  id="cameraProtectCmdxlabel" type="Label" > <Label>2. Actions === </Label>	 </Field>
 			<Field id="simpleSeparatorACTIONS" type="separator"/>

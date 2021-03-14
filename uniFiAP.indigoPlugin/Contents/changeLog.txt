@@ -1,3 +1,27 @@
+changes in V 7.38.351 @ 2021-03-14
+==================  
+1. fixed some exception handling errors
+2. now handles overlapping events better eg
+   doorbell has motion event and then a doorbell rung event before the motion event ends
+   smart detected person or vehicle: it will cretae several events for teh same detection.
+     right now the plugin will now only use the smart detect parts not the overall pic.
+     still thinkout that one. there are several evnst coming within << 1 sec for teh same camera
+     in general all would trigger an event, the question is which should be used for the thumbnail
+     right now it will pick the vehilce / person 
+   it will now show motion/ring/vehicle/person in the status field instead of "event"
+   The normal state is "CONNECTED"
+3. handling of orphan events in the plugin that do not create and end event. 
+   those would keep the status at eg motion for ever or until when the next event occures 
+4. added some more columns to the camera report
+
+
+changes in V 7.38.350 @ 2021-03-14
+==================  
+1. smoothed some edges
+2. added some more print camera columns
+3. option to run event polling @ 0.5 secs
+
+
 changes in V 7.38.349 @ 2021-03-13
 ==================  
 1. added camera report menu item in Camera ....

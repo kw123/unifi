@@ -432,7 +432,7 @@ class Plugin(indigo.PluginBase):
 		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
 		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
-		self.loopSleep										= 8     # float(self.pluginPrefs.get(u"loopSleep", 8))
+		self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
 		self.timeoutDICT									= u"10" #unicode(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
 		self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
 		self.folderNameNeighbors							= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
@@ -5462,7 +5462,6 @@ class Plugin(indigo.PluginBase):
 			self.sleep(0.2)
 
 		self.lastRefreshProtect  = 0
-		self.lastRefreshProtectCounter = -1
 
 		self.getProtectIntoIndigo()
 		self.protectThread = {u"thread":"", u"status":""}
@@ -8142,29 +8141,32 @@ class Plugin(indigo.PluginBase):
 			elapsedTime 	= time.time()
 			systemInfoProtect = self.executeCMDOnController(dataSEND={}, pageString=u"api/bootstrap/", jsonAction=u"protect", cmdType=u"get", protect=True)
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (1):{:.1f}".format(time.time() - elapsedTime))
-			self.lastRefreshProtect  = time.time() - self.refreshProtectCameras +2
 
-			if len(systemInfoProtect) == 0: 										return
-			if u"cameras" not in systemInfoProtect: 								return 
+			if len(systemInfoProtect) == 0: 
+				self.lastRefreshProtect  = time.time() - self.refreshProtectCameras +2
+				return
+			if u"cameras" not in systemInfoProtect:
+				self.lastRefreshProtect  = time.time() - self.refreshProtectCameras +2
+				return
 
-			self.lastRefreshProtectCounter +=1 
-			# clean up deivce listed in PROTECT, but not in indigo, only check at beginning and every 4th time
+			mapSensToLevel ={"":"", 0:u"low", 1:u"med", 2:u"high"}
 			lD = len(self.PROTECT)
-			if lD == 0 or self.lastRefreshProtectCounter%10 == 1:
+			# clean up device listed in PROTECT, but not in indigo, only check at beginning and every 5 minutes
+			if lD == 0 or time.time() - self.lastRefreshProtect > 300 or self.lastRefreshProtect ==0:
 				devList = {}
 				MAClist = {}
 				for dev in indigo.devices.iter(u"props.isProtectCamera"):
-					cameraId = dev.states["id"]
-					if dev.states["MAC"] in MAClist:
-						self.indiLOG.log(30,u"getProtectIntoIndigo: duplicated MAC number:{} in indigo devices, please delete one : {}, currently ignoring: [{},{}]  ".format(dev.states["MAC"], MAClist[dev.states["MAC"]],  dev.id, dev.name ))
+					cameraId = dev.states[u"id"]
+					if dev.states[u"MAC"] in MAClist:
+						self.indiLOG.log(30,u"getProtectIntoIndigo: duplicated MAC number:{} in indigo devices, please delete one : {}, currently ignoring: [{},{}]  ".format(dev.states[u"MAC"], MAClist[dev.states[u"MAC"]],  dev.id, dev.name ))
 						continue
-					MAClist[dev.states["MAC"]] = [dev.id, dev.name]
-					if dev.states["id"] not in self.PROTECT:
-						self.PROTECT[dev.states["id"]] = {"events":{}, "devId":dev.id, "MAC":dev.states["MAC"], "lastUpdate":time.time()}
+					MAClist[dev.states[u"MAC"]] = [dev.id, dev.name]
+					if dev.states[u"id"] not in self.PROTECT:
+						self.PROTECT[dev.states[u"id"]] = {u"events":{}, u"devId":dev.id, u"MAC":dev.states[u"MAC"], u"lastUpdate":time.time()}
 					devList[cameraId] = 1
 					# clean up wrong status afetr strtup
 					if lD == 0:
-						if dev.states[u"status"] == u"event":
+						if dev.states[u"status"] in [u"event",u"motion",u"ring","person","vehicle"]:
 							#self.indiLOG.log(30,u"getProtectIntoIndigo: fixing status for:{}".format(dev.name ))
 							self.addToStatesUpdateList(dev.id, u"status", u"CONNECTED")
 							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
@@ -8184,8 +8186,8 @@ class Plugin(indigo.PluginBase):
 			for camera in systemInfoProtect[u"cameras"]:
 				try:
 					states = {}
-					MAC 										= self.getIfinDict(camera,u"mac",default="00:00:00:00:00:00")
-					states[u"MAC"] 								= MAC[0:2]+":"+MAC[2:4]+":"+MAC[4:6]+":"+MAC[6:8]+":"+MAC[8:10]+":"+MAC[10:12]
+					MAC 										= self.getIfinDict(camera,u"mac",default=u"00:00:00:00:00:00")
+					states[u"MAC"] 								= MAC[0:2]+u":"+MAC[2:4]+u":"+MAC[4:6]+u":"+MAC[6:8]+u":"+MAC[8:10]+u":"+MAC[10:12]
 					states[u"id"] 								= self.getIfinDict(camera,u"id",default=u"0")
 					states[u"name"] 							= self.getIfinDict(camera,u"name")
 					states[u"ip"]		 						= self.getIfinDict(camera,u"host")
@@ -8201,6 +8203,8 @@ class Plugin(indigo.PluginBase):
 					states[u"isExternalIrEnabled"] 				= self.getIfinDict(camera[u"ispSettings"],u"isExternalIrEnabled", default=False)
 					states[u"irLedMode"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedMode")
 					states[u"irLedLevel"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedLevel")
+					states[u"icrSensitivity"] 					= mapSensToLevel[self.getIfinDict(camera[u"ispSettings"],u"icrSensitivity")]
+					states[u"isLedEnabled"] 					= self.getIfinDict(camera[u"ledSettings"],u"isEnabled")
 					states[u"speakerVolume"] 					= int(self.getIfinDict(camera[u"speakerSettings"],u"volume", default=100))
 					states[u"areSystemSoundsEnabled"] 			= self.getIfinDict(camera[u"speakerSettings"],u"areSystemSoundsEnabled", default=False)
 					states[u"micVolume"] 						= int(self.getIfinDict(camera,u"micVolume", default=100))
@@ -8214,6 +8218,7 @@ class Plugin(indigo.PluginBase):
 					states[u"motionPostPaddingSecs"] 			= float(self.getIfinDict(camera[u"recordingSettings"], u"postPaddingSecs"))
 					states[u"motionPrePaddingSecs"] 			= float(self.getIfinDict(camera[u"recordingSettings"], u"prePaddingSecs"))
 					states[u"lastSeen"] 		= datetime.datetime.fromtimestamp(camera[u"lastSeen"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+					states[u"lastRing"] 		= datetime.datetime.fromtimestamp(camera[u"lastRing"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
 					states[u"connectedSince"] 	= datetime.datetime.fromtimestamp(camera[u"connectedSince"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
 					#self.indiLOG.log(10,u"camid {}  states {}".format( states[u"id"] , states))
 					devId = -1
@@ -8228,8 +8233,8 @@ class Plugin(indigo.PluginBase):
 								description		="",
 								pluginId		=self.pluginId,
 								deviceTypeId	="camera_protect",
-								props			={"isProtectCamera":True, "eventThumbnailOn":True, "eventHeatmapOn":False, "thumbnailwh":"640/480", "heatmapwh":"320/240"
-												 , "SupportsOnState":True, "SupportsSensorValue":False , "SupportsStatusRequest":False, "AllowOnStateChange":False, "AllowSensorValueChange":False
+								props			={u"isProtectCamera":True, u"eventThumbnailOn":True, u"eventHeatmapOn":False, u"thumbnailwh":u"640/480", u"heatmapwh":u"320/240"
+												, u"SupportsOnState":True, u"SupportsSensorValue":False , u"SupportsStatusRequest":False, u"AllowOnStateChange":False, u"AllowSensorValueChange":False
 												},
 								folder			=self.folderNameIDCreated,
 								)
@@ -8243,7 +8248,7 @@ class Plugin(indigo.PluginBase):
 									self.indiLOG.log(20,u"error with : {}  will try to update the camera id in indigo device and continue, if the error percist, please delete device, will be re-created".format( devName ))
 									dev = indigo.devices[devName]
 									devId = dev.id
-									self.PROTECT[states[u"id"]]["devId"] = devId
+									self.PROTECT[states[u"id"]][u"devId"] = devId
 								else:
 									self.indiLOG.log(20,u"unknown error- please restart plugin, dev : {} / {}   internal list:{}".format( devName , states[u"id"], self.PROTECT))
 									continue
@@ -8251,7 +8256,7 @@ class Plugin(indigo.PluginBase):
 								self.sleep(0.1)
 								continue
 					else:
-						devId = self.PROTECT[states[u"id"]]["devId"]
+						devId = self.PROTECT[states[u"id"]][u"devId"]
 						dev = indigo.devices[devId]
 					if devId ==-1:
 						self.indiLOG.log(40,u"dev not found ")
@@ -8284,19 +8289,19 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 				# cleanup old devices not used
-			if self.lastRefreshProtectCounter%10 == 0:
+			if time.time() - self.lastRefreshProtect < 300:
 				delList = {}
 				for cameraId in self.PROTECT:
 					delEvents = {}
 					for eventID in self.PROTECT[cameraId][u"events"]:
-						if ( time.time() - self.PROTECT[cameraId]["events"][eventID]["eventStart"] > 100 and 
-							  self.PROTECT[cameraId]["events"][eventID]["eventEnd"]  == 0 ): delEvent[eventID] = 1
+						if ( time.time() - self.PROTECT[cameraId][u"events"][eventID][u"eventStart"] > 100 and 
+							  self.PROTECT[cameraId][u"events"][eventID][u"eventEnd"]  == 0 ): delEvents[eventID] = 1
 
 					for eventID in delEvents:
-						del self.PROTECT[cameraId]["events"][eventID]
+						del self.PROTECT[cameraId][u"events"][eventID]
 
 					if self.PROTECT[cameraId][u"lastUpdate"] > 24*3600: # we have received no update in > 24 hour 
-						try: 	dev = indigo.devices[self.PROTECT[states[u"id"]]["devId"]]
+						try: 	dev = indigo.devices[self.PROTECT[states[u"id"]][u"devId"]]
 						except:	delList[cameraId] =1
 
 				for cameraId in delList:
@@ -8320,159 +8325,249 @@ class Plugin(indigo.PluginBase):
 		lastGetEvent = time.time()
 		lastsecs = 1
 		lastId = ""
+		lastEvCheck = time.time()
+		lastEvent = {}
 		while True:
 			try:
 				refreshCameras = False
-				if self.pluginState == "stop" or self.protectThread[u"status"] == u"stop": 
+				if self.pluginState == u"stop" or self.protectThread[u"status"] == u"stop": 
 					self.indiLOG.log(30,u"getProtectEvents: stopping process due to stop request")
 					return  
-				self.sleep(0.5)
+				self.sleep(0.2)
 				if self.PROTECT == {}: continue
 				if time.time() - lastGetEvent < self.protecEventSleepTime: continue
 
 
 				lastGetEvent	= time.time()
-				endTime 		= int(time.time() * 1000)
+				endTime 		= int(time.time() * 1000) +20
 				startTime		= endTime - int(max(1,self.protecEventSleepTime)) *1000
 				endTime 		+= 1 
-				dataDict 		= {"end": str(endTime), "start": str(startTime)}
+				dataDict 		= {u"end": str(endTime), u"start": str(startTime)}
 				elapsedTime 	= time.time()
 				events = self.executeCMDOnController(dataSEND=dataDict, pageString=u"api/events/", jsonAction=u"protect", cmdType=u"get", protect=True)
+				if False and self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: *********   get events elapsed time (1):{:.2f}, len(events):{} ".format(time.time() - elapsedTime, len(events) ))
 				
-				if events !=[]:
-					if False and self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: *********   get events elapsed time (1):{:.2f} ".format(time.time() - elapsedTime) )
+				############## cleanup ############################# START
+				if events == []:
+					if time.time() - lastEvCheck < 10: continue
+					lastEvCheck = time.time()
 
-					for event in events:
-						dev = ""
-						eventJpeg =""
-						# first check if everything is here 
-						if u"camera"	not in event: continue
-						if u"id"		not in event: continue
-						if u"start"		not in event: continue
-						if u"end"		not in event: continue
-						if u"thumbnail"	not in event: continue
-						if u"type"		not in event: continue
-						# ignore old events  !
-						if time.time() - event["start"]/1000. > 30: continue  # ignore old events 
+					# close old not updated status
+					for cameraId in self.PROTECT:
+						rmEvent ={}
+						if self.PROTECT[cameraId]["devId"] < 1: continue
 
-						newId = event[u"id"]
-
-						## we have a complete event 
-						updateDev = False
-						cameraId = event[u"camera"]
-						debug = False
-						#if cameraId == "604b049d0206a503e700d760":	debug = True
-
-						if debug or self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: event-{}".format(event) )
-
-						smartDetect = ""
-						if cameraId not in self.PROTECT:
-							refreshCameras = True
-							continue
-
-						if newId not in self.PROTECT[cameraId]["events"]:
-							self.PROTECT[cameraId]["events"][newId] =  {"eventStart":0, u"eventEnd":0, u"eventType":"", "thumbnailCopied": False}
-							if dev == "":
+						for evId in self.PROTECT[cameraId][u"events"]:
+							testEV = self.PROTECT[cameraId][u"events"][evId]
+							if testEV[u"eventStart"]  == 0: 				continue
+							if time.time() - testEV[u"eventStart"] < 30: 	continue # look only at older events 
+							if testEV[u"eventType"]  == u"ring" and self.PROTECT[cameraId][u"events"][evId][u"status"] == "ring":
 								dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
-							if  debug or  self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camera:{}; new event      {}".format(cameraId, newId))
-							self.PROTECT[cameraId]["events"][newId]["eventStart"]  = event[u"start"]/1000.
-							self.PROTECT[cameraId]["events"][newId]["eventEnd"]    = 0
-							self.PROTECT[cameraId]["events"][newId]["thumbnailCopied"] = False
-							self.PROTECT[cameraId]["events"][newId]["eventType"] =  event[u"type"]
-							updateDev = True
-							indigo.variable.updateValue(u"Unifi_Camera_with_Event", dev.name)
-							indigo.variable.updateValue(u"Unifi_Camera_Event_Date", datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S"))
-							if event[u"smartDetectTypes"] != []:
-								smartDetect = ",".join(event[u"smartDetectTypes"])
-								if debug or self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents:  smartDetect-{} --> {}".format(event[u"smartDetectTypes"], smartDetect) )
-							
-						if False and self.PROTECT[cameraId]["events"][newId]["eventEnd"] == 0:
-							if self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: start:{} stop:{}; thumbnail:{}-{};  devid:{}".format(event[u"start"], event[u"end"],  event[u"thumbnail"], event[u"thumbnail"] is not None, self.PROTECT[cameraId]["devId"]))
-
-						# event ended?
-						if self.PROTECT[cameraId]["events"][newId]["eventEnd"] < self.PROTECT[cameraId]["events"][newId]["eventStart"] and event[u"end"] is not None:
-							if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camera:{}; event ended   {}; devid:{}".format(cameraId, newId, self.PROTECT[cameraId]["devId"]))
-							self.PROTECT[cameraId]["events"][newId]["eventEnd"] = event[u"end"]/1000.
-							updateDev = True
-
-						if event[u"type"] == u"disconnected":
-							self.PROTECT[cameraId]["events"][newId]["eventStart"]  = event[u"start"]/1000.
-							self.PROTECT[cameraId]["events"][newId]["eventEnd"]    = event[u"start"]/1000.+1
-							updateDev = True
-
-						# have to wait until end of event to get the thumbnail
-						if not self.PROTECT[cameraId]["events"][newId]["thumbnailCopied"] and  event[u"thumbnail"] is not None and self.PROTECT[cameraId]["events"][newId]["eventEnd"] >0:
-
-							###  copy thumbnail to local indigo disk -----
-							if self.PROTECT[cameraId]["devId"] > 0:
-								dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
-								props = dev.pluginProps
-								if "eventThumbnailOn" in props and props["eventThumbnailOn"]:
-									wh = props["thumbnailwh"].split("/")
-									params = {
-										"accessKey": "",
-										"h": wh[1],
-										"w": wh[0],
-									}
-									data = self.executeCMDOnController(dataSEND=params, pageString=u"api/thumbnails/{}".format(event["thumbnail"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
-									if  debug or self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: getting thumbnail, datalen:{}; thumbnail: {}; devId:{}".format(len(data),  event[u"thumbnail"], self.PROTECT[cameraId]["devId"]))
-									if len(data) > 0:
-										eventJpeg = self.changedImagePath.rstrip("/")+u"/"+dev.name+"_snapshot.jpeg"
-										indigo.variable.updateValue(u"Unifi_Camera_Event_pathtoThumbnail", eventJpeg)
-										f = open(eventJpeg,"wb")
-										f.write(data)
-										f.close()
-										self.PROTECT[cameraId]["events"][newId]["thumbnailCopied"] = True
-								if "eventHeatmapOn" in props and props["eventHeatmapOn"]:
-									wh = props["heatmapwh"].split("/")
-									params = {
-										"accessKey": "",
-										"h": wh[1],
-										"w": wh[0],
-									}
-									data = self.executeCMDOnController(dataSEND=params, pageString=u"api/heatmaps/{}".format(event["heatmap"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
-									if len(data) > 0:
-										f = open(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_heatmap.jpeg","wb")
-										f.write(data)
-										f.close()
-
-						else:
-							#self.indiLOG.log(10,u"getProtectEvents: camera:{}; repeat event#: {}".format(cameraId, newId))
-							pass
-
-						if updateDev:
-							try:
-								if dev == "":
-									dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
-
-								if dev.states["eventStart"] != datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["events"][newId]["eventStart"]).strftime(u"%Y-%m-%d %H:%M:%S"):
-									dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
-									self.addToStatesUpdateList(dev.id,"eventStart", datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["events"][newId]["eventStart"]).strftime(u"%Y-%m-%d %H:%M:%S"))
-									self.addToStatesUpdateList(dev.id,"status", u"event")
-									try: evN = int(dev.states["eventNumber"])
-									except: evN = 0
-									self.addToStatesUpdateList(dev.id,"eventNumber", evN+1 )
-
-								if self.PROTECT[cameraId]["events"][newId]["eventEnd"] != 0 and dev.states["eventEnd"] != datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["events"][newId]["eventEnd"]).strftime(u"%Y-%m-%d %H:%M:%S"):
-									self.addToStatesUpdateList(dev.id,"eventEnd", datetime.datetime.fromtimestamp(self.PROTECT[cameraId]["events"][newId]["eventEnd"]).strftime(u"%Y-%m-%d %H:%M:%S"))
+								if dev.states["status"] == u"ring":
+									if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: setting status to CONNECTED for expired ring event {}".format(dev.name))
 									dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-									self.addToStatesUpdateList(dev.id,"status", "CONNECTED")
+									self.addToStatesUpdateList(dev.id, u"status", u"CONNECTED")
+									rmEvent[evId] = 1
 
-								dt = int(max(-1,self.PROTECT[cameraId]["events"][newId]["eventEnd"] - self.PROTECT[cameraId]["events"][newId]["eventStart"]))
-								if dev.states["eventLength"] != dt:
-									self.addToStatesUpdateList(dev.id,"eventLength", dt )
+							elif testEV[u"eventEnd"] == 0:
+								dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
+								if dev.states[u"status"] == self.PROTECT[cameraId][u"events"][evId][u"status"]:
+									dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+									if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: setting status to CONNECTED for expired not ended event {}".format(dev.name))
+									self.addToStatesUpdateList(dev.id, u"status", u"CONNECTED")
+									rmEvent[evId] = 1
 
-								if eventJpeg != "" and eventJpeg != dev.states["eventJpeg"]:
-									self.addToStatesUpdateList(dev.id,"eventJpeg", eventJpeg )
+							if time.time() - self.PROTECT[cameraId][u"events"][evId][u"eventStart"]  > 60: # remove events from list after 1 minutes
+								if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: removing old event from table {}:  {}".format(evId, self.PROTECT[cameraId][u"events"][evId]))
+								rmEvent[evId] = 1
 
-								if self.PROTECT[cameraId]["events"][newId]["eventType"]  not in ["", dev.states["eventType"]]:
-									self.addToStatesUpdateList(dev.id,"eventType", self.PROTECT[cameraId]["events"][newId]["eventType"] )
+						for evId in rmEvent:
+							del self.PROTECT[cameraId][u"events"][evId]
+					continue
+				############## cleanup ############################# END
 
-								if smartDetect != dev.states["smartDetect"]:
-									self.addToStatesUpdateList(dev.id,"smartDetect", smartDetect )
-							except	Exception, e:
-								if unicode(e).find(u"None") == -1:
-									self.indiLOG.log(40,u"getProtectEvents in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
+				for event in events:
+					dev = ""
+					eventJpeg =""
+					# first check if everything is here 
+					if u"modelKey"				not in event: continue
+					if event["modelKey"] != u"event": 		  continue
+					if u"camera"				not in event: continue
+					if u"id"					not in event: continue
+					if u"start"					not in event: continue
+					if u"end"					not in event: continue
+					if u"thumbnail"				not in event: continue
+					if u"type"					not in event: continue
+					if u"smartDetectEvents"		not in event: continue
+					if u"smartDetectTypes"		not in event: continue
+					# ignore old events  !
+					if time.time() - event[u"start"]/1000. > 60: continue  # ignore old events 
+
+					## we have a complete event 
+
+					newId = event[u"id"]
+
+					updateDev = False
+					cameraId = event[u"camera"]
+					debug = False
+					#if cameraId == "604b049d0206a503e700d760":	debug = True
+
+					#### ignore repeat event info ### start
+					if cameraId in lastEvent:
+						if lastEvent[cameraId] != {}:
+							newItem = False 
+							for xx in event:
+								if xx not in lastEvent:  
+									newItem = True
+									break
+								if event[xx] != lastEvent[xx]: 
+									newItem = True
+									break
+							if not newItem: 
+								if self.decideMyLog(u"Protect"):  
+									self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; skipping = last one".format(cameraId, newId) )
+								continue
+					lastEvent[cameraId] = copy.deepcopy(event)
+					#### ignore repeat event info ### END
+
+
+					smartDetect = ""
+					if cameraId not in self.PROTECT:
+						refreshCameras = True
+						continue
+
+					## for the time being ignore list of smart detect events. this is a list of events to follow in the next event listings, we willl deal with them then
+					if event[u"smartDetectEvents"] != []:
+						if  debug or  self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; skipping type:{}; smart:{}".format(cameraId, newId, event[u"type"], event[u"smartDetectEvents"]))
+						continue
+
+
+					## new event?
+					if newId not in self.PROTECT[cameraId][u"events"]:
+						self.PROTECT[cameraId][u"events"][newId] =  {u"eventStart":0, u"eventEnd":0, u"ringTime":0, u"eventType":"", u"thumbnailCopied": False, u"status": ""}
+						if dev == "":
+							dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
+						if  debug or  self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; new event; type:{}".format(cameraId, newId, event[u"type"]))
+						self.PROTECT[cameraId][u"events"][newId][u"eventStart"]  = event[u"start"]/1000.
+						self.PROTECT[cameraId][u"events"][newId][u"eventEnd"]    = 0
+						self.PROTECT[cameraId][u"events"][newId][u"thumbnailCopied"] = False
+						self.PROTECT[cameraId][u"events"][newId][u"eventType"] =  event[u"type"]
+						if event[u"type"] == u"ring": 
+							self.PROTECT[cameraId][u"events"][newId][u"ringTime"] = event[u"start"]/1000.
+						updateDev = True
+						indigo.variable.updateValue(u"Unifi_Camera_with_Event", dev.name)
+						indigo.variable.updateValue(u"Unifi_Camera_Event_Date", datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S"))
+						if event[u"smartDetectTypes"] != []:
+							smartDetect = ",".join(event[u"smartDetectTypes"]).strip(",")
+							if debug or self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; smartDetect-{} --> {}".format(cameraId, newId, event[u"smartDetectTypes"], smartDetect) )
+						
+
+					# event ended, can be the same event as the start evenet ie rings?
+					if self.PROTECT[cameraId][u"events"][newId][u"eventEnd"] < self.PROTECT[cameraId][u"events"][newId][u"eventStart"] and event[u"end"] is not None:
+						if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; event ended devid:{}".format(cameraId, newId, self.PROTECT[cameraId][u"devId"]))
+						self.PROTECT[cameraId][u"events"][newId][u"eventEnd"] = event[u"end"]/1000.
+						updateDev = True
+
+					# other vent types?
+					if event[u"type"] == u"disconnected":
+						self.PROTECT[cameraId][u"events"][newId][u"eventStart"]  = event[u"start"]/1000.
+						self.PROTECT[cameraId][u"events"][newId][u"eventEnd"]    = event[u"start"]/1000.+1
+						updateDev = True
+
+					# have to wait until end of event to get the thumbnail
+					if not self.PROTECT[cameraId][u"events"][newId][u"thumbnailCopied"] and  event[u"thumbnail"] is not None and self.PROTECT[cameraId][u"events"][newId][u"eventEnd"] >0:
+
+						###  copy thumbnail to local indigo disk -----
+						if self.PROTECT[cameraId][u"devId"] > 0:
+							dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
+							props = dev.pluginProps
+							if u"eventThumbnailOn" in props and props[u"eventThumbnailOn"]:
+								wh = props[u"thumbnailwh"].split("/")
+								params = {
+									"accessKey": "",
+									"h": wh[1],
+									"w": wh[0],
+								}
+								data = self.executeCMDOnController(dataSEND=params, pageString=u"api/thumbnails/{}".format(event[u"thumbnail"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
+								if  debug or self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; getting thumbnail, datalen:{}; thumbnail: {}; devId:{}".format(cameraId, newId, len(data),  event[u"thumbnail"], self.PROTECT[cameraId][u"devId"]))
+								if len(data) > 0:
+									eventJpeg = self.changedImagePath.rstrip("/")+u"/"+dev.name+"_snapshot.jpeg"
+									indigo.variable.updateValue(u"Unifi_Camera_Event_pathtoThumbnail", eventJpeg)
+									f = open(eventJpeg,"wb")
+									f.write(data)
+									f.close()
+									self.PROTECT[cameraId][u"events"][newId][u"thumbnailCopied"] = True
+							if u"eventHeatmapOn" in props and props[u"eventHeatmapOn"]:
+								wh = props[u"heatmapwh"].split("/")
+								params = {
+									"accessKey": "",
+									"h": wh[1],
+									"w": wh[0],
+								}
+								data = self.executeCMDOnController(dataSEND=params, pageString=u"api/heatmaps/{}".format(event[u"heatmap"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
+								if len(data) > 0:
+									f = open(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_heatmap.jpeg","wb")
+									f.write(data)
+									f.close()
+
+
+					if updateDev:
+						try:
+							if dev == "":
+								dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
+
+							status = self.PROTECT[cameraId][u"events"][newId][u"eventType"]
+
+							if self.PROTECT[cameraId][u"events"][newId][u"eventStart"] != 0: 
+								evStart = datetime.datetime.fromtimestamp(self.PROTECT[cameraId][u"events"][newId][u"eventStart"]).strftime(u"%Y-%m-%d %H:%M:%S")
+								if dev.states[u"eventStart"] != evStart:
+									dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+									self.addToStatesUpdateList(dev.id,u"eventStart", evStart)
+									self.PROTECT[cameraId][u"events"][newId][u"status"] = status
+									if smartDetect != "":
+										status = smartDetect
+									rgStart = datetime.datetime.fromtimestamp(self.PROTECT[cameraId][u"events"][newId][u"ringTime"]).strftime(u"%Y-%m-%d %H:%M:%S")
+									if self.PROTECT[cameraId][u"events"][newId][u"ringTime"] != 0 and  rgStart != dev.states[u"lastRing"]:
+										self.addToStatesUpdateList(dev.id,u"lastRing", rgStart)
+										if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; setting status to ring, ".format(cameraId, newId))
+
+									if status != dev.states[u"status"]: self.addToStatesUpdateList(dev.id, u"status", status)
+									self.PROTECT[cameraId][u"events"][newId][u"status"] = status
+
+									try: evN = int(dev.states[u"eventNumber"])
+									except: evN = 0
+									self.addToStatesUpdateList(dev.id,u"eventNumber", evN+1 )
+
+							
+							if self.PROTECT[cameraId][u"events"][newId][u"eventEnd"] != 0 and status != u"ring": 
+								evEnd = datetime.datetime.fromtimestamp(self.PROTECT[cameraId][u"events"][newId][u"eventEnd"]).strftime(u"%Y-%m-%d %H:%M:%S")
+								if dev.states[u"eventEnd"] != evEnd:
+									if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; setting status to CONNECT, ".format(cameraId, newId))
+									self.addToStatesUpdateList(dev.id, u"eventEnd", evEnd)
+									dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+									self.addToStatesUpdateList(dev.id, u"status", u"CONNECTED")
+									self.PROTECT[cameraId][u"events"][newId][u"status"] = u"CONNECTED"
+
+							dt = int(max(-1,self.PROTECT[cameraId][u"events"][newId][u"eventEnd"] - self.PROTECT[cameraId][u"events"][newId][u"eventStart"]))
+							if dev.states[u"eventLength"] != dt:
+								self.addToStatesUpdateList(dev.id, u"eventLength", dt )
+
+							if eventJpeg != "" and eventJpeg != dev.states[u"eventJpeg"]:
+								self.addToStatesUpdateList(dev.id, u"eventJpeg", eventJpeg )
+
+							if self.PROTECT[cameraId][u"events"][newId][u"eventType"]  not in [u"", dev.states[u"eventType"]]:
+								self.addToStatesUpdateList(dev.id, u"eventType", self.PROTECT[cameraId][u"events"][newId][u"eventType"] )
+
+							if smartDetect != dev.states[u"smartDetect"]:
+								self.addToStatesUpdateList(dev.id, u"smartDetect", smartDetect )
+
+						except	Exception, e:
+							if unicode(e).find(u"None") == -1:
+								self.indiLOG.log(40,u"getProtectEvents in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
 
 					self.executeUpdateStatesList()
 
@@ -8480,17 +8575,6 @@ class Plugin(indigo.PluginBase):
 				if False and self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
 				if refreshCameras:
 					self.lastRefreshProtect = 0
-
-
-				for cameraId in self.PROTECT:
-					rmEvent =[]
-					for evID in self.PROTECT[cameraId]["events"]:
-						if time.time() - self.PROTECT[cameraId]["events"][evID]["eventStart"]  > 120: # remove events from list after 2 minutes
-							if False and self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: removing {}:  {}".format(evID, self.PROTECT[cameraId]["events"][evID]))
-							rmEvent.append(evID)
-					for evID in rmEvent:
-						del self.PROTECT[cameraId]["events"][evID]
-
 					
 
 			except	Exception, e:
@@ -8508,8 +8592,8 @@ class Plugin(indigo.PluginBase):
 		try:
 			area = u"ledSettings"
 			payload ={area:{}}
-			if valuesDict[u"blinkRate"]			!= "-1": payload[area]["blinkRate"] 		= int(valuesDict[u"blinkRate"])
-			if valuesDict[u"camLEDenabled"]		!= "-1": payload[area]["isEnabled"] 		= valuesDict[u"camLEDenabled"] == "1"
+			if valuesDict[u"blinkRate"]			!= u"-1": payload[area][u"blinkRate"] 		= int(valuesDict[u"blinkRate"])
+			if valuesDict[u"camLEDenabled"]		!= u"-1": payload[area][u"isEnabled"] 		= valuesDict[u"camLEDenabled"] == "1"
 			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
 			ok = True
 			if area not in data: ok = False
@@ -8519,7 +8603,7 @@ class Plugin(indigo.PluginBase):
 						ok = False
 						break
 
-			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			valuesDict[u"msg"] =  u"ok"  if ok else  u"error"
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 			self.addToMenuXML(valuesDict)
 		except	Exception, e:
@@ -8543,9 +8627,9 @@ class Plugin(indigo.PluginBase):
 			"""
 			area = u"speakerSettings"
 			payload ={area:{}}
-			if valuesDict[u"areSystemSoundsEnabled"]	!= "-1": payload[area]["areSystemSoundsEnabled"] 	= valuesDict[u"areSystemSoundsEnabled"] == "1"
-			if valuesDict[u"isEnabled"] 				!= "-1": payload[area]["isEnabled"] 				= valuesDict[u"isEnabled"] == "1"
-			if valuesDict[u"volume"] 					!= "-1": payload[area]["volume"] 					= int(valuesDict[u"volume"])
+			if valuesDict[u"areSystemSoundsEnabled"]	!= u"-1": payload[area][u"areSystemSoundsEnabled"] 	= valuesDict[u"areSystemSoundsEnabled"] == "1"
+			if valuesDict[u"isEnabled"] 				!= u"-1": payload[area][u"isEnabled"] 				= valuesDict[u"isEnabled"] == "1"
+			if valuesDict[u"volume"] 					!= u"-1": payload[area][u"volume"] 					= int(valuesDict[u"volume"])
 			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
 			ok = True
 			if area not in data: ok = False
@@ -8555,7 +8639,7 @@ class Plugin(indigo.PluginBase):
 						ok = False
 						break
 
-			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			valuesDict[u"msg"] =  u"ok"  if ok else  u"error"
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -8568,7 +8652,7 @@ class Plugin(indigo.PluginBase):
 	def buttonSendCommandToProtectmicVolumeCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
 		try:
 			self.addToMenuXML(valuesDict)
-			if valuesDict[u"micVolume"] == "-1":	return valuesDict
+			if valuesDict[u"micVolume"] == u"-1":	return valuesDict
 			area = u"micVolume"
 			payload ={area:int(valuesDict[area])}
 			data = self.setupProtectcmd(valuesDict[u"cameraDeviceSelected"],payload )
@@ -8603,14 +8687,14 @@ class Plugin(indigo.PluginBase):
 			"""
 			area = u"recordingSettings"
 			payload ={area:{}}
-			if valuesDict[u"prePaddingSecs"] 				!= "-1":	payload[area]["prePaddingSecs"] 			= int(valuesDict[u"prePaddingSecs"])
-			if valuesDict[u"postPaddingSecs"] 				!= "-1":	payload[area]["postPaddingSecs"] 			= int(valuesDict[u"postPaddingSecs"])
-			if valuesDict[u"minMotionEventTrigger"] 		!= "-1":	payload[area]["minMotionEventTrigger"] 		= int(valuesDict[u"minMotionEventTrigger"])
-			if valuesDict[u"motionRecordEnabledProtect"] 	!= "-1":	payload[area]["mode"] 						= valuesDict[u"motionRecordEnabledProtect"]
-			if valuesDict[u"suppressIlluminationSurge"] 	!= "-1":	payload[area]["suppressIlluminationSurge"]	= valuesDict[u"suppressIlluminationSurge"]
-			if valuesDict[u"useNewMotionAlgorithm"] 		!= "-1":	payload[area]["useNewMotionAlgorithm"] 		= valuesDict[u"useNewMotionAlgorithm"]
-			if valuesDict[u"motionAlgorithm"] 				!= "-1":	payload[area]["motionAlgorithm"] 			= valuesDict[u"motionAlgorithm"]
-			if valuesDict[u"endMotionEventDelay"] 			!= "-1":	payload[area]["endMotionEventDelay"] 		= valuesDict[u"endMotionEventDelay"]
+			if valuesDict[u"prePaddingSecs"] 				!= u"-1":	payload[area][u"prePaddingSecs"] 			= int(valuesDict[u"prePaddingSecs"])
+			if valuesDict[u"postPaddingSecs"] 				!= u"-1":	payload[area][u"postPaddingSecs"] 			= int(valuesDict[u"postPaddingSecs"])
+			if valuesDict[u"minMotionEventTrigger"] 		!= u"-1":	payload[area][u"minMotionEventTrigger"] 		= int(valuesDict[u"minMotionEventTrigger"])
+			if valuesDict[u"motionRecordEnabledProtect"] 	!= u"-1":	payload[area][u"mode"] 						= valuesDict[u"motionRecordEnabledProtect"]
+			if valuesDict[u"suppressIlluminationSurge"] 	!= u"-1":	payload[area][u"suppressIlluminationSurge"]	= valuesDict[u"suppressIlluminationSurge"]
+			if valuesDict[u"useNewMotionAlgorithm"] 		!= u"-1":	payload[area][u"useNewMotionAlgorithm"] 		= valuesDict[u"useNewMotionAlgorithm"]
+			if valuesDict[u"motionAlgorithm"] 				!= u"-1":	payload[area][u"motionAlgorithm"] 			= valuesDict[u"motionAlgorithm"]
+			if valuesDict[u"endMotionEventDelay"] 			!= u"-1":	payload[area][u"endMotionEventDelay"] 		= valuesDict[u"endMotionEventDelay"]
 			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
 			ok = True
 			if area not in data: ok = False
@@ -8620,7 +8704,7 @@ class Plugin(indigo.PluginBase):
 						ok = False
 						break
 
-			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			valuesDict[u"msg"] =  u"ok"  if ok else  u"error"
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 
 		except	Exception, e:
@@ -8673,9 +8757,9 @@ class Plugin(indigo.PluginBase):
 
 			area = u"ispSettings"
 			payload ={area:{}}
-			if valuesDict[u"irLedMode"] 		!= "-1":	payload[area]["irLedMode"] 			= valuesDict[u"irLedMode"]
-			if valuesDict[u"icrSensitivity"] 	!= "-1":	payload[area]["icrSensitivity"] 	= int(valuesDict[u"icrSensitivity"])
-			if valuesDict[u"irLedLevel"] 		!= "-1":	payload[area]["irLedLevel"] 		= int(valuesDict[u"irLedLevel"])
+			if valuesDict[u"irLedMode"] 		!= "-1":	payload[area][u"irLedMode"] 			= valuesDict[u"irLedMode"]
+			if valuesDict[u"icrSensitivity"] 	!= "-1":	payload[area][u"icrSensitivity"] 	= int(valuesDict[u"icrSensitivity"])
+			if valuesDict[u"irLedLevel"] 		!= "-1":	payload[area][u"irLedLevel"] 		= int(valuesDict[u"irLedLevel"])
 			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
 			ok = True
 			if area not in data: ok = False
@@ -8685,7 +8769,7 @@ class Plugin(indigo.PluginBase):
 						ok = False
 						break
 
-			valuesDict["msg"] =  u"ok"  if ok else  u"error"
+			valuesDict[u"msg"] =  u"ok"  if ok else  u"error"
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 
 			self.addToMenuXML(valuesDict)
@@ -8712,14 +8796,14 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
 
 			params = {
-					"accessKey": "",
-					"h": wh[1],
-					"ts": str(int(time.time())*1000),
-					"force": "true",
-					"w": wh[0],
+					u"accessKey": "",
+					u"h": wh[1],
+					u"ts": str(int(time.time())*1000),
+					u"force": u"true",
+					u"w": wh[0],
 			}
 
-			data = self.executeCMDOnController(dataSEND=params, pageString=u"api/cameras/{}/snapshot".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType="get", raw=True)
+			data = self.executeCMDOnController(dataSEND=params, pageString=u"api/cameras/{}/snapshot".format(dev.states[u"id"]), jsonAction=u"protect", protect=True, cmdType="get", raw=True)
 			self.addToMenuXML(valuesDict)
 
 			if len(data) < 10:
@@ -8740,10 +8824,10 @@ class Plugin(indigo.PluginBase):
 
 		dev = indigo.devices[int(devId)]
 		try:
-			if self.cameraSystem != "protect":				return u"error protect not enabled"
-			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd  {} , devid:{}, name:{}; id:{}".format(payload, dev.id, dev.name, dev.states["id"]))
+			if self.cameraSystem != u"protect":				return u"error protect not enabled"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd  {} , devid:{}, name:{}; id:{}".format(payload, dev.id, dev.name, dev.states[u"id"]))
 					
-			data = self.executeCMDOnController(dataSEND=payload, pageString=u"cameras/{}".format(dev.states["id"]), jsonAction=u"protect", protect=True, cmdType=cmdType)
+			data = self.executeCMDOnController(dataSEND=payload, pageString=u"cameras/{}".format(dev.states[u"id"]), jsonAction=u"protect", protect=True, cmdType=cmdType)
 			self.lastRefreshProtect = time.time() - self.refreshProtectCameras +1
 			return data
 		except	Exception, e:
@@ -8758,40 +8842,44 @@ class Plugin(indigo.PluginBase):
 			self.getProtectIntoIndigo()
 			#                1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16
 			#       1234567891123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789012345678901234567890123456789012345678901234567890
-			out  ="Protect Camera devices      START ============================="
-			out +="\nDevName---------------------- MAC#------------- ip#----------- DevType--- FWV----- thumbN-res. heatMp-res. lastSeen----- lastEvent----  #ofEv Rec-Mode---- isDrk micV spkV irLED.Mode           .Levl"
+			out  =u"Protect Camera devices      START ============================================================================================================================="
+			out +=u"\n                                                                                   ThumbNail     HeatMap       Device        Events----------------------------------- is   Volume- ir-LED----------------- stat"
+			out +=u"\nDevName---------------------- MAC#------------- ip#----------- DevType--- FWV----- On-resolutn   On-resolutn   lastSeen----- last-motion-- lastRing----- ---#of Mode   dark mic spk En  Sens Mode       Lvl LED"
+			mapTFtoenDis 	= {"":u"?", True:u"ena", False:u"dis"}
+			mapTFtoNight 	= {"":u"?", True:u"Nite", False:u"Day"}
+			mapirMode 		= {"":u"?", u"auto":u"auto", u"on":u"on", u"off":u"off", u"autoFilterOnly":u"a-Filt-Onl"}
 			for dev in indigo.devices.iter(u"props.isProtectCamera"):
 				props = dev.pluginProps
-				cameraId = dev.states["id"] 
+				cameraId = dev.states[u"id"] 
 				out+= u"\n"
-				out+= u"{:30s}".format(dev.name)
-				out+= u"{:18s}".format(dev.states["MAC"])
-				out+= u"{:15s}".format(dev.states["ip"])
-				out+= u"{:11s}".format(dev.states["type"][4:])
-				out+= u"{:9s}".format(dev.states["firmwareVersion"])
-				out+= u"{:1s}".format(unicode(props["eventThumbnailOn"])[0])
-				out+= u"-{:10s}".format(props["thumbnailwh"])
-				out+= u"{:1s}".format(unicode(props["eventHeatmapOn"])[0])
-				out+= u"-{:10s}".format(props["heatmapwh"])
-				out+= u"{:14s}".format(dev.states["lastSeen"][6:])
-				out+= u"{:14s}".format(dev.states["eventStart"][6:])
-				out+= u"{:6d} ".format(dev.states["eventNumber"])
-				out+= u"{:13s}".format(dev.states["motionRecordingMode"])
-				out+= u"{:5s}".format(unicode(dev.states["isDark"]))
-				out+= u"{:5d}".format(dev.states["micVolume"])
-				out+= u"{:5d}".format(dev.states["speakerVolume"])
-				out+= u" {:5s} ".format(unicode(dev.states["isExternalIrEnabled"]))
-				out+= u"{:15s}".format(dev.states["irLedMode"])
-				out+= u"{:5d}".format(dev.states["irLedLevel"])
-			out +="\n                                    Protect Camera devices      END ==============================" 
+				out+= u"{:30s}".format(dev.name[:30])
+				out+= u"{:18s}".format(dev.states[u"MAC"])
+				out+= u"{:15s}".format(dev.states[u"ip"])
+				out+= u"{:11s}".format(dev.states[u"type"][4:])
+				out+= u"{:9s}".format(dev.states[u"firmwareVersion"])
+				out+= u"{:3s}".format(mapTFtoenDis[props[u"eventThumbnailOn"]])
+				out+= u"-{:10s}".format(props[u"thumbnailwh"])
+				out+= u"{:3s}".format(mapTFtoenDis[props[u"eventHeatmapOn"]])
+				out+= u"-{:10s}".format(props[u"heatmapwh"])
+				out+= u"{:14s}".format(dev.states[u"lastSeen"][6:])
+				out+= u"{:14s}".format(dev.states[u"eventStart"][6:])
+				out+= u"{:13s}".format(dev.states[u"lastRing"][6:])
+				out+= u"{:7d} ".format(dev.states[u"eventNumber"])
+				out+= u"{:7s}".format(dev.states[u"motionRecordingMode"])
+				out+= u"{:4s}".format(mapTFtoNight[dev.states[u"isDark"]])
+				out+= u"{:4d}".format(dev.states[u"micVolume"])
+				out+= u"{:4d}".format(dev.states[u"speakerVolume"])
+				out+= u" {:4s}".format(mapTFtoenDis[dev.states[u"isExternalIrEnabled"]])
+				out+= u"{:5}".format(dev.states[u"icrSensitivity"])
+				out+= u"{:11s}".format(mapirMode[dev.states[u"irLedMode"]])
+				out+= u"{:3d}".format(dev.states[u"irLedLevel"])
+				out+= u" {:3}".format(mapTFtoenDis[dev.states[u"isLedEnabled"]])
+			out +=u"\n   uniFiAP                         Protect Camera devices      END   ============================================================================================================================="  
 			self.indiLOG.log(20,out)
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-
-
-
 
 	###########################################
 	####------ camera PROTEC ---	-------END
@@ -8910,7 +8998,7 @@ class Plugin(indigo.PluginBase):
 						for ev in delEvents:
 							del	 self.cameras[MAC][u"events"][ev]
 
-				self.cameras[MAC]["events"][evNo][evType]  = timeSt
+				self.cameras[MAC][u"events"][evNo][evType]  = timeSt
 				##if self.decideMyLog(u"Video"): self.myLog( text=unicode(self.cameras[MAC]) , mType = "MS-VD----")
 
 
@@ -11940,7 +12028,7 @@ class Plugin(indigo.PluginBase):
 			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 		elif status.lower() in [u"down",u"off",u"adopting",u"offline"]:
 			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
-		elif status.lower()  in [u"expired","rec","event"] :
+		elif status.lower()  in [u"expired",u"rec",u"event",u"motion",u"ring",u"person",u"vehicle"]:
 			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
 		elif status.lower()  in [u"susp"] :
 			dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
@@ -11958,7 +12046,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			devId = unicode(devid)
 			### no down during startup .. 100 secs
-			if key == "status" and value.lower() not in[u"up", u"connected", u"event", u"rec"]:
+			if key == "status" and value.lower() not in[u"up", u"connected", u"event", u"rec", u"motion", u"vehicle", u"person"]:
 			   if time.time() - self.pluginStartTime <0:
 					#self.indiLOG.log(10,u"in addToStatesUpdateList reject update at startup for devId:{} key:{}; value:{}".format(devid, key, value ) )
 					return

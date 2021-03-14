@@ -460,6 +460,13 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>lastSeen</TriggerLabel>
 					<ControlPageLabel>lastSeen</ControlPageLabel>
 			</State>
+
+			<State id="lastRing">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastRing</TriggerLabel>
+					<ControlPageLabel>lastRing</ControlPageLabel>
+			</State>
+
 			<State id="firmwareVersion">
 					<ValueType>string</ValueType>
 					<TriggerLabel>firmwareVersion</TriggerLabel>
@@ -484,11 +491,21 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>isManaged</ControlPageLabel>
 			</State>
 
-
+			<State id="isLedEnabled">
+					<ValueType>Boolean</ValueType>
+					<TriggerLabel>isLedEnabled</TriggerLabel>
+					<ControlPageLabel>isLedEnabled</ControlPageLabel>
+			</State>
 			<State id="isExternalIrEnabled">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>isExternalIrEnabled</TriggerLabel>
 					<ControlPageLabel>isExternalIrEnabled</ControlPageLabel>
+			</State>
+
+			<State id="icrSensitivity">
+					<ValueType>String</ValueType>
+					<TriggerLabel>icrSensitivity</TriggerLabel>
+					<ControlPageLabel>icrSensitivity</ControlPageLabel>
 			</State>
 
 			<State id="irLedMode">
