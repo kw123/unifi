@@ -87,6 +87,10 @@
 		<Label>Trigger FINGSCAN:</Label>
 	</Field>
 
+	<Field    id="enableSqlLogging" 				type="checkbox"  defaultValue="true" >
+		<Label>Enable sql logging of variable changes:</Label>
+	</Field>
+
 	<Field  id="enableMACtoVENDORlookup" 	type="menu" defaultValue="21"  alignText="right">
     			<List>
     			<Option value="0"  >disable </Option>
@@ -475,6 +479,59 @@ Then disable listener process
 			</List>
 	</Field>
 
+	<Field    id="protecEventSleepTime"   type="menu" defaultValue="2" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+   	<Label>..query system for new events every:</Label>  
+			<List>
+			<Option value="0.2" >0.2 seconds</Option>
+			<Option value="0.5" >0.5 seconds</Option>
+			<Option value="1"   >1 seconds</Option>
+			<Option value="2"   >2 seconds default</Option>
+			<Option value="3"   >3 seconds</Option>
+			<Option value="4"   >4 seconds</Option>
+			</List>
+	</Field>
+	<Field    id="refreshProtectCameras"   type="menu" defaultValue="60" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+   	<Label>..get camera update (dev states) every:</Label>  
+			<List>
+			<Option value="10"   >10 seconds</Option>
+			<Option value="20"   >20 seconds</Option>
+			<Option value="40"   >40 seconds</Option>
+			<Option value="60"   >60 seconds default</Option>
+			<Option value="90"   >90 seconds</Option>
+			<Option value="120"  >2 minutes</Option>
+			</List>
+	</Field>
+	<Field    id="copyProtectsnapshots"   type="menu" defaultValue="on" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+   	<Label>..copy thumbnails to the indigo server:</Label>  
+			<List>
+			<Option value="on"   >on for all devices</Option>
+			<Option value="off"   >off for all devices</Option>
+			<Option value="selectedByDevice"   >set in each device</Option>
+			</List>
+	</Field>
+	<Field id="infoLabelProtectd" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="protect" alignText="left" fontSize="small" fontColor="darkgrey"> 
+		<Label>To setup: select the querry every time parametes etc
+Currently the protect system must be on the same hardware as the controller eg cloudkey 2, UMDpro.
+Once started the plugin will query(http) protect and will get all cameras installed and create the appropritate indigo devices
+It then will query(http) the protect system for new events every x secs
+The events can be of type Motion/Person/Vehicle/Ring. One physical ring can create several events
+eg motion+person+ring in differnt sequences depending on how a person approaches the doorbell
+Then for each event the variables
+- Unifi_Camera_with_Event
+- Unifi_Camera_Event_PathToThumbnail
+- Unifi_Camera_Event_DateOfThumbNail
+- Unifi_Camera_Event_Date
+are updated as they come in. The event date is the first variable tio be updated, some of the other images can take several seconds to be produced.
+You can trigger on any of these variables or on the device states: lastRing or eventStart. eventEnd is set when the event is over. In most cases the thumbnail should be ready.
+
+In menu / CAMERA - protect Info ...
+you can print camera info to the logfile and  get a snap shot and set several parameetrs on the caameras
+in actions you can setup most of the config as as well as get snapshots
+   </Label> 
+	</Field>
+
+
+
 
 	<Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..UserID for UniFi NVR web login(empty=off):</Label>
@@ -505,6 +562,7 @@ Then disable listener process
 			<Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
 			</List>
 	</Field>
+
 	<Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
 		<Label>..get snapshot images:</Label>  
 			<List>
@@ -528,34 +586,6 @@ Then disable listener process
 			<Option value="3840"        > 3840 (max - G4)</Option>
 			</List>
 	</Field>
-	<Field    id="protecEventSleepTime"   type="menu" defaultValue="4" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..query system for new events every:</Label>  
-			<List>
-			<Option value="0.2" >0.2 seconds</Option>
-			<Option value="0.5" >0.5 seconds</Option>
-			<Option value="1"   >1 seconds</Option>
-			<Option value="2"   >2 seconds</Option>
-			<Option value="3"   >3 seconds</Option>
-			<Option value="4"   >4 seconds(default)</Option>
-			<Option value="5"   >5 seconds</Option>
-			<Option value="6"   >6 seconds</Option>
-			</List>
-	</Field>
-	<Field    id="refreshProtectCameras"   type="menu" defaultValue="180" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..get camera update (dev states) every:</Label>  
-			<List>
-			<Option value="10"   >10 seconds</Option>
-			<Option value="20"   >20 seconds</Option>
-			<Option value="40"   >40 seconds</Option>
-			<Option value="60"   >60 seconds</Option>
-			<Option value="90"   >90 seconds</Option>
-			<Option value="120"  >2 minutes</Option>
-			<Option value="180"  >3 minutes(default)</Option>
-			<Option value="240"  >4 minutes</Option>
-			<Option value="300"  >5 minutes</Option>
-			</List>
-	</Field>
-
 	<Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
 		<Label>..Keep x number of events history in Indigo plugin:</Label>  
 			<List>
