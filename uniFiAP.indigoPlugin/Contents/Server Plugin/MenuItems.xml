@@ -751,6 +751,16 @@ it will make the plugin restart </Label>
 
 			<Field	  id="cameraProtectCmdxlabel" type="Label" > <Label>2. Actions === </Label>	 </Field>
 			<Field id="simpleSeparatorACTIONS" type="separator"/>
+<!--
+			<Field	   id="lcdMessage" type="textField" defaultValue="do not change"  >
+				<Label>=== lcd message if present                     set:</Label>
+			</Field>
+			<Field	  id="sendlcdMessagetoProtect" type="button" tooltip=""  >
+				<Label> Click to </Label><Title>SET message</Title><CallbackMethod>buttonSendCommandToProtectLcdMessageCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="simpleSeparatorlcd" type="separator"/>
+-->
 
 			<Field	   id="camLEDenabled" type="menu" defaultValue="0"  >
 				<Label>=== LED                                  set ON off:</Label>

@@ -430,16 +430,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>ip</ControlPageLabel>
 			</State>
 
-			<State id="name">
-					<ValueType>string</ValueType>
-					<TriggerLabel>nameOnNVR</TriggerLabel>
-					<ControlPageLabel>nameOnNVR</ControlPageLabel>
-			</State>
-
 			<State id="id">
 					<ValueType>string</ValueType>
 					<TriggerLabel>id</TriggerLabel>
 					<ControlPageLabel>id</ControlPageLabel>
+			</State>
+
+			<State id="lcdMessage">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lcdMessage</TriggerLabel>
+					<ControlPageLabel>lcdMessage</ControlPageLabel>
+			</State>
+
+			<State id="name">
+					<ValueType>string</ValueType>
+					<TriggerLabel>nameOnNVR</TriggerLabel>
+					<ControlPageLabel>nameOnNVR</ControlPageLabel>
 			</State>
 
 			<State id="type">

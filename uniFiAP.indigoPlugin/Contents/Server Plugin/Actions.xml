@@ -532,10 +532,6 @@
         </ConfigUI>
     </Action>
 
-
-
-
-
     <Action id="powerCyclePort">
         <Name>POWER  cycle a port on a UniFi switch</Name>
         <CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        

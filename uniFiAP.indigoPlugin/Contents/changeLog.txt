@@ -1,3 +1,10 @@
+changes in V 7.38.353@ 2021-03-19
+==================  
+1. changed expect script for getting dicts from AP, switch UDMpro
+   better timing, should result in much fewer restarts
+2. changed log level for restarts, now only every 3 time level is warning 6 is error
+ rest is info / debug  in plugin.log file
+
 changes in V 7.38.352@ 2021-03-15
 ==================  
 1. fixed some exception handling errors

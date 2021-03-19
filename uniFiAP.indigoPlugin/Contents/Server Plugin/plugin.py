@@ -482,10 +482,10 @@ class Plugin(indigo.PluginBase):
 		self.MACloglist										= {}
 
 		self.readDictEverySeconds							= {}
-		self.readDictEverySeconds[u"AP"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 60) ))
-		self.readDictEverySeconds[u"GW"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
-		self.readDictEverySeconds[u"SW"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
-		self.readDictEverySeconds[u"UD"]					= 60 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
+		self.readDictEverySeconds[u"AP"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 60) ))
+		self.readDictEverySeconds[u"GW"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
+		self.readDictEverySeconds[u"SW"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
+		self.readDictEverySeconds[u"UD"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
 		self.readDictEverySeconds[u"DB"]					= 40 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsDB", 40) ))
 		self.getcontrollerDBForClientsLast					= 0
 		self.devStateChangeList								= {}
@@ -4463,7 +4463,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerOS = ""
 			self.lastUnifiCookieRequests = 0.
 			self.lastUnifiCookieCurl = 0	
-			if wait: self.sleep(0.5)	
+			if wait: self.sleep(1.0)	
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
@@ -4694,8 +4694,9 @@ class Plugin(indigo.PluginBase):
 
 					if self.unifiCloudKeySiteName == "":
 						if not self.setunifiCloudKeySiteName(method="response", cookies=cookies, headers=headers ): continue
+
+					if self.unifiCloudKeySiteName == "": continue
 				
-						
 					if protect:
 						url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/protect/"+pageString.strip("/")
 					else:
@@ -5245,6 +5246,34 @@ class Plugin(indigo.PluginBase):
 
 
 
+	####-----------------init  main loop ---------
+	def setupCameraVariables(self):
+		try:
+			if self.cameraSystem == "protect":
+				if not self.enableSqlLogging:
+					try: 	indigo.variable.delete(u"Unifi_Camera_with_Event")
+					except: pass
+					try: 	indigo.variable.delete(u"Unifi_Camera_Event_PathToThumbnail")
+					except: pass
+					try: 	indigo.variable.delete(u"Unifi_Camera_Event_DateOfThumbNail")
+					except: pass
+					try: 	indigo.variable.delete(u"Unifi_Camera_Event_Date")
+					except: pass
+		
+				try: 	indigo.variable.create(u"Unifi_Camera_Event_Date", value ="", folder=self.folderNameIDVariables)
+				except: pass
+				try: 	indigo.variable.create(u"Unifi_Camera_with_Event", value ="", folder=self.folderNameIDVariables)
+				except: pass
+				try: 	indigo.variable.create(u"Unifi_Camera_Event_PathToThumbnail", value ="", folder=self.folderNameIDVariables)
+				except: pass
+				try: 	indigo.variable.create(u"Unifi_Camera_Event_DateOfThumbNail", value ="", folder=self.folderNameIDVariables)
+				except: pass
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return
+
+
 	###########################	   MAIN LOOP  ############################
 	####-----------------init  main loop ---------
 	def fixBeforeRunConcurrentThread(self):
@@ -5262,23 +5291,8 @@ class Plugin(indigo.PluginBase):
 
 		self.writeJson(dataVersion, fName=self.indigoPreferencesPluginDir + "dataVersion")
 
+
 		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
-
-		try: 	indigo.variable.delete(u"Unifi_Camera_with_Event")
-		except: pass
-		indigo.variable.create(u"Unifi_Camera_with_Event", value ="", folder=self.folderNameIDVariables)
-
-		try: 	indigo.variable.delete(u"Unifi_Camera_Event_PathToThumbnail")
-		except: pass
-		indigo.variable.create(u"Unifi_Camera_Event_PathToThumbnail", value ="", folder=self.folderNameIDVariables)
-
-		try: 	indigo.variable.delete(u"Unifi_Camera_Event_DateOfThumbNail")
-		except: pass
-		indigo.variable.create(u"Unifi_Camera_Event_DateOfThumbNail", value ="", folder=self.folderNameIDVariables)
-
-		try: 	indigo.variable.delete(u"Unifi_Camera_Event_Date")
-		except: pass
-		indigo.variable.create(u"Unifi_Camera_Event_Date", value ="", folder=self.folderNameIDVariables)
 
 		## if video enabled
 		if self.cameraSystem == "nvr" and self.vmMachine !="":
@@ -5472,8 +5486,10 @@ class Plugin(indigo.PluginBase):
 
 		self.lastRefreshProtect  = 0
 
+		self.setupCameraVariables()
 		self.getProtectIntoIndigo()
 		self.protectThread = {u"thread":"", u"status":""}
+
 		if self.cameraSystem == u"protect":
 			self.protectThread[u"status"]  = u"run"
 			self.protectThread[u"thread"]  = threading.Thread(name=u'get-protectevents', target=self.getProtectEvents)
@@ -7617,7 +7633,7 @@ class Plugin(indigo.PluginBase):
 
 			if startError != "":
 				startErrorCount +=1
-				if startErrorCount%10 == 0:
+				if startErrorCount%3== 0:
 					self.indiLOG.log(40,u"getMessages: connect start connect error in listener {}, to  @ {}  ::::{}::::".format(uType, ipNumber, startError) )
 				retCode = 2
 				self.sleep(15)
@@ -7686,16 +7702,18 @@ class Plugin(indigo.PluginBase):
 			if newlinesFromServer != "":
 				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"] += 1
 				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"] += len(newlinesFromServer)
-				## any error messages from OSX?
+					## any error messages from OSX?
 				pos1 = newlinesFromServer.find(u"closed by remote host")
 				pos2 = newlinesFromServer.find(u"Killed by signal")
 				pos3 = newlinesFromServer.find(u"Killed -9")
-				if (  pos1 >- 1 or pos2 >- 1 or pos3 > -1):
-					self.indiLOG.log(             30,u"getMessage: {} {} returning: ".format(uType, ipNumber)  )
-					if pos1 >-1: self.indiLOG.log(30,u"...{}".format(newlinesFromServer[max(0,pos1 - 100):pos1 + 100]) )
-					if pos2 >-1: self.indiLOG.log(30,u"...{}".format(newlinesFromServer[max(0,pos2 - 100):pos2 + 100]) )
-					if pos3 >-1: self.indiLOG.log(30,u"...{}".format(newlinesFromServer[max(0,pos3 - 100):pos3 + 100]) )
-					self.indiLOG.log(             30,u"...: {} we should restart listener on server ".format(uType) )
+				pos4 = newlinesFromServer.find(u"mca-ctrl: error") 	##mca-ctrl: error while loading shared libraries: libubus.so: cannot ope...
+				if (  pos1 >- 1 or pos2 >- 1 or pos3 > -1 or pos4 > -1):
+					self.indiLOG.log(             20,u"getMessage: {} {} returning: ".format(uType, ipNumber)  )
+					if pos1 >-1: self.indiLOG.log(20,u"...(1){}".format(newlinesFromServer[max(0,pos1 - 100):pos1 + 100]) )
+					if pos2 >-1: self.indiLOG.log(20,u"...(2){}".format(newlinesFromServer[max(0,pos2 - 100):pos2 + 100]) )
+					if pos3 >-1: self.indiLOG.log(20,u"...(3){}".format(newlinesFromServer[max(0,pos3 - 100):pos3 + 100]) )
+					if pos4 >-1: self.indiLOG.log(20,u"...(4){}".format(newlinesFromServer) )
+					self.indiLOG.log(             20,u"...: {} we should restart listener on server ".format(uType) )
 					goodDataReceivedTime = 1#
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -8231,6 +8249,7 @@ class Plugin(indigo.PluginBase):
 					states[u"speakerVolume"] 					= int(self.getIfinDict(camera[u"speakerSettings"],u"volume", default=100))
 					states[u"areSystemSoundsEnabled"] 			= self.getIfinDict(camera[u"speakerSettings"],u"areSystemSoundsEnabled", default=False)
 					states[u"micVolume"] 						= int(self.getIfinDict(camera,u"micVolume", default=100))
+					states[u"lcdMessage"] 						= self.getIfinDict(camera[u"lcdMessage"],u"text")
 					states[u"modelKey"] 						= self.getIfinDict(camera,u"modelKey")
 					states[u"motionRecordingMode"] 				= self.getIfinDict(camera[u"recordingSettings"], u"mode")
 					states[u"motionMinEventTrigger"] 			= self.getIfinDict(camera[u"recordingSettings"], u"minMotionEventTrigger")
@@ -8591,7 +8610,7 @@ class Plugin(indigo.PluginBase):
 					if self.PROTECT[cameraId][u"devId"] > 0:
 						dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
 						props = dev.pluginProps
-						if u"eventThumbnailOn" in props and props[u"eventThumbnailOn"]:
+						if u"eventThumbnailOn" in props and props[u"eventThumbnailOn"] and "thumbnailwh" in props:
 							wh = props[u"thumbnailwh"].split("/")
 							params = {"accessKey": "", "h": wh[1], "w": wh[0],}
 							data = self.executeCMDOnController(dataSEND=params, pageString=u"api/thumbnails/{}".format(protectEV["rawEvent"][u"thumbnail"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
@@ -8682,6 +8701,32 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	####-----send commd parameters to cameras through protect ------
 	####-----------------	 ---------
+	def buttonSendCommandToProtectLcdMessageCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
+		return self.buttonSendCommandToProtectLcdMessageCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectLcdMessageCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
+		try:
+			area = u"lcdMessage"
+			payload ={area:{}}
+			if valuesDict[u"lcdMessage"]			!= u"do not change": payload[area][u"text"] 		= valuesDict[u"lcdMessage"]
+			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
+			ok = True
+			if area not in data: ok = False
+			else:
+				for xx in data[area]:
+					if data[area][xx] != payload[area][xx]: 
+						ok = False
+						break
+
+			valuesDict[u"msg"] =  u"ok"  if ok else  u"error"
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			self.addToMenuXML(valuesDict)
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return valuesDict
+
+
+	####-----------------	 ---------
 	def buttonSendCommandToProtectLEDCALLBACKaction (self, action1=None, filter="", typeId="", devId=""):
 		return self.buttonSendCommandToProtectLEDCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectLEDCALLBACK(self, valuesDict=None, filter="", typeId="", devId="",returnCmd=False):
@@ -8695,7 +8740,7 @@ class Plugin(indigo.PluginBase):
 			if area not in data: ok = False
 			else:
 				for xx in data[area]:
-					if data[area][xx] != payload[area][x]: 
+					if data[area][xx] != payload[area][xx]: 
 						ok = False
 						break
 
@@ -8731,7 +8776,7 @@ class Plugin(indigo.PluginBase):
 			if area not in data: ok = False
 			else:
 				for xx in payload[area]:
-					if data[area][xx] != payload[area][x]: 
+					if data[area][xx] != payload[area][xx]: 
 						ok = False
 						break
 
@@ -8861,7 +8906,7 @@ class Plugin(indigo.PluginBase):
 			if area not in data: ok = False
 			else:
 				for xx in payload[area]:
-					if data[area][xx] != payload[area][x]: 
+					if data[area][xx] != payload[area][xx]: 
 						ok = False
 						break
 
@@ -8994,10 +9039,11 @@ class Plugin(indigo.PluginBase):
 			out +=u"   uniFiAP                         Protect Camera devices      END   =============================================================================================================================  \n"  
 
 			self.indiLOG.log(20,out)
-
+			valuesDict[u"msg"] = u"printed"
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return valuesDict
 
 	###########################################
 	####------ camera PROTEC ---	-------END
