@@ -24,6 +24,7 @@ import copy
 import json
 import requests
 import inspect
+from checkIndigoPluginName import checkIndigoPluginName 
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -143,33 +144,8 @@ class Plugin(indigo.PluginBase):
 
 	####----------------- @ startup set global parameters, create directories etc ---------
 	def startup(self):
-		if self.pathToPlugin.find(u"/"+self.pluginName+".indigoPlugin/")==-1:
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"The pluginname is not correct, please reinstall or rename")
-				self.errorLog(u"It should be   /Libray/....../Plugins/"+self.pluginName+".indigPlugin")
-				p=max(0,self.pathToPlugin.find(u"/Contents/Server"))
-				self.errorLog(u"It is: "+self.pathToPlugin[:p])
-				self.errorLog(u"please check your download folder, delete old *.indigoPlugin files or this will happen again during next update")
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.errorLog(u"---------------------------------------------------------------------------------------------------------------" )
-				self.sleep(100000)
-				self.quitNOW="wrong plugin name"
-				return
-
-		if not self.checkPluginPath(self.pluginName,  self.pathToPlugin):
-			exit()
+		if not checkIndigoPluginName(self, indigo): 
+			exit() 
 
 		if not self.moveToIndigoPrefsDir(self.indigoPluginDirOld, self.indigoPreferencesPluginDir):
 			exit()
@@ -5464,6 +5440,17 @@ class Plugin(indigo.PluginBase):
 
 		self.pluginState   = "run"
 
+		waitBeforeStart = 1
+		addtoWait = 1.5
+
+		self.consumeDataThread = {u"log":{},u"dict":{}}
+		self.consumeDataThread[u"log"][u"status"]  = u"run"
+		self.consumeDataThread[u"log"][u"thread"]  = threading.Thread(name=u'comsumeLogData', target=self.comsumeLogData)
+		self.consumeDataThread[u"log"][u"thread"].start()
+		self.consumeDataThread[u"dict"][u"status"] = u"run"
+		self.consumeDataThread[u"dict"][u"thread"] = threading.Thread(name=u'comsumeDictData', target=self.comsumeDictData)
+		self.consumeDataThread[u"dict"][u"thread"].start()
+
 
 
 		if self.cameraSystem == "nvr":
@@ -5476,13 +5463,13 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,u"..setup NVR -3 saveCameraEventsStatus")
 			self.saveCameraEventsStatus=True; self.saveCamerasStats(force=False)
 
-
 				### start video logfile listening
+			waitBeforeStart += addtoWait
 			self.trVDLog = ""
 			self.indiLOG.log(10,u"..starting threads for VIDEO NVR log event capture")
-			self.trVDLog  = threading.Thread(name=u'getMessages-VD-log', target=self.getMessages, args=(self.ipNumbersOf[u"VD"],0,u"VDtail",500,))
+			self.trVDLog  = threading.Thread(name=u'getMessages-VD-log', target=self.getMessages, args=(self.ipNumbersOf[u"VD"],0,u"VDtail",waitBeforeStart,))
 			self.trVDLog.start()
-			self.sleep(0.2)
+			self.sleep(addtoWait)
 
 		self.lastRefreshProtect  = 0
 
@@ -5494,25 +5481,17 @@ class Plugin(indigo.PluginBase):
 			self.protectThread[u"status"]  = u"run"
 			self.protectThread[u"thread"]  = threading.Thread(name=u'get-protectevents', target=self.getProtectEvents)
 			self.protectThread[u"thread"].start()
+			self.sleep(addtoWait)
 
 
 
 		self.getcontrollerDBForClients()
 
-		self.consumeDataThread = {u"log":{},u"dict":{}}
-		self.consumeDataThread[u"log"][u"status"]  = u"run"
-		self.consumeDataThread[u"log"][u"thread"]  = threading.Thread(name=u'comsumeLogData', target=self.comsumeLogData)
-		self.consumeDataThread[u"log"][u"thread"].start()
-		self.consumeDataThread[u"dict"][u"status"] = u"run"
-		self.consumeDataThread[u"dict"][u"thread"] = threading.Thread(name=u'comsumeDictData', target=self.comsumeDictData)
-		self.consumeDataThread[u"dict"][u"thread"].start()
-
 		try:
 			self.trAPLog  = {}
 			self.trAPDict = {}
-			nsleep= 1
 			if self.numberOfActive[u"AP"] > 0:
-				self.indiLOG.log(10,u"..starting threads for {} APs,  {} sec apart (MSG-log and db-DICT)".format(self.numberOfActive[u"AP"],nsleep) )
+				self.indiLOG.log(10,u"..starting threads for {} APs,  (MSG-log and db-DICT)".format(self.numberOfActive[u"AP"]) )
 				for ll in range(_GlobalConst_numberOfAP):
 					if self.devsEnabled[u"AP"][ll]:
 						if (self.unifiControllerType == "UDM" or self.controllerWebEventReadON > 0) and ll == self.numberForUDM[u"AP"]: continue
@@ -5520,12 +5499,12 @@ class Plugin(indigo.PluginBase):
 						self.broadcastIP = ipn
 						if self.decideMyLog(u"Logic"): self.indiLOG.log(10,u"START: AP Thread # {}   {}".format(ll, ipn) )
 						if self.connectParams[u"commandOnServer"][u"APtail"].find(u"off") ==-1: 
-							self.trAPLog[unicode(ll)] = threading.Thread(name=u'getMessages-AP-log-'+unicode(ll), target=self.getMessages, args=(ipn,ll,u"APtail",float(self.readDictEverySeconds[u"AP"])*2,))
+							waitBeforeStart +=addtoWait
+							self.trAPLog[unicode(ll)] = threading.Thread(name=u'getMessages-AP-log-'+unicode(ll), target=self.getMessages, args=(ipn,ll,u"APtail",waitBeforeStart,))
 							self.trAPLog[unicode(ll)].start()
-							self.sleep(nsleep)
-						self.trAPDict[unicode(ll)] = threading.Thread(name=u'getMessages-AP-dict-'+unicode(ll), target=self.getMessages, args=(ipn,ll,u"APdict",float(self.readDictEverySeconds[u"AP"])*2,))
+						waitBeforeStart +=addtoWait
+						self.trAPDict[unicode(ll)] = threading.Thread(name=u'getMessages-AP-dict-'+unicode(ll), target=self.getMessages, args=(ipn,ll,u"APdict",waitBeforeStart,))
 						self.trAPDict[unicode(ll)].start()
-						self.sleep(nsleep)
 
 
 		except	Exception, e:
@@ -5541,10 +5520,11 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,u"..starting threads for GW (MSG-log and db-DICT)")
 			self.broadcastIP = self.ipNumbersOf[u"GW"]
 			if self.connectParams[u"enableListener"][u"GWtail"]: 
-				self.trGWLog  = threading.Thread(name=u'getMessages-UGA-log', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"GWtail",float(self.readDictEverySeconds[u"GW"])*2,))
+				waitBeforeStart +=addtoWait
+				self.trGWLog  = threading.Thread(name=u'getMessages-UGA-log', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"GWtail",waitBeforeStart,))
 				self.trGWLog.start()
-				self.sleep(1)
-			self.trGWDict = threading.Thread(name=u'getMessages-UGA-dict', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"GWdict",float(self.readDictEverySeconds[u"GW"])*2,))
+			waitBeforeStart +=addtoWait
+			self.trGWDict = threading.Thread(name=u'getMessages-UGA-dict', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"GWdict",waitBeforeStart,))
 			self.trGWDict.start()
 
 
@@ -5553,13 +5533,15 @@ class Plugin(indigo.PluginBase):
 		if self.devsEnabled[u"UD"]:
 			self.indiLOG.log(10,u"..starting threads for UDM  (db-DICT)")
 			self.broadcastIP = self.ipNumbersOf[u"UD"]
-			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"UDdict",float(self.readDictEverySeconds[u"UD"])*2,))
+			waitBeforeStart +=addtoWait
+			self.trUDDict = threading.Thread(name=u'getMessages-UDM-dict', target=self.getMessages, args=(self.ipNumbersOf[u"GW"],0,u"UDdict",waitBeforeStart,))
 			self.trUDDict.start()
 			# 2.  this  runs every xx secs  http get data 
 			try:
 				self.trWebApiEventlog  = ""
 				if self.controllerWebEventReadON > 0:
-					self.trWebApiEventlog = threading.Thread(name=u'controllerWebApilogForUDM', target=self.controllerWebApilogForUDM, args=(0, ))
+					waitBeforeStart +=addtoWait
+					self.trWebApiEventlog = threading.Thread(name=u'controllerWebApilogForUDM', target=self.controllerWebApilogForUDM, args=(waitBeforeStart, ))
 					self.trWebApiEventlog.start()
 			except	Exception, e:
 				if unicode(e).find(u"None") == -1:
@@ -5569,26 +5551,20 @@ class Plugin(indigo.PluginBase):
 				return False
 
 
-
 		try:
 			self.trSWLog = {}
 			self.trSWDict = {}
 			if self.numberOfActive[u"SW"] > 0:
-				minCheck = float(self.readDictEverySeconds[u"SW"])*2.
-				if self.numberOfActive[u"SW"] > 1:
-					minCheck = 2.* float(self.readDictEverySeconds[u"SW"]) / self.numberOfActive[u"SW"]
-				else:
-					minCheck = 2.* float(self.readDictEverySeconds[u"SW"])
-				self.indiLOG.log(10,u"..starting threads for {} SWs {} sec apart (db-DICT only)".format(self.numberOfActive[u"SW"],nsleep) )
+				self.indiLOG.log(10,u"..starting threads for {} SWs (db-DICT only)".format(self.numberOfActive[u"SW"]) )
 				for ll in range(_GlobalConst_numberOfSW):
 					if self.devsEnabled[u"SW"][ll]:
-						self.sleep(1.)
 						if self.unifiControllerType.find(u"UDM") > -1 and ll == self.numberForUDM[u"SW"]: continue
 						ipn = self.ipNumbersOf[u"SW"][ll]
 						if self.decideMyLog(u"Logic"): self.indiLOG.log(10,u"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM[u"SW"], ipn, self.unifiControllerType))
 	 #					 self.trSWLog[unicode(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds[u"SW"]*2,))
 	 #					 self.trSWLog[unicode(ll)].start()
-						self.trSWDict[unicode(ll)] = threading.Thread(name=u'getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, u"SWdict",minCheck,))
+						waitBeforeStart +=addtoWait
+						self.trSWDict[unicode(ll)] = threading.Thread(name=u'getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, u"SWdict",waitBeforeStart,))
 						self.trSWDict[unicode(ll)].start()
 
 		except	Exception, e:
@@ -7120,11 +7096,12 @@ class Plugin(indigo.PluginBase):
 
 	### UDM log tracking
 	####-----------------	 ---------
-	def controllerWebApilogForUDM(self, dummy):
+	def controllerWebApilogForUDM(self, waitBeforeStart):
 
 		try:
 			lastRecordTime	= 0
 			lastRead   		= 0
+			time.sleep(min(1,waitBeforeStart))
 			self.indiLOG.log(10,u"ctlWebUDM: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
 			nRecordsToRetriveDefault 	= 25
 			lastRecIds					= []
@@ -7425,12 +7402,13 @@ class Plugin(indigo.PluginBase):
 
 	### here we do the work, setup the logfiles listening and read the logfiles and check if everything is running, if not restart
 	####-----------------	 ---------
-	def getMessages(self, ipNumber, apN, uType, repeatRead):
+	def getMessages(self, ipNumber, apN, uType, waitAtStart):
 
 		apnS = unicode(apN)
 		self.addTypeToDataStats(ipNumber, apnS, uType)
 		self.msgListenerActive[uType] = time.time() - 200
 		try:
+			self.sleep(max(1.,min(40, waitAtStart )))
 			startErrorCount 			= 0
 			unifiDeviceType 			= uType[0:2]
 			combinedLines				= ""
@@ -7444,13 +7422,8 @@ class Plugin(indigo.PluginBase):
 			lastRestartCheck			= time.time()
 			newDataStartTime			= time.time()
 			newlinesFromServer			= ""
-			if repeatRead < 0:
-				minWaitbeforeRestart 	= 9999999999999999
-			else:
-				minWaitbeforeRestart	= 130. #max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
+			minWaitbeforeRestart		= 135. #max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
 			lastOkRestart				= time.time()
-
-			self.sleep(max(0.5,min(6,float(apN)/2.)))
 
 			self.testServerIfOK(ipNumber,uType)
 			if uType.find("tail") > -1:
@@ -7542,7 +7515,7 @@ class Plugin(indigo.PluginBase):
 				consumeDataTime -= time.time()
 				if consumeDataTime < -1:
 					if  self.decideMyLog(u"Special"): 
-						self.indiLOG.log(10,u"getMessages: consume data needed > 10 secc;  {}-{}-{}; DT:{:.1f}[sec] len(MSG):{:} lastMSG:{:}".format(uType, ipNumber, apnS,-consumeDataTime,len(lastMSG), lastMSG[-100:].replace("\r","")) )
+						self.indiLOG.log(10,u"getMessages: consume data needed  {:.1f}[secs] for data form  {:}-{:}-{:}; len(MSG):{:} lastMSG:{:}".format(-consumeDataTime, uType, ipNumber, apnS,len(lastMSG), lastMSG[-100:].replace("\r","")) )
 					msgSleep = 0
 
 				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
@@ -8147,7 +8120,7 @@ class Plugin(indigo.PluginBase):
 					consumedTime -= time.time()
 					if consumedTime < -3.0: logLevel = 20
 					else:					logLevel = 10
-					if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTime < -0.4) :
+					if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTime < -2) :
 						self.indiLOG.log(logLevel,u"comsumeLogData    excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 					self.logQueue.task_done()
@@ -8159,7 +8132,7 @@ class Plugin(indigo.PluginBase):
 				consumedTimeQueue -= time.time()
 				if consumedTimeQueue < -5.0: logLevel = 20
 				else:						 logLevel = 10
-				if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTimeQueue < -0.6) :
+				if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTimeQueue < -2) :
 					self.indiLOG.log(logLevel,u"comsumeLogData  T excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 
@@ -9726,8 +9699,8 @@ class Plugin(indigo.PluginBase):
 				if self.pluginState == "stop" or self.consumeDataThread[u"dict"][u"status"] == u"stop": 
 					self.indiLOG.log(30,u"comsumeDictData: stopping process due to stop request")
 					return 
-				consumedTimeQueue = time.time()
 				self.sleep(0.1)
+				consumedTimeQueue = time.time()
 				while not self.logQueueDict.empty():
 					if self.pluginState == "stop" or self.consumeDataThread[u"dict"][u"status"] == u"stop": 
 						self.indiLOG.log(30,u"comsumeDictData: stopping process due to stop request")
@@ -9741,7 +9714,7 @@ class Plugin(indigo.PluginBase):
 					if consumedTime < -3.0:	logLevel = 20
 					else:					logLevel = 10
 					if logLevel == 20 or (self.decideMyLog(u"Special")  and consumedTime < -.4):
-						self.indiLOG.log(logLevel,u"comsumeDictData   excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  next:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
+						self.indiLOG.log(logLevel,u"comsumeDictData   excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
 
 					self.logQueueDict.task_done()
 
@@ -9752,7 +9725,7 @@ class Plugin(indigo.PluginBase):
 				if consumedTimeQueue < -5.0:	logLevel = 20
 				else:							logLevel = 10
 				if logLevel == 20  or (self.decideMyLog(u"Special")  and consumedTimeQueue < -.6):
-					self.indiLOG.log(logLevel,u"comsumeDictData T excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  next:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
+					self.indiLOG.log(logLevel,u"comsumeDictData T excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
 	
 			except	Exception, e:
 				if unicode(e).find(u"None") == -1:
@@ -12359,25 +12332,6 @@ class Plugin(indigo.PluginBase):
 		self.executeUpdateStatesList()
 		return
 
-########################################
-########################################
-####----checkPluginPath----
-########################################
-########################################
-	####------ --------
-	def checkPluginPath(self, pluginName, pathToPlugin):
-
-		if self.pathToPlugin.find(u"/" + self.pluginName + ".indigoPlugin/") == -1:
-			self.errorLog(u"--------------------------------------------------------------------------------------------------------------")
-			self.errorLog(u"The pluginName is not correct, please reinstall or rename")
-			self.errorLog(u"It should be   /Libray/....../Plugins/" + pluginName + ".indigoPlugin")
-			p = max(0, pathToPlugin.find(u"/Contents/Server"))
-			self.errorLog(u"It is: " + pathToPlugin[:p])
-			self.errorLog(u"please check your download folder, delete old *.indigoPlugin files or this will happen again during next update")
-			self.errorLog(u"---------------------------------------------------------------------------------------------------------------")
-			self.sleep(100)
-			return False
-		return True
 
 ########################################
 ########################################

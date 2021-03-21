@@ -1,9 +1,11 @@
-changes in V 7.38.353@ 2021-03-19
+changes in V 7.38.355@ 2021-03-21
 ==================  
 1. changed expect script for getting dicts from AP, switch UDMpro
    better timing, should result in much fewer restarts
-2. changed log level for restarts, now only every 3 time level is warning 6 is error
- rest is info / debug  in plugin.log file
+   changed timing of listener starts, so taht hey do not run all at the same time
+2. changed log level for listener restarts, now only every 3rd time level is warning 6th is error
+   rest is  info / debug  in plugin.log file
+
 
 changes in V 7.38.352@ 2021-03-15
 ==================  
@@ -11,7 +13,7 @@ changes in V 7.38.352@ 2021-03-15
 2. now handles overlapping events better eg
    doorbell has motion event and then a doorbell rung event before the motion event ends
    smart detected person or vehicle: it will cretae several events for teh same detection.
-   they are shown in the vaiables
+   they are shown in the variables
 3. handling of orphan events in the plugin that do not create and end event. 
    those would keep the status at eg motion for ever or until when the next event occures 
 4. added some more columns to the camera report
