@@ -1,3 +1,13 @@
+changes in V 7.38.356@ 2021-03-30
+==================  
+1. IMPORTTANT FIX 
+   lastRead state was never updated 
+   also new cameras were not added.
+   the bug was added when I added the door bell
+   dict["lastRing"]/1000 does not work if value is None  (not a doorbell camera)
+   and the exception handling excluded anuything with "None" in its text (that the error condition when the plugin restarts)
+   so the error message never showed
+
 changes in V 7.38.355@ 2021-03-21
 ==================  
 1. changed expect script for getting dicts from AP, switch UDMpro

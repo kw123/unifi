@@ -46,7 +46,7 @@ dataVersion = 2.0
 _GlobalConst_numberOfAP	 = 5
 _GlobalConst_numberOfSW	 = 13
 
-_GlobalConst_numberOfGroups = 20
+_GlobalConst_numberOfGroups = 9
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
 _GlobalConst_dTypes			= [u"UniFi",u"gateway",u"DHCP",u"SWITCH",u"Device-AP",u"Device-SW-5",u"Device-SW-8",u"Device-SW-10",u"Device-SW-11",u"Device-SW-18",u"Device-SW-26",u"Device-SW-52",u"neighbor"]
 _debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"ExpectRET",u"Video",u"Fing",u"BC",u"Ping",u"Protect",u"all",u"Special",u"UDM",u"IgnoreMAC",u"DBinfo"]
@@ -76,7 +76,7 @@ class Plugin(indigo.PluginBase):
 		self.indigoVersion 				= float(major)+float(minor)/10.
 
 
-
+		self.delayedAction				={}
 		self.pluginVersion				= pluginVersion
 		self.pluginId					= pluginId
 		self.pluginName					= pluginId.split(".")[-1]
@@ -453,7 +453,7 @@ class Plugin(indigo.PluginBase):
 		self.debugDevs[u"SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
 
 
-		self.devNeedsUpdate									= []
+		self.devNeedsUpdate									= {}
 
 		self.MACloglist										= {}
 
@@ -807,18 +807,15 @@ class Plugin(indigo.PluginBase):
 				dev.replacePluginPropsOnServer(props)
 
 
-
-
-
 		elif self.pluginState == u"run":
-			self.devNeedsUpdate.append(unicode(dev.id))
+			self.devNeedsUpdate[dev.id] = True
 
 		return
 
 	####-----------------	 ---------
 	def deviceStopComm(self, dev):
 		if	self.pluginState != u"stop":
-			self.devNeedsUpdate.append(unicode(dev.id))
+			self.devNeedsUpdate[dev.id] = True
 			if self.decideMyLog(u"Logic"): self.indiLOG.log(10,u"stopping device:  {}  {}".format(dev.name, dev.id) )
 
 	####-----------------	 ---------
@@ -893,7 +890,7 @@ class Plugin(indigo.PluginBase):
 	def validateDeviceConfigUi(self, valuesDict, typeId, devId):
 		try:
 			if self.decideMyLog(u"Logic"): self.indiLOG.log(10,u"Validate Device dict:, devId:{}  vdict:{}".format(devId,valuesDict) )
-			self.devNeedsUpdate.append(int(devId))
+			self.devNeedsUpdate[int(devId)] = True
 
 			dev = indigo.devices[int(devId)]
 			if u"groupMember" in dev.states:
@@ -904,7 +901,9 @@ class Plugin(indigo.PluginBase):
 							gMembers += group+","
 							self.groupStatusList[group][u"members"][unicode(devId)] = True
 					elif unicode(devId) in	self.groupStatusList[group][u"members"]: del self.groupStatusList[group][u"members"][unicode(devId)]
-				self.updateDevStateGroupMembers(dev,gMembers)
+				if devId not in self.delayedAction:
+					self.delayedAction[devId] = []
+				self.delayedAction[devId].append({u"action":u"updateState", u"state":"groupMember", u"value":gMembers})
 			return (True, valuesDict)
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -5836,6 +5835,7 @@ class Plugin(indigo.PluginBase):
 		## check for expirations etc
 
 		self.checkOnChanges()
+		self.checkOnDelayedActions()
 		self.executeUpdateStatesList()
 
 		if self.quitNow != "": return "break"
@@ -5848,16 +5848,7 @@ class Plugin(indigo.PluginBase):
 
 		if self.quitNow != "": return "break"
 
-
-		if len(self.devNeedsUpdate) > 0:
-			for devId in self.devNeedsUpdate:
-				try:
-					self.setUpDownStateValue(indigo.devices[devId])
-				except:
-					pass
-			self.devNeedsUpdate = []
-			self.saveupDownTimers()
-			self.setGroupStatus(init=True)
+		self.checkOnDevNeedsUpdate()
 
 		self.executeUpdateStatesList()
 		if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
@@ -5954,7 +5945,34 @@ class Plugin(indigo.PluginBase):
 		self.saveupDownTimers()
 		return 
 
+	####-----------------	 ---------
+	def checkOnDelayedActions(self):
+		try:
+			if self.delayedAction == {}: return 
+			for devId in self.delayedAction:
+				for actionDict in self.delayedAction:
+					if actionDict[u"action"] == u"updateState":
+						self.addToStatesUpdateList(devId,vactionDict[u"state"], actionDict[u"value"] )
+			self.delayedAction = {}
+		except	Exception, e:
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return 
 
+
+	####-----------------	 ---------
+	def checkOnDevNeedsUpdate(self):
+		try:
+			if len(self.devNeedsUpdate) == 0: return 
+
+			for devId in self.devNeedsUpdate:
+				self.setUpDownStateValue(indigo.devices[devId])
+			self.devNeedsUpdate = {}
+			self.saveupDownTimers()
+			self.setGroupStatus(init=True)
+
+		except	Exception, e:
+			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return 
 
 	####-----------------	 ---------
 	def saveupDownTimers(self):
@@ -6638,12 +6656,6 @@ class Plugin(indigo.PluginBase):
 
 		self.resetCamerasStats()
 		return
-
-
-	####-----------------	 ---------
-	def getIfinDict(self,inDict, inText, default=""):
-		if inText not in inDict: return default
-		return inDict[inText]
 
 	####------ camera PROTEC ---	-------END
 
@@ -8194,48 +8206,51 @@ class Plugin(indigo.PluginBase):
 				for cameraId in delList:
 					del self.PROTECT[cameraId]
 			
-				if lD == 0 and self.decideMyLog(u"Protect"):
-					self.indiLOG.log(10,u"getProtectIntoIndigo: starting with dev list: {}".format(self.PROTECT))
+				if lD == 0:
+					if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectIntoIndigo: starting with dev list: {}".format(self.PROTECT))
 
 			for camera in systemInfoProtect[u"cameras"]:
 				try:
 					states = {}
-					MAC 										= self.getIfinDict(camera,u"mac",default=u"00:00:00:00:00:00")
+					MAC 										= camera.get(u"mac",u"00:00:00:00:00:00")
 					states[u"MAC"] 								= MAC[0:2]+u":"+MAC[2:4]+u":"+MAC[4:6]+u":"+MAC[6:8]+u":"+MAC[8:10]+u":"+MAC[10:12]
-					states[u"id"] 								= self.getIfinDict(camera,u"id",default=u"0")
-					states[u"name"] 							= self.getIfinDict(camera,u"name")
-					states[u"ip"]		 						= self.getIfinDict(camera,u"host")
-					states[u"status"] 							= self.getIfinDict(camera,u"state")
-					states[u"type"] 							= self.getIfinDict(camera,u"type")
-					states[u"firmwareVersion"] 					= self.getIfinDict(camera,u"firmwareVersion")
-					states[u"isAdopted"] 						= self.getIfinDict(camera,u"isAdopted", default=False)
-					states[u"isConnected"] 						= self.getIfinDict(camera,u"isConnected", default=False)
-					states[u"isManaged"] 						= self.getIfinDict(camera,u"isManaged", default=False)
-					states[u"isDark"] 							= self.getIfinDict(camera,u"isDark", default=False)
-					states[u"hasSpeaker"] 						= self.getIfinDict(camera,u"hasSpeaker", default=False)
-					states[u"isSpeakerEnabled"] 				= self.getIfinDict(camera[u"speakerSettings"],u"isEnabled", default=False)
-					states[u"isExternalIrEnabled"] 				= self.getIfinDict(camera[u"ispSettings"],u"isExternalIrEnabled", default=False)
-					states[u"irLedMode"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedMode")
-					states[u"irLedLevel"] 						= self.getIfinDict(camera[u"ispSettings"],u"irLedLevel")
-					states[u"icrSensitivity"] 					= mapSensToLevel[self.getIfinDict(camera[u"ispSettings"],u"icrSensitivity")]
-					states[u"isLedEnabled"] 					= self.getIfinDict(camera[u"ledSettings"],u"isEnabled")
-					states[u"speakerVolume"] 					= int(self.getIfinDict(camera[u"speakerSettings"],u"volume", default=100))
-					states[u"areSystemSoundsEnabled"] 			= self.getIfinDict(camera[u"speakerSettings"],u"areSystemSoundsEnabled", default=False)
-					states[u"micVolume"] 						= int(self.getIfinDict(camera,u"micVolume", default=100))
-					states[u"lcdMessage"] 						= self.getIfinDict(camera[u"lcdMessage"],u"text")
-					states[u"modelKey"] 						= self.getIfinDict(camera,u"modelKey")
-					states[u"motionRecordingMode"] 				= self.getIfinDict(camera[u"recordingSettings"], u"mode")
-					states[u"motionMinEventTrigger"] 			= self.getIfinDict(camera[u"recordingSettings"], u"minMotionEventTrigger")
-					states[u"motionSuppressIlluminationSurge"] 	= self.getIfinDict(camera[u"recordingSettings"], u"suppressIlluminationSurge")
-					states[u"motionUseNewAlgorithm"] 			= self.getIfinDict(camera[u"recordingSettings"], u"useNewMotionAlgorithm")
-					states[u"motionAlgorithm"] 					= self.getIfinDict(camera[u"recordingSettings"], u"motionAlgorithm", default="-")
-					states[u"motionEndEventDelay"] 				= float(self.getIfinDict(camera[u"recordingSettings"], u"endMotionEventDelay"))/1000.
-					states[u"motionPostPaddingSecs"] 			= float(self.getIfinDict(camera[u"recordingSettings"], u"postPaddingSecs"))
-					states[u"motionPrePaddingSecs"] 			= float(self.getIfinDict(camera[u"recordingSettings"], u"prePaddingSecs"))
-					states[u"lastSeen"] 		= datetime.datetime.fromtimestamp(camera[u"lastSeen"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
-					states[u"lastRing"] 		= datetime.datetime.fromtimestamp(camera[u"lastRing"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
-					states[u"connectedSince"] 	= datetime.datetime.fromtimestamp(camera[u"connectedSince"]/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
-					#self.indiLOG.log(10,u"camid {}  states {}".format( states[u"id"] , states))
+					states[u"id"] 								= camera.get(u"id",u"0")
+					states[u"name"] 							= camera.get(u"name")
+					states[u"ip"]		 						= camera.get(u"host")
+					states[u"status"] 							= camera.get(u"state")
+					states[u"type"] 							= camera.get(u"type")
+					states[u"firmwareVersion"] 					= camera.get(u"firmwareVersion")
+					states[u"isAdopted"] 						= camera.get(u"isAdopted",False)
+					states[u"isConnected"] 						= camera.get(u"isConnected",False)
+					states[u"isManaged"] 						= camera.get(u"isManaged",False)
+					states[u"isDark"] 							= camera.get(u"isDark",False)
+					states[u"hasSpeaker"] 						= camera.get(u"hasSpeaker",False)
+					states[u"modelKey"] 						= camera.get(u"modelKey")
+					states[u"lcdMessage"] 						= camera[u"lcdMessage"].get(u"text")
+					states[u"isSpeakerEnabled"] 				= camera[u"speakerSettings"].get(u"isEnabled",False)
+					states[u"isExternalIrEnabled"] 				= camera[u"ispSettings"].get(u"isExternalIrEnabled",False)
+					states[u"irLedMode"] 						= camera[u"ispSettings"].get(u"irLedMode")
+					states[u"irLedLevel"] 						= camera[u"ispSettings"].get(u"irLedLevel")
+					states[u"isLedEnabled"] 					= camera[u"ledSettings"].get(u"isEnabled")
+					states[u"motionRecordingMode"] 				= camera[u"recordingSettings"].get(u"mode")
+					states[u"motionMinEventTrigger"] 			= camera[u"recordingSettings"].get(u"minMotionEventTrigger")
+					states[u"motionSuppressIlluminationSurge"] 	= camera[u"recordingSettings"].get(u"suppressIlluminationSurge")
+					states[u"motionUseNewAlgorithm"] 			= camera[u"recordingSettings"].get(u"useNewMotionAlgorithm")
+					states[u"motionAlgorithm"] 					= camera[u"recordingSettings"].get(u"motionAlgorithm","-")
+					states[u"areSystemSoundsEnabled"] 			= camera[u"speakerSettings"].get(u"areSystemSoundsEnabled",False)
+					states[u"speakerVolume"] 					= int(camera[u"speakerSettings"].get(u"volume",100))
+					states[u"micVolume"] 						= int(camera.get(u"micVolume",100))
+					states[u"icrSensitivity"] 					= mapSensToLevel[camera[u"ispSettings"].get(u"icrSensitivity")]
+					states[u"motionEndEventDelay"] 				= float(camera[u"recordingSettings"].get(u"endMotionEventDelay"))/1000.
+					states[u"motionPostPaddingSecs"] 			= float(camera[u"recordingSettings"].get( u"postPaddingSecs"))
+					states[u"motionPrePaddingSecs"] 			= float(camera[u"recordingSettings"].get( u"prePaddingSecs"))
+					# ret might be "None"
+					try:	states[u"lastSeen"] 				= datetime.datetime.fromtimestamp(camera.get(u"lastSeen",0)/1000.,0).strftime(u"%Y-%m-%d %H:%M:%S")
+					except:	states[u"lastSeen"] 				= ""
+					try:	states[u"connectedSince"] 			= datetime.datetime.fromtimestamp(camera.get(u"connectedSince",0)/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+					except:	states[u"connectedSince"] 			= ""
+					try:	states[u"lastRing"] 				= datetime.datetime.fromtimestamp(camera.get(u"lastRing",0)/1000.).strftime(u"%Y-%m-%d %H:%M:%S")
+					except:	states[u"lastRing"] 				= ""
 					devId = -1
 					dev = ""
 					if states[u"id"] not in self.PROTECT:
@@ -8254,6 +8269,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								)
 							devId = dev.id
+							if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"adding  {} to PROTEC list ip:{}".format( dev.name, states[u"ip"]))
 							self.PROTECT[states[u"id"]] = {u"events":{}, u"devId":devId, u"devName":dev.name, u"MAC":states[u"MAC"] , "lastUpdate":time.time()}
 						except	Exception, e:
 							errtext = unicode(e)
@@ -8281,7 +8297,7 @@ class Plugin(indigo.PluginBase):
 
 					if dev != "":
 						for state in states:
-							#self.indiLOG.log(10,u"checking dev {} state:{} := {}".format(dev.name, state, states[state]))
+							#if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"checking dev {} state:{} := {}".format(dev.name, state, states[state]))
 							if dev.states[state] != states[state]:
 								self.addToStatesUpdateList(devId, state, states[state])
 
@@ -8300,10 +8316,9 @@ class Plugin(indigo.PluginBase):
 
 
 				except	Exception, e:
-					if unicode(e).find(u"None") == -1:
-						self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+					self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
-				# cleanup old devices not used
+			# cleanup old devices not used
 			if time.time() - self.lastRefreshProtect < 300:
 				delList = {}
 				for cameraId in self.PROTECT:
@@ -8316,12 +8331,16 @@ class Plugin(indigo.PluginBase):
 						del self.PROTECT[cameraId][u"events"][eventID]
 
 					if self.PROTECT[cameraId][u"lastUpdate"] > 24*3600: # we have received no update in > 24 hour 
-						try: 	dev = indigo.devices[self.PROTECT[states[u"id"]][u"devId"]]
-						except:	delList[cameraId] =1
+						try: 	dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
+						except:	
+							if unicode(e).find(u"timeout waiting") == -1: 
+								delList[cameraId] =1
 
 				for cameraId in delList:
-					self.indiLOG.log(30,u"removing cameraId: {} from internal list:{} ,after > 24 hours w not activity and indigo dev does not exists either".format(cameraId, self.PROTECT[states[u"id"]]))
-					del self.PROTECT[cameraId]
+					self.indiLOG.log(30,u"removing cameraId: {} after > 24 hours w not activity and indigo dev does not exists either".format(cameraId))
+					if cameraId in self.PROTECT: 
+						self.indiLOG.log(30,u"... internal list:{}".format(self.PROTECT[cameraId]))
+						del self.PROTECT[cameraId]
 
 			self.executeUpdateStatesList()
 			self.lastRefreshProtect  = time.time()
