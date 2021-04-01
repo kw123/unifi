@@ -176,26 +176,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			</Field>
 
 			<Field id="unifi-sep-04" type="separator"/>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
-
-
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 		</ConfigUI>
 
@@ -797,15 +793,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 		</ConfigUI>
 
 		<States>
@@ -1063,15 +1066,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 		</ConfigUI>
 
 		<States>
@@ -1215,15 +1225,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -1663,15 +1680,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 		</ConfigUI>
 
@@ -1964,24 +1988,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -2182,7 +2204,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-16">
-			<Name>Device-SW-18</Name>
+			<Name>Device-SW-16</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -2224,24 +2246,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -2432,7 +2452,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-14">
-			<Name>Device-SW-18</Name>
+			<Name>Device-SW-14</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -2474,24 +2494,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -2673,7 +2691,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-12">
-			<Name>Device-SW-18</Name>
+			<Name>Device-SW-12</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -2715,24 +2733,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -2941,24 +2957,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -3158,24 +3172,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -3371,24 +3383,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -3525,7 +3535,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-7">
-			<Name>Device-SW-8</Name>
+			<Name>Device-SW-7</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -3567,24 +3577,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -3717,7 +3725,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-6">
-			<Name>Device-SW-8</Name>
+			<Name>Device-SW-6</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -3759,24 +3767,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -3946,24 +3952,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -4087,7 +4091,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 	<Device type="sensor" id="Device-SW-4">
-			<Name>Device-SW-5</Name>
+			<Name>Device-SW-4</Name>
 			<UiDisplayStateId>displayStatus</UiDisplayStateId>
 			<ConfigUI>
 				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
@@ -4129,24 +4133,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -4310,24 +4312,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 
@@ -4515,24 +4515,22 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<Option value="1" >YES send BC, must be enabled in config  </Option>
 				</List>
 			</Field>
-			<Field id="Group0" type="checkbox"	 defaultValue="false"> <Label>Member of group0:</Label>	 </Field>
-			<Field id="Group1" type="checkbox"	 defaultValue="false"> <Label>Member of group1:</Label>	 </Field>
-			<Field id="Group2" type="checkbox"	 defaultValue="false"> <Label>Member of group2:</Label>	 </Field>
-			<Field id="Group3" type="checkbox"	 defaultValue="false"> <Label>Member of group3:</Label>	 </Field>
-			<Field id="Group4" type="checkbox"	 defaultValue="false"> <Label>Member of group5:</Label>	 </Field>
-			<Field id="Group6" type="checkbox"	 defaultValue="false"> <Label>Member of group6:</Label>	 </Field>
-			<Field id="Group7" type="checkbox"	 defaultValue="false"> <Label>Member of group7:</Label>	 </Field>
-			<Field id="Group8" type="checkbox"	 defaultValue="false"> <Label>Member of group8:</Label>	 </Field>
-			<Field id="Group9" type="checkbox"	 defaultValue="false"> <Label>Member of group9:</Label>	 </Field>
-			<Field id="Group10" type="checkbox"	 defaultValue="false"> <Label>Member of group10:</Label>  </Field>
-			<Field id="Group11" type="checkbox"	 defaultValue="false"> <Label>Member of group11:</Label>  </Field>
-			<Field id="Group12" type="checkbox"	 defaultValue="false"> <Label>Member of group12:</Label>  </Field>
-			<Field id="Group13" type="checkbox"	 defaultValue="false"> <Label>Member of group13:</Label>  </Field>
-			<Field id="Group14" type="checkbox"	 defaultValue="false"> <Label>Member of group15:</Label>  </Field>
-			<Field id="Group16" type="checkbox"	 defaultValue="false"> <Label>Member of group16:</Label>  </Field>
-			<Field id="Group17" type="checkbox"	 defaultValue="false"> <Label>Member of group17:</Label>  </Field>
-			<Field id="Group18" type="checkbox"	 defaultValue="false"> <Label>Member of group18:</Label>  </Field>
-			<Field id="Group19" type="checkbox"	 defaultValue="false"> <Label>Member of group19:</Label>  </Field>
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 
 			</ConfigUI>
 

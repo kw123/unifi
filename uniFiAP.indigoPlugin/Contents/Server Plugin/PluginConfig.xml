@@ -141,13 +141,38 @@
 		<Label> .. variables:</Label>  
 	</Field>
 
+
+
+	<Field id="infoLabelGroup" 			type="label"> 
+		<Label>----  group names for devices</Label>  
+	</Field>
+	<Field id="Group0"     	type="textfield"  defaultValue="Group0"    >  <Label> .. Group 0 Name:</Label>  </Field>
+	<Field id="Group1"     	type="textfield"  defaultValue="Group1"    >  <Label> .. Group 1 Name:</Label>  </Field>
+	<Field id="Group2"     	type="textfield"  defaultValue="Group2"    >  <Label> .. Group 2 Name:</Label>  </Field>
+	<Field id="Group3"     	type="textfield"  defaultValue="Group3"    >  <Label> .. Group 3 Name:</Label>  </Field>
+	<Field id="Group4"     	type="textfield"  defaultValue="Group4"    >  <Label> .. Group 4 Name:</Label>  </Field>
+	<Field id="Group5"     	type="textfield"  defaultValue="Group5"    >  <Label> .. Group 5 Name:</Label>  </Field>
+	<Field id="Group6"     	type="textfield"  defaultValue="Group6"    >  <Label> .. Group 6 Name:</Label>  </Field>
+	<Field id="Group7"     	type="textfield"  defaultValue="Group7"    >  <Label> .. Group 7 Name:</Label>  </Field>
+	<Field id="infoLabelinfoLabelGroup" 		type="label" 			 alignWithControl="true"  fontSize="small" fontColor="darkgrey"> 
+		<Label>For each group 3 variables will be created in the unifi variables folder 
+ Unifi_Count_grpname_Home
+ Unifi_Count_grpname_Away
+ Unifi_Count_grpname_lastChange
+You can add devices to a group (in device edit or do a mass change in menu manage groups) and trigger on any change variable UniFi_Count_groupname_Home  / Away  value ==0 or max or 1
+ 0= non home / away, 
+ 0 to 1= one home/ away, 
+ max = all home / away 
+Or trigger on any change in variable ..lastChange to check if anything device from that group came home or left</Label>  
+	</Field>
+
 	<Field id="simpleSeparatorUIDs" 			type="separator"/>
 
 	<Field id="infoLabelUID" 				type="label"> 
 		<Label>== user IDs for systems (leave empty if not used), no ' " GT LT | # in your passwords!! </Label> 
 	</Field>
 
-	<Field id="infoLabelDifferentUIDs" 		type="label" 			visibleBindingId="unifiCloudKeyMode"   fontSize="small" fontColor="darkgrey"> 
+	<Field id="infoLabelDifferentUIDs" 		type="label"   fontSize="small" fontColor="darkgrey"> 
 		<Label>.           There can be several sets of UID-password - They can all be the same depending on YOUR setup on the controller
 .           1. the UID-password  you use to login via web browser (http) to your UniFi controller
 .           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
@@ -170,7 +195,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>... Use strict:true option for login to CONTROLLER webpage</Label>
 	 </Field>
 
-	<Field id="infoLabelstrict" 			type="label" 			visibleBindingId="unifiCloudKeyMode"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="infoLabelstrict" 			type="label" 		 alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>This option might be needed for UDM non pro depending on config/setup/version</Label>  
 	</Field>
 

@@ -13,7 +13,7 @@
 				<Field id="simpleSeparator1" type="separator"/>
 
 				<Field id="confirmprintAllMACs" type="button" tooltip="a lot of lines !! " >
-					<Label>Print All info for all MAC numbers</Label>
+					<Label>PRINT All info for all MAC numbers</Label>
 					<Title>PRINT</Title> <CallbackMethod>buttonprintALLMACsCALLBACK</CallbackMethod>
 				</Field>
 
@@ -34,6 +34,11 @@
 				<Field id="confirmStartLogging" type="button" tooltip="this gets reset after restart of the plugin" >
 					<Label>Click to</Label>
 					<Title>PRINT</Title> <CallbackMethod>buttonConfirmPrintMACCALLBACK</CallbackMethod>
+				</Field>
+				<Field id="simpleSeparator4" type="separator"/>
+				<Field id="printGroups" type="button"> 
+					<Label>PRINT Groups </Label> 
+					<Title>PRINT</Title><CallbackMethod>printGroupsCALLBACK</CallbackMethod>
 				</Field>
 
 		</ConfigUI>
@@ -382,18 +387,10 @@ it will make the plugin restart </Label>
 
 
 
-	<MenuItem id="addToGroups">
-		<Name>Groups ... Manage</Name>
+	<MenuItem id="ManageGroupsTypes">
+		<Name>Groups ... Manage device types</Name>
 		<ConfigUI>
-				<Field id="printGroups" type="button"> 
-					<Label>PRINT Groups </Label> 
-					<Title>CONFIRM </Title><CallbackMethod>printGroupsCALLBACK</CallbackMethod>
-				</Field>
-
-				<Field id="simpleSeparator00" type="separator"/>
-
-				<Field id="simpleSeparator01" type="separator"/>
-			<Field id="labeladdremovetypes" type="label"> <Label>ADD or remove devices types from to groups:</Label>  </Field>
+			<Field id="labeladdremovetypes" type="label"> <Label>ADD or remove devices TYPES from to groups:</Label>  </Field>
 			<Field	   id="addRemoveGroupsWhichDevice" type="menu" defaultValue="system">
 				<Label>select which type of device:</Label>
 				 <List>
@@ -407,6 +404,7 @@ it will make the plugin restart </Label>
 				<Label>select which Group you want to add to / remove from:</Label>
 				<List class="self" filter="" method="filterGroupNoName"	 dynamicReload="false"/>
 			</Field>
+
 			<Field	  id="confirmnameSW" type="button" tooltip="" >
 				<Label>Click to add</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmAddDevGroupCALLBACK</CallbackMethod>
 			</Field>
@@ -414,10 +412,14 @@ it will make the plugin restart </Label>
 				<Label>Click to remove</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmRemDevGroupCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field id="simpleSeparator10" type="separator"/>
+		</ConfigUI>
+	</MenuItem>
 
-			<Field id="simpleSeparator11" type="separator"/>
-			<Field id="labeladdremove01" type="label"> <Label>ADD or remove individual devices from to groups:</Label>	</Field>
+
+	<MenuItem id="ManageGroupsIndividual">
+		<Name>Groups ... Manage individual devices</Name>
+		<ConfigUI>
+			<Field id="labeladdremove01" type="label"> <Label>ADD or RENMOVE individual devices to from groups:</Label>	</Field>
 
 			<Field id="selectedGroup" type="menu" defaultValue="">
 				<Label>select which GROUP:</Label>
@@ -428,32 +430,39 @@ it will make the plugin restart </Label>
 				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmgroupCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator30" type="separator"/>
-			<Field id="labeladdremove32" type="label"> <Label>REMOVE:</Label>  </Field>
+			<Field id="simpleSeparator31" type="separator"/>
+			<Field id="labeladdremove32" type="label"> <Label>... REMOVE:</Label>  </Field>
 			<Field id="removeALLGroupMembers" type="button" tooltip="" >
-				<Label>Click to	 REMOVE ALL group members</Label>
+				<Label>...A) Click to	 REMOVE ALL group members /devices</Label>
 				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmremoveALLGroupMembersCALLBACK</CallbackMethod>
 			</Field>
+			<Field id="simpleSeparator33" type="separator"/>
 			<Field id="selectedGroupMemberIndigoIdremove" type="menu" tooltip="" >
-				<Label>Click to	 select group MEMBER </Label>
+				<Label>...B)Click to	 select device to remove from group</Label>
 				<List class="self" filter="" method="filterGroupMembers"  dynamicReload="false"/>
 			</Field>
 			<Field id="removeGroupMember" type="button" tooltip="" >
-				<Label>Click to	 REMOVE group member</Label>
+				<Label>...B)Click to	 REMOVE device from group</Label>
 				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmremoveGroupMemberCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator40" type="separator"/>
-			<Field id="labeladdremove42" type="label"> <Label>ADD:</Label>	</Field>
+			<Field id="labeladdremove42" type="label"> <Label>...ADD:</Label>	</Field>
 			<Field id="selectedGroupMemberIndigoIdadd" type="menu" tooltip="" >
-				<Label>Click to	 select group MEMBER to add </Label>
+				<Label>...C)Click to	 select device to add to group</Label>
 				<List class="self" filter="" method="filterDevicesToAddToGroup"	 dynamicReload="false"/>
 			</Field>
 			<Field id="addGroupMember" type="button" tooltip="" >
-				<Label>Click to	 ADD group member</Label>
+				<Label>Click to	 ADD device to group</Label>
 				<Title>CONFIRM </Title> <CallbackMethod>buttonConfirmADDGroupMemberCALLBACK</CallbackMethod>
 			</Field>
 
+<!--
+-->
+
 		</ConfigUI>
 	</MenuItem>
+
+
 	<MenuItem id="dCameras"> <Name>-------------Cameras ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
 	<MenuItem id="CameraActionsNVR">
@@ -493,7 +502,7 @@ it will make the plugin restart </Label>
 
 			<Field id="sendcmdtoCameraNVR" type="label" fontSize="large"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
 			<Field	  id="cameraCmd" type="checkbox"  defaultValue="false"	> <Label>Show Camera commands:</Label>	</Field>
-			<Field	  id="msg" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
+			<Field	  id="MSG" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
 
 			<Field	   id="cameraDeviceSelected" type="menu" defaultValue="" >
 				<Label>1. Select     ==========>     camera device:</Label>
@@ -734,7 +743,7 @@ it will make the plugin restart </Label>
 
 			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
 
-			<Field	  id="msg" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
+			<Field	  id="MSG" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
 			<Field id="simpleSeparatormsg" type="separator"/>
 
 			<Field	  id="confirmProtect" type="button" tooltip="" >
@@ -1137,6 +1146,9 @@ it will make the plugin restart </Label>
 	<MenuItem id="reconnectWiFiClient">
 		<Name>Re-CONNECT a wifi client (kick)</Name>
 		<ConfigUI>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
 			<Field	   id="selectedDevice" type="menu" defaultValue="0">
 				<Label>select client Wifi device:</Label>
 				<List class="self" filter="" method="filterWiFiDevice"	dynamicReload="no"/>
@@ -1150,6 +1162,9 @@ it will make the plugin restart </Label>
 	<MenuItem id="blockClient">
 		<Name>(UN) BLOCK a client</Name>
 		<ConfigUI>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
 			<Field	   id="selectedDevice" type="menu" defaultValue="0">
 				<Label>select UniFi-CLient device:</Label>
 				<List class="self" filter="" method="filterMACunifiOnly"  dynamicReload="no"/>
@@ -1226,6 +1241,9 @@ it will make the plugin restart </Label>
 	<MenuItem id="activateSuspendUnifiDevice">
 		<Name>SUSPEND-ACTIVATE a UniFi system device (effects plugin only)</Name>
 		<ConfigUI>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
 			<Field	id="Label01" type="label"> 
 			<Label> This will make the plugin to ignore that unfi system device, will just not use it or change it </Label> </Field>
 			<Field	   id="selectedDevice" type="menu" defaultValue="0">
@@ -1245,6 +1263,9 @@ it will make the plugin restart </Label>
 	<MenuItem id="APledONoff">
 		<Name>Set AP LEDs ON/off</Name>
 		<ConfigUI>
+			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
+				<Label>MSG from plugin:</Label>
+			</Field>
 			<Field	  id="confirm1" type="button" tooltip="" >
 				<Label>Click to switch all LEDs ON</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmAPledONControllerCALLBACK</CallbackMethod>
 			</Field>

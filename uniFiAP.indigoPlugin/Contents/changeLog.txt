@@ -1,3 +1,28 @@
+changes in V7.39.356@ 2021-04-01
+==================  
+1. - added new schema for groups  
+     There can be up to 8 groups of devices, the names of the groups can be set in config  
+     Each groups counts the number of devices home (up) and away(down/expired)  
+       They are shown as  variables  
+         Unifi_count_groupname_Home  == number of device up  
+         Unifi_count_groupname_Away  = number of devices not up  
+         Unifi_count_groupname_lastChange  = datestamp of last count change  
+     A device can be added/ removed in each devices edit or in menu/manage groups  
+     The manage group option allows to add eg all wifi or lan devices to a group  
+      and you can eg add/remove 10 individual devices on one screen faster than editing 10 devices  
+     There is a a report on the groups, memebers etc in Print parameters  
+   - several device model texts had typos  
+   - various menu cosmetic  changes  
+
+
+2. fixes  
+   - block / unblock wifi devices had a cosmetic error message  
+   - the site id name was always default, now can be set in config (not test)  
+  
+
+
+
+
 changes in V 7.38.356@ 2021-03-30
 ==================  
 1. IMPORTTANT FIX 
