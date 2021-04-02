@@ -346,7 +346,6 @@ class Plugin(indigo.PluginBase):
 		self.sendUpdateToFingscanList						= {}
 		self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
 		self.sendBroadCastEventsList						= []
-		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", "")
 		self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get(u"unifiCloudKeyListOfSiteNames", "[]"))
 		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
 		self.csrfToken 										= ""
@@ -404,7 +403,7 @@ class Plugin(indigo.PluginBase):
 			self.curlPath									= "/usr/bin/curl"
 			self.pluginPrefs[u"curlPath"] 					= self.curlPath
 
-		self.requestOrcurl										= self.pluginPrefs.get(u"requestOrcurl", u"curl")
+		self.requestOrcurl									= self.pluginPrefs.get(u"requestOrcurl", u"curl")
 
 		self.expectPath 									= "/usr/bin/expect"
 
@@ -962,8 +961,8 @@ class Plugin(indigo.PluginBase):
 
 
 			valuesDict[u"GWtailEnable"]				= self.connectParams[u"enableListener"][u"GWtail"]
-			valuesDict[u"refreshCallbackMethod"]	= "setfilterunifiCloudKeyListOfSiteNames"
-			self.refreshCallbackMethodAlreadySet	= "no"
+			valuesDict[u"refreshCallbackMethod"]	= u"setfilterunifiCloudKeyListOfSiteNames"
+			self.refreshCallbackMethodAlreadySet	= u"no"
 
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -1042,7 +1041,14 @@ class Plugin(indigo.PluginBase):
 				rebootRequired								+= u"controller port overwrite changed"
 			self.overWriteControllerPort					= valuesDict[u"overWriteControllerPort"]
 
-			self.unifiCloudKeySiteName						= valuesDict[u"unifiCloudKeySiteName"]
+
+
+			if type("") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
+			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: valuesDict[u"unifiCloudKeySiteName"] = ""
+			if self.unifiCloudKeySiteName != valuesDict[u"unifiCloudKeySiteName"]:
+				self.indiLOG.log(20,u"setting unifiCloudKeySiteName from:>{}<   to:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
+
+			self.unifiCloudKeySiteName = valuesDict[u"unifiCloudKeySiteName"] 
 
 
 			if valuesDict[u"unifiControllerType"] == u"off" or valuesDict[u"unifiCloudKeyMode"] == u"off" or self.connectParams[u"UserID"][u"webCTRL"] == "":
@@ -1055,13 +1061,6 @@ class Plugin(indigo.PluginBase):
 
 			self.unifiControllerType						= valuesDict[u"unifiControllerType"]
 			self.unifiCloudKeyMode							= valuesDict[u"unifiCloudKeyMode"]
-
-
-
-			if type("") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
-			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: valuesDict[u"unifiCloudKeySiteName"] = ""
-			self.unifiCloudKeySiteName = valuesDict[u"unifiCloudKeySiteName"] 
-
 
 
 			self.ignoreNeighborForFing						= valuesDict[u"ignoreNeighborForFing"]
@@ -4410,6 +4409,7 @@ class Plugin(indigo.PluginBase):
 			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 			if self.decideMyLog(u"ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(ret[0]))
 			dbJson, error= self.makeJson2(ret[0], u"XXXXsepXXXXX")
+			outLine = ""
 			if jsonAction == u"print":
 				for xx in keepList:
 					if xx.find(u":") >-1:
@@ -4438,16 +4438,17 @@ class Plugin(indigo.PluginBase):
 																out = u"     static DHCP mappings:\n"
 																for m in range(len(sortMacKey)):
 																	out += sortMacKey[m][0]+" --> "+ sortMacKey[m][1].ljust(20)+u"        " +sortIPKey[m][1].ljust(18)+u"--> "+ sortIPKey[m][2]+u"\n"
-																self.myLog( text= out, mType=u"==== UGA-setup ====")
+																outLine += u"\n==== UGA-setup ==== {}".format(out)
 							else:
-								self.myLog( text=u"    " +xx+u":\n"+json.dumps(short,sort_keys=True,indent=2), mType=u"==== UGA-setup ====")
+								outLine += u"\n==== UGA-setup ====     {}:\n{}".format(xx,json.dumps(short,sort_keys=True,indent=2))
 						else:
-							self.myLog( text=xx+u" not in json returned from UGA ", mType=u"UGA-setup")
+							outLine += u"\n==== UGA-setup ==== {} not in json returned from UGA".format(xx)
 					else:
 						if xx in dbJson:
-							self.myLog( text=u"    " +xx+":\n"+json.dumps(dbJson[xx],sort_keys=True,indent=2), mType=u"==== UGA-setup ====")
+							outLine += u"\n==== UGA-setup ====     {}:\n{}".format(xx,json.dumps(dbJson[xx],sort_keys=True,indent=2))
 						else:
-							self.myLog( text=xx+u" not in json returned from UGA ", mType=u"==== UGA-setup ====")
+							outLine += u"\n==== UGA-setup ====  not in json returned from UGA"
+				self.indiLOG.log(20,outLine)
 			else:
 				return valuesDict
 
@@ -4531,27 +4532,32 @@ class Plugin(indigo.PluginBase):
 	def setunifiCloudKeySiteName(self, method="response", cookies="", headers="" ):
 		try:
 			if method == "response":
-				# curl --insecure -b /tmp/unifiCookie 'https://192.168.1.2:443/proxy/network/api/self/sites'
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
-				textRET	= self.unifiControllerSession.get(urlSite,   cookies=cookies, headers=headers, verify=False).text
+				textRET	= self.unifiControllerSession.get(urlSite, cookies=cookies,  headers=headers, verify=False).text
 				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
-			elif method == "curlPath":
-				# curl --insecure -b /tmp/unifiCookie 'https://192.168.1.2:443/api/self/sites'
-				cmdSite  = self.curlPath+u" --insecure -b /tmp/unifiCookie 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+
+			elif method == "curl":
+				cmdSite  = self.curlPath+u" --insecure  'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+				#cmdSite  = self.curlPath+u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+				if self.decideMyLog(u"ConnectionCMD"):self.indiLOG.log(10,u"setunifiCloudKeySiteName cmd:{}".format(cmdSite))
 				ret = subprocess.Popen(cmdSite, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
 				textRET	= ret[0].decode(u"utf8")
 				ret1 	= ret[1].decode(u"utf8")
 				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
+
 			else:
 				return False
+
+			if self.decideMyLog(u"ConnectionRET"):self.indiLOG.log(10,u"setunifiCloudKeySiteName ret text:{}".format(unicode(textRET)))
 
 			try:
 				dictRET = json.loads(textRET)
 			except :
-				self.indiLOG.log(40,u"setunifiCloudKeySiteName for {} has error, getting site ID, no json object returned: >>{}<<".format(self.unifiCloudKeyIP, textRET))
+				self.indiLOG.log(30,u"setunifiCloudKeySiteName for {} has error, getting site ID, no json object returned: >>{}<<".format(self.unifiCloudKeyIP, unicode(textRET)))
 				self.executeCMDOnControllerReset(wait=True, calledFrom="setunifiCloudKeySiteName1")
 				return False
 		
+				
 			oneFound = False
 			if u"meta" in dictRET and u"rc" in dictRET[u"meta"] and dictRET[u"meta"][u"rc"] == u"ok" and u"data" in dictRET:
 				if len(dictRET[u"data"]) >0:
@@ -4568,7 +4574,7 @@ class Plugin(indigo.PluginBase):
 							self.unifiCloudKeySiteName = self.unifiCloudKeyListOfSiteNames[0]
 						self.pluginPrefs[u"unifiCloudKeySiteName"] = self.unifiCloudKeySiteName 
 
-				self.indiLOG.log(20,u"setunifiCloudKeySiteNamer setting site id name to >>{}<<, list of Names found:{}<".format(self.unifiCloudKeySiteName , self.unifiCloudKeyListOfSiteNames))
+				self.indiLOG.log(20,u"setunifiCloudKeySiteName setting site id name to >>{}<<, list of Names found:{}<".format(self.unifiCloudKeySiteName , self.unifiCloudKeyListOfSiteNames))
 				self.pluginPrefs[u"unifiCloudKeyListOfSiteNames"] = json.dumps(self.unifiCloudKeyListOfSiteNames)
 				return True
 
@@ -4648,7 +4654,7 @@ class Plugin(indigo.PluginBase):
 
 
 						if self.unifiCloudKeySiteName == "":
-							if not self.setunifiCloudKeySiteName(method = "curlPath"): continue
+							if not self.setunifiCloudKeySiteName(method = "curl"): continue
 
 						#cmdDATA  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
 						cmdDATA  = self.curlPath+u" --max-time 10 --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ u" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+u"/"+pageString.strip("/")+u"'"
@@ -6347,7 +6353,6 @@ class Plugin(indigo.PluginBase):
 										if not self.expTimerSettingsOK("AP",MAC, dev): continue
 										status = u"expired"
 										changed = True
-										#self.myLog( text=u" period "+ dev.name+u" changed: old status: "+dev.states[u"status"]+u"; new  "+status)
 										self.setImageAndStatus(dev, status, oldStatus=dev.states[u"status"],ts=time.time(), fing=True, level=1, text1=u"{:30s} status {:10s}; changed period WiFi, expT={:4.1f}     dt={:4.1f}".format(dev.name, status, expT, dt), iType=u"PER-AP-Wi-2",reason=u"Period Check Wifi "+status)
 
 
@@ -7022,26 +7027,27 @@ class Plugin(indigo.PluginBase):
 		keepList = [u"name",u"uuid",u"host",u"model",u"_id",u"firmwareVersion",u"systemInfo",u"mac",u"controllerHostAddress",u"controllerHostPort",u"deviceSettings",u"networkStatus",u"status",u"analyticsSettings",u"channels",u"ispSettings" ]
 		out = u""
 		try:
+			outLine = u""
 			if u"NVR" in info:
-				self.myLog( text=u"--====================++++++++++++++++++++++++++++++++++++++++====================--",mType=u"System info-NVR:")
+				outLine += u"\nSystem info-NVR:       --====================++++++++++++++++++++++++++++++++++++++++====================--"
 				for key in info[u"NVR"]:
-					self.myLog( text=unicode(info[u"NVR"][key]),mType=u"  "+key )
+					outLine += u"\n  {:19s}  {:}".format(key, info[u"NVR"][key])
 
-				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- users:")
+				outLine += u"\n== System info- users: --====================++++++++++++++++++++++++++++++++++++++++====================--"
 			if u"users" in info:
 				nn = 0
 				for user in info[u"users"]:
 					out = ""
 					for item in ["name","apiKey","enableApiAccess"] :
 						out+=(item+":"+unicode(info["users"][user][item])+"; ").ljust(30)
-					self.myLog( text=out.strip("; "),mType= (info[u"users"][user][u"userName"]).ljust(18)+u" # "+ unicode(nn))
+					outLine += u"\n{} {}".format( (info[u"users"][user][u"userName"]).ljust(18)+u" # "+ unicode(nn), out.strip(";"))
 					nn+=1
 
 
 			if u"cameras" in info:
-				self.myLog( text=u"---====================++++++++++++++++++++++++++++++++++++++++====================--", mType=u"== System info- cameras:")
+				outLine +=       u"\nSystem info- cameras:  --====================++++++++++++++++++++++++++++++++++++++++====================--"
 				for camera in info[u"cameras"]:
-					self.myLog( text=u"--===============--" , mType=camera[u"name"])
+					outLine += u"\n{:19s}--===============--".format(camera[u"name"])
 					for item in camera:
 						if item ==u"name": continue
 						if item in keepList or keepList == [u"*"]:
@@ -7053,7 +7059,7 @@ class Plugin(indigo.PluginBase):
 										if prop in channel:
 											out+= prop+u": "+unicode(channel[prop])+u";  "
 									out = out.strip(";....")
-									self.myLog( text=out, mType=u"              channel#"+unicode(nn) )
+									outLine += u"\n{:22s} {:}".format("              channel#"+unicode(nn), out)
 									nn+=1
 							elif item == "status":
 								status = camera[item]
@@ -7062,13 +7068,14 @@ class Plugin(indigo.PluginBase):
 									if prop in status:
 										out+= prop+":"+unicode(status[prop])+u"; "
 								out = out.strip("; ")
-								self.myLog( text=out, mType=u"              status" )
+								outLine += u"\n{:22s} {:}".format("              status"+unicode(nn), out)
 								for nn in range(len(status[u"recordingStatus"])):
 									out	 =	(u"motionRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"motionRecordingEnabled"])).ljust(30)
 									out += u"; fullTimeRecordingEnabled: "+unicode(status[u"recordingStatus"][unicode(nn)][u"fullTimeRecordingEnabled"])
-									self.myLog( text=out, mType=u"           recordingSt:#"+unicode(nn) )
+									outLine += u"\n{:22s} {:}".format("           recordingSt:#"+unicode(nn), out)
 							else:
-								self.myLog( text=(item+":").ljust(25)+json.dumps(camera[item]) )
+									outLine += u"\n{:22s} {:}".format("  ", (item+":").ljust(25)+json.dumps(camera[item]))
+			self.indiLOG.log(20,outLine)
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -12410,15 +12417,11 @@ class Plugin(indigo.PluginBase):
 		if   self.logFileActive =="standard":	self.logFile = ""
 		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
 		else:									self.logFile = self.indigoPreferencesPluginDir +"plugin.log"
-		self.myLog( text="myLogSet setting parameters -- logFileActive= {}; logFile= {};  debugLevel= {}".format(self.logFileActive, self.logFile, self.debugLevel), destination="standard")
+		self.indiLOG.log(20,"myLogSet setting parameters -- logFileActive= {}; logFile= {};  debugLevel= {}".format(self.logFileActive, self.logFile, self.debugLevel))
 		if config:
-			self.myLog( text="... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( unicode(self.debugDevs[u"GW"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"AP"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"SW"]).replace("True","T").replace("False","F")), destination="standard")
+			self.indiLOG.log(20,"... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( unicode(self.debugDevs[u"GW"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"AP"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"SW"]).replace("True","T").replace("False","F")) )
 		return
 
-
-
-			
-			
 	####-----------------	 ---------
 	def decideMyLog(self, msgLevel, MAC=""):
 		try:
@@ -12431,79 +12434,6 @@ class Plugin(indigo.PluginBase):
 			if unicode(e).find(u"None") == -1:
 				indigo.server.log( u"decideMyLog in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return False
-
-	####-----------------  print to logfile or indigo log  ---------
-	def myLog(self,	 text="", mType=u"", errorType="", showDate=True, destination=""):
-		   
-	
-		try:
-			if	self.logFileActive =="standard" or destination.find(u"standard") >-1:
-				if errorType == u"smallErr":
-					self.errorLog(u"------------------------------------------------------------------------------")
-					self.errorLog(text)
-					self.errorLog(u"------------------------------------------------------------------------------")
-
-				elif errorType == u"bigErr":
-					self.errorLog(u"==================================================================================")
-					self.errorLog(text)
-					self.errorLog(u"==================================================================================")
-
-				elif mType == "":
-					indigo.server.log(text)
-				else:
-					indigo.server.log(text, type=mType)
-
-
-			if	self.logFileActive !="standard":
-
-				ts =""
-				try:
-					if len(self.logFile) < 3: return # not properly defined
-					f =	 open(self.logFile,"a")
-				except	Exception, e:
-					indigo.server.log(u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-					try:
-						f.close()
-					except:
-						pass
-					return
-
-				if errorType == u"smallErr":
-					if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
-					f.write(u"----------------------------------------------------------------------------------\n")
-					f.write((ts+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
-					f.write(u"----------------------------------------------------------------------------------\n")
-					f.close()
-					return
-
-				if errorType == u"bigErr":
-					if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
-					ts = datetime.datetime.now().strftime(u"%H:%M:%S")
-					f.write(u"==================================================================================\n")
-					f.write((ts+u" "+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
-					f.write(u"==================================================================================\n")
-					f.close()
-					return
-
-				if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
-				if mType == u"":
-					f.write((ts+u" " +u" ".ljust(25)  +u"-" + text + u"\n").encode(u"utf8"))
-				else:
-					f.write((ts+u" " +mType.ljust(25) +u"-" + text + u"\n").encode(u"utf8"))
-				### print calling function 
-				#f.write(u"_getframe:   1:" +sys._getframe(1).f_code.co_name+"   called from:"+sys._getframe(2).f_code.co_name+" @ line# %d"%(sys._getframe(1).f_lineno) ) # +"    trace# "+unicode(sys._getframe(1).f_trace)+"\n" )
-				f.close()
-				return
-
-
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.errorLog(u"myLog in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-				indigo.server.log(text)
-				try: f.close()
-				except: pass
-		return
-
 ####-----------------  valiable formatter for differnt log levels ---------
 # call with: 
 # formatter = LevelFormatter(fmt='<default log format>', level_fmts={logging.INFO: '<format string for info>'})

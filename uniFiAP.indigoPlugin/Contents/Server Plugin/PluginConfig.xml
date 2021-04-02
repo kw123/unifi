@@ -286,7 +286,7 @@ device settings
 		<Label>..ipNumber of controller</Label>  
 	</Field>
 
-   <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="" visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM" hidden="yes"> 
+   <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="no"  hidden="yes"> 
 	</Field>
 
 	<Field    id="unifiCloudKeySiteName" 	type="menu" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
