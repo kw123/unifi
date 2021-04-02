@@ -1,7 +1,12 @@
-changes in V7.39.356@ 2021-04-02
+changes in V7.39.358@ 2021-04-02
+==================  
+1. fixed the site id name , if not default
+
+
+changes in V7.39.357@ 2021-04-02
 ==================  
 1. removed old loggin method
-2. added log statment for sitename pick in plugin config
+2. added log statement for sitename pick in plugin config
 
 
 

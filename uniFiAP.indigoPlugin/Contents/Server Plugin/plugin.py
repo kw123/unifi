@@ -362,6 +362,8 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", u"std")
 		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", u"ON")
 		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", u"default")
+		self.unifiCloudKeySiteNameGetNew 					= False
+
 
 		if self.unifiControllerType == u"off" or self.unifiCloudKeyMode	== u"off" or self.connectParams[u"UserID"][u"webCTRL"] == "":
 			self.unifiCloudKeyMode = u"off"
@@ -939,6 +941,25 @@ class Plugin(indigo.PluginBase):
 	def xxgetPrefsConfigUiXml(self):
 		return super(Plugin, self).getPrefsConfigUiXml()
 
+
+
+	####-----------------  setconfig default values	---------
+	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict):
+		if self.refreshCallbackMethodAlreadySet == u"yes": return 
+
+		self.refreshCallbackMethodAlreadySet = u"no" # only do it once after called 
+		return valuesDict
+
+	####----------------- set unifi controller site ID anmes in dynamic list ---------
+	def filterunifiCloudKeyListOfSiteNames(self, filter="", valuesDict=None, typeId="", targetId=""):
+
+		xList = [[u"x",u"set to empty = re-read list from controller"]]
+		for xx in self.unifiCloudKeyListOfSiteNames:
+			xList.append([xx,xx])
+		xList.append([u"set",u"overwrite in next field"])
+		return xList
+
+
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# This routine returns the UI values for the configuration dialog; the default is to
 	# simply return the self.pluginPrefs dictionary. It can be used to dynamically set
@@ -962,7 +983,8 @@ class Plugin(indigo.PluginBase):
 
 			valuesDict[u"GWtailEnable"]				= self.connectParams[u"enableListener"][u"GWtail"]
 			valuesDict[u"refreshCallbackMethod"]	= u"setfilterunifiCloudKeyListOfSiteNames"
-			self.refreshCallbackMethodAlreadySet	= u"no"
+			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
+			self.refreshCallbackMethodAlreadySet	= u"yes"
 
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -1042,14 +1064,17 @@ class Plugin(indigo.PluginBase):
 			self.overWriteControllerPort					= valuesDict[u"overWriteControllerPort"]
 
 
-
-			if type("") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
+			self.indiLOG.log(20,u"unifiCloudKeySiteName old:>{}<   new:>{}<, types:{}  {}".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"], type(" ") , type(valuesDict[u"unifiCloudKeySiteName"]) ) )
+			if type(u" ") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
+			self.indiLOG.log(20,u"unifiCloudKeySiteName old:>{}<   new:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
 			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: valuesDict[u"unifiCloudKeySiteName"] = ""
+
 			if self.unifiCloudKeySiteName != valuesDict[u"unifiCloudKeySiteName"]:
 				self.indiLOG.log(20,u"setting unifiCloudKeySiteName from:>{}<   to:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
-
+				self.executeCMDOnControllerReset()
 			self.unifiCloudKeySiteName = valuesDict[u"unifiCloudKeySiteName"] 
 
+			valuesDict[u"unifiCloudKeySiteNameFreeText"] = ""
 
 			if valuesDict[u"unifiControllerType"] == u"off" or valuesDict[u"unifiCloudKeyMode"] == u"off" or self.connectParams[u"UserID"][u"webCTRL"] == "":
 				self.unifiControllerType 					= u"off"
@@ -2569,20 +2594,6 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------  filter	---------
 
-	####-----------------  setconfig default values	---------
-	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict):
-		if self.refreshCallbackMethodAlreadySet == u"yes": return 
-		valuesDict[u"unifiCloudKeySiteName"] = self.unifiCloudKeySiteName
-		self.refreshCallbackMethodAlreadySet = u"yes" # only do it once after called 
-		return valuesDict
-
-	####----------------- set unifi controller site ID anmes in dynamic list ---------
-	def filterunifiCloudKeyListOfSiteNames(self, filter="", valuesDict=None, typeId="", targetId=""):
-
-		xList = [[u"x",u"set to empty = re-read list from controller"]]
-		for xx in self.unifiCloudKeyListOfSiteNames:
-			xList.append([xx,xx])
-		return xList
 
 	####-----------------	 ---------
 	def filterWiFiDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
@@ -4522,6 +4533,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerOS = ""
 			self.lastUnifiCookieRequests = 0.
 			self.lastUnifiCookieCurl = 0	
+			self.unifiCloudKeySiteNameGetNew = True
 			if wait: self.sleep(1.0)	
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -4571,12 +4583,18 @@ class Plugin(indigo.PluginBase):
 
 					if self.unifiCloudKeyListOfSiteNames != []:
 						if self.unifiCloudKeySiteName not in self.unifiCloudKeyListOfSiteNames:
+							if self.unifiCloudKeySiteName =="":
+								self.indiLOG.log(20,u"setunifiCloudKeySiteName setting site id name to >>{}<<, was empty, available list:{}".format(self.unifiCloudKeyListOfSiteNames[0],  self.unifiCloudKeyListOfSiteNames))
+							else:
+								self.indiLOG.log(20,u"setunifiCloudKeySiteName overwriting site id name with >>{}<<, was {}, available list:{}".format(self.unifiCloudKeyListOfSiteNames[0], self.unifiCloudKeySiteName,  self.unifiCloudKeyListOfSiteNames))
 							self.unifiCloudKeySiteName = self.unifiCloudKeyListOfSiteNames[0]
 						self.pluginPrefs[u"unifiCloudKeySiteName"] = self.unifiCloudKeySiteName 
+						self.pluginPrefs[u"unifiCloudKeyListOfSiteNames"] = json.dumps(self.unifiCloudKeyListOfSiteNames)
+						return True
+					else:
+						self.indiLOG.log(20,u"setunifiCloudKeySiteName setting site id name returned empty")
+						return False
 
-				self.indiLOG.log(20,u"setunifiCloudKeySiteName setting site id name to >>{}<<, list of Names found:{}<".format(self.unifiCloudKeySiteName , self.unifiCloudKeyListOfSiteNames))
-				self.pluginPrefs[u"unifiCloudKeyListOfSiteNames"] = json.dumps(self.unifiCloudKeyListOfSiteNames)
-				return True
 
 			self.indiLOG.log(20,u"setunifiCloudKeySiteName  id  not found ret:>>{}<<".format(textRET))
 			self.executeCMDOnControllerReset(wait=True,  calledFrom="setunifiCloudKeySiteName2")
@@ -4651,6 +4669,14 @@ class Plugin(indigo.PluginBase):
 								continue
 							if self.decideMyLog(u"ConnectionRET"):	 self.indiLOG.log(10,u"Connection-{}: {}".format(self.unifiCloudKeyIP,respText) )
 							self.lastUnifiCookieCurl = time.time()
+
+
+
+						if self.unifiCloudKeySiteName == "" or self.unifiCloudKeySiteNameGetNew:
+							if not self.setunifiCloudKeySiteName(method="curl"): continue
+
+						if self.unifiCloudKeySiteName == "": continue
+						self.unifiCloudKeySiteNameGetNew = False
 
 
 						if self.unifiCloudKeySiteName == "":
@@ -4757,10 +4783,11 @@ class Plugin(indigo.PluginBase):
 						cookies = {"unifises": cookies_dict.get('unifises'), "csrf_token": cookies_dict.get('csrf_token')}
 
 
-					if self.unifiCloudKeySiteName == "":
+					if self.unifiCloudKeySiteName == "" or self.unifiCloudKeySiteNameGetNew:
 						if not self.setunifiCloudKeySiteName(method="response", cookies=cookies, headers=headers ): continue
 
 					if self.unifiCloudKeySiteName == "": continue
+					self.unifiCloudKeySiteNameGetNew = False
 				
 					if protect:
 						url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/protect/"+pageString.strip("/")

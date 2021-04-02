@@ -289,10 +289,10 @@ device settings
    <Field    id="refreshCallbackMethod"       	type="textfield" 	defaultValue="no"  hidden="yes"> 
 	</Field>
 
-	<Field    id="unifiCloudKeySiteName" 	type="menu" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
-		<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/:</Label>  
-				<List class="self" filter="" method="filterunifiCloudKeyListOfSiteNames" dynamicReload="false"/>
+	<Field    id="unifiCloudKeySiteName" 	type="textfield" 	defaultValue=""     visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON,ONreportsOnly,UDM"> 
+		<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/, leave empty for default:</Label>  
 	</Field>
+
    <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>in most cases do not touch this, it will auto adapt</Label>  
 	</Field>
