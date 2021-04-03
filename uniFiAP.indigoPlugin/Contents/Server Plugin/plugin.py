@@ -87,9 +87,7 @@ class Plugin(indigo.PluginBase):
 		self.MACuserName				= pwd.getpwuid(os.getuid())[0]
 
 		self.MAChome					= os.path.expanduser(u"~")
-		self.userIndigoDir				= self.MAChome + "/indigo/"
 		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
-		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
 
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
@@ -146,9 +144,6 @@ class Plugin(indigo.PluginBase):
 	def startup(self):
 		if not checkIndigoPluginName(self, indigo): 
 			exit() 
-
-		if not self.moveToIndigoPrefsDir(self.indigoPluginDirOld, self.indigoPreferencesPluginDir):
-			exit()
 
 		self.pythonPath					= u"/usr/bin/python2.6"
 		if os.path.isfile(u"/usr/bin/python2.7"):
@@ -880,12 +875,6 @@ class Plugin(indigo.PluginBase):
 
 			return
 
-	####-----------------	 ---------
-	def getMenuActionConfigUiValues(self):
-		valuesDict = indigo.Dict()
-		errorMsgDict = indigo.Dict()
-		valuesDict["caeraSystemType"] = self.xx
-		return (valuesDict, errorMsgDict)
 
 
 	###########################		DEVICE	#################################
@@ -945,9 +934,9 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------  setconfig default values	---------
 	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict):
-		if self.refreshCallbackMethodAlreadySet == u"yes": return 
-
-		self.refreshCallbackMethodAlreadySet = u"no" # only do it once after called 
+		if self.refreshCallbackMethodAlreadySet == u"yes": return valuesDict
+		# here set valuesDict parameters
+		self.refreshCallbackMethodAlreadySet = u"yes" # only do it once after called 
 		return valuesDict
 
 	####----------------- set unifi controller site ID anmes in dynamic list ---------
@@ -3265,10 +3254,11 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmBlockCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		ret = self.executeCMDOnController(dataSEND={"cmd":"block-sta","mac":valuesDict[u"selectedDevice"]},pageString=u"/cmd/stamgr",cmdType=u"post")
 		self.getcontrollerDBForClientsLast = time.time() - self.readDictEverySeconds[u"DB"]
+		valuesDict[u"MSG"] = u"error"
 		for rr in ret:
 			if "blocked" in rr: 
-				self.indiLOG.log(20,u"Block cmd: return  {}".format(rr["blocked"]) )
-				valuesDict[u"MSG"] = u"Block cmd:{}".format(rr["blocked"])
+				self.indiLOG.log(20,u"{}".format("blocked" if rr["blocked"] else "not executed") )
+				valuesDict[u"MSG"] = u"{} {}".format(valuesDict[u"selectedDevice"], "blocked" if rr["blocked"] else "not executed")
 		return valuesDict
 
 
@@ -3280,17 +3270,19 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmUnBlockCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		ret = self.executeCMDOnController(dataSEND={"cmd":"unblock-sta","mac":valuesDict[u"selectedDevice"]}, pageString=u"/cmd/stamgr",cmdType=u"post")
 		self.getcontrollerDBForClientsLast = time.time() - self.readDictEverySeconds[u"DB"]
+		valuesDict[u"MSG"] = u"error"
 		for rr in ret:
 			if len(rr) ==0: continue
 			if "blocked" in rr: 
-				self.indiLOG.log(20,u"un-Block cmd: return  {}".format(rr["blocked"]) )
-				valuesDict[u"MSG"] = u"un-Block cmd:{}".format(rr["blocked"])
+				self.indiLOG.log(20,u"{}".format("un-blocked" if not rr["blocked"] else "not executed") )
+				valuesDict[u"MSG"] = u"{} {}".format(valuesDict[u"selectedDevice"], "un-blocked" if not rr["blocked"] else "not executed")
 		return valuesDict
 
 ######## block / unblock reconnec  end
 
 ######## reports for specific stations / devices
 	def buttonConfirmGetAPDevInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		valuesDict[u"MSG"] = u""
 		for dev in indigo.devices.iter(u"props.isAP"):
 			MAC = dev.states[u"MAC"]
 			if u"MAClan" in dev.states: 
@@ -4246,16 +4238,21 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getMenuActionConfigUiValues(self, menuId):
 		valuesDict = indigo.Dict()
+		self.menuXML ={}
 		if menuId == u"CameraActions" and (u"fileNameOfImage" not in self.menuXML or len(self.menuXML[u"fileNameOfImage"]) <10 ):
 			if len(self.changedImagePath) > 5:
 				self.menuXML[u"fileNameOfImage"] = self.changedImagePath+u"nameofCamera.jpeg"
 			else:
 				self.menuXML[u"fileNameOfImage"] = u"/tmp/nameofCamera.jpeg"
 		self.menuXML[u"snapShotTextMethod"] = self.imageSourceForSnapShot
+		self.menuXML[u"fileNameOfImage"] = self.completePath(self.changedImagePath)+u"snapshot.jpeg"
+		self.menuXML[u"MSG"] = u""
+		
 
 		for item in self.menuXML:
 			valuesDict[item] = self.menuXML[item]
 		errorsDict = indigo.Dict()
+		#self.indiLOG.log(20,u"getMenuActionConfigUiValues - menuId:{}".format(menuId))
 		return (valuesDict, errorsDict)
 
 
@@ -8784,6 +8781,7 @@ class Plugin(indigo.PluginBase):
 	def buttonSendCommandToProtectLcdMessageCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
 		try:
 			area = u"lcdMessage"
+			valuesDict[u"MSG"] =  u""
 			payload ={area:{}}
 			if valuesDict[u"lcdMessage"]			!= u"do not change": payload[area][u"text"] 		= valuesDict[u"lcdMessage"]
 			data = self.setupProtectcmd( valuesDict[u"cameraDeviceSelected"], payload)
@@ -8809,6 +8807,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToProtectLEDCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectLEDCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
 		try:
+			valuesDict[u"MSG"] =  u""
 			area = u"ledSettings"
 			payload ={area:{}}
 			if valuesDict[u"blinkRate"]			!= u"-1": payload[area][u"blinkRate"] 		= int(valuesDict[u"blinkRate"])
@@ -8870,6 +8869,7 @@ class Plugin(indigo.PluginBase):
 		return self.buttonSendCommandToProtectmicVolumeCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectmicVolumeCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
 		try:
+			valuesDict[u"MSG"] =  u""
 			self.addToMenuXML(valuesDict)
 			if valuesDict[u"micVolume"] == u"-1":	return valuesDict
 			area = u"micVolume"
@@ -8878,6 +8878,7 @@ class Plugin(indigo.PluginBase):
 			ok = True
 			if area not in data: ok = False
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
+			valuesDict[u"MSG"] =  u"ok"  if ok else  u"error"
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -9001,6 +9002,8 @@ class Plugin(indigo.PluginBase):
 	def buttonrefreshProtectCameraSystemCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
 		self.addToMenuXML(valuesDict)
 		self.refreshProtectCameras = 0
+		if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"get protect camera setup initiated ")
+		valuesDict[u"MSG"] =  u"request Send" 
 		return valuesDict
 
 	####-----------------	 ---------
@@ -9012,8 +9015,8 @@ class Plugin(indigo.PluginBase):
 			wh = valuesDict[u"whofImage"].split("/")
 			fName = valuesDict[u"fileNameOfImage"] 
 			dev = indigo.devices[int(camId)]
-			self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
-
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getSnapshot  dev {};  vd:{} ".format(dev.name, valuesDict))
+			valuesDict[u"MSG"] = u"error"
 			params = {
 					u"accessKey": "",
 					u"h": wh[1],
@@ -9026,12 +9029,15 @@ class Plugin(indigo.PluginBase):
 			self.addToMenuXML(valuesDict)
 
 			if len(data) < 10:
+				valuesDict[u"MSG"] = u"no data returned"
 				self.indiLOG.log(10,u"getSnapshot  no data returned data length {} ".format(len(data)))
 				return valuesDict
-			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
+
 			f = open(fName,"wb")
 			f.write(data)
 			f.close()
+			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
+			valuesDict[u"MSG"] = u"shapshot done"
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"updateIndigoWithLogData in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -9039,7 +9045,7 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def setupProtectcmd(self, devId, payload,cmdType="patch"):
+	def setupProtectcmd(self, devId, payload, cmdType="patch"):
 
 		dev = indigo.devices[int(devId)]
 		try:
@@ -9057,6 +9063,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------  print	  ---------
 	def buttonConfirmPrintProtectDeviceInfoCALLBACK(self, valuesDict=None, typeId=""):
 		try:
+			valuesDict[u"MSG"] = u""
 			self.lastRefreshProtect = 0
 			self.getProtectIntoIndigo()
 			#                1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16
@@ -12400,36 +12407,6 @@ class Plugin(indigo.PluginBase):
 		self.executeUpdateStatesList()
 		return
 
-
-########################################
-########################################
-####----move files to ...indigo x.y/Preferences/Plugins/< pluginID >.----
-########################################
-########################################
-	####------ --------
-	def moveToIndigoPrefsDir(self, fromPath, toPath):
-		if os.path.isdir(toPath): 		
-			return True
-		indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
-		indigo.server.log("creating plugin prefs directory ")
-		os.mkdir(toPath)
-		if not os.path.isdir(toPath): 	
-			self.errorLog("| preference directory can not be created. stopping plugin:  "+ toPath)
-			self.errorLog(u"--------------------------------------------------------------------------------------------------------------")
-			self.sleep(100)
-			return False
-		indigo.server.log("| preference directory created;  all config.. files will be here: "+ toPath)
-			
-		if not os.path.isdir(fromPath): 
-			indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
-			return True
-		cmd = "cp -R '"+ fromPath+"'  '"+ toPath+"'"
-		os.system(cmd )
-		self.sleep(1)
-		indigo.server.log("| plugin files moved:  "+ cmd)
-		indigo.server.log("| please delete old files")
-		indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
-		return True
 
 
 ########################################

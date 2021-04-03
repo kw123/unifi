@@ -1005,7 +1005,7 @@ it will make the plugin restart </Label>
 				<Label> ...     file name of image  use .jpeg:</Label>
 			</Field>
 
-			<Field	  id="getSnapshotFRomProtect" type="button" tooltip="" >
+			<Field	  id="getSnapshotFromProtect" type="button" tooltip="" >
 				<Label>--- Click to </Label><Title>Get Snapshot </Title><CallbackMethod>buttonSendCommandToProtectgetSnapshotCALLBACK</CallbackMethod>
 			</Field>
 

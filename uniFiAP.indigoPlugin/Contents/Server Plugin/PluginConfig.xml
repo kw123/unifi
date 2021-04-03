@@ -683,7 +683,7 @@ in actions you can setup most of the config as as well as get snapshots
 	<Field    id="debugConnectionRET" type="checkbox"  defaultValue="false"    > <Label>... (6.1) http connection to unifi devices  show result:</Label>  </Field>
 	<Field    id="debugExpect"        type="checkbox"  defaultValue="false"    > <Label>... (7) Expect command...:</Label>  </Field>
 	<Field    id="debugExpectRET"     type="checkbox"  defaultValue="false"    > <Label>... (7.1) Expect command return strings:</Label>  </Field>
-	<Field    id="debugVideo"         type="checkbox"  defaultValue="false"    > <Label>... (8) Video...:</Label>  </Field>
+	<Field    id="debugVideo"         type="checkbox"  defaultValue="false"    > <Label>... (8) NVR system Video...:</Label>  </Field>
 	<Field    id="debugFing"          type="checkbox"  defaultValue="false"    > <Label>... (9) Fing:</Label>  </Field>
 	<Field    id="debugBC"            type="checkbox"  defaultValue="false"    > <Label>... (10) BroadCast:</Label>  </Field>
 	<Field    id="debugPing"          type="checkbox"  defaultValue="false"    > <Label>... (11) Ping WOL:</Label>  </Field>
