@@ -31,6 +31,149 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 import cProfile
 import pstats
 
+######### set new  pluginconfig defaults
+# this needs to be updated for each new property added to pluginprops. 
+# indigo ignores the defaults of new properties after first load of the plugin 
+kDefaultPluginPrefs = {
+	"expirationTime":							"120",
+	"fixExpirationTime":						True,
+	"expTimeMultiplier":						"2",
+	"ignoreNewClients":							False,
+	"ignoreNewNeighbors":						False,
+	"ignoreNeighborForFing":					True,
+	"ignoreNewClients":							False,
+	"enableBroadCastEvents":					"0",
+	"enableFINGSCAN":							False,
+	"enableSqlLogging":							True,
+	"enableMACtoVENDORlookup":					"21",
+	"requestOrcurl":							"curl",
+	"curlPath":									"/usr/bin/curl",
+	"folderNameCreated":						"UNIFI_created",
+	"folderNameSystem":							"UNIFI_system",
+	"folderNameNeighbors":						"UNIFI_neighbors",
+	"folderNameVariables":						"UNIFI",
+	"Group0":									"Group0",
+	"Group1":									"Group1",
+	"Group2":									"Group2",
+	"Group3":									"Group3",
+	"Group4":									"Group4",
+	"Group5":									"Group5",
+	"Group6":									"Group6",
+	"Group7":									"Group7",
+	"unifiCONTROLLERUserID":					"",
+	"unifiCONTROLLERPassWd":					"",
+	"unifiUserID":								"",
+	"unifiPassWd":								"",
+	"unifiUserIDUDM":							"",
+	"unifiPassWdUDM":							"",
+	"useStrictToLogin":							False,
+	"unifiControllerType":						"std",
+	"unifiCloudKeyMode":						"ON",
+	"enablecheckforUnifiSystemDevicesState":	"off",
+	"useDBInfoForWhichDevices":					"all",
+	"unifiCloudKeyIP":							"192.168.1.x",
+	"refreshCallbackMethod":					"no",
+	"unifiCloudKeySiteName":					"",
+	"overWriteControllerPort":					"",
+	"unifiControllerBackupON":					True,
+	"unifiControllerHosted":					False,
+	"ControllerBackupPath":						"/usr/lib/unifi/data/backup/autobackup",
+	"infoLabelbackup1":							"/usr/lib/unifi/data/backup/autobackup",
+	"infoLabelbackup2":							"/data/unifi/data/backup/autobackup",
+	"infoLabelbackup3":							"/Preferences/Plugins/com.karlwachs.uniFiAP/backup",
+	"ipUDMON":									False,
+	"ipUDM":									"192.168.1.x",
+	"debUD":									False,
+	"apON":										True,
+	"ipON0":									False,
+	"ip0":										"192.168.1.x",
+	"debAP0":									False,
+	"ipON1":									False,
+	"ip1":										"192.168.1.x",
+	"debAP1":									False,
+	"ipON2":									False,
+	"ip2":										"192.168.1.x",
+	"debAP2":									False,
+	"ipON3":									False,
+	"ip3":										"192.168.1.x",
+	"debAP3":									False,
+	"ipON4":									False,
+	"ip4":										"192.168.1.x",
+	"debAP4":									False,
+	"ipUGAON":									False,
+	"GWtailEnable":								False,
+	"ipUGA":									"192.168.1.1",
+	"debGW":									False,
+	"readDictEverySecondsSW":					"60",
+	"count_APDL_inPortCount":					"1",
+	"ipSWON0":									False,
+	"ipSW0":									"192.168.1.x",
+	"debSW0":									False,
+	"ipSWON1":									False,
+	"ipSW1":									"192.168.1.x",
+	"debSW1":									False,
+	"ipSWON2":									False,
+	"ipSW2":									"192.168.1.x",
+	"debSW2":									False,
+	"ipSWON3":									False,
+	"ipSW3":									"192.168.1.x",
+	"debSW3":									False,
+	"ipSWON4":									False,
+	"ipSW4":									"192.168.1.x",
+	"debSW4":									False,
+	"ipSWON5":									False,
+	"ipSW5":									"192.168.1.x",
+	"debSW5":									False,
+	"ipSWON6":									False,
+	"ipSW6":									"192.168.1.x",
+	"debSW6":									False,
+	"ipSWON7":									False,
+	"ipSW7":									"192.168.1.x",
+	"debSW7":									False,
+	"ipSWON8":									False,
+	"ipSW8":									"192.168.1.x",
+	"debSW8":									False,
+	"ipSWON9":									False,
+	"ipSW9":									"192.168.1.x",
+	"debSW9":									False,
+	"ipSWON10":									False,
+	"ipSW10":									"192.168.1.x",
+	"debSW10":									False,
+	"ipSWON11":									False,
+	"ipSW11":									"192.168.1.x",
+	"debSW11":									False,
+	"ipSWON12":									False,
+	"ipSW12":									"192.168.1.x",
+	"debSW12":									False,
+	"cameraSystem":								"off",
+	"protecEventSleepTime":						2,
+	"refreshProtectCameras":					60,
+	"copyProtectsnapshots":						"no",
+	"changedImagePath":							"/Users/YOURID/.....",
+	"debugLogic":								False,
+	"debugLog":									False,
+	"debugLogDetails":							False,
+	"debugDict":								False,
+	"debugDictDetails":							False,
+	"debugConnectionCMD":						False,
+	"debugConnectionRET":						False,
+	"debugExpect":								False,
+	"debugExpectRET":							False,
+	"debugVideo":								False,
+	"debugFing":								False,
+	"debugBC":									False,
+	"debugPing":								False,
+	"debugUDM":									False,
+	"debugIgnoreMAC":							False,
+	"debugDBinfo":								False,
+	"debugProtect":								False,
+	"debugSpecial":								False,
+	"debugall":									False,
+	"logFileActive2":							"indigo",
+	"do_cProfile":								"on/off/print",
+	"restartListenerEvery":						"999999999",
+	"readBuffer":								"16384" 
+}
 
 """
 good web pages for unifi API
@@ -48,7 +191,7 @@ _GlobalConst_numberOfSW	 = 13
 
 _GlobalConst_numberOfGroups = 8
 _GlobalConst_groupList		= [u"Group"+unicode(i) for i in range(_GlobalConst_numberOfGroups)]
-_GlobalConst_dTypes			= [u"UniFi",u"gateway",u"DHCP",u"SWITCH",u"Device-AP",u"Device-SW-5",u"Device-SW-8",u"Device-SW-10",u"Device-SW-11",u"Device-SW-18",u"Device-SW-26",u"Device-SW-52",u"neighbor"]
+_GlobalConst_dTypes			= [u"UniFi",u"gateway",u"DHCP",u"SWITCH",u"Device-AP",u"Device-SW-4",u"Device-SW-5",u"Device-SW-6",u"Device-SW-7",u"Device-SW-8",u"Device-SW-10",u"Device-SW-11",u"Device-SW-12",u"Device-SW-14",u"Device-SW-16",u"Device-SW-18",u"Device-SW-26",u"Device-SW-52",u"neighbor"]
 _debugAreas					= [u"Logic",u"Log",u"Dict",u"LogDetails",u"DictDetails",u"ConnectionCMD",u"ConnectionRET",u"Expect",u"ExpectRET",u"Video",u"Fing",u"BC",u"Ping",u"Protect",u"all",u"Special",u"UDM",u"IgnoreMAC",u"DBinfo"]
 _numberOfPortsInSwitch		= [4, 5, 7, 8, 10, 11, 12, 16, 18, 26, 52]
 ################################################################################
@@ -883,8 +1026,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			theDictList =  super(Plugin, self).getDeviceConfigUiValues(pluginProps, typeId, devId)
 			for groupNo in range(_GlobalConst_numberOfGroups):
-				if u"Gtext{}".format(groupNo) in theDictList[0]:
-					theDictList[0][u"Gtext{}".format(groupNo)] =  self.groupNames[groupNo]
+				theDictList[0][u"Gtext{}".format(groupNo)] =  self.groupNames[groupNo]
 			return theDictList
 		except Exception, e:
 			self.indiLOG.log(40,u"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -934,9 +1076,42 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------  setconfig default values	---------
 	def setfilterunifiCloudKeyListOfSiteNames(self, valuesDict):
-		if self.refreshCallbackMethodAlreadySet == u"yes": return valuesDict
-		# here set valuesDict parameters
-		self.refreshCallbackMethodAlreadySet = u"yes" # only do it once after called 
+
+		# not set yet, for future use
+		if self.refreshCallbackMethodAlreadySet == u"yes": return valuesDict 
+
+		if valuesDict[u"unifiControllerType"] == u"hosted":
+			valuesDict[u"unifiCloudKeyMode"] 					 = u"ON"
+			valuesDict[u"overWriteControllerPort"] 				 = u"8443"
+			valuesDict[u"unifiCloudKeySiteName"] 				 = u"default"
+
+		controllerType = valuesDict[u"unifiControllerType"]
+		if   controllerType == "UDM":
+			valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
+			valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
+			valuesDict[u"ipUDMON"]	 			= True
+
+		elif controllerType == "UDMPro":
+			valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
+			valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
+			valuesDict[u"ipUDMON"]	 			= True
+
+		elif controllerType == "std":
+			valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
+			valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
+			valuesDict[u"ipUDMON"]	 			= False
+
+		elif controllerType == "off":
+			valuesDict[u"unifiCloudKeyMode"] 	= u"off"
+			valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
+			valuesDict[u"ipUDMON"]	 			= False
+
+		else:
+			pass
+
+		valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
+
+		#self.refreshCallbackMethodAlreadySet = u"yes" # only do it once after called 
 		return valuesDict
 
 	####----------------- set unifi controller site ID anmes in dynamic list ---------
@@ -973,7 +1148,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict[u"GWtailEnable"]				= self.connectParams[u"enableListener"][u"GWtail"]
 			valuesDict[u"refreshCallbackMethod"]	= u"setfilterunifiCloudKeyListOfSiteNames"
 			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
-			self.refreshCallbackMethodAlreadySet	= u"yes"
+			#self.refreshCallbackMethodAlreadySet	= u"yes"
 
 		except	Exception, e:
 			self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -996,6 +1171,7 @@ class Plugin(indigo.PluginBase):
 	def validatePrefsConfigUi(self, valuesDict):
 
 		try:
+			valuesDict["MSG"]								= "ok"
 			rebootRequired									= ""
 			self.lastUnifiCookieCurl						= 0
 			self.lastUnifiCookieRequests					= 0
@@ -1053,9 +1229,9 @@ class Plugin(indigo.PluginBase):
 			self.overWriteControllerPort					= valuesDict[u"overWriteControllerPort"]
 
 
-			self.indiLOG.log(20,u"unifiCloudKeySiteName old:>{}<   new:>{}<, types:{}  {}".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"], type(" ") , type(valuesDict[u"unifiCloudKeySiteName"]) ) )
+			#self.indiLOG.log(10,u"unifiCloudKeySiteName old:>{}<   new:>{}<, types:{}  {}".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"], type(" ") , type(valuesDict[u"unifiCloudKeySiteName"]) ) )
 			if type(u" ") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
-			self.indiLOG.log(20,u"unifiCloudKeySiteName old:>{}<   new:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
+			#self.indiLOG.log(10,u"unifiCloudKeySiteName old:>{}<   new:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
 			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: valuesDict[u"unifiCloudKeySiteName"] = ""
 
 			if self.unifiCloudKeySiteName != valuesDict[u"unifiCloudKeySiteName"]:
@@ -1302,42 +1478,15 @@ class Plugin(indigo.PluginBase):
 			self.groupStatusINIT()
 
 			return True, valuesDict
-		except	Exception, e:
-			if unicode(e).find(u"None") == -1:
-				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
-			return (False, valuesDict, valuesDict)
-
-
-	####-----------------  data stats menu items	---------
-	def buttonsetConfigToSelectedControllerTypeCALLBACK(self, valuesDict):
-		try:
-			controllerType = valuesDict[u"unifiControllerType"]
-			if   controllerType == "UDM":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
-				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= True
-
-			elif controllerType == "UDMPro":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
-				valuesDict[u"ControllerBackupPath"]	= u"/usr/lib/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= True
-
-			elif controllerType == "off":
-				valuesDict[u"unifiCloudKeyMode"] 	= u"off"
-				valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= False
-			else:
-				valuesDict[u"unifiCloudKeyMode"] 	= u"ON"
-				valuesDict[u"ControllerBackupPath"]	= u"/data/unifi/data/backup/autobackup"
-				valuesDict[u"ipUDMON"]	 			= False
-
-			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
-		return valuesDict
-		
+			errorDict = indigo.Dict()
+			errorDict[u"MSG"] = u"error please check indigo eventlog"
+			return (False, errorDict, valuesDict)
+
+
 
 
 
@@ -4471,6 +4620,15 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getunifiOSAndPort(self):
 		try:
+			if self.unifiControllerType == u"hosted":
+				ret = "302"
+				self.unifiCloudKeyPort = self.overWriteControllerPort
+				self.unifiControllerOS = self.HTTPretCodes[ret][u"os"]
+				self.unifiApiLoginPath = self.HTTPretCodes[ret][u"unifiApiLoginPath"]
+				self.unifiApiWebPage   = self.HTTPretCodes[ret][u"unifiApiWebPage"]
+				self.indiLOG.log(10,u"getunifiOSAndPort setting OS:{}, port#:{} using ip#:{}, loginpath:{}, wepAPipAge:{}".format(self.unifiControllerOS, self.unifiCloudKeyPort, self.unifiCloudKeyIP, self.unifiApiLoginPath, self.unifiApiWebPage) )
+				return True				
+
 			ret 			= ""
 			for ii in range(3):
 				# get port and which unifi os:
@@ -4540,7 +4698,12 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def setunifiCloudKeySiteName(self, method="response", cookies="", headers="" ):
 		try:
-			if method == "response":
+			if self.unifiControllerType == u"hosted":
+				self.indiLOG.log(10,u"setunifiCloudKeySiteName set site name to default")
+				self.unifiCloudKeySiteName = "default"
+				return True
+
+			elif method == "response":
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
 				textRET	= self.unifiControllerSession.get(urlSite, cookies=cookies,  headers=headers, verify=False).text
 				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
@@ -6057,7 +6220,11 @@ class Plugin(indigo.PluginBase):
 			if len(self.devNeedsUpdate) == 0: return 
 
 			for devId in self.devNeedsUpdate:
+				if devId not in indigo.devices: 
+					self.indiLOG.log(30,u"checkOnDevNeedsUpdate: device id not in indigo :{}, skipping, please restart plugin".format(devId))
+					continue
 				self.setUpDownStateValue(indigo.devices[devId])
+
 			self.devNeedsUpdate = {}
 			self.saveupDownTimers()
 			self.setGroupStatus(init=True)
@@ -7682,7 +7849,13 @@ class Plugin(indigo.PluginBase):
 
 
 			if not self.testServerIfOK(ipNumber,uType):
-				self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.connectParams[u"promptOnServer"][ipNumber]) )
+				if ipNumber in self.connectParams[u"promptOnServer"]:
+					prompt = self.connectParams[u"promptOnServer"][ipNumber]
+				else: 
+					prompt = "not defined"
+
+				self.indiLOG.log(40,u"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, prompt) )
+			
 				self.msgListenerActive[uType] = 0
 				retCode = 2
 				combinedLines = ""

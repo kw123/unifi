@@ -1,3 +1,19 @@
+changes in V7.39.363@ 2021-04-12
+==================  
+1. changed http connect setup for hosted unifi controller typ
+   port# = 8443
+   site name = default
+   os = std 
+   ... hosted controller behave differntly from cloud controller or UDM
+       they use - even under v 6 - old path statements and login  
+
+
+changes in V7.39.362@ 2021-04-6
+==================  
+1. added check if connect does not work for error: in Line 7685 has error 'ip...' 
+
+
+
 changes in V7.39.361@ 2021-04-02
 ==================  
 1. fixed the site id name , if not default
@@ -778,6 +794,12 @@ changes in V 7.26.168  @ 2019-06-26
 
 1. the camera event logs from unifi have changed. Now handles also the new version
 
+changes in V 7.26.167  @ 2019-05-18
+==================  
+
+1. added option to set read buffer for listeners.. for Mojave OSX 
+   default is 32767, seems to be ok, just in case reading runs into error 22
+   reduce to lower value 
 
 changes in V 7.26.167  @ 2019-05-18
 ==================  
