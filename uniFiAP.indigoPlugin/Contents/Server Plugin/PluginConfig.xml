@@ -6,7 +6,7 @@
 	</Field>
 
 	<Field id="simpleSeparator22" 		type="separator"/>
-	<Field id="MSG"        	type="textfield"  defaultValue="please enter values"       > 
+	<Field id="MSG"        	type="textfield"   > 
 		<Label> msg from plugin:</Label>  
 	</Field>
 
@@ -20,12 +20,12 @@
 
 	<Field id="infoLabel24" 			type="label"> <Label>  </Label>  </Field>
 
-	<Field    id="updateDescriptions"  	type="checkbox" defaultValue="true" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
+	<Field id="updateDescriptions"  	type="checkbox" tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
 		<Label>update notes/description field (every time data received)</Label>
 	</Field>
 
 
-	<Field    id="expirationTime"   		type="menu"  tooltip="this is the general parameter can be overwritten for each device individually">
+	<Field id="expirationTime"   		type="menu"  tooltip="this is the general parameter can be overwritten for each device individually">
 		<Label>UP to DOWN if no message after:</Label>
 		<List>
 			<Option value="10"   >10 seconds (for testing only)</Option>
@@ -45,13 +45,13 @@
  		</List>
 	</Field>
 
-	<Field    id="fixExpirationTime" 		type="checkbox"  defaultValue="true"       
+	<Field id="fixExpirationTime" 		type="checkbox"     
 		tooltip="when read time of eg switch dict is larger than the device expiration time THAT device wil always go to down as info does not get refresh quickly enough, if on, it will set expiration time to device readtime + 30 secs.">
     	<Label>Change exp-time automatically if less than AP/SW/GW read time :</Label>  
 	</Field>
 
  
-  <Field    id="expTimeMultiplier"   		type="menu"  tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
+	<Field id="expTimeMultiplier"   		type="menu"  tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
 		<Label>Status goes from DOWN to EXP after x times UP to DOWN time:</Label>
 		<List>
 			<Option value="1.5" >x=1.5</Option>
@@ -64,21 +64,21 @@
 			<Option value="7"   >x=7</Option>
 			<Option value="10"  >x=10</Option>
 		</List>
-   </Field>
+	</Field>
 
-	<Field    id="ignoreNewClients"    		type="checkbox"    > 
+	<Field id="ignoreNewClients"    		type="checkbox"    > 
 		<Label>Ignore NEW clients:</Label>   
 	</Field>
 
-	<Field    id="ignoreNewNeighbors"    	type="checkbox"   > 
+	<Field id="ignoreNewNeighbors"    	type="checkbox" > 
 		<Label>Ignore NEW neighbor wifi router devices:</Label>   
 	</Field>
 
-	<Field    id="ignoreNeighborForFing" 	type="checkbox"   > 
+	<Field id="ignoreNeighborForFing" 	type="checkbox" > 
 		<Label>Ignore neighbor changes for FINGscan:</Label>   
 	</Field>
 
-	<Field    id="enableBroadCastEvents" 	type="menu" tooltip="if enabled any change of status of a up/down devices will send indigo broadcast  to read the status and use it to determine home or away events">
+	<Field id="enableBroadCastEvents" 	type="menu" tooltip="if enabled any change of status of a up/down devices will send indigo broadcast  to read the status and use it to determine home or away events">
 		<List>
 			<Option value="0"          >disable</Option>
 			<Option value="all"        >ENABLE ALL:   for all devices that have an up/ down status</Option>
@@ -88,11 +88,11 @@
 	</Field>
 
 
-	<Field    id="enableFINGSCAN" 			type="checkbox"  tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
+	<Field id="enableFINGSCAN" 			type="checkbox"  tooltip="if enabled any change of status of a iBeacon will trigger fing to read the status and use it to determine home or away events">
 		<Label>Trigger FINGSCAN:</Label>
 	</Field>
 
-	<Field    id="enableSqlLogging" 				type="checkbox"  >
+	<Field id="enableSqlLogging" 				type="checkbox"  >
 		<Label>Enable sql logging of variable changes:</Label>
 	</Field>
 
@@ -108,14 +108,15 @@
 	</Field>
 
 
-	<Field    id="requestOrcurl"              	type="menu"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+	<Field id="requestOrcurl"              	type="menu"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
 	<Label>Use curl or python-requests for web page access:</Label> 
 		<List>
 			<Option value="curl"			>curl</Option>
 			<Option value="requests"  		>python requests</Option>
 		</List>
 	</Field>
-   <Field    id="curlPath"              	type="menu"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
+
+	<Field id="curlPath"              	type="menu"  tooltip="To support different SSL standards: for elCapitan and lower use curl, for higher OS-X you can try python requests"  > 
 	<Label>path to curl:</Label> 
 		<List>
 			<Option value="/usr/bin/curl"			>/usr/bin/curl  (std install)</Option>
@@ -151,14 +152,15 @@
 	<Field id="infoLabelGroup" 			type="label"> 
 		<Label>----  group names for devices</Label>  
 	</Field>
-	<Field id="Group0"     	type="textfield"   >  <Label> .. Group 0 Name:</Label>  </Field>
-	<Field id="Group1"     	type="textfield"   >  <Label> .. Group 1 Name:</Label>  </Field>
-	<Field id="Group2"     	type="textfield"   >  <Label> .. Group 2 Name:</Label>  </Field>
-	<Field id="Group3"     	type="textfield"   >  <Label> .. Group 3 Name:</Label>  </Field>
-	<Field id="Group4"     	type="textfield"   >  <Label> .. Group 4 Name:</Label>  </Field>
-	<Field id="Group5"     	type="textfield"   >  <Label> .. Group 5 Name:</Label>  </Field>
-	<Field id="Group6"     	type="textfield"   >  <Label> .. Group 6 Name:</Label>  </Field>
-	<Field id="Group7"     	type="textfield"   >  <Label> .. Group 7 Name:</Label>  </Field>
+	<Field id="Group0" type="textfield" > <Label> .. Group 0 Name:</Label>  </Field>
+	<Field id="Group1" type="textfield" > <Label> .. Group 1 Name:</Label>  </Field>
+	<Field id="Group2" type="textfield" > <Label> .. Group 2 Name:</Label>  </Field>
+	<Field id="Group3" type="textfield" > <Label> .. Group 3 Name:</Label>  </Field>
+	<Field id="Group4" type="textfield" > <Label> .. Group 4 Name:</Label>  </Field>
+	<Field id="Group5" type="textfield" > <Label> .. Group 5 Name:</Label>  </Field>
+	<Field id="Group6" type="textfield" > <Label> .. Group 6 Name:</Label>  </Field>
+	<Field id="Group7" type="textfield" > <Label> .. Group 7 Name:</Label>  </Field>
+
 	<Field id="infoLabelinfoLabelGroup" 		type="label" 			 alignWithControl="true"  fontSize="small" fontColor="darkgrey"> 
 		<Label>For each group 3 variables will be created in the unifi variables folder 
  Unifi_Count_grpname_Home
@@ -183,20 +185,20 @@ Or trigger on any change in variable ..lastChange to check if anything device fr
 .           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
 .           3. the unix UID-passwd    when you ssh in terminal to the UDM pro </Label>  
 	</Field>
-
-  <Field    id="unifiCONTROLLERUserID"      type="textfield" >
+	<Field id="unifiCONTROLLERUserID"      type="textfield" >
 		<Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
 	</Field>
 
-	<Field    id="unifiCONTROLLERPassWd"   	type="textfield"  >
+	<Field id="unifiCONTROLLERPassWd"   	type="textfield"  >
 		<Label>...  password:</Label>
 	</Field>
+
    <Field id="unifiControllerTypeLabel2"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>for UniFi controller v 6.x  MAC OS 10.14 or greater is neeed. MAC OS 10.13 and lower do not support the proper ssl/tsl security required by unifi controller v 6.x software
 Leave userid and password blank if you want to disable querying the controller</Label>  
 	</Field>
 
-	<Field    id="useStrictToLogin"       	type="checkbox"  	defaultValue="false"  > 
+	<Field id="useStrictToLogin"       	type="checkbox"  > 
 		<Label>... Use strict:true option for login to CONTROLLER webpage</Label>
 	 </Field>
 
@@ -205,20 +207,20 @@ Leave userid and password blank if you want to disable querying the controller</
 	</Field>
 
 
-	<Field    id="unifiUserID"   			type="textfield"  >
+	<Field id="unifiUserID"   			type="textfield"  >
 		<Label>2. .............................. ssh unix UserID of AP,SW,GW - not UDM:</Label>
 	</Field>
 
-	<Field    id="unifiPassWd"   			type="textfield" >
+	<Field id="unifiPassWd"   			type="textfield" >
 		<Label>..  password:</Label>
 	</Field>
 
 
-	<Field    id="unifiUserIDUDM"   		type="textfield" >
+	<Field id="unifiUserIDUDM"   		type="textfield" >
 		<Label>3. ............................................................. ssh unix UDM UserID:</Label>
 	</Field>
 
-	<Field    id="unifiPassWdUDM"   		type="textfield"  >
+	<Field id="unifiPassWdUDM"   		type="textfield"  >
 		<Label>..  password :</Label>
 	</Field>
 
@@ -228,7 +230,8 @@ Leave userid and password blank if you want to disable querying the controller</
 	<Field id="infoLabel217" 				type="label"> 
 		<Label>== Controller info (for web / http controller commands):  </Label>  
 	</Field>
-  <Field    id="unifiControllerType"  	type="menu"  > 
+
+	<Field id="unifiControllerType"  	type="menu"  > 
 		<Label>.. controller Type:</Label> 
 		<List>
 			<Option value="std"   	>cloud key </Option>
@@ -244,7 +247,8 @@ Leave userid and password blank if you want to disable querying the controller</
 1. activate (w. same IP#) SW#14, USG, AP#4 (for UDM not -PRO) 
 2. set controller info to ON or UDM</Label>  
 	</Field>
- 	<Field    id="unifiCloudKeyMode"  		type="menu"  > 
+
+ 	<Field id="unifiCloudKeyMode"  		type="menu"  > 
 		<Label>.. use controler info:</Label> 
 		<List>
 			<Option value="ONreportsOnly"  >only manual reports</Option>
@@ -254,7 +258,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		</List>
 	</Field>
 
- 	<Field    id="enablecheckforUnifiSystemDevicesState"  		type="menu"  > 
+ 	<Field id="enablecheckforUnifiSystemDevicesState"  		type="menu"  > 
 		<Label>.. check for new unifi system devices:</Label> 
 		<List>
 			<Option value="off"  >off</Option>
@@ -262,7 +266,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		</List>
 	</Field>
 
-	<Field    id="useDBInfoForWhichDevices"   		type="menu"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON" tooltip="uses an https get /stat/alluser to get info of last_seen">
+	<Field id="useDBInfoForWhichDevices"   		type="menu"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON" tooltip="uses an https get /stat/alluser to get info of last_seen">
 		<Label>Use unifi controler db info for Up -> Down:</Label>
 		<List>
 			<Option value="all"   		>ALL unifi client devices, ignores individual dev settings</Option>
@@ -270,6 +274,7 @@ Leave userid and password blank if you want to disable querying the controller</
 			<Option value="off"			>OFF, ignores individual dev settings</Option>
  		</List>
 	</Field>
+
 	<Field id="infoLabeluseDBInfoForWhichDevices" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
 	<Label>When enabled plugin will check the controller db info for last_seen time if other info suggest up->down to confirm  or supspend up->down for "expirationtime" seconds 
 This might be usefull if the individual AP gives sometimes faulty down info.
@@ -283,14 +288,14 @@ device settings
 
 
  
-	<Field    id="unifiCloudKeyIP"       	type="textfield"  visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="unifiCloudKeyIP"       	type="textfield"  visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
 		<Label>..ipNumber of controller</Label>  
 	</Field>
 
-   <Field    id="refreshCallbackMethod"       	type="textfield"  hidden="yes"> 
+   <Field id="refreshCallbackMethod"       	type="textfield"  hidden="yes"> 
 	</Field>
 
-	<Field    id="unifiCloudKeySiteName" 	type="textfield" 	    visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="unifiCloudKeySiteName" 	type="textfield" 	    visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
 		<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/, leave empty for default:</Label>  
 	</Field>
 
@@ -298,7 +303,7 @@ device settings
 		<Label>in most cases do not touch this, it will auto adapt</Label>  
 	</Field>
 
-	<Field    id="overWriteControllerPort" 	type="textfield" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="overWriteControllerPort" 	type="textfield" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
 		<Label>.. controller port #, leave empty for auto detect</Label>  
 	</Field>
    <Field id="overWriteControllerPortLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
@@ -312,7 +317,7 @@ device settings
   	<Label>Backup of controller files - once a day ...............................:</Label>  
 	</Field>
 
-	<Field    id="ControllerBackupPath" 	type="textfield"  	  visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
+	<Field id="ControllerBackupPath" 	type="textfield"  	  visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
 		<Label>..Path to backup files on controller:</Label>
 	</Field>
    <Field id="ControllerBackupPathLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
@@ -337,94 +342,80 @@ device settings
 	<Field id="simpleSeparator215" 			type="separator"/>
 
 
-	<Field    id="ipUDMON" 					type="checkbox"      > <Label>UDM active:...............................................................</Label>  </Field>
-   <Field     id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" readonly="yes"> 
+	<Field id="ipUDMON" 					type="checkbox"      > <Label>UDM active:...............................................................</Label>  </Field>
+
+	<Field id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" > 
 		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
 	</Field>
-	<Field    id="ipUDM"   					type="textfield" defaultValue="192.168.1.1" visibleBindingId="ipUDMON" visibleBindingValue="true"> 
+
+	<Field id="ipUDM"   					type="textfield"  visibleBindingId="ipUDMON" visibleBindingValue="true"> 
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
 
 
-	<Field    id="debUD"  					type="checkbox"  	visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
+	<Field id="debUD"  					type="checkbox"  	visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
-	<Field id="simpleSeparatorapON" 			type="separator"/>
+	<Field id="simpleSeparatorapON" 	type="separator"/>
 
-	<Field id="apON" 						type="checkbox"  > 
+	<Field id="apON" 					type="checkbox"  > 
 		<Label>Show AP section........................................................:</Label>  
 	</Field>
 
-	<Field    id="ipON0" 	type="checkbox"  visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
-	<Field    id="ip0"   	type="textfield"  visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>
-	<Field    id="debAP0"  	type="checkbox"  visibleBindingId="ipON0" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+	<Field id="ipON0" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-0 active:--------------------------</Label>  </Field>
+	<Field id="ip0"   		type="textfield" visibleBindingId="ipON0" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-0:</Label>  </Field>
+	<Field id="debAP0"  	type="checkbox"  visibleBindingId="ipON0" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
 
-	<Field    id="ipON1" 	type="checkbox"  visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-1 active:--------------------------</Label>  </Field>
-	<Field    id="ip1"   	type="textfield"  visibleBindingId="ipON1" 	visibleBindingValue="true"> <Label>- ipNumber of AP-1:</Label>  </Field>
-	<Field    id="debAP1"  	type="checkbox"  visibleBindingId="ipON1" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+	<Field id="ipON1" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-1 active:--------------------------</Label>  </Field>
+	<Field id="ip1"   		type="textfield" visibleBindingId="ipON1" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-1:</Label>  </Field>
+	<Field id="debAP1"  	type="checkbox"  visibleBindingId="ipON1" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
 
-	<Field    id="ipON2" 	type="checkbox"  visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-2 active:--------------------------</Label>  </Field>
-	<Field    id="ip2"   	type="textfield"  visibleBindingId="ipON2" 	visibleBindingValue="true"> <Label>- ipNumber of AP-2:</Label>  </Field>
-	<Field    id="debAP2"  	type="checkbox"  visibleBindingId="ipON2" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+	<Field id="ipON2" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-2 active:--------------------------</Label>  </Field>
+	<Field id="ip2"   		type="textfield"  visibleBindingId="ipON2" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-2:</Label>  </Field>
+	<Field id="debAP2"  	type="checkbox"  visibleBindingId="ipON2" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
 
-	<Field    id="ipON3" 	type="checkbox"  visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-3 active:--------------------------</Label>  </Field>
-	<Field    id="ip3"   	type="textfield" visibleBindingId="ipON3" 	visibleBindingValue="true"> <Label>- ipNumber of AP-3:</Label>  </Field>
-	<Field    id="debAP3"  	type="checkbox"  defaultValue="false" 		visibleBindingId="ipON3" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+	<Field id="ipON3" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-3 active:--------------------------</Label>  </Field>
+	<Field id="ip3"   		type="textfield" visibleBindingId="ipON3" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-3:</Label>  </Field>
+	<Field id="debAP3"  	type="checkbox"  visibleBindingId="ipON3" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
 
-	<Field    id="ipON4" 	type="checkbox"  visibleBindingId="apON" 	visibleBindingValue="true"> <Label>.. AP-4 active:--------------------------</Label>  </Field>
-	<Field    id="ip4"   	type="textfield" visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>- ipNumber of AP-4:</Label>  </Field>
-	<Field    id="debAP4"  	type="checkbox"  visibleBindingId="ipON4" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field id="ipAPON4Label" type="label" 								visibleBindingId="ipSWON12"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="ipON4" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-4 active:--------------------------</Label>  </Field>
+	<Field id="ip4"   		type="textfield" visibleBindingId="ipON4" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-4:</Label>  </Field>
+	<Field id="debAP4"  	type="checkbox"  visibleBindingId="ipON4" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipAPON4Label" type="label" 	 visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>This is used as AP device part of a UDM system (not UDM-pro)</Label>  
 	</Field>
 
 
 	<Field id="simpleSeparatoripUGAON" 			type="separator"/>
 
-	<Field    id="ipUGAON" type="checkbox"   > 
+	<Field id="ipUGAON" type="checkbox" > 
 		<Label>Gateway (GW/router) active:..................................................</Label>  
 	</Field>
 
-	<Field    id="GWtailEnable"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+	<Field id="GWtailEnable"  type="checkbox"  	visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>run message listener process on Gateway</Label>  
 	</Field>
+
 	<Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 	<Label>Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info. The USG (newer versions) does not show any relevant info in the message logfile, then you will see a lot of listener restart message for GWtail. 
 Then disable listener process
 </Label>  </Field>
 
-<!--
-	<Field    id="readDictEverySecondsGW"   type="menu" defaultValue="60" visibleBindingId="ipUGAON" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-		<Label>...read GW database dump every:</Label>
-		<List>
-			<Option value="5"     > 5 seconds for testing</Option>
-			<Option value="10"    >10 seconds for testing</Option>
-			<Option value="20"    >20 seconds for testing</Option>
-			<Option value="30"    >30 seconds </Option>
-			<Option value="40"    >40 seconds </Option>
-			<Option value="60"    >1  minutes, default</Option>
-			<Option value="90"    >90 seconds</Option>
-			<Option value="120"   >2  minutes</Option>
-		</List>
-	</Field>
--->
-	<Field    id="ipUGA"   type="textfield" visibleBindingId="ipUGAON" visibleBindingValue="true"> 
+	<Field id="ipUGA"   type="textfield" visibleBindingId="ipUGAON" visibleBindingValue="true"> 
 		<Label>- ipNumber of your GW:</Label>  
 	</Field>
 
-
-	<Field    id="debGW"  type="checkbox"  defaultValue="false" 		visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+	<Field id="debGW"  type="checkbox"  visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
+	<Field id="simpleSeparatoripswON" type="separator"/>
 
+	<Field id="swON" type="checkbox" > <Label>Show Switch section:..................................................</Label>  </Field>
 
-	<Field id="simpleSeparatoripswON" 			type="separator"/>
-
-	<Field    id="swON" type="checkbox"      > <Label>Show Switch section:..................................................</Label>  </Field>
-
-	<Field    id="readDictEverySecondsSW"   type="menu" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
+	<Field id="readDictEverySecondsSW" type="menu" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
 		<Label>...read database dump of SWs every:</Label>
 		<List>
 			<Option value="5"     > 5 seconds for testing</Option>
@@ -442,7 +433,7 @@ Then disable listener process
    </Field>
 
 
-	<Field    id="count_APDL_inPortCount"   				type="menu" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
+	<Field id="count_APDL_inPortCount"   				type="menu" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
 		<Label>Count AP and Downlink clients in total clients count in Switch:</Label>
 		<List>
 			<Option value="0"  >No</Option>
@@ -450,46 +441,46 @@ Then disable listener process
 		</List>
 	</Field>
 
-	<Field    id="ipSWON0" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:---------------------</Label>  </Field>
-	<Field    id="ipSW0"   type="textfield" visibleBindingId="ipSWON0"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch 0:</Label>  </Field>
-	<Field    id="debSW0"  type="checkbox"  visibleBindingId="ipSWON0" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON1" type="checkbox"  isibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  1  active:---------------------</Label>  </Field>
-	<Field    id="ipSW1"   type="textfield" isibleBindingId="ipSWON1"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  1:</Label>  </Field>
-	<Field    id="debSW1"  type="checkbox"  isibleBindingId="ipSWON1" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON2" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  2  active:---------------------</Label>  </Field>
-	<Field    id="ipSW2"   type="textfield" visibleBindingId="ipSWON2"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  2:</Label>  </Field>
-	<Field    id="debSW2"  type="checkbox"  visibleBindingId="ipSWON2" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON3" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  3  active:---------------------</Label>  </Field>
-	<Field    id="ipSW3"   type="textfield" visibleBindingId="ipSWON3"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  3:</Label>  </Field>
-	<Field    id="debSW3"  type="checkbox"  visibleBindingId="ipSWON3" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON4" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  4  active:---------------------</Label>  </Field>
-	<Field    id="ipSW4"   type="textfield" visibleBindingId="ipSWON4"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  4:</Label>  </Field>
-	<Field    id="debSW4"  type="checkbox"  visibleBindingId="ipSWON4" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON5" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  5  active:---------------------</Label>  </Field>
-	<Field    id="ipSW5"   type="textfield" visibleBindingId="ipSWON5"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  5:</Label>  </Field>
-	<Field    id="debSW5"  type="checkbox"  visibleBindingId="ipSWON5" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON6" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  6  active:---------------------</Label>  </Field>
-	<Field    id="ipSW6"   type="textfield" visibleBindingId="ipSWON6"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  6:</Label>  </Field>
-	<Field    id="debSW6"  type="checkbox"  visibleBindingId="ipSWON6" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON7" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  7  active:---------------------</Label>  </Field>
-	<Field    id="ipSW7"   type="textfield" visibleBindingId="ipSWON7"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  7:</Label>  </Field>
-	<Field    id="debSW7"  type="checkbox"  visibleBindingId="ipSWON7" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON8" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  8  active:---------------------</Label>  </Field>
-	<Field    id="ipSW8"   type="textfield" visibleBindingId="ipSWON8"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  8:</Label>  </Field>
-	<Field    id="debSW8"  type="checkbox"  visibleBindingId="ipSWON8" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON9" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  9  active:---------------------</Label>  </Field>
-	<Field    id="ipSW9"   type="textfield" visibleBindingId="ipSWON9"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  9:</Label>  </Field>
-	<Field    id="debSW9"  type="checkbox"  visibleBindingId="ipSWON9" 	visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON10" type="checkbox" visibleBindingId="swON"    	visibleBindingValue="true"> <Label>.. Switch 10 active:---------------------</Label>  </Field>
-	<Field    id="ipSW10"  type="textfield" visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 10:</Label>  </Field>
-	<Field    id="debSW10"  type="checkbox" visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON11" type="checkbox" visibleBindingId="swON"    	visibleBindingValue="true"> <Label>.. Switch 11 active:---------------------</Label>  </Field>
-	<Field    id="ipSW11"  type="textfield" visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 11:</Label>  </Field>
-	<Field    id="debSW11"  type="checkbox" visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field    id="ipSWON12" type="checkbox" visibleBindingId="swON"    	visibleBindingValue="true"> <Label>.. Switch 12 active:---------------------</Label>  </Field>
-	<Field    id="ipSW12"  type="textfield" visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 12:</Label>  </Field>
-	<Field    id="debSW12"  type="checkbox" visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
-	<Field id="ipSWON12Label" type="label" 								visibleBindingId="ipSWON12"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="ipSWON0"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:---------------------</Label>  	</Field>
+	<Field id="ipSW0"    type="textfield"  visibleBindingId="ipSWON0"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch 0:</Label>  				</Field>
+	<Field id="debSW0"   type="checkbox"   visibleBindingId="ipSWON0"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON1"  type="checkbox"   isibleBindingId="swON"      visibleBindingValue="true"> <Label>.. Switch  1  active:---------------------</Label>  	</Field>
+	<Field id="ipSW1"    type="textfield"  isibleBindingId="ipSWON1"   visibleBindingValue="true"> <Label>- ipNumber of unifi switch  1:</Label> 				</Field>
+	<Field id="debSW1"   type="checkbox"   isibleBindingId="ipSWON1"   visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON2"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  2  active:---------------------</Label>  	</Field>
+	<Field id="ipSW2"    type="textfield"  visibleBindingId="ipSWON2"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  2:</Label>  				</Field>
+	<Field id="debSW2"   type="checkbox"   visibleBindingId="ipSWON2"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON3"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  3  active:---------------------</Label>  	</Field>
+	<Field id="ipSW3"    type="textfield"  visibleBindingId="ipSWON3"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  3:</Label>  				</Field>
+	<Field id="debSW3"   type="checkbox"   visibleBindingId="ipSWON3"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON4"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  4  active:---------------------</Label>  	</Field>
+	<Field id="ipSW4"    type="textfield"  visibleBindingId="ipSWON4"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  4:</Label>  				</Field>
+	<Field id="debSW4"   type="checkbox"   visibleBindingId="ipSWON4"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON5"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  5  active:---------------------</Label>  	</Field>
+	<Field id="ipSW5"    type="textfield"  visibleBindingId="ipSWON5"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  5:</Label>  				</Field>
+	<Field id="debSW5"   type="checkbox"   visibleBindingId="ipSWON5"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON6"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  6  active:---------------------</Label>  	</Field>
+	<Field id="ipSW6"    type="textfield"  visibleBindingId="ipSWON6"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  6:</Label>  				</Field>
+	<Field id="debSW6"   type="checkbox"   visibleBindingId="ipSWON6"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON7"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  7  active:---------------------</Label>  	</Field>
+	<Field id="ipSW7"    type="textfield"  visibleBindingId="ipSWON7"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  7:</Label>  				</Field>
+	<Field id="debSW7"   type="checkbox"   visibleBindingId="ipSWON7"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON8"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  8  active:---------------------</Label>  	</Field>
+	<Field id="ipSW8"    type="textfield"  visibleBindingId="ipSWON8"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  8:</Label>  				</Field>
+	<Field id="debSW8"   type="checkbox"   visibleBindingId="ipSWON8"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON9"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  9  active:---------------------</Label>  	</Field>
+	<Field id="ipSW9"    type="textfield"  visibleBindingId="ipSWON9"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch  9:</Label>  				</Field>
+	<Field id="debSW9"   type="checkbox"   visibleBindingId="ipSWON9"  visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON10" type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch 10 active:---------------------</Label>  	</Field>
+	<Field id="ipSW10"   type="textfield"  visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 10:</Label>  				</Field>
+	<Field id="debSW10"  type="checkbox"   visibleBindingId="ipSWON10" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON11" type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch 11 active:---------------------</Label>  	</Field>
+	<Field id="ipSW11"   type="textfield"  visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 11:</Label>  				</Field>
+	<Field id="debSW11"  type="checkbox"   visibleBindingId="ipSWON11" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON12" type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch 12 active:---------------------</Label>  	</Field>
+	<Field id="ipSW12"   type="textfield"  visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- ipNumber of unifi switch 12:</Label>  				</Field>
+	<Field id="debSW12"  type="checkbox"   visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
+	<Field id="ipSWON12Label" type="label" visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 	<Label>This is used as switch device part of a UDM system</Label>  </Field>
 
 
@@ -497,6 +488,7 @@ Then disable listener process
 
 
 	<Field id="simpleSeparatorvideo0" 			type="separator"/>
+
 	<Field id="cameraSystem" type="menu"  defaultValue="true"    > 
 		<Label>Cameras:...                                                                     :</Label>  
 			<List>
@@ -506,8 +498,8 @@ Then disable listener process
 			</List>
 	</Field>
 
-	<Field    id="protecEventSleepTime"   type="menu" defaultValue="2" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..query system for new events every:</Label>  
+	<Field id="protecEventSleepTime"   type="menu"  visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+		<Label>..query system for new events every:</Label>  
 			<List>
 			<Option value="0.2" >0.2 seconds</Option>
 			<Option value="0.5" >0.5 seconds</Option>
@@ -517,8 +509,9 @@ Then disable listener process
 			<Option value="4"   >4 seconds</Option>
 			</List>
 	</Field>
-	<Field    id="refreshProtectCameras"   type="menu" defaultValue="60" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..get camera update (dev states) every:</Label>  
+
+	<Field id="refreshProtectCameras"   type="menu"  visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+		<Label>..get camera update (dev states) every:</Label>  
 			<List>
 			<Option value="10"   >10 seconds</Option>
 			<Option value="20"   >20 seconds</Option>
@@ -528,14 +521,16 @@ Then disable listener process
 			<Option value="120"  >2 minutes</Option>
 			</List>
 	</Field>
-	<Field    id="copyProtectsnapshots"   type="menu" defaultValue="on" visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
-   	<Label>..copy thumbnails to the indigo server:</Label>  
+
+	<Field id="copyProtectsnapshots"   type="menu"  visibleBindingId="cameraSystem" visibleBindingValue="protect"> 
+		<Label>..copy thumbnails to the indigo server:</Label>  
 			<List>
 			<Option value="on"   >on for all devices</Option>
 			<Option value="off"   >off for all devices</Option>
 			<Option value="selectedByDevice"   >set in each device</Option>
 			</List>
 	</Field>
+
 	<Field id="infoLabelProtectd" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="protect" alignText="left" fontSize="small" fontColor="darkgrey"> 
 		<Label>To setup: select the querry every time parametes etc
 Currently the protect system must be on the same hardware as the controller eg cloudkey 2, UMDpro.
@@ -554,33 +549,35 @@ You can trigger on any of these variables or on the device states: lastRing or e
 In menu / CAMERA - protect Info ...
 you can print camera info to the logfile and  get a snap shot and set several parameetrs on the caameras
 in actions you can setup most of the config as as well as get snapshots
-   </Label> 
+</Label> 
 	</Field>
 
 
-
-
-	<Field    id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
+	<Field id="nvrWebUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..UserID for UniFi NVR web login(empty=off):</Label>
 	</Field>
-	<Field    id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
+
+	<Field id="nvrWebPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..Password for UniFi NVR web login, no " ' please:</Label>
 	</Field>
 
-	<Field    id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
+	<Field id="nvrUNIXUserID"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..UserID for UniFi NVR unix box(empty=off):</Label>
 	</Field>
-	<Field    id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
+
+	<Field id="nvrUNIXPassWd"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr">
 		<Label>..Password for UniFi NVR unix box no, " ' please:</Label>
 	</Field>
-	<Field    id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr" readonly="true">
+
+	<Field id="nvrVIDEOapiKey"   type="textfield" defaultValue="" visibleBindingId="cameraSystem" visibleBindingValue="nvr" readonly="true">
 		<Label>..api key to access cameras(get in edit user on NVR, will be filled by plugin):</Label>
 	</Field>
 
-	<Field    id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
-   		<Label>- ipNumber of your camera system:</Label>  
+	<Field id="nvrIP"   type="textfield" defaultValue="192.168.1.x" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
+		<Label>- ipNumber of your camera system:</Label>  
 	</Field>
-	<Field    id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
+
+	<Field id="imageSourceForEvent" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
 		<Label>..get event images:</Label>  
 			<List>
 			<Option value="noImage"               > no image</Option>
@@ -590,7 +587,7 @@ in actions you can setup most of the config as as well as get snapshots
 			</List>
 	</Field>
 
-	<Field    id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
+	<Field id="imageSourceForSnapShot" type="menu"  defaultValue="noImage"       visibleBindingId="cameraSystem"    visibleBindingValue="nvr"> 
 		<Label>..get snapshot images:</Label>  
 			<List>
 			<Option value="noImage"               > no image</Option>
@@ -598,8 +595,9 @@ in actions you can setup most of the config as as well as get snapshots
 			<Option value="imageFromCamera"       > use http to camera (fixed width) must be enabled on each camera</Option>
 			</List>
 	</Field>
-	<Field    id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
-   	<Label>..event/snapshot image width(# of pixels) if supported:</Label>  
+
+	<Field id="cameraEventWidth"   type="menu" defaultValue="1024" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
+		<Label>..event/snapshot image width(# of pixels) if supported:</Label>  
 			<List>
 			<Option value="240"         > 240</Option>
 			<Option value="320"         > 320</Option>
@@ -613,7 +611,8 @@ in actions you can setup most of the config as as well as get snapshots
 			<Option value="3840"        > 3840 (max - G4)</Option>
 			</List>
 	</Field>
-	<Field    id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
+
+	<Field id="unifiVIDEONumerOfEvents"   type="menu" defaultValue="1000" visibleBindingId="cameraSystem" visibleBindingValue="nvr"> 
 		<Label>..Keep x number of events history in Indigo plugin:</Label>  
 			<List>
 			<Option value="10"          > 10</Option>
@@ -627,48 +626,59 @@ in actions you can setup most of the config as as well as get snapshots
 			</List>
 	</Field>
 
-	<Field    id="VDtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"     > 
+	<Field id="VDtailCommand" type="textfield"  defaultValue="/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"     > 
 	<Label>..Video tail command(empty=off):</Label>  
 	</Field>
+
 	<Field id="infoLabelVDtailCommand" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> .../usr/bin/tail -F pathTo motion.log</Label>  </Field>
-	<Field    id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"   hidden="false"       > 
+
+	<Field id="VDdictCommand" type="menu"  defaultValue="not implemented"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"   hidden="false"       > 
+
 	<Label>..Video dict command(no="):</Label>  
 		<List>
 			<Option value="not implemented"      > not implemented </Option>
 		</List>
 	</Field>
 
-    
-	<Field id="infoLabelvideo3" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---if the MAC has access to the UniFi Video clips -------- </Label>  </Field>
-	<Field    id="videoPath" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/video"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
-		<Label>..path to NVR video directory:</Label>  
-	</Field>
-	<Field id="infoLabelvideovideoPath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="true" alignText="right"> <Label> ... source of image files</Label>  </Field>
 
-	<Field    id="changedImagePath" type="textfield"   visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" tooltip="enter fully qualified path"  fontSize="small" fontColor="darkgrey" > 
+	<Field id="changedImagePath" type="textfield"   visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" tooltip="enter fully qualified path"  fontSize="small" fontColor="darkgrey" > 
 		<Label>..target path to most recent event thumbnails:</Label>  
 	</Field>
+
 	<Field id="infoLabelvideochangedImagePath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr,protect" alignText="right"> <Label> the directory must already exist </Label>  </Field>
+
+    
+	<Field id="infoLabelvideo3" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---if the MAC has access to the UniFi Video clips -------- </Label>  </Field>
+
+	<Field id="videoPath" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/video"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
+		<Label>..path to NVR video directory:</Label>  
+	</Field>
+
+	<Field id="infoLabelvideovideoPath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="true" alignText="right"> <Label> ... source of image files</Label>  </Field>
+
 
 	<Field id="infoLabelvideo2" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr"> <Label>.                                        ---only if you use VM machine to host UniFi NVR -------- </Label>  </Field>
 
-	<Field    id="vmMachine" type="textfield"  defaultValue="ubuntu"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="name of the system you gave it in VBOX app "          > 
+	<Field id="vmMachine" type="textfield"  defaultValue="ubuntu"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="name of the system you gave it in VBOX app "          > 
 		<Label>..name of VM machine used(empty=off):</Label>  
 	</Field>
+
 	<Field id="infoLabelvideovmMachine" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
 
-	<Field    id="vboxPath" type="textfield"  defaultValue="/Applications/VirtualBox.app/Contents/MacOS/"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" > 
+	<Field id="vboxPath" type="textfield"  defaultValue="/Applications/VirtualBox.app/Contents/MacOS/"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" > 
 		<Label>..path to VM box app:</Label>  
 	</Field>
+
 	<Field id="infoLabelvideovboxPath" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage start/stop/compress</Label>  </Field>
 
-	<Field    id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="fully qualified path to disk image"       > 
+	<Field id="vmDisk" type="textfield"  defaultValue="/Volumes/xx/Users/YOURID/VirtualBox VMs/ubuntu/unufiubuntu.vdi"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip="fully qualified path to disk image"       > 
 		<Label>..path to VM box disk image file:</Label>  
 	</Field>
 
-	<Field    id="mountPathVM" type="textfield"  defaultValue="/home/yourid/osx"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
+	<Field id="mountPathVM" type="textfield"  defaultValue="/home/yourid/osx"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" tooltip=""       > 
 		<Label>..Mount path on VM box for images:</Label>  
 	</Field>
+
 	<Field id="infoLabelvideovmDisk" type="label"  visibleBindingId="cameraSystem" visibleBindingValue="nvr" alignText="right"> <Label> ...for VBoxManage compress</Label>  </Field>
 
 	<Field id="simpleSeparator222" type="separator"/>
@@ -676,38 +686,43 @@ in actions you can setup most of the config as as well as get snapshots
 
 	<Field id="infoLabel226" type="label"> <Label>== Debug:... (no restart)</Label>  </Field>
 
-	<Field    id="debugLogic"         type="checkbox"   > <Label>... (1) Logic:</Label>  </Field>
-	<Field    id="debugLog"           type="checkbox"   > <Label>... (2) logMessages:</Label>  </Field>
-	<Field    id="debugLogDetails"    type="checkbox"   > <Label>... (3) ...  Details:</Label>  </Field>
-	<Field    id="debugDict"          type="checkbox"   > <Label>... (4) Dict Messages:</Label>  </Field>
-	<Field    id="debugDictDetails"   type="checkbox"   > <Label>... (5) ...  Details:</Label>  </Field>
-	<Field    id="debugConnectionCMD" type="checkbox"   > <Label>... (6) http connection to unifi devices  show commands:</Label>  </Field>
-	<Field    id="debugConnectionRET" type="checkbox"   > <Label>... (6.1) http connection to unifi devices  show result:</Label>  </Field>
-	<Field    id="debugExpect"        type="checkbox"   > <Label>... (7) Expect command...:</Label>  </Field>
-	<Field    id="debugExpectRET"     type="checkbox"   > <Label>... (7.1) Expect command return strings:</Label>  </Field>
-	<Field    id="debugVideo"         type="checkbox"   > <Label>... (8) NVR system Video...:</Label>  </Field>
-	<Field    id="debugFing"          type="checkbox"   > <Label>... (9) Fing:</Label>  </Field>
-	<Field    id="debugBC"            type="checkbox"   > <Label>... (10) BroadCast:</Label>  </Field>
-	<Field    id="debugPing"          type="checkbox"   > <Label>... (11) Ping WOL:</Label>  </Field>
-	<Field    id="debugUDM"           type="checkbox"   > <Label>... (12) UDM:</Label>  </Field>
-	<Field    id="debugIgnoreMAC"     type="checkbox"   > <Label>... (13) ignore MAC:</Label>  </Field>
-	<Field    id="debugDBinfo"        type="checkbox"   > <Label>... (14) controller db http get client info:</Label>  </Field>
-	<Field    id="debugProtect"       type="checkbox"   > <Label>... (15) Protect camera ... :</Label>  </Field>
-	<Field    id="debugSpecial"       type="checkbox"   > <Label>... (19) Special debug for development:</Label>  </Field>
-	<Field    id="debugall"           type="checkbox"   > <Label>... (20) all of the above = everything:</Label>  </Field>
-	<Field    id="logFileActive2"     type="menu"       > <Label> send DETAILED logs to ..:</Label>
+	<Field id="debugLogic"         type="checkbox" > <Label>... (1) Logic:</Label>												</Field>
+	<Field id="debugLog"           type="checkbox" > <Label>... (2) logMessages:</Label>										</Field>
+	<Field id="debugLogDetails"    type="checkbox" > <Label>... (3) ...  Details:</Label>										</Field>
+	<Field id="debugDict"          type="checkbox" > <Label>... (4) Dict Messages:</Label>										</Field>
+	<Field id="debugDictDetails"   type="checkbox" > <Label>... (5) ...  Details:</Label>										</Field>
+	<Field id="debugConnectionCMD" type="checkbox" > <Label>... (6) http connection to unifi devices  show commands:</Label>	</Field>
+	<Field id="debugConnectionRET" type="checkbox" > <Label>... (6.1) http connection to unifi devices  show result:</Label>	</Field>
+	<Field id="debugExpect"        type="checkbox" > <Label>... (7) Expect command...:</Label>									</Field>
+	<Field id="debugExpectRET"     type="checkbox" > <Label>... (7.1) Expect command return strings:</Label>					</Field>
+	<Field id="debugVideo"         type="checkbox" > <Label>... (8) NVR system Video...:</Label>								</Field>
+	<Field id="debugFing"          type="checkbox" > <Label>... (9) Fing:</Label>												</Field>
+	<Field id="debugBC"            type="checkbox" > <Label>... (10) BroadCast:</Label>											</Field>
+	<Field id="debugPing"          type="checkbox" > <Label>... (11) Ping WOL:</Label>											</Field>
+	<Field id="debugUDM"           type="checkbox" > <Label>... (12) UDM:</Label>												</Field>
+	<Field id="debugIgnoreMAC"     type="checkbox" > <Label>... (13) ignore MAC:</Label>										</Field>
+	<Field id="debugDBinfo"        type="checkbox" > <Label>... (14) controller db http get client info:</Label>				</Field>
+	<Field id="debugProtect"       type="checkbox" > <Label>... (15) Protect camera ... :</Label>								</Field>
+	<Field id="debugSpecial"       type="checkbox" > <Label>... (19) Special debug for development:</Label>						</Field>
+	<Field id="debugall"           type="checkbox" > <Label>... (20) all of the above = everything:</Label>						</Field>
+
+	<Field id="logFileActive2"     type="menu"       > <Label> send DETAILED logs to ..:</Label>
 		<List>
 			<Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
 		</List>
 	</Field>
+
 	<Field id="infoLabel227" type="label"> <Label>.                     for DETAILED time tracking set indigo variable "enableTimeTracking_UniFi"</Label>  </Field>
-	<Field    id="do_cProfile" type="textfield"   readonly="yes"     > 
+
+	<Field id="do_cProfile" type="textfield"   readonly="yes"     > 
 		<Label>... enable or stop or  print intermediate results use on/off/print:</Label>  
 	</Field>
 
 	<Field id="simpleSeparator230" type="separator"/>
+
 	<Field id="infolabelExperts" type="label"> <Label>=== EXPERTs only ...</Label>  </Field>
-	<Field    id="restartListenerEvery" type="menu"   > 
+
+	<Field id="restartListenerEvery" type="menu"   > 
 		<Label>... force restart of listener every:</Label>  
    		<List>
 			<Option value="120"   >2 minutes for testing</Option>
@@ -717,13 +732,14 @@ in actions you can setup most of the config as as well as get snapshots
 			<Option value="999999999" > off default</Option>
 		</List>
 	</Field>
-<Field id="infoLabelrestartListenerEvery1" type="label" > <Label>.           When you have several unforced restarts through lost connections, 
+
+	<Field id="infoLabelrestartListenerEvery1" type="label" > <Label>.           When you have several unforced restarts through lost connections, 
 .           it might be a good idea to force them every xx hours
+            </Label>  
+	</Field>
 
-</Label>  </Field>
 
-
-	<Field    id="readBuffer" type="menu"  > 
+	<Field id="readBuffer" type="menu"  > 
 		<Label>... Size of buffer for reading input streams:</Label>  
    		<List>
 			<Option value="512"   > 512 for testing only</Option>
@@ -736,19 +752,14 @@ in actions you can setup most of the config as as well as get snapshots
 			<Option value="65536" > 65536</Option>
 		</List>
 	</Field>
-<Field id="infoLabel229" type="label" > <Label>.           For error 22: reduce buffer size until error disappears
+
+	<Field id="infoLabel229" type="label" > 
+		<Label>.           For error 22: reduce buffer size until error disappears
 .           In general max value for best performance. 
 .           32k seems to cover 99% of packages. Each listener stream will use one of the buffers + several copies 
 .           Small read buffer will do several reads when data is &gt; buffer size, 
-.           When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  </Field>
-<!--
-	<Field id="infoLabel331" type="label"> <Label> .. unifi device message log entries: </Label>  </Field>
-	<Field    id="createEntryInUnifiDevLogActive" type="checkbox"  defaultValue="false"   > 
-		<Label>.. create message log entries on unifi devices:</Label>  
+.           When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  
 	</Field>
-<Field id="infoLabel332" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
-<Label> set to active if you get frequent warnings: no message for xx seconds, restart listener</Label>  </Field>
--->
 
 
 </PluginConfig>

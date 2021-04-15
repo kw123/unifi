@@ -1,10 +1,10 @@
-changes in V7.39.363@ 2021-04-12
+changes in V7.39.364@ 2021-04-12
 ==================  
-1. changed http connect setup for hosted unifi controller typ
+1. changed http connect setup for hosted unifi controller type
    port# = 8443
    site name = default
    os = std 
-   ... hosted controller behave differntly from cloud controller or UDM
+   ... hosted controller behave differently from cloud controller or UDM
        they use - even under v 6 - old path statements and login  
 
 

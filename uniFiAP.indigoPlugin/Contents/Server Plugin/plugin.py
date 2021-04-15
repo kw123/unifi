@@ -35,6 +35,8 @@ import pstats
 # this needs to be updated for each new property added to pluginprops. 
 # indigo ignores the defaults of new properties after first load of the plugin 
 kDefaultPluginPrefs = {
+	"MSG":										"please enter values",
+	"updateDescriptions":						True,
 	"expirationTime":							"120",
 	"fixExpirationTime":						True,
 	"expTimeMultiplier":						"2",
@@ -76,7 +78,6 @@ kDefaultPluginPrefs = {
 	"unifiCloudKeySiteName":					"",
 	"overWriteControllerPort":					"",
 	"unifiControllerBackupON":					True,
-	"unifiControllerHosted":					False,
 	"ControllerBackupPath":						"/usr/lib/unifi/data/backup/autobackup",
 	"infoLabelbackup1":							"/usr/lib/unifi/data/backup/autobackup",
 	"infoLabelbackup2":							"/data/unifi/data/backup/autobackup",
@@ -666,7 +667,6 @@ class Plugin(indigo.PluginBase):
 		#####  check DB parameters
 		ip0 														= self.pluginPrefs.get(u"unifiCloudKeyIP",  "")
 		ac															= self.pluginPrefs.get(u"unifiCloudKeyMode","ON")
-		self.getcontrollerDBForClientsPrevious						= time.time() - 10
 		self.useDBInfoForWhichDevices								= self.pluginPrefs.get(u"useDBInfoForWhichDevices","all")
 		if self.isValidIP(self.unifiCloudKeyIP) and (ac.find("ON") > -1 or ac.find("UDM") or self.useDBInfoForWhichDevices in ["all","perDevice"]):
 			self.unifiCloudKeyMode = "ON"
@@ -1580,9 +1580,9 @@ class Plugin(indigo.PluginBase):
 			#out += u"\nget blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+u"[sec]" )
 			#out += u"\nget lastseen info from Cntr every".ljust(40) +	unicode(self.unifigetLastSeenDeltaTime)+u"[sec]" )
 			out += u"\n"
-			out += u"\n====== camera NVR stuff ---------------------------"
-			out += u"\nCamera enabled".ljust(40)					+	self.cameraSystem 
-			if self.cameraSystem =="nvr":
+			if self.cameraSystem == "nvr":
+				out += u"\n====== camera NVR stuff ---------------------------"
+				out += u"\nCamera enabled".ljust(40)					+	self.cameraSystem 
 				out += u"\n=  get camera DB config and listen to recording event logs"
 				out += u"\n  ssh NVR-UNIXUserID@NVR-IP "
 				out += u"\nNVR-UNIXUserID".ljust(40)					+	self.connectParams[u"UserID"][u"unixNVR"]
@@ -1597,7 +1597,7 @@ class Plugin(indigo.PluginBase):
 				out += u"\nNVR-WEB-UserID".ljust(40)					+	self.connectParams[u"UserID"][u"nvrWeb"]
 				out += u"\nNVR-WEB-passWd".ljust(40)					+	self.connectParams[u"PassWd"][u"nvrWeb"]
 				out += u"\nNVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey
-			elif self.cameraSystem =="protect":
+			elif self.cameraSystem == "protect":
 				pass
 			out += u"\n"
 			out += u"\nAP ip#			  enabled / disabled"
@@ -4622,11 +4622,14 @@ class Plugin(indigo.PluginBase):
 		try:
 			if self.unifiControllerType == u"hosted":
 				ret = "302"
+				if self.unifiApiLoginPath  == "" or self.unifiApiWebPage == "" or  self.unifiControllerOS == "": logmsg = True
+				else: logmsg = False
 				self.unifiCloudKeyPort = self.overWriteControllerPort
 				self.unifiControllerOS = self.HTTPretCodes[ret][u"os"]
 				self.unifiApiLoginPath = self.HTTPretCodes[ret][u"unifiApiLoginPath"]
 				self.unifiApiWebPage   = self.HTTPretCodes[ret][u"unifiApiWebPage"]
-				self.indiLOG.log(10,u"getunifiOSAndPort setting OS:{}, port#:{} using ip#:{}, loginpath:{}, wepAPipAge:{}".format(self.unifiControllerOS, self.unifiCloudKeyPort, self.unifiCloudKeyIP, self.unifiApiLoginPath, self.unifiApiWebPage) )
+				if logmsg:
+					self.indiLOG.log(10,u"getunifiOSAndPort setting OS:{}, port#:{} using ip#:{}, loginpath:{}, wepAPipAge:{}".format(self.unifiControllerOS, self.unifiCloudKeyPort, self.unifiCloudKeyIP, self.unifiApiLoginPath, self.unifiApiWebPage) )
 				return True				
 
 			ret 			= ""
@@ -4792,7 +4795,7 @@ class Plugin(indigo.PluginBase):
 					return []
 
 				# now execute commands
-				#### use curl 
+				#### use curl if ...
 				useCurl = self.requestOrcurl.find(u"curl") > -1 and self.unifiControllerOS == u"std"
 
 				if useCurl:
@@ -7646,16 +7649,9 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 						if unicode(e).find(u"timeout waiting for response")>-1:
 							self.getcontrollerDBForClientsLast = time.time()
-							nextCheck = self.getcontrollerDBForClientsLast + float(self.readDictEverySeconds[u"DB"])
 							return 
 
-			## try to sync w controller update, repeat faster if no change
-			#dt = time.time() - self.getcontrollerDBForClientsPrevious
-			### logic here.. to complicated, just take fixed delta 
 			self.getcontrollerDBForClientsLast = time.time()
-			nextCheck = self.getcontrollerDBForClientsLast + float(self.readDictEverySeconds[u"DB"])
-			#if self.decideMyLog(u"DBinfo") or True: self.indiLOG.log(10,u"controlDB anyChange:{}/{} ave:{}; lastdt:{:.0f}; next check in {:.0f}[secs]".format(anyChange, nClients,secChange/max(1,nClients), dt,  nextCheck - time.time() ) )
-			self.getcontrollerDBForClientsPrevious = time.time()
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -8445,6 +8441,7 @@ class Plugin(indigo.PluginBase):
 					MAClist[dev.states[u"MAC"]] = [dev.id, dev.name]
 					if dev.states[u"id"] not in self.PROTECT:
 						self.PROTECT[cameraId] = {u"events":{}, u"devId":dev.id, u"devName":dev.name, u"MAC":dev.states[u"MAC"], "lastUpdate":time.time()}
+
 					devList[cameraId] = 1
 					# clean up wrong status afetr strtup
 					if lD == 0:
@@ -8542,9 +8539,11 @@ class Plugin(indigo.PluginBase):
 							else:
 								self.sleep(0.1)
 								continue
+
 					else:
 						devId = self.PROTECT[states[u"id"]][u"devId"]
 						dev = indigo.devices[devId]
+
 					if devId ==-1:
 						self.indiLOG.log(40,u"dev not found ")
 						continue
@@ -8610,7 +8609,7 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	####----- thread to get new events ever x secs   ------
+	####----- thread to get new events every x secs   ------
 	####-----------------	 ---------
 	def getProtectEvents(self):# , startTime):
 		self.indiLOG.log(10,u"getProtectEvents:  process starting")
@@ -8622,26 +8621,34 @@ class Plugin(indigo.PluginBase):
 		while True:
 			try:
 				refreshCameras = False
+
+				if self.cameraSystem != u"protect":
+					self.indiLOG.log(30,u"getProtectEvents: stopping process due to camera off")
+					return  
 				if self.pluginState == u"stop" or self.protectThread[u"status"] == u"stop": 
 					self.indiLOG.log(30,u"getProtectEvents: stopping process due to stop request")
 					return  
+
 				self.sleep(0.2)
-				if self.PROTECT == {}: continue
-				if time.time() - lastGetEvent < self.protecEventSleepTime: continue
+
+				if self.PROTECT == {}: 										continue # no camera defined
+				if time.time() - lastGetEvent < self.protecEventSleepTime: 	continue # now yet
 				lastGetEvent	= time.time()
 
+				# get new events from controller server
 				endTime 		= int(time.time() * 1000)
 				dataDict 		= {u"end": str(endTime+20), u"start": str( endTime - int(max(1,self.protecEventSleepTime)) *1000)}
 				events = self.executeCMDOnController(dataSEND=dataDict, pageString=u"api/events/", jsonAction=u"protect", cmdType=u"get", protect=True)
 				if False and self.decideMyLog(u"Protect"):  self.indiLOG.log(10,u"getProtectEvents: *********   get events elapsed time (1):{:.2f}, len(events):{} ".format(time.time() - elapsedTime, len(events) ))
 				
 
+				# digest new events
 				if not self.checkIfEmptyEventCleanup(events): 
-					checkIds = self.loopThroughEvents(events)
+					checkIds = self.loopThroughEventsAndFilterCameraEvents(events)
 				else:
 					checkIds = {}
 
-				self.getProtectEventPicsAndupdateDevices(checkIds)
+				self.goThroughNewEventDataGetThumbNailsAndUpdateIndigoDevicesAndVariables(checkIds)
 
 				self.executeUpdateStatesList()
 
@@ -8659,7 +8666,7 @@ class Plugin(indigo.PluginBase):
 	####-----loop through new evenst and check if any new, changes  ------
 	####-----------------	 ---------
 
-	def loopThroughEvents(self, events):
+	def loopThroughEventsAndFilterCameraEvents(self, events):
 		try:
 			checkIds = {}
 			if events == []: return checkIds 
@@ -8689,8 +8696,6 @@ class Plugin(indigo.PluginBase):
 					self.lastRefreshProtect = time.time() - self.refreshProtectCameras + 2 
 					continue
 
-				debug = False
-				#if cameraId == "604b049d0206a503e700d760":	debug = True
 
 				#### ignore repeat event info ### start
 				if self.PROTECT[cameraId][u"events"] != {}:
@@ -8716,7 +8721,7 @@ class Plugin(indigo.PluginBase):
 
 				#### ignore repeat event info ### END
 
-				if  debug or  self.decideMyLog(u"Protect"):
+				if self.decideMyLog(u"Protect"):
 					xxx = copy.deepcopy(event)
 					del xxx["camera"]
 					del xxx["id"]
@@ -8726,7 +8731,7 @@ class Plugin(indigo.PluginBase):
 
 				## for the time being ignore list of smart detect events. this is a list of events to follow in the next event listings, we willl deal with them then
 				if False and event[u"smartDetectEvents"] != []:
-					if  debug or  self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; skipping type:{}; smart:{}".format(cameraId, newId, event[u"type"], event[u"smartDetectEvents"]))
+					if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; skipping type:{}; smart:{}".format(cameraId, newId, event[u"type"], event[u"smartDetectEvents"]))
 					continue
 
 
@@ -8735,17 +8740,21 @@ class Plugin(indigo.PluginBase):
 					self.PROTECT[cameraId][u"events"][newId] =  {u"eventStart":0, u"eventEnd":0, u"ringTime":0, u"eventType":"", u"thumbnailLastCopyTime": time.time() + 50, u"thumbnailCopied": False, u"status": "","rawEvent":copy.deepcopy(event)}
 					if dev == "":
 						dev = indigo.devices[self.PROTECT[cameraId][u"devId"]]
-					if  debug or  self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; {}: new event; type:{}".format(cameraId, newId, self.PROTECT[cameraId]["devName"], event[u"type"]))
+
+					if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; {}: new event; type:{}".format(cameraId, newId, self.PROTECT[cameraId]["devName"], event[u"type"]))
 					self.PROTECT[cameraId][u"events"][newId][u"eventStart"] 			= event[u"start"]/1000.
 					self.PROTECT[cameraId][u"events"][newId][u"eventEnd"]    			= 0
+
 					if self.copyProtectsnapshots == "on" or (self.copyProtectsnapshots == u"selectedByDevice" and "eventThumbnailOn" in props and props["eventThumbnailOn"] ):
 						self.PROTECT[cameraId][u"events"][newId][u"thumbnailLastCopyTime"] 	= time.time() + 15 # try to get thumbnail in the next 15 secs
 					else:
 						self.PROTECT[cameraId][u"events"][newId][u"thumbnailLastCopyTime"] 	= time.time()      # no thumbnails to be copied
 
 					self.PROTECT[cameraId][u"events"][newId][u"eventType"]				= event[u"type"]
+
 					if event[u"type"] == u"ring": 
 						self.PROTECT[cameraId][u"events"][newId][u"ringTime"] 			= event[u"start"]/1000.
+
 					updateDev = True
 					indigo.variable.updateValue(u"Unifi_Camera_with_Event", self.PROTECT[cameraId]["devName"])
 					indigo.variable.updateValue(u"Unifi_Camera_Event_Date", datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S"))
@@ -8771,6 +8780,7 @@ class Plugin(indigo.PluginBase):
 					self.PROTECT[cameraId][u"events"][newId][u"eventStart"]  = event[u"start"]/1000.
 					self.PROTECT[cameraId][u"events"][newId][u"eventEnd"]    = event[u"start"]/1000.+1
 					checkIds[newId] = cameraId
+
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"getProtectEvents in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
@@ -8780,7 +8790,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	####-----called to check if old events need to be expired / deleted ------
 	####-----------------	 ---------
-	def checkIfEmptyEventCleanup (self, events):
+	def checkIfEmptyEventCleanup(self, events):
 		try:
 			if events != []: return False
 			if time.time() - self.lastEvCheck < 10: return True
@@ -8826,7 +8836,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	####-----get thumbnails and update dev states ------
 	####-----------------	 ---------
-	def getProtectEventPicsAndupdateDevices (self, checkIds):
+	def goThroughNewEventDataGetThumbNailsAndUpdateIndigoDevicesAndVariables(self, checkIds):
 		try:
 			if time.time() - self.lastThumbnailTime < 2 and checkIds == {}: return
 			self.lastThumbnailTime = time.time() 
