@@ -105,7 +105,6 @@ kDefaultPluginPrefs = {
 	"GWtailEnable":								False,
 	"ipUGA":									"192.168.1.1",
 	"debGW":									False,
-	"readDictEverySecondsSW":					"60",
 	"count_APDL_inPortCount":					"1",
 	"ipSWON0":									False,
 	"ipSW0":									"192.168.1.x",
@@ -172,6 +171,7 @@ kDefaultPluginPrefs = {
 	"debugall":									False,
 	"logFileActive2":							"indigo",
 	"do_cProfile":								"on/off/print",
+	"rebootUnifiDeviceOnError":					True,
 	"restartListenerEvery":						"999999999",
 	"readBuffer":								"16384" 
 }
@@ -315,6 +315,19 @@ class Plugin(indigo.PluginBase):
 		self.UserID					= {}
 		self.PassWd					= {}
 		self.connectParamsDefault 	= {}
+		self.connectParamsDefault[u"expectRestart"]		= {	u"APtail": u"restart.exp",
+															u"GWtail": u"restart.exp",
+															u"UDtail": u"restart.exp",
+															u"SWtail": u"restart.exp",
+															u"VDtail": u"restart.exp",
+															u"GWdict": u"restart.exp",
+															u"UDdict": u"restart.exp",
+															u"SWdict": u"restart.exp",
+															u"APdict": u"restart.exp",
+															u"GWctrl": u"restart.exp",
+															u"UDctrl": u"restart.exp",
+															u"VDdict": u"restart.exp"
+														}
 		self.connectParamsDefault[u"expectCmdFile"]		= {	u"APtail": u"execLog.exp",
 															u"GWtail": u"execLog.exp",
 															u"UDtail": u"execLog.exp",
@@ -334,12 +347,12 @@ class Plugin(indigo.PluginBase):
 															u"SWtail": u"/usr/bin/tail -F /var/log/messages",
 															u"VDtail": u"/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
 															u"VDdict": u"not implemented",
-															u"GWdict": u"mca-dump | sed -e 's/^ *//'",
-															u"UDdict": u"mca-dump | sed -e 's/^ *//'",
-															u"SWdict": u"mca-dump | sed -e 's/^ *//'",
+															u"GWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
+															u"UDdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
+															u"SWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
 															u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
 															u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
-															u"APdict": u"mca-dump | sed -e 's/^ *//'"
+															u"APdict": u"mca-ctrl -t dump | sed -e 's/^ *//'"
 														}
 		self.connectParamsDefault[u"enableListener"]	= {	u"APtail": True,
 															u"GWtail": True,
@@ -490,6 +503,9 @@ class Plugin(indigo.PluginBase):
 		self.csrfToken 										= ""
 		self.numberForUDM									= {u"AP":4,u"SW":12}
 
+		self.rebootUnifiDeviceOnError						= self.pluginPrefs.get(u"rebootUnifiDeviceOnError", True)
+
+
 		self.refreshCallbackMethodAlreadySet 				= u"no" 
 
 		self.unifiControllerOS 								= ""
@@ -604,12 +620,13 @@ class Plugin(indigo.PluginBase):
 		self.MACloglist										= {}
 
 		self.readDictEverySeconds							= {}
-		self.readDictEverySeconds[u"AP"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsAP", 60) ))
-		self.readDictEverySeconds[u"GW"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsGW", 120) ))
-		self.readDictEverySeconds[u"SW"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsSW", 120) ))
-		self.readDictEverySeconds[u"UD"]					= 58 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsUD", 60) ))
-		self.readDictEverySeconds[u"DB"]					= 40 #unicode(int(self.pluginPrefs.get(u"readDictEverySecondsDB", 40) ))
+		self.readDictEverySeconds[u"AP"]					= 63
+		self.readDictEverySeconds[u"GW"]					= 63
+		self.readDictEverySeconds[u"SW"]					= 63
+		self.readDictEverySeconds[u"UD"]					= 63
+		self.readDictEverySeconds[u"DB"]					= 40
 		self.getcontrollerDBForClientsLast					= 0
+		self.lastResetUnifiDevice							= {}
 		self.devStateChangeList								= {}
 		self.deviceUp[u"AP"]								= {}
 		self.deviceUp[u"SW"]								= {}
@@ -1201,6 +1218,7 @@ class Plugin(indigo.PluginBase):
 			try: self.readBuffer							= int(valuesDict[u"readBuffer"])
 			except: self.readBuffer							= 32767
 
+			self.rebootUnifiDeviceOnError					= valuesDict[u"rebootUnifiDeviceOnError"]
 
 			if self.connectParams[u"UserID"][u"unixDevs"]	!= valuesDict[u"unifiUserID"]:				rebootRequired += u" unifiUserID changed;"
 			if self.connectParams[u"PassWd"][u"unixDevs"]	!= valuesDict[u"unifiPassWd"]:				rebootRequired += u" unifiPassWd changed;"
@@ -1885,10 +1903,25 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(10,u"menu RestartAPListener:{}".format(self.restartRequest))
 		return valuesDict
 
+
+	def buttonRestartAPProcessCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		if valuesDict[u"pickAP"] != u"-1":
+			self.restartRequest[u"APtail"] = valuesDict[u"pickAP"] + "-restart"
+			self.restartRequest[u"APdict"] = valuesDict[u"pickAP"] + "-restart"
+		self.indiLOG.log(10,u"menu Restart AP :{}".format(self.restartRequest))
+		return valuesDict
+
 	def buttonRestartSWListenerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		if valuesDict[u"pickSW"] != "-1":
 			self.restartRequest[u"SWdict"] = valuesDict[u"pickSW"]
-		self.indiLOG.log(10,u"menu RestartSWListener:{}".format(self.restartRequest))
+		self.indiLOG.log(10,u"menu Restart SW Listener:{}".format(self.restartRequest))
+		return valuesDict
+
+	def buttonRestartSWProcessCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		if valuesDict[u"pickAP"] != u"-1":
+			self.restartRequest[u"APtail"] = valuesDict[u"pickAP"] + "-restart"
+			self.restartRequest[u"APdict"] = valuesDict[u"pickAP"] + "-restart"
+		self.indiLOG.log(10,u"menu Restart SW :{}".format(self.restartRequest))
 		return valuesDict
 
 	def buttonResetPromptsCALLBACK(self, valuesDict=None, typeId="", devId=""):
@@ -5484,7 +5517,7 @@ class Plugin(indigo.PluginBase):
 	def setupCameraVariables(self):
 		try:
 			if self.cameraSystem == "protect":
-				if not self.enableSqlLogging:
+				if False and not self.enableSqlLogging:
 					try: 	indigo.variable.delete(u"Unifi_Camera_with_Event")
 					except: pass
 					try: 	indigo.variable.delete(u"Unifi_Camera_Event_PathToThumbnail")
@@ -6813,6 +6846,28 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 
 
+	### test if AP are up, first ping then check if expect is running
+	####-----------------	 ---------
+	def resetUnifiDevice(self,ipNumber, uType):
+		try:
+			userid, passwd = self.getUidPasswd(uType,ipNumber)
+			if userid == "": return
+			if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"expectRestart  {}-{};  requested".format(uType, ipNumber) )
+			if ipNumber in self.lastResetUnifiDevice:
+				if time.time() - self.lastResetUnifiDevice[ipNumber] < 50: return  # only reset devices every 50 secs not more often..
+			self.lastResetUnifiDevice[ipNumber]  = time.time()
+			cmd  = self.expectPath + " '" 
+			cmd += self.pathToPlugin + self.connectParams[u"expectRestart"][uType] + "' "
+			cmd += "'"+userid + "' '"+passwd + "' " 
+			cmd += ipNumber + " " 
+			cmd += "'"+self.escapeExpect(self.connectParams[u"promptOnServer"][ipNumber]) + "' " 
+			ret = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
+			if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"expectRestart  {}-{};  cmd:{}    return:{}".format(uType, ipNumber, cmd, ret[0]) )
+			return False
+		except	Exception, e:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+
+
 
 
 	####-----------------	 --------- 
@@ -7683,31 +7738,14 @@ class Plugin(indigo.PluginBase):
 			newlinesFromServer			= ""
 			minWaitbeforeRestart		= 135. #max(float(self.restartIfNoMessageSeconds), float(repeatRead) )
 			lastOkRestart				= time.time()
+			restartCode					= 0
 
 			self.testServerIfOK(ipNumber,uType)
 			if uType.find("tail") > -1:
 				self.lastMessageReceivedInListener[ipNumber] = time.time()
-			lastOkRestart				= time.time()
 
-			printNow = False
-			lastPrintCheck = time.time() -5
-			dateStamp = []
-			spDebug = False
 			consumeDataTime = 0
 			while True:
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 0. after while True   datetimestamps:{}".format(unicode(dateStamp).replace(" ","").replace("'","").replace("u","")))
-
-				if spDebug and self.decideMyLog(u"Special"): 
-					dateStamp.append([datetime.datetime.now().strftime(u"%M:%S.%f")[0:7]])
-					if len(dateStamp) > 4:
-						dateStamp.pop(0)
-					if  (time.time()-lastPrintCheck > 5) and consumeDataTime < -1: 
-						lastPrintCheck = time.time()
-						printNow = True
-					else:
-						printNow = False
-
 
 				if self.pluginState == "stop" or not self.connectParams[u"enableListener"][uType]: 
 					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
@@ -7721,72 +7759,75 @@ class Plugin(indigo.PluginBase):
 					return
 
 				if ipNumber in self.suspendedUnifiSystemDevicesIP:
-					self.sleep(20)
+					self.sleep(25)
+					goodDataReceivedTime = 1
 					continue
 
 				self.sleep(min(15, msgSleep))
 
-				if printNow: 
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 1. after sleep  {}-{}-{}; rC={}; msgSleep:{:.1f}; lastRestartCheck:{:.1f}; dT:{:.1f}, min wait:{:.1f}, check?:{:.1f}, T/F:{}".format(uType, ipNumber, apnS, restartCount, msgSleep, time.time()-lastRestartCheck, time.time() - goodDataReceivedTime, minWaitbeforeRestart,(time.time() - goodDataReceivedTime), (time.time() - goodDataReceivedTime) > minWaitbeforeRestart) )
-
 				retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart = \
 					self.checkIfRestartNeeded( 
-						goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart
+						restartCode, goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart
 					)
-
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 2. after checkIfRestartNeeded")
-
 				if retCode == 2: continue
+				else: 			 restartCode = 0
 
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 3. after retCode == 2: continue ")
+
 				## here we actually read the stuff
-				goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime = self.readFromUnifiBox( goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, newlinesFromServer, newDataStartTime)
+				goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime = self.readFromUnifiDevice( goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, newlinesFromServer, newDataStartTime)
 				if newlinesFromServer == "": continue
 
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 4. after readFromUnifiBox")
-				# command from plugin
 				if self.pluginState == "stop": 
 					try:	self.killPidIfRunning(ListenProcessFileHandle.pid)
 					except:	pass
 					return
 
-				goodDataReceivedTime = self.checkIfErrorReceived( goodDataReceivedTime, newlinesFromServer, uType, ipNumber)
-				if goodDataReceivedTime == 1: continue
-
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 5. after checkIfErrorReceived")
+				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"] += 1
+				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"] += len(newlinesFromServer)
 
 				######### for tail logfile
 				consumeDataTime = time.time()
 				if uType.find(u"tail") > -1:
+					restartCode = self.checkIfErrorReceivedTail(newlinesFromServer, uType, ipNumber)
+					if restartCode > 0: 
+						if self.rebootUnifiDeviceOnError:
+							self.indiLOG.log(20,u"getMessages: code:{:} - lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+							self.suspendedUnifiSystemDevicesIP[ipNUmber] = True
+							self.resetUnifiDevice(ipNumber, uType)
+							self.sleep(25)
+							del self.suspendedUnifiSystemDevicesIP[ipNUmber]
+						else:
+							self.indiLOG.log(20,u"getMessages: code:{:} - no reboot issued, lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+
+						goodDataReceivedTime = 1
+						continue
 					goodDataReceivedTime, lastMSG = self.checkAndPrepTail(newlinesFromServer, goodDataReceivedTime, ipNumber, uType, unifiDeviceType, apN)
 
-					######### for Dicts
-				else:
+				######### for Dicts
+				elif uType.find(u"dict") > -1:
+					restartCode = self.checkIfErrorReceivedDict(newlinesFromServer, combinedLines, uType, ipNumber)
+					if restartCode > 0: 
+						if self.rebootUnifiDeviceOnError:
+							self.indiLOG.log(20,u"getMessages: code:{:} - lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+							self.suspendedUnifiSystemDevicesIP[ipNUmber] = True
+							self.resetUnifiDevice(ipNumber, uType)
+							self.sleep(25)
+							del self.suspendedUnifiSystemDevicesIP[ipNUmber]
+						else:
+							self.indiLOG.log(20,u"getMessages: code:{:} - no reboot issued, lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+						goodDataReceivedTime = 1
+						continue
 					goodDataReceivedTime, combinedLines, lastMSG = self.checkAndPrepDict( newlinesFromServer, goodDataReceivedTime, combinedLines, ipNumber, uType, unifiDeviceType, minWaitbeforeRestart, apN, newDataStartTime)
+				else:
+					self.indiLOG.log(40,u"bad parameters for: {} {}".format(ipNumber, uType))
+					return 
+
 				consumeDataTime -= time.time()
 				if consumeDataTime < -1:
-					if  self.decideMyLog(u"Special"): 
-						self.indiLOG.log(10,u"getMessages: consume data needed  {:.1f}[secs] for data form  {:}-{:}-{:}; len(MSG):{:} lastMSG:{:}".format(-consumeDataTime, uType, ipNumber, apnS,len(lastMSG), lastMSG[-100:].replace("\r","")) )
 					msgSleep = 0
-
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 6. after checkAndPrepTail")
 
 				if self.statusChanged > 0:
 					self.setGroupStatus()
-
-				if spDebug and self.decideMyLog(u"Special")  and uType.find("dict") ==-1 and ipNumber == "192.168.1.5": dateStamp[-1].append(datetime.datetime.now().strftime(u"%S.%f")[0:4])
-				if printNow:
-					self.indiLOG.log(10,u"checkIfRestartNeeded: 7. after sendBroadCastNOW")
 
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
@@ -7797,26 +7838,30 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def checkIfRestartNeeded(self, goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart):
+	def checkIfRestartNeeded(self, restartCode, goodDataReceivedTime, aliveReceivedTime, startErrorCount, combinedLines, minWaitbeforeRestart, msgSleep, lastRestartCheck, restartCount, uType, ipNumber, apnS, lastMSG, ListenProcessFileHandle, lastOkRestart):
 		try:
 			retCode = 0
-			if False and self.decideMyLog(u"Special"): self.indiLOG.log(10,u"checkIfRestartNeeded: {}-{}-{}; rC={}; msgSleep:{:.1f}; lastRestartCheck:{:.1f}; dT:{:.1f}, min wait:{:.1f}, check?:{:.1f}, T/F:{}".format(uType, ipNumber, apnS, restartCount, msgSleep, time.time()-lastRestartCheck, time.time() - goodDataReceivedTime, minWaitbeforeRestart,(time.time() - goodDataReceivedTime), (time.time() - goodDataReceivedTime) > minWaitbeforeRestart) )
 			lastRestartCheck = time.time()
 			if len(self.restartRequest) > 0:
+				#self.indiLOG.log(10,u"getMessages: {}-{}-{} #req:{};  restart requested dict:{}".format(ipNumber, uType,apnS, self.restartRequest[uType].split("-")[0], self.restartRequest) )
 				if uType in self.restartRequest:
-					if self.restartRequest[uType] == apnS:
-						self.indiLOG.log(10,u"getMessages: {}    restart requested by menue ".format(self.restartRequest) )
-						goodDataReceivedTime	= -1
-						del self.restartRequest[uType]
+					if self.restartRequest[uType].split("-")[0] == apnS:
+						if self.restartRequest[uType].find("reset")  > -1:
+							if self.rebootUnifiDeviceOnError:
+								self.resetUnifiDevice(ipNumber, uType)
+								self.sleep(25) 
+						self.indiLOG.log(10,u"getMessages: {}    restart requested by menu ".format(self.restartRequest) )
+						goodDataReceivedTime = -1
+						self.restartRequest = {}
 
 			forcedRestart  = time.time() - lastOkRestart 
 			restartTimeout = time.time() - goodDataReceivedTime
 
-			if restartTimeout < minWaitbeforeRestart and goodDataReceivedTime > 0 and forcedRestart < self.restartListenerEvery: 
+			if restartTimeout < minWaitbeforeRestart and goodDataReceivedTime > 0 and forcedRestart < self.restartListenerEvery and restartCode == 0: 
 				# nothing to do
 				return retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart
 
-			## ned to restart, eitehr new or launch command, or no messages for xx secs
+			## ned to restart, either new or launch command, or no messages for xx secs
 			if goodDataReceivedTime < 0:# at startup
 				self.indiLOG.log(10,u"getMessages: launching listener for: {} / {}".format(uType, ipNumber) )
 
@@ -7832,7 +7877,7 @@ class Plugin(indigo.PluginBase):
 					restartCount += 1
 
 				lsm = lastMSG.replace("\n","")
-				self.indiLOG.log(logLevel,u"getMessages: relaunching {} / {} / {}:  timeSinceLastRestart {:.0f} > forcedRestart:{:.0f} [sec]  ;  without message:{:.1f}[sec], limitforRestart:{:.1f}[sec], restartCount:{:},  len(msg):{:}; lastMSG:{:}<<".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, forcedRestart, self.restartListenerEvery, restartTimeout, minWaitbeforeRestart, restartCount, len(lsm), lsm[-100:].replace("\r","") )  )
+				self.indiLOG.log(logLevel,u"getMessages: relaunching {} / {} / {}: code:{}; timeSinceLastRestart {:.0f} > forcedRestart:{:.0f} [sec]  ;  without message:{:.1f}[sec], limitforRestart:{:.1f}[sec], restartCount:{:},  len(msg):{:}; lastMSG:{:}<<".format(self.connectParams[u"expectCmdFile"][uType], uType, ipNumber, restartCode, forcedRestart, self.restartListenerEvery, restartTimeout, minWaitbeforeRestart, restartCount, len(lsm), lsm[-100:].replace("\r","") )  )
 
 				self.dataStats[u"tcpip"][uType][ipNumber][u"restarts"] += 1
 
@@ -7893,11 +7938,11 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def readFromUnifiBox(self, goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, lastLine, newDataStartTime):
+	def readFromUnifiDevice(self, goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, lastLine, newDataStartTime):
 		try:
 			try:
 				if ListenProcessFileHandle == "": 
-					self.indiLOG.log(20,"readFromUnifiBox: read handle not defined for {}-{}, sleeping 15 secs ".format(uType, ipNumber))
+					self.indiLOG.log(20,"readFromUnifiDevice: read handle not defined for {}-{}, sleeping 15 secs ".format(uType, ipNumber))
 					newlinesFromServer		= ""
 					goodDataReceivedTime	= 1 # this forces a restart of the listener
 					msgSleep				= 15
@@ -7913,8 +7958,8 @@ class Plugin(indigo.PluginBase):
 				msgSleep = 0.2 # fast read to follow, if data 
 				if lastLine == "" and  newlinesFromServer != "": newDataStartTime = time.time()
 			except	Exception, e:
-				if uType.find("dict") >-1:	msgSleep += .4 # nothing new, can wait, dicts come every 60 secs 
-				else:						msgSleep  = 0.4 # this is for tail 
+				if uType.find("dict") >-1:	msgSleep = 2 # nothing new, can wait, dicts come every 60 secs 
+				else:						msgSleep = 0.4 # this is for tail 
 				msgSleep = min(msgSleep,4)
 				if unicode(e).find(u"[Errno 35]") == -1:	 # "Errno 35" is the normal response if no data, if other error stop and restart
 					if unicode(e).find(u"None") == -1:
@@ -7935,28 +7980,45 @@ class Plugin(indigo.PluginBase):
 		return goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime
 
 	####-----------------	 ---------
-	def checkIfErrorReceived(self, goodDataReceivedTime, newlinesFromServer, uType, ipNumber):
+	def checkIfErrorReceivedDict(self, newlinesFromServer, combinedLines, uType, ipNumber):
 		try:
-			if newlinesFromServer != "":
-				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageCount"] += 1
-				self.dataStats[u"tcpip"][uType][ipNumber][u"inMessageBytes"] += len(newlinesFromServer)
-					## any error messages from OSX?
-				pos1 = newlinesFromServer.find(u"closed by remote host")
-				pos2 = newlinesFromServer.find(u"Killed by signal")
-				pos3 = newlinesFromServer.find(u"Killed -9")
-				pos4 = newlinesFromServer.find(u"mca-ctrl: error") 	##mca-ctrl: error while loading shared libraries: libubus.so: cannot ope...
-				if (  pos1 >- 1 or pos2 >- 1 or pos3 > -1 or pos4 > -1):
-					self.indiLOG.log(             20,u"getMessage: {} {} returning: ".format(uType, ipNumber)  )
-					if pos1 >-1: self.indiLOG.log(20,u"...(1){}".format(newlinesFromServer[max(0,pos1 - 100):pos1 + 100]) )
-					if pos2 >-1: self.indiLOG.log(20,u"...(2){}".format(newlinesFromServer[max(0,pos2 - 100):pos2 + 100]) )
-					if pos3 >-1: self.indiLOG.log(20,u"...(3){}".format(newlinesFromServer[max(0,pos3 - 100):pos3 + 100]) )
-					if pos4 >-1: self.indiLOG.log(20,u"...(4){}".format(newlinesFromServer) )
-					self.indiLOG.log(             20,u"...: {} we should restart listener on server ".format(uType) )
-					goodDataReceivedTime = 1#
+			retCode = 0
+			## any error messages from OSX 
+			if newlinesFromServer.find(u"closed by remote host") > -1:											retCode = 1
+			elif newlinesFromServer.find(u"Killed by signal") > -1:												retCode = 2
+			elif newlinesFromServer.find(u"Killed -9") > -1:													retCode = 3
+
+			## any error messages from UNIFI device
+			elif newlinesFromServer.find(u"mca-ctrl: error")> -1:												retCode = 4 #mca-ctrl: error while loading shared libraries: libubus.so: cannot ope...
+			elif len(newlinesFromServer) < 200 and len(combinedLines) < 500:
+				pos6 = newlinesFromServer.find(u"xxxThisIsTheEndTokenxxx255")
+				if pos6 > -1 and pos6 < 100: 																	retCode = 6 
+
+			return retCode
+
 		except	Exception, e:
 			if unicode(e).find(u"None") == -1:
 				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
-		return goodDataReceivedTime
+		return retCode
+
+	####-----------------	 ---------
+	def checkIfErrorReceivedTail(self, newlinesFromServer, uType, ipNumber):
+		try:
+			retCode = 0
+			## any error messages from OSX or UNIFI device
+			if newlinesFromServer.find(u"closed by remote host") > -1:											retCode = 1
+			elif newlinesFromServer.find(u"Killed by signal") > -1:												retCode = 2
+			elif newlinesFromServer.find(u"Killed -9") > -1:													retCode = 3
+
+			## any error messages from UNIFI device
+			elif newlinesFromServer.find(u"user.notice syswrapper: [state is locked] waiting for lock") > -1:	retCode = 5
+
+			return retCode
+
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
+		return retCode
 
 	####-----------------	 ---------
 	def checkAndPrepTail(self, newlinesFromServer, goodDataReceivedTime, ipNumber, uType, unifiDeviceType, apN):
@@ -8007,7 +8069,7 @@ class Plugin(indigo.PluginBase):
 			if len(ppp) == 2:
 				endTokenPos = ppp[1].find(self.connectParams[u"endDictToken"][uType])
 				if False and self.decideMyLog(u"Special"): self.indiLOG.log(10,u"...1::{} found endDictToken:{} @ pos:{} ".format( ipNumber, self.connectParams[u"endDictToken"][uType], endTokenPos ) )
-				if endTokenPos >-1:
+				if endTokenPos > -1:
 					dictData = ppp[1].lstrip("\r\n")
 					if False and self.decideMyLog(u"Special"): self.indiLOG.log(10,u"getMessages check dict:{}; endPos found @ pos:{}, len(data):{}, collect time = {:.1f}, ending with:{:}".format( ipNumber, endTokenPos,len(dictData), time.time() - newDataStartTime, dictData[-100:].replace("\n","").replace("\r","") ) )
 					try:
@@ -8384,7 +8446,7 @@ class Plugin(indigo.PluginBase):
 					consumedTime -= time.time()
 					if consumedTime < -3.0: logLevel = 20
 					else:					logLevel = 10
-					if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTime < -2) :
+					if logLevel == 20:
 						self.indiLOG.log(logLevel,u"comsumeLogData    excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 					self.logQueue.task_done()
@@ -8396,7 +8458,7 @@ class Plugin(indigo.PluginBase):
 				consumedTimeQueue -= time.time()
 				if consumedTimeQueue < -5.0: logLevel = 20
 				else:						 logLevel = 10
-				if logLevel == 20 or (self.decideMyLog(u"Special") and consumedTimeQueue < -2) :
+				if logLevel == 20:
 					self.indiLOG.log(logLevel,u"comsumeLogData  T excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 
@@ -9999,7 +10061,7 @@ class Plugin(indigo.PluginBase):
 
 					if consumedTime < -3.0:	logLevel = 20
 					else:					logLevel = 10
-					if logLevel == 20 or (self.decideMyLog(u"Special")  and consumedTime < -.4):
+					if logLevel == 20:
 						self.indiLOG.log(logLevel,u"comsumeDictData   excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
 
 					self.logQueueDict.task_done()
@@ -10010,7 +10072,7 @@ class Plugin(indigo.PluginBase):
 				consumedTimeQueue -= time.time()
 				if consumedTimeQueue < -5.0:	logLevel = 20
 				else:							logLevel = 10
-				if logLevel == 20  or (self.decideMyLog(u"Special")  and consumedTimeQueue < -.6):
+				if logLevel == 20:
 					self.indiLOG.log(logLevel,u"comsumeDictData T excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
 	
 			except	Exception, e:
@@ -10094,7 +10156,7 @@ class Plugin(indigo.PluginBase):
 					hostname = apDict[u"hostname"].strip()
 					ipNDevice= apDict[u"ip"]
 
-					clientHostnames ={"2":"","5":""}
+					clientHostnames = {"2":"","5":""}
 					for jj in range(len(apDict[u"vap_table"])):
 						if u"usage" in apDict[u"vap_table"][jj]: #skip if not wireless
 							if apDict[u"vap_table"][jj][u"usage"] == "downlink": continue
@@ -10420,7 +10482,7 @@ class Plugin(indigo.PluginBase):
 						oldUp	  = self.MAC2INDIGO[xType][MAC][u"upTime" + suffixN]
 						self.MAC2INDIGO[xType][MAC][u"upTime" + suffixN] = unicode(newUp)
 						if u"useWhatForStatus" in props and props[u"useWhatForStatus"] in [u"SWITCH","OptDhcpSwitch"]:
-							if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-SW-0    {:15s} {} {}; oldStatus:{}; IP:{}; AGE:{}; newUp:{}; oldUp:{} hostN:{}".format(useIP, MAC, dev.name, oldStatus, ip, age, newUp, oldUp, nameSW))
+							if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-SW-01    {:15s} {} {}; oldStatus:{}; IP:{}; AGE:{}; newUp:{}; oldUp:{} hostN:{}".format(useIP, MAC, dev.name, oldStatus, ip, age, newUp, oldUp, nameSW))
 							if oldUp ==	 newUp and oldStatus =="up":
 								if u"useupTimeforStatusSWITCH" in props and props[u"useupTimeforStatusSWITCH"] :
 									if u"usePingDOWN" in props and props[u"usePingDOWN"]	and self.sendWakewOnLanAndPing(MAC,dev.states[u"ipNumber"], props=props, calledFrom ="doSWITCHdictClients") == 0:
@@ -10441,7 +10503,7 @@ class Plugin(indigo.PluginBase):
 									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-SW-5    {} SW DICT network_table , but does not answer ping, continue expiration timer".format(MAC))
 								else:
 									self.MAC2INDIGO[xType][MAC][u"lastUp"] = time.time()
-									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-SW-0    {} SW DICT network_tablerestart exp timer ".format(MAC))
+									if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-SW-6    {} SW DICT network_tablerestart exp timer ".format(MAC))
 
 						if self.updateDescriptions:
 							oldIPX = dev.description.split("-")
@@ -11916,7 +11978,7 @@ class Plugin(indigo.PluginBase):
 
 
 			if not new:
-					if self.decideMyLog(u"DictDetails", MAC=MAC):  self.indiLOG.log(10,u"DC-SW-0    {}/{};   SW  hostname:{}; MAC:{}".format(ipNumber, ipNDevice, hostname, MAC) )
+					if self.decideMyLog(u"DictDetails", MAC=MAC):  self.indiLOG.log(10,u"DC-SW-S0   {}/{};   SW  hostname:{}; MAC:{}".format(ipNumber, ipNDevice, hostname, MAC) )
 					self.MAC2INDIGO[xType][MAC][u"ipNumber"] = ipNumber
 
 					if u"uptime" in theDict and theDict[u"uptime"] !="":

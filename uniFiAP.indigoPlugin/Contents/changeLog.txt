@@ -1,10 +1,19 @@
+changes in V7.39.365@ 2021-04-13
+==================  
+1. changed reading dicts and messages from unifi devices
+   1. dict checks for sinhgle line w xxxThisIsTheEndTokenxxx255
+   2. tail messages check for ...state is locked... 
+   3. changed time wait for dicts read to 62 secs from 58 secs 
+   4. fixed error in  Line# 5966 ;  error='key name Unifi_Camera_with_Ev ...
+   5. issue a unifi reboot command when encountering 
+
 changes in V7.39.364@ 2021-04-12
 ==================  
 1. changed http connect setup for hosted unifi controller type
    port# = 8443
    site name = default
    os = std 
-   ... hosted controller behave differently from cloud controller or UDM
+   ... hosted controllers behave differently from cloud controller or UDM
        they use - even under v 6 - old path statements and login  
 
 

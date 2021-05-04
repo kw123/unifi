@@ -348,6 +348,14 @@
 			<Field id="resetAP2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
 			<Label>This will restart the WiFi AP listener propcesses </Label> 
 			</Field>
+<!--
+			<Field	  id="resetAPProcess" type="button" tooltip="" >
+					<Label>reboot unifi device</Label><Title>Restart</Title><CallbackMethod>buttonRestartAPProcessCALLBACK</CallbackMethod>
+				</Field>
+			<Field id="resetAP3" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the WiFi AP unifi device</Label> 
+			</Field>
+-->
 			<Field id="simpleSeparatorAP" type="separator"/>
 				<Field	   id="pickSW" type="menu" defaultValue="-1">
 					<Label>which SWP# listener should be restarted</Label>
@@ -371,7 +379,14 @@
 			<Field id="resetSW2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
 			<Label>This will restart the switches listener propcesses </Label> 
 			</Field>
-
+<!--
+			<Field	  id="resetSWProcess" type="button" tooltip="" >
+					<Label>reboot unifi device</Label><Title>Restart</Title><CallbackMethod>buttonRestartSWProcessCALLBACK</CallbackMethod>
+				</Field>
+			<Field id="resetSW3" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
+			<Label>This will restart the unifi switch </Label> 
+			</Field>
+-->
 			<Field id="simpleSeparatorresetprompts" type="separator"/>
 				<Field	  id="resetprompts" type="button" tooltip="" >
 					<Label>Reset prompt(s) used for ssh ... </Label><Title>Reset </Title><CallbackMethod>buttonResetPromptsCALLBACK</CallbackMethod>

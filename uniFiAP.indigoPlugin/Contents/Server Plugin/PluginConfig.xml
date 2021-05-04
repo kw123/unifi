@@ -415,24 +415,6 @@ Then disable listener process
 
 	<Field id="swON" type="checkbox" > <Label>Show Switch section:..................................................</Label>  </Field>
 
-	<Field id="readDictEverySecondsSW" type="menu" visibleBindingId="ipSWON0" visibleBindingValue="true" tooltip="the DICTs contain all current info on the AP and GA ..">
-		<Label>...read database dump of SWs every:</Label>
-		<List>
-			<Option value="5"     > 5 seconds for testing</Option>
-			<Option value="10"    >10 seconds for testing</Option>
-			<Option value="20"    >20 seconds for testing</Option>
-			<Option value="30"    >30 seconds </Option>
-			<Option value="40"    >40 seconds </Option>
-			<Option value="60"    >1  minutes, default</Option>
-			<Option value="90"    >90 seconds</Option>
-			<Option value="120"   >2  minutes</Option>
-			<Option value="180"   >3  minutes</Option>
-			<Option value="240"   >4  minutes</Option>
-			<Option value="300"   >5  minutes</Option>
-		</List>
-   </Field>
-
-
 	<Field id="count_APDL_inPortCount"   				type="menu" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
 		<Label>Count AP and Downlink clients in total clients count in Switch:</Label>
 		<List>
@@ -732,6 +714,12 @@ in actions you can setup most of the config as as well as get snapshots
 			<Option value="999999999" > off default</Option>
 		</List>
 	</Field>
+
+
+	<Field id="rebootUnifiDeviceOnError" type="checkbox"   > 
+		<Label>... force restart of UnifFi devices when mca error encountered:</Label>  
+	</Field>
+
 
 	<Field id="infoLabelrestartListenerEvery1" type="label" > <Label>.           When you have several unforced restarts through lost connections, 
 .           it might be a good idea to force them every xx hours
