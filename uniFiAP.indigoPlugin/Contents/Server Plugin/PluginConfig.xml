@@ -685,6 +685,8 @@ in actions you can setup most of the config as as well as get snapshots
 	<Field id="debugIgnoreMAC"     type="checkbox" > <Label>... (13) ignore MAC:</Label>										</Field>
 	<Field id="debugDBinfo"        type="checkbox" > <Label>... (14) controller db http get client info:</Label>				</Field>
 	<Field id="debugProtect"       type="checkbox" > <Label>... (15) Protect camera ... :</Label>								</Field>
+
+	<Field id="debugDictFile"      type="checkbox" > <Label>... (16) dump dict msgs to prefs dir:</Label>						</Field>
 	<Field id="debugSpecial"       type="checkbox" > <Label>... (19) Special debug for development:</Label>						</Field>
 	<Field id="debugall"           type="checkbox" > <Label>... (20) all of the above = everything:</Label>						</Field>
 

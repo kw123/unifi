@@ -1,11 +1,22 @@
-changes in V7.39.365@ 2021-04-13
+changes in V7.39.367@ 2021-05-03
 ==================  
-1. changed reading dicts and messages from unifi devices
+   changed reading dicts and messages from unifi devices:
+   1. dict checks for single line w xxxThisIsTheEndTokenxxx255
+   2. tail messages check for ...state is locked... 
+   3. changed time wait for dicts read to 62 secs from 58 secs 
+   4. issue a unifi reboot command when encountering mca error, w option to switch off in config 
+   5. streamlined testing for good/bad unifi connection devices/ status
+
+
+
+changes in V7.39.365@ 2021-05-02
+==================  
+   changed reading dicts and messages from unifi devices:
    1. dict checks for sinhgle line w xxxThisIsTheEndTokenxxx255
    2. tail messages check for ...state is locked... 
    3. changed time wait for dicts read to 62 secs from 58 secs 
-   4. fixed error in  Line# 5966 ;  error='key name Unifi_Camera_with_Ev ...
-   5. issue a unifi reboot command when encountering 
+   4. issue a unifi reboot command when encountering mca error, w option to switch off in config 
+   5. fixed error in  Line# 5966 ;  error='key name Unifi_Camera_with_Ev ...
 
 changes in V7.39.364@ 2021-04-12
 ==================  
