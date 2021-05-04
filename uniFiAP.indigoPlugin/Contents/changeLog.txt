@@ -1,4 +1,4 @@
-changes in V7.39.367@ 2021-05-03
+changes in V7.39.368@ 2021-05-03
 ==================  
    changed reading dicts and messages from unifi devices:
    1. dict checks for single line w xxxThisIsTheEndTokenxxx255
@@ -6,6 +6,7 @@ changes in V7.39.367@ 2021-05-03
    3. changed time wait for dicts read to 62 secs from 58 secs 
    4. issue a unifi reboot command when encountering mca error, w option to switch off in config 
    5. streamlined testing for good/bad unifi connection devices/ status
+   6. fixed error='key name Unifi_Camera_with_Event not found in database'
 
 
 

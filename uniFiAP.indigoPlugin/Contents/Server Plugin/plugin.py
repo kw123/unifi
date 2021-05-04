@@ -5997,6 +5997,7 @@ class Plugin(indigo.PluginBase):
 
 			outOffV = ""
 			for v in self.varExcludeSQLList:
+				if v in indigo.variables:
 					var = indigo.variables[v]
 					sp = var.sharedProps
 					#self.indiLOG.log(30,u"setting /testing off: Var: {} sharedProps:{}".format(var.name, sp) )
