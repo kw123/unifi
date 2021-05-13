@@ -704,8 +704,9 @@ in actions you can setup most of the config as as well as get snapshots
 
 	<Field id="simpleSeparator230" type="separator"/>
 
-	<Field id="infolabelExperts" type="label"> <Label>=== EXPERTs only ...</Label>  </Field>
+	<Field id="infolabelExperts0" type="label"> <Label>=== EXPERTs only ...</Label>  </Field>
 
+	<Field id="infolabelExperts1" type="label"> <Label>=         restart of listeners, devices ...</Label>  </Field>
 	<Field id="restartListenerEvery" type="menu"   > 
 		<Label>... force restart of listener every:</Label>  
    		<List>
@@ -729,9 +730,50 @@ in actions you can setup most of the config as as well as get snapshots
 	</Field>
 
 
+	<Field id="infolabelExperts2" type="label"> <Label>=         set warning levels, set higher for slower server</Label>  </Field>
+
+	<Field id="maxConsumedTimeQueueForWarning" type="menu"  > 
+		<Label>... max time for excessive time for whole update queue:</Label>  
+		<List>
+			<Option value="1"  > 1 secs</Option>
+			<Option value="2"  > 2 secs</Option>
+			<Option value="3"  > 3 secs</Option>
+			<Option value="4"  > 4 secs</Option>
+			<Option value="5"  > 5 secs (default)</Option>
+			<Option value="6"  > 6 secs</Option>
+			<Option value="7"  > 7 secs</Option>
+			<Option value="8"  > 8 secs</Option>
+			<Option value="9"  > 9 secs</Option>
+			<Option value="10"  > 10 secs</Option>
+			<Option value="20"  > 20 secs</Option>
+		</List>
+	</Field>
+
+	<Field id="maxConsumedTimeForWarning" type="menu"  > 
+		<Label>... max time for excessive time for single update:</Label>  
+		<List>
+			<Option value="1"  > 1 secs</Option>
+			<Option value="2"  > 2 secs</Option>
+			<Option value="3"  > 3 secs (default)</Option>
+			<Option value="4"  > 4 secs</Option>
+			<Option value="5"  > 5 secs</Option>
+			<Option value="6"  > 6 secs</Option>
+			<Option value="7"  > 7 secs</Option>
+			<Option value="8"  > 8 secs</Option>
+			<Option value="9"  > 9 secs</Option>
+			<Option value="10"  > 10 secs</Option>
+			<Option value="20"  > 20 secs</Option>
+		</List>
+	</Field>
+
+
+
+
+	<Field id="infolabelExperts3" type="label"> <Label>=         buffer size</Label>  </Field>
+
 	<Field id="readBuffer" type="menu"  > 
 		<Label>... Size of buffer for reading input streams:</Label>  
-   		<List>
+		<List>
 			<Option value="512"   > 512 for testing only</Option>
 			<Option value="1024"  > 1024 for testing only</Option>
 			<Option value="2048"  > 2048</Option>

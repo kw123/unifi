@@ -174,6 +174,8 @@ kDefaultPluginPrefs = {
 	"do_cProfile":								"on/off/print",
 	"rebootUnifiDeviceOnError":					True,
 	"restartListenerEvery":						"999999999",
+	"maxConsumedTimeQueueForWarning":			"5",
+	"maxConsumedTimeForWarning":				"3",
 	"readBuffer":								"16384" 
 }
 
@@ -544,8 +546,12 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
 		self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
 
-		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", 32767))
+		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", "32767"))
 		except: self.readBuffer								= 32767
+		self.maxConsumedTimeQueueForWarning					= float(self.pluginPrefs.get(u"maxConsumedTimeQueueForWarning", "5"))
+		self.maxConsumedTimeForWarning						= float(self.pluginPrefs.get(u"maxConsumedTimeForWarning", "3"))
+
+
 		self.lastCheckForCAMERA								= 0
 		self.saveCameraEventsLastCheck						= 0
 		self.cameraEventWidth								= int(self.pluginPrefs.get(u"cameraEventWidth", u"720"))
@@ -1214,10 +1220,21 @@ class Plugin(indigo.PluginBase):
 			self.protecEventSleepTime						= float(valuesDict[u"protecEventSleepTime"])
 		
 			self.cameraEventWidth							= int(valuesDict[u"cameraEventWidth"])
+
 			self.imageSourceForEvent						= valuesDict[u"imageSourceForEvent"]
+
 			self.imageSourceForSnapShot						= valuesDict[u"imageSourceForSnapShot"]
+
 			try: self.readBuffer							= int(valuesDict[u"readBuffer"])
 			except: self.readBuffer							= 32767
+
+			try:	self.maxConsumedTimeQueueForWarning		= float(valuesDict[u"maxConsumedTimeQueueForWarning"])
+			except:	self.maxConsumedTimeQueueForWarning		= 5.
+			valuesDict[u"maxConsumedTimeQueueForWarning"]	= self.maxConsumedTimeQueueForWarning
+
+			try:	self.maxConsumedTimeForWarning			= float(valuesDict[u"maxConsumedTimeForWarning"])
+			except:	self.maxConsumedTimeForWarning			= 3.
+			valuesDict[u"maxConsumedTimeForWarning"]		= self.maxConsumedTimeForWarning
 
 			self.rebootUnifiDeviceOnError					= valuesDict[u"rebootUnifiDeviceOnError"]
 
@@ -1581,6 +1598,9 @@ class Plugin(indigo.PluginBase):
 			out += u"\nread DB Dict every".ljust(40)				+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]"
 			out += u"\nrestart listeners if NoMessage for".ljust(40)+unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]"
 			out += u"\nforce restart of listeners ".ljust(40)+unicode(self.restartListenerEvery).ljust(5)+u"[sec]"
+			out += u"\nmaxConsumedTimeForWarning".ljust(40)			+	unicode(self.maxConsumedTimeForWarning)+u" [sec]"
+			out += u"\nmaxConsumedTimeQueueForWarning".ljust(40)	+	unicode(self.maxConsumedTimeQueueForWarning)+u" [sec]"
+
 			out += u"\n"
 			out += u"\n====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting"
 			out += u"\n  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------"
@@ -8471,8 +8491,8 @@ class Plugin(indigo.PluginBase):
 					elif uType == "VDtail":
 						self.doVDmessages()
 					consumedTime -= time.time()
-					if consumedTime < -3.0: logLevel = 20
-					else:					logLevel = 10
+					if consumedTime < -self.maxConsumedTimeForWarning:	logLevel = 20
+					else:												logLevel = 10
 					if logLevel == 20:
 						self.indiLOG.log(logLevel,u"comsumeLogData    excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
 
@@ -8483,10 +8503,10 @@ class Plugin(indigo.PluginBase):
 					if len(self.sendBroadCastEventsList)  > 0: self.sendBroadCastNOW()
 
 				consumedTimeQueue -= time.time()
-				if consumedTimeQueue < -5.0: logLevel = 20
-				else:						 logLevel = 10
+				if consumedTimeQueue < -self.maxConsumedTimeQueueForWarning:	logLevel = 20
+				else:															logLevel = 10
 				if logLevel == 20:
-					self.indiLOG.log(logLevel,u"comsumeLogData  T excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
+					self.indiLOG.log(logLevel,u"comsumeLogData  Total queue excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 
 			except	Exception, e:
