@@ -1562,60 +1562,60 @@ class Plugin(indigo.PluginBase):
 			out += u"\n "
 			out += u"\nUniFi   =============plugin config Parameters========"
 
-			out += u"\ndebugLevel".ljust(40)						+	unicode(self.debugLevel).ljust(3)
-			out += u"\nlogFile".ljust(40)							+	unicode(self.logFile)
-			out += u"\nenableFINGSCAN".ljust(40)					+	unicode(self.enableFINGSCAN)
-			out += u"\ncount_APDL_inPortCount".ljust(40)			+	unicode(self.count_APDL_inPortCount)
-			out += u"\nenableBroadCastEvents".ljust(40)				+	unicode(self.enableBroadCastEvents)
-			out += u"\nignoreNeighborForFing".ljust(40)				+	unicode(self.ignoreNeighborForFing)
-			out += u"\nexpirationTime - default".ljust(40)			+	unicode(self.expirationTime).ljust(3)+u" [sec]"
-			out += u"\nsleep in main loop  ".ljust(40)				+	unicode(self.loopSleep).ljust(3)+u" [sec]"
-			out += u"\nuse curl or request".ljust(40)				+	self.requestOrcurl
-			out += u"\ncurl path".ljust(40)							+	self.curlPath
-			out += u"\ncpu used since restart: ".ljust(40) 			+	self.getCPU(self.myPID)
+			out += u"\ndebugLevel".ljust(40)							+	unicode(self.debugLevel).ljust(3)
+			out += u"\nlogFile".ljust(40)								+	unicode(self.logFile)
+			out += u"\nenableFINGSCAN".ljust(40)						+	unicode(self.enableFINGSCAN)
+			out += u"\ncount_APDL_inPortCount".ljust(40)				+	unicode(self.count_APDL_inPortCount)
+			out += u"\nenableBroadCastEvents".ljust(40)					+	unicode(self.enableBroadCastEvents)
+			out += u"\nignoreNeighborForFing".ljust(40)					+	unicode(self.ignoreNeighborForFing)
+			out += u"\nexpirationTime - default".ljust(40)				+	unicode(self.expirationTime).ljust(3)+u" [sec]"
+			out += u"\nsleep in main loop  ".ljust(40)					+	unicode(self.loopSleep).ljust(3)+u" [sec]"
+			out += u"\nuse curl or request".ljust(40)					+	self.requestOrcurl
+			out += u"\ncurl path".ljust(40)								+	self.curlPath
+			out += u"\ncpu used since restart: ".ljust(40) 				+	self.getCPU(self.myPID)
 			out += u"\n" 
 			out += u"\n====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events"
-			out += u"\nUserID-ssh".ljust(40)						+	self.connectParams[u"UserID"][u"unixDevs"]
-			out += u"\nPassWd-ssh".ljust(40)						+	self.connectParams[u"PassWd"][u"unixDevs"]
-			out += u"\nUserID-ssh-UDM".ljust(40)					+	self.connectParams[u"UserID"][u"unixUD"]
-			out += u"\nPassWd-ssh-UDM".ljust(40)					+	self.connectParams[u"PassWd"][u"unixUD"]
-			out += u"\nread buffer size ".ljust(40)					+	unicode(self.readBuffer)
+			out += u"\nUserID-ssh".ljust(40)							+	self.connectParams[u"UserID"][u"unixDevs"]
+			out += u"\nPassWd-ssh".ljust(40)							+	self.connectParams[u"PassWd"][u"unixDevs"]
+			out += u"\nUserID-ssh-UDM".ljust(40)						+	self.connectParams[u"UserID"][u"unixUD"]
+			out += u"\nPassWd-ssh-UDM".ljust(40)						+	self.connectParams[u"PassWd"][u"unixUD"]
+			out += u"\nread buffer size ".ljust(40)						+	unicode(self.readBuffer)
 			for ipN in self.connectParams[u"promptOnServer"]:
-				out += (u"\npromptOnServer "+ipN).ljust(40)			+	u"'"+self.connectParams[u"promptOnServer"][ipN]+u"'"
+				out += (u"\npromptOnServer "+ipN).ljust(40)				+	u"'"+self.connectParams[u"promptOnServer"][ipN]+u"'"
 
-			out += u"\nGW tailCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"GWtail"]
-			out += u"\nGW dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"GWdict"]
-			out += u"\nSW tailCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"SWtail"]
-			out += u"\nSW dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"SWdict"]
-			out += u"\nAP tailCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"APtail"]
-			out += u"\nAP dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"APdict"]
-			out += u"\nUD dictCommand".ljust(40)					+	self.connectParams[u"commandOnServer"][u"UDdict"]
-			out += u"\nAP enabled:".ljust(40)						+	unicode(self.devsEnabled[u"AP"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
-			out += u"\nSW enabled:".ljust(40)						+	unicode(self.devsEnabled[u"SW"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
-			out += u"\nGW enabled:".ljust(40)						+	unicode(self.devsEnabled[u"GW"]).replace("True","T").replace("False","F")
-			out += u"\ncontrolelr DB read enabled".ljust(40)		+	unicode(self.devsEnabled[u"DB"]).replace("True","T").replace("False","F")
-			out += u"\nUDM enabled".ljust(40)						+	unicode(self.devsEnabled[u"UD"]).replace("True","T").replace("False","F")
-			out += u"\nread DB Dict every".ljust(40)				+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]"
-			out += u"\nrestart listeners if NoMessage for".ljust(40)+unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]"
-			out += u"\nforce restart of listeners ".ljust(40)+unicode(self.restartListenerEvery).ljust(5)+u"[sec]"
-			out += u"\nmaxConsumedTimeForWarning".ljust(40)			+	unicode(self.maxConsumedTimeForWarning)+u" [sec]"
-			out += u"\nmaxConsumedTimeQueueForWarning".ljust(40)	+	unicode(self.maxConsumedTimeQueueForWarning)+u" [sec]"
+			out += u"\nGW tailCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"GWtail"]
+			out += u"\nGW dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"GWdict"]
+			out += u"\nSW tailCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"SWtail"]
+			out += u"\nSW dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"SWdict"]
+			out += u"\nAP tailCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"APtail"]
+			out += u"\nAP dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"APdict"]
+			out += u"\nUD dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"UDdict"]
+			out += u"\nAP enabled:".ljust(40)							+	unicode(self.devsEnabled[u"AP"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
+			out += u"\nSW enabled:".ljust(40)							+	unicode(self.devsEnabled[u"SW"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
+			out += u"\nGW enabled:".ljust(40)							+	unicode(self.devsEnabled[u"GW"]).replace("True","T").replace("False","F")
+			out += u"\ncontrolelr DB read enabled".ljust(40)			+	unicode(self.devsEnabled[u"DB"]).replace("True","T").replace("False","F")
+			out += u"\nUDM enabled".ljust(40)							+	unicode(self.devsEnabled[u"UD"]).replace("True","T").replace("False","F")
+			out += u"\nread DB Dict every".ljust(40)					+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]"
+			out += u"\nrestart listeners if NoMessage for".ljust(40)	+	unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]"
+			out += u"\nforce restart of listeners ".ljust(40)			+	unicode(self.restartListenerEvery).ljust(5)+u"[sec]"
+			out += u"\nmax Consumed Time For Warning".ljust(40)			+	unicode(self.maxConsumedTimeForWarning)+u" [sec]"
+			out += u"\nmax Consumed Time Queue For Warning".ljust(40)	+	unicode(self.maxConsumedTimeQueueForWarning)+u" [sec]"
 
 			out += u"\n"
 			out += u"\n====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting"
 			out += u"\n  curl data={WEB-UserID:..,WEB-PassWd:..} https://controllerIP: ..--------------"
-			out += u"\nMode: off, ON, UDM, reports only".ljust(40)	+	self.unifiCloudKeyMode 
-			out += u"\nWEB-UserID".ljust(40)						+	self.connectParams[u"UserID"][u"webCTRL"]
-			out += u"\nWEB-PassWd".ljust(40)						+	self.connectParams[u"PassWd"][u"webCTRL"]
-			out += u"\nController Type (UDM,..,std)".ljust(40)		+	self.unifiControllerType 
-			out += u"\nuse strict:true for web login".ljust(40)		+	unicode(self.useStrictToLogin)[0] 
-			out += u"\nController port#".ljust(40)					+	self.unifiCloudKeyPort 
-			out += u"\noverWriteControllerPort".ljust(40)			+	self.overWriteControllerPort 
-			out += u"\nController site Name".ljust(40)				+	self.unifiCloudKeySiteName 
-			out += u"\nController site NameList ".ljust(40)			+	unicode(self.unifiCloudKeyListOfSiteNames)
+			out += u"\nMode: off, ON, UDM, reports only".ljust(40)		+	self.unifiCloudKeyMode 
+			out += u"\nWEB-UserID".ljust(40)							+	self.connectParams[u"UserID"][u"webCTRL"]
+			out += u"\nWEB-PassWd".ljust(40)							+	self.connectParams[u"PassWd"][u"webCTRL"]
+			out += u"\nController Type (UDM,..,std)".ljust(40)			+	self.unifiControllerType 
+			out += u"\nuse strict:true for web login".ljust(40)			+	unicode(self.useStrictToLogin)[0] 
+			out += u"\nController port#".ljust(40)						+	self.unifiCloudKeyPort 
+			out += u"\noverWriteControllerPort".ljust(40)				+	self.overWriteControllerPort 
+			out += u"\nController site Name".ljust(40)					+	self.unifiCloudKeySiteName 
+			out += u"\nController site NameList ".ljust(40)				+	unicode(self.unifiCloudKeyListOfSiteNames)
 
-			out += u"\nController API WebPage".ljust(40)			+	self.unifiApiWebPage 
-			out += u"\nController API login WebPage".ljust(40)		+	self.unifiApiLoginPath
+			out += u"\nController API WebPage".ljust(40)				+	self.unifiApiWebPage 
+			out += u"\nController API login WebPage".ljust(40)			+	self.unifiApiLoginPath
 			#out += u"\nget blocked client info from Cntr every".ljust(40) +	unicode(self.unifigetBlockedClientsDeltaTime)+u"[sec]" )
 			#out += u"\nget lastseen info from Cntr every".ljust(40) +	unicode(self.unifigetLastSeenDeltaTime)+u"[sec]" )
 			out += u"\n"
@@ -8494,7 +8494,7 @@ class Plugin(indigo.PluginBase):
 					if consumedTime < -self.maxConsumedTimeForWarning:	logLevel = 20
 					else:												logLevel = 10
 					if logLevel == 20:
-						self.indiLOG.log(logLevel,u"comsumeLogData    excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
+						self.indiLOG.log(logLevel,u"comsumeLogData      excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTime, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 					self.logQueue.task_done()
 
@@ -8506,7 +8506,7 @@ class Plugin(indigo.PluginBase):
 				if consumedTimeQueue < -self.maxConsumedTimeQueueForWarning:	logLevel = 20
 				else:															logLevel = 10
 				if logLevel == 20:
-					self.indiLOG.log(logLevel,u"comsumeLogData  Total queue excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
+					self.indiLOG.log(logLevel,u"comsumeLogData Total queue excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 
 			except	Exception, e:
@@ -10106,10 +10106,10 @@ class Plugin(indigo.PluginBase):
 					self.updateIndigoWithDictData( nextItem[0], nextItem[1], nextItem[2], nextItem[3], nextItem[4] )
 					consumedTime -= time.time()
 
-					if consumedTime < -3.0:	logLevel = 20
-					else:					logLevel = 10
+					if consumedTime < -self.maxConsumedTimeQueueForWarning:	logLevel = 20
+					else:													logLevel = 10
 					if logLevel == 20:
-						self.indiLOG.log(logLevel,u"comsumeDictData   excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
+						self.indiLOG.log(logLevel,u"comsumeDictData     excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTime, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]), unicode(nextItem[0])[0:100] ) )
 
 					self.logQueueDict.task_done()
 
@@ -10117,10 +10117,10 @@ class Plugin(indigo.PluginBase):
 					if len(self.sendBroadCastEventsList)  > 0: self.sendBroadCastNOW()
 
 				consumedTimeQueue -= time.time()
-				if consumedTimeQueue < -5.0:	logLevel = 20
-				else:							logLevel = 10
+				if consumedTimeQueue < -self.maxConsumedTimeQueueForWarning:	logLevel = 20
+				else:															logLevel = 10
 				if logLevel == 20:
-					self.indiLOG.log(logLevel,u"comsumeDictData T excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
+					self.indiLOG.log(logLevel,u"comsumeDictData Total excessive time consumed:{:.1f}; {:}-{:}-{:} len:{:},  item:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], len(nextItem[0]),  unicode(nextItem[0])[0:100]) )
 	
 			except	Exception, e:
 				if unicode(e).find(u"None") == -1:

@@ -1,6 +1,6 @@
-changes in V7.39.369@ 2021-05-13
+changes in V7.39.370@ 2021-05-13
 ==================  
-   1. added warning levels for excessive time used to consume data fro unifi devices
+   1. added warning levels for excessive time used to consume data for unifi devices
       set in config at bottom in EXPERT section
 
 
