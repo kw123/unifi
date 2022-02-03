@@ -1,3 +1,8 @@
+changes in V7.39.3710@ 2021-05-13
+==================  
+   1. added check for missing xtype / mac in self.MAC2Indigo
+
+
 changes in V7.39.370@ 2021-05-13
 ==================  
    1. added warning levels for excessive time used to consume data for unifi devices

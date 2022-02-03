@@ -1555,6 +1555,14 @@ class Plugin(indigo.PluginBase):
 			return (items[6])
 		return ""
 
+	def replaceTrueFalse(self,inString):
+		outString = unicode(inString)
+		try:
+			outString = outString.replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","").replace("{","").replace("}","").replace("(","").replace(")","")
+		except	Exception, e:
+			if unicode(e).find(u"None") == -1:
+				self.indiLOG.log(40,u"in Line {} has error={}".format(sys.exc_traceback.tb_lineno, e) )
+		return outString
 	####-----------------	 ---------
 	def printConfigMenu(self,  valuesDict=None, typeId=""):
 		try:
@@ -1562,14 +1570,14 @@ class Plugin(indigo.PluginBase):
 			out += u"\n "
 			out += u"\nUniFi   =============plugin config Parameters========"
 
-			out += u"\ndebugLevel".ljust(40)							+	unicode(self.debugLevel).ljust(3)
-			out += u"\nlogFile".ljust(40)								+	unicode(self.logFile)
-			out += u"\nenableFINGSCAN".ljust(40)						+	unicode(self.enableFINGSCAN)
-			out += u"\ncount_APDL_inPortCount".ljust(40)				+	unicode(self.count_APDL_inPortCount)
-			out += u"\nenableBroadCastEvents".ljust(40)					+	unicode(self.enableBroadCastEvents)
-			out += u"\nignoreNeighborForFing".ljust(40)					+	unicode(self.ignoreNeighborForFing)
-			out += u"\nexpirationTime - default".ljust(40)				+	unicode(self.expirationTime).ljust(3)+u" [sec]"
-			out += u"\nsleep in main loop  ".ljust(40)					+	unicode(self.loopSleep).ljust(3)+u" [sec]"
+			out += u"\ndebugAreas".ljust(40)							+	unicode(self.debugLevel)
+			out += u"\nlogFile".ljust(40)								+	self.logFile
+			out += u"\nenableFINGSCAN".ljust(40)						+	unicode(self.enableFINGSCAN)[0]
+			out += u"\ncount_APDL_inPortCount".ljust(40)				+	unicode(self.count_APDL_inPortCount == "1")[0]
+			out += u"\nenableBroadCastEvents".ljust(40)					+	unicode(self.enableBroadCastEvents == "1")[0]
+			out += u"\nignoreNeighborForFing".ljust(40)					+	unicode(self.ignoreNeighborForFing)[0]
+			out += u"\nexpirationTime - default".ljust(40)				+	"{:.0f} [sec]".format(self.expirationTime)
+			out += u"\nsleep in main loop  ".ljust(40)					+	"{:.0f} [sec]".format(self.loopSleep)
 			out += u"\nuse curl or request".ljust(40)					+	self.requestOrcurl
 			out += u"\ncurl path".ljust(40)								+	self.curlPath
 			out += u"\ncpu used since restart: ".ljust(40) 				+	self.getCPU(self.myPID)
@@ -1579,7 +1587,7 @@ class Plugin(indigo.PluginBase):
 			out += u"\nPassWd-ssh".ljust(40)							+	self.connectParams[u"PassWd"][u"unixDevs"]
 			out += u"\nUserID-ssh-UDM".ljust(40)						+	self.connectParams[u"UserID"][u"unixUD"]
 			out += u"\nPassWd-ssh-UDM".ljust(40)						+	self.connectParams[u"PassWd"][u"unixUD"]
-			out += u"\nread buffer size ".ljust(40)						+	unicode(self.readBuffer)
+			out += u"\nread buffer size ".ljust(40)						+	"{:.0f}".format(self.readBuffer)
 			for ipN in self.connectParams[u"promptOnServer"]:
 				out += (u"\npromptOnServer "+ipN).ljust(40)				+	u"'"+self.connectParams[u"promptOnServer"][ipN]+u"'"
 
@@ -1590,16 +1598,16 @@ class Plugin(indigo.PluginBase):
 			out += u"\nAP tailCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"APtail"]
 			out += u"\nAP dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"APdict"]
 			out += u"\nUD dictCommand".ljust(40)						+	self.connectParams[u"commandOnServer"][u"UDdict"]
-			out += u"\nAP enabled:".ljust(40)							+	unicode(self.devsEnabled[u"AP"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
-			out += u"\nSW enabled:".ljust(40)							+	unicode(self.devsEnabled[u"SW"]).replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","")
-			out += u"\nGW enabled:".ljust(40)							+	unicode(self.devsEnabled[u"GW"]).replace("True","T").replace("False","F")
-			out += u"\ncontrolelr DB read enabled".ljust(40)			+	unicode(self.devsEnabled[u"DB"]).replace("True","T").replace("False","F")
-			out += u"\nUDM enabled".ljust(40)							+	unicode(self.devsEnabled[u"UD"]).replace("True","T").replace("False","F")
+			out += u"\nAP enabled:".ljust(40)							+	self.replaceTrueFalse(self.devsEnabled[u"AP"])
+			out += u"\nSW enabled:".ljust(40)							+	self.replaceTrueFalse(self.devsEnabled[u"SW"])
+			out += u"\nGW enabled:".ljust(40)							+	self.replaceTrueFalse(self.devsEnabled[u"GW"])
+			out += u"\ncontrolelr DB read enabled".ljust(40)			+	self.replaceTrueFalse(self.devsEnabled[u"DB"])
+			out += u"\nUDM enabled".ljust(40)							+	self.replaceTrueFalse(self.devsEnabled[u"UD"])
 			out += u"\nread DB Dict every".ljust(40)					+	unicode(self.readDictEverySeconds).replace("'","").replace("u","").replace(" ","")+u" [sec]"
-			out += u"\nrestart listeners if NoMessage for".ljust(40)	+	unicode(self.restartIfNoMessageSeconds).ljust(3)+u"[sec]"
-			out += u"\nforce restart of listeners ".ljust(40)			+	unicode(self.restartListenerEvery).ljust(5)+u"[sec]"
-			out += u"\nmax Consumed Time For Warning".ljust(40)			+	unicode(self.maxConsumedTimeForWarning)+u" [sec]"
-			out += u"\nmax Consumed Time Queue For Warning".ljust(40)	+	unicode(self.maxConsumedTimeQueueForWarning)+u" [sec]"
+			out += u"\nrestart listeners if NoMessage for".ljust(40)	+	"{:.0f} [sec]".format(self.restartIfNoMessageSeconds)
+			out += u"\nforce restart of listeners ".ljust(40)			+	"{:.0f} [sec]".format(self.restartListenerEvery)
+			out += u"\nmax Consumed Time For Warning".ljust(40)			+	"{:.0f} [sec]".format(self.maxConsumedTimeForWarning)
+			out += u"\nmax Consumed Time Queue For Warning".ljust(40)	+	"{:.0f} [sec]".format(self.maxConsumedTimeQueueForWarning)
 
 			out += u"\n"
 			out += u"\n====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting"
@@ -1636,24 +1644,24 @@ class Plugin(indigo.PluginBase):
 				out += u"\nNVR-WEB-UserID".ljust(40)					+	self.connectParams[u"UserID"][u"nvrWeb"]
 				out += u"\nNVR-WEB-passWd".ljust(40)					+	self.connectParams[u"PassWd"][u"nvrWeb"]
 				out += u"\nNVR-API Key".ljust(40)						+	self.nvrVIDEOapiKey
+				out += u"\nVideo NVR-IP#".ljust(40)						+	self.ipNumbersOf[u"VD"]
 			elif self.cameraSystem == "protect":
 				pass
 			out += u"\n"
-			out += u"\nAP ip#			  enabled / disabled"
+			out += u"\n" + u"AP ip#".ljust(20)  						+	u"enabled / disabled"
 			for ll in range(len(self.ipNumbersOf[u"AP"])):
-				out += u"\n"+self.ipNumbersOf[u"AP"][ll].ljust(20) 		+	unicode(self.devsEnabled[u"AP"][ll])[0]
+				out += u"\n" + self.ipNumbersOf[u"AP"][ll].ljust(20) 		+	unicode(self.devsEnabled[u"AP"][ll])[0]
 
-
-			out += u"\nSW ip#"
+			out += u"\n" + u"SW ip#"
 			for ll in range(len(self.ipNumbersOf[u"SW"])):
-				out += u"\n"+self.ipNumbersOf[u"SW"][ll].ljust(20) 		+	unicode(self.devsEnabled[u"SW"][ll])[0]
-			out += u"\n"
-			out += u"\n"+self.ipNumbersOf[u"GW"].ljust(20) 				+	unicode(self.devsEnabled[u"GW"])[0]+"  USG/UGA  gateway/router "
+				out += u"\n" + self.ipNumbersOf[u"SW"][ll].ljust(20) 		+	unicode(self.devsEnabled[u"SW"][ll])[0]
 
-			out += u"\n"+self.unifiCloudKeyIP.ljust(20) 				+	u"   Controller / cloud Key IP#" 
-			out += u"\n"+self.ipNumbersOf[u"VD"].ljust(20)				+	u"   Video NVR-IP#" 
-			out += u"\n----------------------------------------------------"
+			out += u"\n" + u"USG/UGA  gateway/router"
+			out += u"\n" + self.ipNumbersOf[u"GW"].ljust(20) 				+	unicode(self.devsEnabled[u"GW"])[0]
 
+			out += u"\n" + u"Controller / cloud Key IP#"
+			out += u"\n" + self.unifiCloudKeyIP.ljust(20) 				
+			out += u"\n" + u"--------------------------"
 			out += u"\n"
 
 			out += u"\nUniFi    =============plugin config Parameters========  END "
@@ -6502,6 +6510,10 @@ class Plugin(indigo.PluginBase):
 					if dev.deviceTypeId == u"UniFi":
 						ipN = dev.states[u"ipNumber"]
 
+						if MAC not in self.MAC2INDIGO[xType]:
+							self.indiLOG.log(10,u"{}  xType:{} MAC:{} not in  self.MAC2INDIGO dict, try to restart, delete device and re-create".format(dev.Name, xType, MAC) )
+							continue
+							
 						# check for supended status, if sup : set, if back reset susp status
 						if ipN in self.suspendedUnifiSystemDevicesIP:
 							## check if we need to reset suspend after 300 secs
@@ -8506,7 +8518,7 @@ class Plugin(indigo.PluginBase):
 				if consumedTimeQueue < -self.maxConsumedTimeQueueForWarning:	logLevel = 20
 				else:															logLevel = 10
 				if logLevel == 20:
-					self.indiLOG.log(logLevel,u"comsumeLogData Total queue excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
+					self.indiLOG.log(logLevel,u"comsumeLogData Total excessive time consumed:{:.1f}[secs]; {:}; len:{:},  lines:{:}".format(-consumedTimeQueue, ipNumber, len(lines), unicode(lines)[0:100]) )
 
 
 			except	Exception, e:
@@ -12712,7 +12724,7 @@ class Plugin(indigo.PluginBase):
 		else:									self.logFile = self.indigoPreferencesPluginDir +"plugin.log"
 		self.indiLOG.log(20,"myLogSet setting parameters -- logFileActive= {}; logFile= {};  debugLevel= {}".format(self.logFileActive, self.logFile, self.debugLevel))
 		if config:
-			self.indiLOG.log(20,"... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( unicode(self.debugDevs[u"GW"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"AP"]).replace("True","T").replace("False","F"), unicode(self.debugDevs[u"SW"]).replace("True","T").replace("False","F")) )
+			self.indiLOG.log(20,"... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( self.replaceTrueFalse(self.debugDevs[u"GW"]), self.replaceTrueFalse(self.debugDevs[u"AP"]), self.replaceTrueFalse(self.debugDevs[u"SW"]) ) )
 		return
 
 	####-----------------	 ---------
