@@ -1,3 +1,10 @@
+changes in V7.39.3720@ 2022-02-09
+==================  
+   1. check check of port number to python-request and add option in config to not check port number
+      this is needed to controller V >= 6.5.55 as curl does not connect anymore 
+
+
+
 changes in V7.39.3710@ 2021-05-13
 ==================  
    1. added check for missing xtype / mac in self.MAC2Indigo

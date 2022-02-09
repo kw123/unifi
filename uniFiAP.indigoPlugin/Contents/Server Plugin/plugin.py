@@ -425,7 +425,9 @@ class Plugin(indigo.PluginBase):
 									u"302": {u"os":u"std",      u"unifiApiLoginPath":u"/api/login",      u"unifiApiWebPage":u"/api/s" }  }
  		self.OKControllerOS = [u"std",u"unifi_os"]
 
+
 		self.connectParams = copy.copy(self.connectParamsDefault)
+
 		try: 	
 			xx = json.loads(self.pluginPrefs.get(u"connectParams",u"{}"))
 			if xx != {}:
@@ -514,6 +516,7 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerOS 								= ""
 		self.unifiApiWebPage								= ""
 		self.unifiApiLoginPath								= ""
+		self.unifControllerCheckPortNumber					= self.pluginPrefs.get(u"unifControllerCheckPortNumber", "1") 
 		self.overWriteControllerPort						= self.pluginPrefs.get(u"overWriteControllerPort", "")
 		self.lastPortNumber									= ""
 		self.unifiCloudKeyPort								= ""
@@ -1172,6 +1175,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict[u"GWtailEnable"]				= self.connectParams[u"enableListener"][u"GWtail"]
 			valuesDict[u"refreshCallbackMethod"]	= u"setfilterunifiCloudKeyListOfSiteNames"
 			valuesDict[u"unifiCloudKeySiteName"]	= self.unifiCloudKeySiteName
+			valuesDict[u"unifControllerCheckPortNumber"] = self.unifControllerCheckPortNumber
 			#self.refreshCallbackMethodAlreadySet	= u"yes"
 
 		except	Exception, e:
@@ -1214,10 +1218,11 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerBackupON					= valuesDict[u"unifiControllerBackupON"]
 			self.ControllerBackupPath						= valuesDict[u"ControllerBackupPath"]
 
-			self.unifiControllerOS							= ""
+			self.unifiControllerOS							= "" # force initialization of connection
 			self.copyProtectsnapshots						= valuesDict[u"copyProtectsnapshots"]
 			self.refreshProtectCameras						= float(valuesDict[u"refreshProtectCameras"])
 			self.protecEventSleepTime						= float(valuesDict[u"protecEventSleepTime"])
+			self.unifControllerCheckPortNumber				= valuesDict[u"unifControllerCheckPortNumber"] 
 		
 			self.cameraEventWidth							= int(valuesDict[u"cameraEventWidth"])
 
@@ -4682,6 +4687,38 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getunifiOSAndPort(self):
 		try:
+			if self.overWriteControllerPort != "":
+				if self.unifControllerCheckPortNumber == "0": 
+					respCode = "200"
+					self.unifiControllerOS = self.HTTPretCodes[respCode][u"os"]
+					self.unifiApiLoginPath = self.HTTPretCodes[respCode][u"unifiApiLoginPath"]
+					self.unifiApiWebPage   = self.HTTPretCodes[respCode][u"unifiApiWebPage"]
+					self.unifiCloudKeyPort = self.overWriteControllerPort
+					self.lastPortNumber	   = self.overWriteControllerPort
+					return True
+
+				else:
+					if self.unifiControllerOS != "" and self.lastPortNumber	!= "": 
+						return True
+
+					cmd = "https://{}:{}".format(self.unifiCloudKeyIP, self.overWriteControllerPort)
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,u"getunifiOSAndPort cmd:{}".format(cmd) )
+					resp = requests.head(cmd, verify=False, timeout=7.0 )
+
+				respCode = str(resp.status_code)
+				if respCode in ["200", "302"]:
+					if self.decideMyLog(u"ConnectionCMD"): self.indiLOG.log(20,u"getunifiOSAndPort sucess: {}:{} ==>  osCode:{}, OS:{}".format(self.unifiCloudKeyIP,self.overWriteControllerPort, respCode, self.HTTPretCodes[respCode]["os"]))
+					self.unifiControllerOS = self.HTTPretCodes[respCode][u"os"]
+					self.unifiApiLoginPath = self.HTTPretCodes[respCode][u"unifiApiLoginPath"]
+					self.unifiApiWebPage   = self.HTTPretCodes[respCode][u"unifiApiWebPage"]
+					self.unifiCloudKeyPort = self.overWriteControllerPort
+					self.lastPortNumber	   = self.overWriteControllerPort
+					return True
+
+				self.indiLOG.log(40,u"getunifiOSAndPort {}: no contact to controller using overWriteControllerPort".format(self.unifiCloudKeyIP, self.overWriteControllerPort))
+				return False
+
+
 			if self.unifiControllerType == u"hosted":
 				ret = "302"
 				if self.unifiApiLoginPath  == "" or self.unifiApiWebPage == "" or  self.unifiControllerOS == "": logmsg = True
@@ -4727,7 +4764,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(10,u"getunifiOSAndPort found  OS:{}, port#:{} using ip#:{}".format(self.unifiControllerOS, port, self.unifiCloudKeyIP) )
 						return True
 					else:
-						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test>{}< expecting {} ".format(port, ret, self.HTTPretCodes) )
+						self.indiLOG.log(10,u"getunifiOSAndPort trying port:{}, wrong ret code from curl test>{}< expecting {}, for contoller os >= 6.5.55 set port to 443 and checkcontroller port to OFF".format(port, ret, self.HTTPretCodes) )
 
 				self.sleep(1)
 				

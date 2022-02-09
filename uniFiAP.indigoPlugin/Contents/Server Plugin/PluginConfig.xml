@@ -309,6 +309,16 @@ device settings
    <Field id="overWriteControllerPortLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>use this option only if port # is not 8443 or 443 or if you have another system that uses one of these ports</Label>  
 	</Field>
+	<Field id="unifControllerCheckPortNumber" 	type="menu" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+		<Label>..  check controller port Number</Label>  
+		<List>
+			<Option value="1"  >check if port is ok</Option>
+			<Option value="0"  >do not check if port number is ok</Option>
+		</List>
+	</Field>
+   <Field id="unifControllerCheckPortNumberLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+		<Label>set to off and port to 443 if controller v &gt;= 6.5.55 and you have connection problems</Label>  
+	</Field>
 
  
 
