@@ -1,6 +1,11 @@
+changes in V7.39.3730@ 2022-02-20
+==================  
+   1. added logging while error  while creating devices
+
+
 changes in V7.39.3720@ 2022-02-09
 ==================  
-   1. check check of port number to python-request and add option in config to not check port number
+   1. changed check of port number to python-request and add option in config to not check port number
       this is needed to controller V >= 6.5.55 as curl does not connect anymore 
 
 
