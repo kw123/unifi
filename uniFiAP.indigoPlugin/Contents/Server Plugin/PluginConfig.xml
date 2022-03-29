@@ -393,6 +393,66 @@ device settings
 	<Field id="ip4"   		type="textfield" visibleBindingId="ipON4" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-4:</Label>  </Field>
 	<Field id="debAP4"  	type="checkbox"  visibleBindingId="ipON4" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
 
+	<Field id="ipON5" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-5 active:--------------------------</Label>  </Field>
+	<Field id="ip5"   		type="textfield" visibleBindingId="ipON5" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-5:</Label>  </Field>
+	<Field id="debAP5"  	type="checkbox"  visibleBindingId="ipON5" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON6" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-6 active:--------------------------</Label>  </Field>
+	<Field id="ip6"   		type="textfield" visibleBindingId="ipON6" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-6:</Label>  </Field>
+	<Field id="debAP6"  	type="checkbox"  visibleBindingId="ipON6" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON7" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-7 active:--------------------------</Label>  </Field>
+	<Field id="ip7"   		type="textfield" visibleBindingId="ipON7" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-7:</Label>  </Field>
+	<Field id="debAP7"  	type="checkbox"  visibleBindingId="ipON7" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON8" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-8 active:--------------------------</Label>  </Field>
+	<Field id="ip8"   		type="textfield" visibleBindingId="ipON8" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-8:</Label>  </Field>
+	<Field id="debAP8"  	type="checkbox"  visibleBindingId="ipON8" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON9" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-9 active:--------------------------</Label>  </Field>
+	<Field id="ip9"   		type="textfield" visibleBindingId="ipON9" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-9:</Label>  </Field>
+	<Field id="debAP9"  	type="checkbox"  visibleBindingId="ipON9" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON10" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-10 active:--------------------------</Label>  </Field>
+	<Field id="ip10"   		type="textfield" visibleBindingId="ipON10" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-10:</Label>  </Field>
+	<Field id="debAP10"  	type="checkbox"  visibleBindingId="ipON10" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON11" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-11 active:--------------------------</Label>  </Field>
+	<Field id="ip11"   		type="textfield" visibleBindingId="ipON11" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-11:</Label>  </Field>
+	<Field id="debAP11"  	type="checkbox"  visibleBindingId="ipON11" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON12" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-12 active:--------------------------</Label>  </Field>
+	<Field id="ip12"   		type="textfield"  visibleBindingId="ipON12"  visibleBindingValue="true"> <Label>- ipNumber of AP-12:</Label>  </Field>
+	<Field id="debAP12"  	type="checkbox"  visibleBindingId="ipON12" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON13" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-13 active:--------------------------</Label>  </Field>
+	<Field id="ip13"   		type="textfield" visibleBindingId="ipON13" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-13:</Label>  </Field>
+	<Field id="debAP13"  	type="checkbox"  visibleBindingId="ipON13" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON14" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-14 active:--------------------------</Label>  </Field>
+	<Field id="ip14"   		type="textfield" visibleBindingId="ipON14" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-14:</Label>  </Field>
+	<Field id="debAP14"  	type="checkbox"  visibleBindingId="ipON14" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON15" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-15 active:--------------------------</Label>  </Field>
+	<Field id="ip15"   		type="textfield" visibleBindingId="ipON15" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-15:</Label>  </Field>
+	<Field id="debAP15"  	type="checkbox"  visibleBindingId="ipON15" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON16" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-16 active:--------------------------</Label>  </Field>
+	<Field id="ip16"   		type="textfield" visibleBindingId="ipON16" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-16:</Label>  </Field>
+	<Field id="debAP16"  	type="checkbox"  visibleBindingId="ipON16" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON17" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-17 active:--------------------------</Label>  </Field>
+	<Field id="ip17"   		type="textfield" visibleBindingId="ipON17" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-17:</Label>  </Field>
+	<Field id="debAP17"  	type="checkbox"  visibleBindingId="ipON17" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON18" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-18 active:--------------------------</Label>  </Field>
+	<Field id="ip18"   		type="textfield" visibleBindingId="ipON18" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-18:</Label>  </Field>
+	<Field id="debAP18"  	type="checkbox"  visibleBindingId="ipON18" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
+	<Field id="ipON19" 		type="checkbox"  visibleBindingId="apON" 	 visibleBindingValue="true"> <Label>.. AP-19 active:--------------------------</Label>  </Field>
+	<Field id="ip19"   		type="textfield" visibleBindingId="ipON19" 	 visibleBindingValue="true"> <Label>- ipNumber of AP-19:</Label>  </Field>
+	<Field id="debAP19"  	type="checkbox"  visibleBindingId="ipON19" 	 visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  </Field>
+
 	<Field id="ipAPON4Label" type="label" 	 visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>This is used as AP device part of a UDM system (not UDM-pro)</Label>  
 	</Field>
@@ -695,8 +755,8 @@ in actions you can setup most of the config as as well as get snapshots
 	<Field id="debugIgnoreMAC"     type="checkbox" > <Label>... (13) ignore MAC:</Label>										</Field>
 	<Field id="debugDBinfo"        type="checkbox" > <Label>... (14) controller db http get client info:</Label>				</Field>
 	<Field id="debugProtect"       type="checkbox" > <Label>... (15) Protect camera ... :</Label>								</Field>
-
 	<Field id="debugDictFile"      type="checkbox" > <Label>... (16) dump dict msgs to prefs dir:</Label>						</Field>
+	<Field id="debugUpdateStates"  type="checkbox" > <Label>... (17) log all state updates:</Label>								</Field>
 	<Field id="debugSpecial"       type="checkbox" > <Label>... (19) Special debug for development:</Label>						</Field>
 	<Field id="debugall"           type="checkbox" > <Label>... (20) all of the above = everything:</Label>						</Field>
 

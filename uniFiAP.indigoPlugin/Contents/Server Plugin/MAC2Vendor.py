@@ -60,12 +60,11 @@ class MAP2Vendor:
 
 		return 
 
-	########################################
-	def myLog( self, text ):
+ 	def myLog( self, text ):
 		if self.ML == "": 
 			return 
 		elif self.ML == "print":
-			print text
+			print (text)
 		else:
 			self.ML(20, text )
 
@@ -76,9 +75,9 @@ class MAP2Vendor:
 
 		if ( self.isFileCurrent("oui")   and 
 			 self.isFileCurrent("mam")   and
-			 self.isFileCurrent("oui36") ):  
-			 self.getFilesStatus = "finished" 
-			 return
+			 self.isFileCurrent("oui36") ):
+			self.getFilesStatus = "finished"
+			return
 
 		self.myLog( u"MAP2Vendor  downloading raw files, will take some minutes")
 		cmd  =  "rm "+self.filePath+"oui ;"
@@ -89,7 +88,7 @@ class MAP2Vendor:
 		os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui/oui.csv      |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"oui' &")
 		os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui28/mam.csv    |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"mam' &")
 		os.system("/usr/bin/curl -L https://standards.ieee.org/develop/regauth/oui36/oui36.csv  |  tail -n +2  | cut -d',' -f'2,3' | sed 's/\"//'> '"+self.filePath+"oui36' &")
-	   
+
 		self.getFilesStatus = "submitted" 
 
 		return 
