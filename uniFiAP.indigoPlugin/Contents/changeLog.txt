@@ -1,3 +1,8 @@
+changes in V7.40.375@ 2022-04-03
+==================  
+   1. added stats for wait times, check menu "PRINT Communication and processing stats"
+
+
 changes in V7.40.374@ 2022-03-29
 ==================  
    1. prepared for OS 12.3 and indigo 2022

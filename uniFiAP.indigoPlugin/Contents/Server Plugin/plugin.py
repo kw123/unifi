@@ -21,6 +21,9 @@ try:
 	import Queue
 except:
 	import queue as Queue
+
+from queue import PriorityQueue
+
 import random
 import socket
 import getNumber as GT
@@ -642,6 +645,9 @@ class Plugin(indigo.PluginBase):
 		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
 		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
+		self.waitTimes										= {}
+		self.blockingPgm										= ""
+	
 		self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
 		self.timeoutDICT									= u"10" #u"{}".format(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
 		self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
@@ -2366,6 +2372,62 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 
+	####-----------------  	---------
+	def checkIfPrintProcessingTime(self):
+		if "today" 		not in self.waitTimes: return 
+		if "lastPrint"	not in self.waitTimes["today"]: return 
+
+		if time.time() - self.waitTimes["today"]["lastPrint"] > 6*60*60:
+			self.buttonPrintWaitStatsCALLBACK(hourlyReport=True)
+			self.waitTimes["today"]["lastPrint"] = time.time() 
+
+		#reset at midnight
+		if  datetime.datetime.now().hour == 0 and  datetime.datetime.now().minute == 0:
+			if time.time() - self.waitTimes["today"]["startTime"] > 65:
+				self.buttonZeroWaitStatsCALLBACK()
+
+
+	####-----------------  ---------
+	def buttonZeroWaitStatsCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		self.waitTimes["yesterday"] = copy.copy(self.waitTimes["today"] ) 
+		self.waitTimes["today"] = {}
+		return valuesDict
+
+
+	####-----------------  data stats menu items	---------
+	def buttonPrintWaitStatsCALLBACK(self, valuesDict=None, typeId="", devId="",hourlyReport= False):
+		try:
+			if "yesterday" not in self.waitTimes: return 
+			trailer  = u"================================================ END ================================================"
+			out = u"\n"
+			for dd in ["today", "yesterday"]:
+				if dd not in self.waitTimes:				continue
+				if "startDate" not in self.waitTimes[dd]:	continue
+				if self.waitTimes[dd]["startDate"] == "":	continue
+				out += u"Wait times[secs] during processing of incoming data,  from {} to {} - {}\n".format(self.waitTimes[dd]["startDate"], self.waitTimes[dd]["endDate"], dd)
+				for waitORbusy in ["Waiting", "Blocking"]:
+					ytag = waitORbusy+"Pgm"
+					out += u"Pgm Module {:8}--- nMeasuremts  Tot{:4}Time  Ave{:4}   >.1  >.5   >1   >3   >6  >12  >20  maxWait\n".format(waitORbusy,waitORbusy[:4],waitORbusy[:4])
+					for tag in sorted(self.waitTimes[dd][ytag]):
+						if tag == "---TOTAL----": continue
+						xx = self.waitTimes[dd][ytag][tag]
+						avWait = xx["tot"] / max(1, xx["n"])
+						out += u"{:21s}  {:11}{:13.3f}  {:7.3f} {:5}{:5}{:5}{:5}{:5}{:5}{:5} {:8.1f}\n".format(tag, xx["n"], xx["tot"], avWait, xx[".1"], xx[".5"], xx["1"], xx["3"], xx["6"], xx["12"],xx["20"], xx["max"]  )
+
+					tag = "---TOTAL----"
+					xx = self.waitTimes[dd][ytag][tag]
+					avWait = xx["tot"] / max(1, xx["n"])
+					out += u"{:21s}  {:11}{:13.3f}  {:7.3f} {:5}{:5}{:5}{:5}{:5}{:5}{:5} {:8.1f}\n\n".format(tag, xx["n"], xx["tot"], avWait, xx[".1"], xx[".5"], xx["1"], xx["3"], xx["6"], xx["12"],xx["20"], xx["max"]  )
+
+			if hourlyReport:
+				self.indiLOG.log(10, out+trailer)
+			else:
+				self.indiLOG.log(20, out+trailer)
+
+		except	Exception as e:
+			self.exceptionHandler(40,e)
+
+		return valuesDict
 
 
 	####-----------------  data stats menu items	---------
@@ -2391,7 +2453,6 @@ class Plugin(indigo.PluginBase):
 			out		= ""
 			out = "\n"
 			for uType in sorted(self.dataStats[u"tcpip"].keys()):
-				self.indiLOG.log(20, "into buttonPrintTcpipStats uType:{}".format(uType) )
 				for ipNumber in sorted(self.dataStats[u"tcpip"][uType].keys()):
 					if nSecs ==0:
 						out += u"\n=== data stats for received messages ====     collection started at {}".format( time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.dataStats[u"tcpip"][uType][ipNumber][u"startTime"])) )
@@ -5662,7 +5723,7 @@ class Plugin(indigo.PluginBase):
 		self.lastHour		= nowDT.hour
 		self.logQueue		= Queue.Queue()
 		self.logQueueDict	= Queue.Queue()
-		self.waitQueue		= Queue.Queue()
+		self.waitQueue		= PriorityQueue()
 		self.apDict			= {}
 		self.countLoop		= 0
 		self.upDownTimers	= {}
@@ -6252,8 +6313,6 @@ class Plugin(indigo.PluginBase):
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
 
-
-
 		if self.lastMinuteCheck != datetime.datetime.now().minute:
 			self.lastMinuteCheck = datetime.datetime.now().minute
 			self.statusChanged = max(1,self.statusChanged)
@@ -6550,6 +6609,10 @@ class Plugin(indigo.PluginBase):
 			self.saveMACdata()
 			self.createEntryInUnifiDevLog()
 			self.getcontrollerDBForClients()
+
+
+			self.checkIfPrintProcessingTime()
+
 
 			for dev in indigo.devices.iter(self.pluginId):
 
@@ -9707,6 +9770,7 @@ class Plugin(indigo.PluginBase):
 				self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -9805,7 +9869,6 @@ class Plugin(indigo.PluginBase):
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
 
-
 		return
 
 
@@ -9825,6 +9888,7 @@ class Plugin(indigo.PluginBase):
 			self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -10392,6 +10456,7 @@ class Plugin(indigo.PluginBase):
 
 			if useIP not in self.deviceUp[u"SW"]:
 				if not self.waitQueue.empty(): self.waitQueue.get()
+				
 				return
 
 			switchNumber = -1
@@ -10403,6 +10468,7 @@ class Plugin(indigo.PluginBase):
 
 			if switchNumber < 0:
 				if not self.waitQueue.empty(): self.waitQueue.get()
+				
 				return
 
 			swN		= u"{}".format(switchNumber)
@@ -10760,13 +10826,14 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
 	####-----------------	 ---------
 	def doGWDvi_stats(self, gwDict, ipNumber):
 
-		self.setBlockAccess(u"doGWHost_table")
+		self.setBlockAccess(u"doGWDvi_stats")
 
 
 		try:
@@ -10922,6 +10989,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -10935,6 +11003,7 @@ class Plugin(indigo.PluginBase):
 
 			if len(adDict) == 0:
 				if not self.waitQueue.empty(): self.waitQueue.get()
+				
 				return
 
 			if self.decideMyLog(u"Dict") or self.debugDevs[u"AP"][int(apN)]: self.indiLOG.log(10,u"DC-WF-00   {:13s}#{} ... vap_table..[sta_table]: {}".format(ipNumber,apN, adDict) )
@@ -11259,6 +11328,7 @@ class Plugin(indigo.PluginBase):
 				self.exceptionHandler(40,e)
 
 			if not self.waitQueue.empty(): self.waitQueue.get()
+			
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 		return 	clientHostNames
@@ -11388,6 +11458,7 @@ class Plugin(indigo.PluginBase):
 			self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -11779,6 +11850,7 @@ class Plugin(indigo.PluginBase):
 			self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -11914,6 +11986,7 @@ class Plugin(indigo.PluginBase):
 			self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 		return
 
 
@@ -12200,6 +12273,7 @@ class Plugin(indigo.PluginBase):
 			self.exceptionHandler(40,e)
 
 		if not self.waitQueue.empty(): self.waitQueue.get()
+		
 
 		return
 
@@ -12645,17 +12719,75 @@ class Plugin(indigo.PluginBase):
 		return
 
 	####---------------- wait for other tasks done  (ie main and fill messgaes ) wait max 6 secs ---------
-	def setBlockAccess(self, tag):
-		
-		for ii in range(60):
-			if self.waitQueue.empty(): break
-			self.sleep(0.1)
+	def setBlockAccess(self, waitingPgm):
+		try:	
+			wait = time.time()
+			
+			self.blockingPgm = ""
+			for ii in range(60):
+				if self.waitQueue.empty(): break
+				self.blockingPgm = self.waitQueue.queue[0]
+				#self.indiLOG.log(10, "setBlockAccess waiting for: {}".format(self.blockingPgm))
+				self.sleep(0.1)
 
-		if  not self.waitQueue.empty(): self.waitQueue.get()
+			if  not self.waitQueue.empty(): self.blockingPgm = self.waitQueue.get()
+			self.waitQueue.put(waitingPgm)
+			#self.indiLOG.log(10, "setBlockAccess ended waiting for: {}".format(self.blockingPgm))
 
-		self.waitQueue.put(tag)
+			## measure waitimes 
+			wait = time.time() - wait
+			if "yesterday" not in self.waitTimes:
+				self.waitTimes = {"today":{}, "yesterday":{} }
+
+			if "startDate" not in self.waitTimes["today"]:
+				for dd in ["today"]:
+					self.waitTimes[dd]["startDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					self.waitTimes[dd]["startTime"] = time.time()
+					self.waitTimes[dd]["lastPrint"] = time.time()
+					self.waitTimes[dd]["WaitingPgm"] = {}
+					self.waitTimes[dd]["BlockingPgm"] = {}
+
+			dd = "today"
+
+			for yTag in [["---TOTAL----","WaitingPgm"], [waitingPgm,"WaitingPgm"], [self.blockingPgm,"BlockingPgm"], ["---TOTAL----","BlockingPgm"] ]:
+				if len(yTag[0]) < 3: continue
+				if yTag[0] not in self.waitTimes[dd][yTag[1]]: 
+					self.waitTimes[dd][yTag[1]][yTag[0]] = {"n":0, "tot":0., "max":0., ".1":0, ".5":0, "1":0, "3":0, "6":0, "12":0, "20":0}
+				if yTag[1] == "BlockingPgm" and self.blockingPgm == "": continue
+				xx = self.waitTimes[dd][yTag[1]][yTag[0]]
+				xx["n"]   += 1
+				xx["tot"] += wait
+				xx["max"]  = max(wait, xx["max"])
+				if wait > 0.1:
+					if wait <= 0.5: 
+						xx[".1"]  += 1
+					else:
+						if wait <= 1: 
+							xx[".5"]  += 1
+						else:
+							if wait <= 3: 
+								xx["1"]  += 1
+							else: 
+								if wait <= 6: 
+									xx["3"]  += 1
+								else: 
+									if wait <= 12: 
+										xx["6"]  += 1
+									else:
+										if wait <= 20: 
+											xx["12"]  += 1
+										elif wait > 20: 
+											xx["20"]  += 1
+
+			self.blockingPgm = waitingPgm
+			self.waitTimes[dd]["endDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+		except Exception as e:
+			self.exceptionHandler(40,e)
+
 		return 
 
+	
 ####-------------------------------------------------------------------------####
 	def readPopen(self, cmd):
 		try:

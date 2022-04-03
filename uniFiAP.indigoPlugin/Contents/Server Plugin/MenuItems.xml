@@ -219,20 +219,25 @@
 	</MenuItem>
 
 	<MenuItem id="dataStats">
-		<Name>Communication stats - print, clear</Name>
+		<Name>PRINT Communication and processing stats</Name>
 		<ConfigUI>
 			<Field	id="Label11" type="label"> 
-				<Label>PRINT communication stats:</Label> 
+				<Label>print stats to logfile,  TCPIP or PROCESSING-WAIT-times </Label> 
 			</Field>
 			<Field	  id="confirmprint" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonPrintStatsCALLBACK</CallbackMethod>
+				<Label>print COMMUNICATION stats: </Label><Title>PRINT </Title> <CallbackMethod>buttonPrintStatsCALLBACK</CallbackMethod>
 			</Field>
 
-			<Field	id="Label12" type="label"> 
-				<Label>Zero stats:</Label> 
-			</Field>
 			<Field	  id="confirmclear" type="button" tooltip="" >
-				<Label>Click to </Label><Title>CLEAR </Title> <CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
+				<Label>reset COMMUNICATION stats: </Label><Title>RESET </Title> <CallbackMethod>buttonZeroStatsCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field	  id="confirmWaitprint" type="button" tooltip="" >
+				<Label>PRINT WAIT processtimes stats: </Label><Title>PRINT </Title> <CallbackMethod>buttonPrintWaitStatsCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field	  id="confirmWaitclear" type="button" tooltip="" >
+				<Label>reset WAIT time stats: </Label><Title>RESET </Title> <CallbackMethod>buttonZeroWaitStatsCALLBACK</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
