@@ -66,6 +66,7 @@
 		</List>
 	</Field>
 
+
 	<Field id="ignoreNewClients"    		type="checkbox"    > 
 		<Label>Ignore NEW clients:</Label>   
 	</Field>
@@ -789,14 +790,32 @@ in actions you can setup most of the config as as well as get snapshots
 	</Field>
 
 
+	<Field id="launchWaitSeconds"     	type="menu"  tooltip="try a differnt value in case you have a lot of excessive wait times, listeners should not start all at the same time"  > 
+	<Label>Wait between launch of listeners:</Label> 
+		<List>
+			<Option value="1.13"		>1.13 ses</Option>
+			<Option value="2.13"		>2.13 secs</Option>
+			<Option value="3.13"		>3.13 secs default</Option>
+			<Option value="4.13"		>4.13 secs</Option>
+			<Option value="5.13"		>5.13 secs</Option>
+			<Option value="6.13"		>6.13 secs</Option>
+			<Option value="7.13"		>7.13 secs</Option>
+			<Option value="8.13"		>8.13 secs</Option>
+			<Option value="9.13"		>9.13 secs</Option>
+		</List>
+	</Field>
+	<Field id="infoLabelaunchWaitSeconds" 		type="label" 		alignText="right"  fontSize="small" fontColor="darkgrey"> 
+		<Label>The plugin will auto restart if parameters is changed
+float numbers are used to reduce likelyhood that 2 launches overlap too closely</Label>  
+	</Field>
+
 	<Field id="rebootUnifiDeviceOnError" type="checkbox"   > 
 		<Label>... force restart of UnifFi devices when mca error encountered:</Label>  
 	</Field>
 
-
-	<Field id="infoLabelrestartListenerEvery1" type="label" > <Label>.           When you have several unforced restarts through lost connections, 
-.           it might be a good idea to force them every xx hours
-            </Label>  
+	<Field id="infoLabelrestartListenerEvery1" 		type="label" 		alignText="right"   fontSize="small" fontColor="darkgrey"> 
+		<Label>When you have several unforced restarts through lost connections,
+it might be a good idea to force them every xx hours</Label>  
 	</Field>
 
 
@@ -837,8 +856,6 @@ in actions you can setup most of the config as as well as get snapshots
 	</Field>
 
 
-
-
 	<Field id="infolabelExperts3" type="label"> <Label>=         buffer size</Label>  </Field>
 
 	<Field id="readBuffer" type="menu"  > 
@@ -855,12 +872,12 @@ in actions you can setup most of the config as as well as get snapshots
 		</List>
 	</Field>
 
-	<Field id="infoLabel229" type="label" > 
-		<Label>.           For error 22: reduce buffer size until error disappears
-.           In general max value for best performance. 
-.           32k seems to cover 99% of packages. Each listener stream will use one of the buffers + several copies 
-.           Small read buffer will do several reads when data is &gt; buffer size, 
-.           When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  
+	<Field id="infoLabel229" 		type="label" 	alignText="right" fontSize="small" fontColor="darkgrey"> 
+		<Label>For error 22: reduce buffer size until error disappears
+In general max value for best performance. 
+16k seems to cover 90% of packages. Each listener stream will use one of the buffers + several copies 
+Small read buffer will do several reads when data is &gt; buffer size, 
+When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  
 	</Field>
 
 

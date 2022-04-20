@@ -55,6 +55,7 @@ kDefaultPluginPrefs = {
 	"expirationTime":							"120",
 	"fixExpirationTime":						True,
 	"expTimeMultiplier":						"2",
+	"launchWaitSeconds":						"3.13",
 	"ignoreNewClients":							False,
 	"ignoreNewNeighbors":						False,
 	"ignoreNeighborForFing":					True,
@@ -271,7 +272,7 @@ class Plugin(indigo.PluginBase):
 		self.pluginShortName 			= u"UniFi"
 
 
-		self.quitNow					= ""
+		self.quitNOW					= ""
 		self.updateConnectParams		= time.time() - 100
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
@@ -529,7 +530,7 @@ class Plugin(indigo.PluginBase):
 		self.stop 											= []
 		self.PROTECT 										= {}
 
-
+		self.launchWaitSeconds								= float(self.pluginPrefs.get(u"launchWaitSeconds","3.13"))
 		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
 		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	self.MAChome))
 		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
@@ -616,8 +617,8 @@ class Plugin(indigo.PluginBase):
 		self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
 		self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
 
-		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", "32767"))
-		except: self.readBuffer								= 32767
+		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", "16384"))
+		except: self.readBuffer								= 16384
 		self.maxConsumedTimeQueueForWarning					= float(self.pluginPrefs.get(u"maxConsumedTimeQueueForWarning", "5"))
 		self.maxConsumedTimeForWarning						= float(self.pluginPrefs.get(u"maxConsumedTimeForWarning", "3"))
 
@@ -646,7 +647,7 @@ class Plugin(indigo.PluginBase):
 		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
 		self.waitTimes										= {}
-		self.blockingPgm										= ""
+		self.blockingPgm									= ""
 	
 		self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
 		self.timeoutDICT									= u"10" #u"{}".format(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
@@ -884,11 +885,11 @@ class Plugin(indigo.PluginBase):
 
 				old = dev.states[u"displayStatus"].split(u" ")
 				if len(old) ==3:
-					new = self.padDisplay(old[0].strip())+dev.states[u"lastStatusChange"][5:]
+					new = self.padDisplay(old[0].strip())+dev.states[u"lastStatusChange"]
 					if dev.states[u"displayStatus"] != new:
 						dev.updateStateOnServer(u"displayStatus",new)
 				else:
-					dev.updateStateOnServer(u"displayStatus",self.padDisplay(old[0].strip())+dev.states[u"lastStatusChange"][5:])
+					dev.updateStateOnServer(u"displayStatus",self.padDisplay(old[0].strip())+dev.states[u"lastStatusChange"])
 		except	Exception as e:
 				self.exceptionHandler(40,e)
 
@@ -1021,7 +1022,7 @@ class Plugin(indigo.PluginBase):
 						dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
 					dev.replaceOnServer()
 					#dev= indigo.devices[dev.id]
-					dev.updateStateOnServer(u"onOffState",value= (dev.states[u"status"].lower()) in[u"up",u"rec",u"ON"], uiValue=dev.states[u"displayStatus"] )
+					dev.updateStateOnServer(u"onOffState",value=(dev.states[u"status"].lower()) in[u"up",u"rec",u"ON"], uiValue=dev.states[u"displayStatus"] )
 					self.indiLOG.log(10,u"SupportsOnState after replacePluginPropsOnServer")
 
 			isType={u"UniFi":u"isUniFi",u"camera":u"isCamera",u"gateway":u"isGateway",u"Device-SW":u"isSwitch",u"Device-AP":u"isAP",u"neighbor":u"isNeighbor",u"NVR":u"isNVR"}
@@ -1291,7 +1292,8 @@ class Plugin(indigo.PluginBase):
 			self.refreshProtectCameras						= float(valuesDict[u"refreshProtectCameras"])
 			self.protecEventSleepTime						= float(valuesDict[u"protecEventSleepTime"])
 			self.unifControllerCheckPortNumber				= valuesDict[u"unifControllerCheckPortNumber"] 
-		
+
+
 			self.cameraEventWidth							= int(valuesDict[u"cameraEventWidth"])
 
 			self.imageSourceForEvent						= valuesDict[u"imageSourceForEvent"]
@@ -1309,6 +1311,10 @@ class Plugin(indigo.PluginBase):
 			except:	self.maxConsumedTimeForWarning			= 3.
 			valuesDict[u"maxConsumedTimeForWarning"]		= self.maxConsumedTimeForWarning
 
+			if self.launchWaitSeconds != float(valuesDict[u"launchWaitSeconds"]):
+				rebootRequired +="launchWaitSeconds changed "
+			self.launchWaitSeconds							= float(valuesDict[u"launchWaitSeconds"])
+
 			self.rebootUnifiDeviceOnError					= valuesDict[u"rebootUnifiDeviceOnError"]
 
 			if self.connectParams[u"UserID"][u"unixDevs"]	!= valuesDict[u"unifiUserID"]:				rebootRequired += u" unifiUserID changed;"
@@ -1325,8 +1331,8 @@ class Plugin(indigo.PluginBase):
 
 			self.connectParams[u"UserID"][u"unixDevs"]		= valuesDict[u"unifiUserID"]
 			self.connectParams[u"PassWd"][u"unixDevs"]		= valuesDict[u"unifiPassWd"]
-			self.restartListenerEvery						= float(valuesDict[u"restartListenerEvery"])
 
+			self.restartListenerEvery = float(valuesDict[u"restartListenerEvery"])
 
 			self.curlPath									= valuesDict[u"curlPath"]
 			self.requestOrcurl								= valuesDict[u"requestOrcurl"]
@@ -1341,8 +1347,8 @@ class Plugin(indigo.PluginBase):
 			#self.indiLOG.log(10,u"unifiCloudKeySiteName old:>{}<   new:>{}<, types:{}  {}".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"], type(" ") , type(valuesDict[u"unifiCloudKeySiteName"]) ) )
 			if type(u" ") != type(valuesDict[u"unifiCloudKeySiteName"]): valuesDict[u"unifiCloudKeySiteName"] = ""
 			#self.indiLOG.log(10,u"unifiCloudKeySiteName old:>{}<   new:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
-			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: valuesDict[u"unifiCloudKeySiteName"] = ""
-
+			if len(valuesDict[u"unifiCloudKeySiteName"]) < 3: 
+				valuesDict[u"unifiCloudKeySiteName"] = ""
 			if self.unifiCloudKeySiteName != valuesDict[u"unifiCloudKeySiteName"]:
 				self.indiLOG.log(20,u"setting unifiCloudKeySiteName from:>{}<   to:>{}<".format(self.unifiCloudKeySiteName, valuesDict[u"unifiCloudKeySiteName"] ) )
 				self.executeCMDOnControllerReset()
@@ -1578,7 +1584,7 @@ class Plugin(indigo.PluginBase):
 
 			if rebootRequired != "":
 				self.indiLOG.log(30,u"restart " + rebootRequired)
-				self.quitNow = u"config changed"
+				self.quitNOW = u"config changed"
 			self.updateConnectParams  = time.time() - 100
 			valuesDict[u"connectParams"] = json.dumps(self.connectParams)
 
@@ -1679,6 +1685,7 @@ class Plugin(indigo.PluginBase):
 			out += u"\nforce restart of listeners ".ljust(40)			+	"{:.0f} [sec]".format(self.restartListenerEvery)
 			out += u"\nmax Consumed Time For Warning".ljust(40)			+	"{:.0f} [sec]".format(self.maxConsumedTimeForWarning)
 			out += u"\nmax Consumed Time Queue For Warning".ljust(40)	+	"{:.0f} [sec]".format(self.maxConsumedTimeQueueForWarning)
+			out += u"\nwait time betwen lauch of listeners".ljust(40)	+	"{:.2f} [sec]".format(self.launchWaitSeconds)
 
 			out += u"\n"
 			out += u"\n====== CONTROLLER/UDM WEB ACCESS , set parameters and reporting"
@@ -2026,7 +2033,7 @@ class Plugin(indigo.PluginBase):
 		self.connectParams[u"promptOnServer"] = {}
 		self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
 		indigo.server.savePluginPrefs()	
-		self.quitNow = u"restart due to prompt settings reset"
+		self.quitNOW = u"restart due to prompt settings reset"
 		self.indiLOG.log(30,u" reset prompts, initating restart")
 		return valuesDict
 
@@ -5905,7 +5912,7 @@ class Plugin(indigo.PluginBase):
 		self.pluginState   = "run"
 
 		waitBeforeStart = 1
-		addtoWait = 3.31  # make sure not all listeners start at the same time 
+		addtoWait = self.launchWaitSeconds  # make sure not all listeners start at the same time 
 
 		self.consumeDataThread = {u"log":{},u"dict":{}}
 		self.consumeDataThread[u"log"][u"status"]  = u"run"
@@ -5973,7 +5980,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			self.exceptionHandler(40,e)
-			self.quitNow = u"stop"
+			self.quitNOW = u"stop"
 			self.stop = copy.copy(self.ipNumbersOf[u"AP"])
 			return False
 
@@ -6008,7 +6015,7 @@ class Plugin(indigo.PluginBase):
 					self.trWebApiEventlog.start()
 			except	Exception as e:
 				self.exceptionHandler(40,e)
-				self.quitNow = u"stop"
+				self.quitNOW = u"stop"
 				self.stop = copy.copy(self.ipNumbersOf[u"SW"])
 				return False
 
@@ -6031,7 +6038,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			self.exceptionHandler(40,e)
-			self.quitNow = u"stop"
+			self.quitNOW = u"stop"
 			return False
 
 
@@ -6124,10 +6131,10 @@ class Plugin(indigo.PluginBase):
 					self.pr.enable()
 					self.cProfileVariableLoaded = 2
 				elif  self.cProfileVariableLoaded >1:
-					self.quitNow = " restart due to change  ON  requested for print cProfile timers"
+					self.quitNOW = " restart due to change  ON  requested for print cProfile timers"
 			elif cmd == u"off" and self.cProfileVariableLoaded >0:
 					self.pr.disable()
-					self.quitNow = u" restart due to  OFF  request for print cProfile timers "
+					self.quitNOW = u" restart due to  OFF  request for print cProfile timers "
 		if cmd == u"print"  and self.cProfileVariableLoaded >0:
 				self.pr.disable()
 				self.printcProfileStats(pri=pri)
@@ -6207,8 +6214,8 @@ class Plugin(indigo.PluginBase):
 		self.checkcProfileEND()
 
 		self.sleep(1)
-		if self.quitNow !="":
-			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: {} :::::".format(self.quitNow))
+		if self.quitNOW !="":
+			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: {} :::::".format(self.quitNOW))
 			serverPlugin = indigo.server.getPlugin(self.pluginId)
 			serverPlugin.restart(waitUntilDone=False)
 		return
@@ -6231,14 +6238,15 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			while True:
-				#self.indiLOG.log(10,u"looping, quitNow= >>{}<<".format(self.quitNow ) )
 				sl = max(1., self.loopSleep / 10. )
 				sli = int(self.loopSleep / sl)
 				for ii in range(sli):
-					if self.quitNow != "": break
+					if self.quitNOW != "": 
+						break
 					self.sleep(sl)
 
-				if self.quitNow != "": break
+				if self.quitNOW != "": 
+					break
 
 
 				if time.time() - self.updateConnectParams > 0 :
@@ -6255,6 +6263,8 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
+		self.indiLOG.log(20,u"after loop , quitNow= >>{}<<".format(self.quitNOW ) )
+
 		self.postLoop()
 
 		return
@@ -6268,7 +6278,7 @@ class Plugin(indigo.PluginBase):
 		  (self.checkforUnifiSystemDevicesState == "start" and (time.time() - self.pluginStartTime) > 30):
 			self.checkForNewUnifiSystemDevices()
 			if self.checkforUnifiSystemDevicesState == "reboot":
-				self.quitNow ="new devices"
+				self.quitNOW ="new devices"
 				self.checkforUnifiSystemDevicesState =""
 				return "new Devices"
 
@@ -6279,14 +6289,14 @@ class Plugin(indigo.PluginBase):
 			if u"saveCamerasStats"		 in self.pendingCommand: self.saveCameraEventsStatus = True;  self.saveCamerasStats(force = True)
 			self.pendingCommand =[]
 
-		if self.quitNow != "": return "break"
+		if self.quitNOW != "": return "break"
 
 		self.getNVRCamerastoIndigo(periodCheck = True)
 		self.saveCamerasStats()
 		self.saveDataStats()
 		self.saveMACdata()
 
-		if self.quitNow != "": return "break"
+		if self.quitNOW != "": return "break"
 
 		self.setBlockAccess(u"main")
 
@@ -6296,7 +6306,7 @@ class Plugin(indigo.PluginBase):
 		self.checkOnDelayedActions()
 		self.executeUpdateStatesList()
 
-		if self.quitNow != "": return "break"
+		if self.quitNOW != "": return "break"
 
 		self.periodCheck()
 		self.executeUpdateStatesList()
@@ -6304,7 +6314,7 @@ class Plugin(indigo.PluginBase):
 		if	 self.statusChanged == 1:  self.setGroupStatus()
 		elif self.statusChanged == 2:  self.setGroupStatus(init=True)
 
-		if self.quitNow != "": return "break"
+		if self.quitNOW != "": return "break"
 
 		self.checkOnDevNeedsUpdate()
 
@@ -6317,14 +6327,14 @@ class Plugin(indigo.PluginBase):
 			self.lastMinuteCheck = datetime.datetime.now().minute
 			self.statusChanged = max(1,self.statusChanged)
 
-			if self.quitNow != "": return "break"
+			if self.quitNOW != "": return "break"
 
 			self.getUDMpro_sensors()
 
 			if datetime.datetime.now().minute%5 == 0: 
 				self.updateDevStateswRXTXbytes()
 
-			if self.quitNow != "": return "break"
+			if self.quitNOW != "": return "break"
 
 			if self.cameraSystem == "nvr" and self.vmMachine !="":
 				if u"VDtail" in self.msgListenerActive and time.time() - self.msgListenerActive["VDtail"] > 600: # no recordings etc for 10 minutes, reissue mount command
@@ -6338,7 +6348,7 @@ class Plugin(indigo.PluginBase):
 				self.checkInListSwitch()
 
 				if self.checkforUnifiSystemDevicesState == "reboot":
-					self.quitNow ="new devices"
+					self.quitNOW ="new devices"
 					self.checkforUnifiSystemDevicesState = ""
 					return "new devices"
 
@@ -6346,7 +6356,7 @@ class Plugin(indigo.PluginBase):
 				if self.lastHourCheck != datetime.datetime.now().hour:
 					self.lastHourCheck = datetime.datetime.now().hour
 
-					if self.quitNow != "": return "break"
+					if self.quitNOW != "": return "break"
 
 					self.saveupDownTimers()
 					if self.lastHourCheck ==1: # recycle at midnight
@@ -6370,9 +6380,9 @@ class Plugin(indigo.PluginBase):
 		self.pluginState   = "stop"
 		indigo.server.savePluginPrefs()	
 
-		if self.quitNow == "": self.quitNow = u" restart / stop requested "
-		if self.quitNow == u"config changed":
+		if self.quitNOW == u"config changed":
 			self.resetDataStats(calledFrom="postLoop")
+		if self.quitNOW == "": self.quitNOW = u" restart / stop requested "
 		self.pluginPrefs[u"connectParams"] = json.dumps(self.connectParams)
 
 		self.consumeDataThread[u"log"][u"status"]  = u"stop"
@@ -6670,13 +6680,7 @@ class Plugin(indigo.PluginBase):
 									changed = True
 								continue
 
-						if self.useDBInfoForWhichDevices == "all" or (self.useDBInfoForWhichDevices == "perDevice" and u"useDBInfoForDownCheck" in props and props[u"useDBInfoForDownCheck"] == u"useDBInfo"):
-							if time.time() -  self.MAC2INDIGO[xType][MAC][u"last_seen"] < max(99., expT):
-								if self.MAC2INDIGO[xType][MAC][u"last_seen"]  > lastUpTT:
-									if self.decideMyLog(u"DBinfo", MAC=MAC): self.indiLOG.log(10,u"overwriting lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},   new lastTT:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC][u"last_seen"] ))
-									lastUpTT = self.MAC2INDIGO[xType][MAC][u"last_seen"]
-						if self.decideMyLog(u"DBinfo", MAC=MAC): 
-							self.indiLOG.log(10,u"checking    lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},  lastTT-db:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC][u"last_seen"] ))
+						lastUpTT = self.checkIfControllerDBInfoActive(xType, MAC, props, lastUpTT, expT, dev)
 
 						dt = time.time() - lastUpTT
 
@@ -6897,6 +6901,21 @@ class Plugin(indigo.PluginBase):
 
 
 
+
+	########################### #################
+	def checkIfControllerDBInfoActive(self, xType, MAC, props, lastUpTT, expT, dev):
+		try:
+			if self.useDBInfoForWhichDevices == "all" or (self.useDBInfoForWhichDevices == "perDevice" and u"useDBInfoForDownCheck" in props and props[u"useDBInfoForDownCheck"] == u"useDBInfo"):
+				if time.time() -  self.MAC2INDIGO[xType][MAC][u"last_seen"] < max(99., expT):
+					if self.MAC2INDIGO[xType][MAC][u"last_seen"]  > lastUpTT:
+						if self.decideMyLog(u"DBinfo", MAC=MAC): self.indiLOG.log(10,u"overwriting lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},   new lastTT:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC][u"last_seen"] ))
+						lastUpTT = self.MAC2INDIGO[xType][MAC][u"last_seen"]
+			if self.decideMyLog(u"DBinfo", MAC=MAC): 
+				self.indiLOG.log(10,u"checking    lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},  lastTT-db:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC][u"last_seen"] ))
+
+		except	Exception as e:
+			self.exceptionHandler(40,e)
+		return lastUpTT
 
 
 	###########################	   UTILITIES  #### START #################
@@ -7768,6 +7787,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if not self.devsEnabled[u"DB"]:																	return 
 			if time.time() - self.getcontrollerDBForClientsLast < float(self.readDictEverySeconds[u"DB"]):	return 
+			#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"getcontrollerDBForClients: start, read every:{}, dt:{}".format(self.readDictEverySeconds[u"DB"], time.time() - self.getcontrollerDBForClientsLast))
 
 			if self.decideMyLog(u"DBinfo"): self.indiLOG.log(10,u"getcontrollerDBForClients: start, read every:{}".format(self.readDictEverySeconds[u"DB"]))
 			dataDict = self.executeCMDOnController(pageString=u"/stat/sta/", cmdType=u"get")
@@ -12462,10 +12482,10 @@ class Plugin(indigo.PluginBase):
 				if oldStatus != newStatus:
 					if fing and oldStatus != u"123abc123abcxxx":
 						self.sendUpdateToFingscanList[u"{}".format(dev.id)] = u"{}".format(dev.id)
-					self.addToStatesUpdateList(dev.id,u"status", newStatus)
+					self.addToStatesUpdateList(dev.id, u"status", newStatus)
 
 					if u"lastStatusChangeReason" in dev.states and reason != u"":
-						self.addToStatesUpdateList(dev.id,u"lastStatusChangeReason", reason)
+						self.addToStatesUpdateList(dev.id, u"lastStatusChangeReason", reason)
 					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(10,u"STAT-Chang {} st changed  {}->{}; {}".format(dev.states[u"MAC"], dev.states[u"status"], newStatus, text1))
 
 		except	Exception as e:
@@ -12566,21 +12586,25 @@ class Plugin(indigo.PluginBase):
 	def addToStatesUpdateList(self,devid, key, value):
 		try:
 			devId = u"{}".format(devid)
+			#if self.decideMyLog(u"Special") and (key == "status" or key == "displayStatus"): self.indiLOG.log(10,u"addToStatesUpdateList (1) devId {} key:{}; value:{}".format(devid, key, value ) )
 			### no down during startup .. 100 secs
-			if key == "status" and value.lower() not in[u"up", u"connected", u"event", u"rec", u"motion", u"vehicle", u"person"]:
-				if time.time() - self.pluginStartTime <0:
+			if key == "status" and value.lower() not in [u"up", u"connected", u"event", u"rec", u"motion", u"vehicle", u"person"]:
+				if time.time() - self.pluginStartTime < 0:
 					#self.indiLOG.log(10,u"in addToStatesUpdateList reject update at startup for devId:{} key:{}; value:{}".format(devid, key, value ) )
-					pass
-				return
+					return
 
-			local = copy.deepcopy(self.devStateChangeList)
-			if devId not in local:
-				local[devId]={}
-			if key in local[devId]:
-				if value != local[devId][key]:
-					local[devId][key] = {}
-			local[devId][key] = value
-			self.devStateChangeList = copy.deepcopy(local)
+			localCopy = copy.deepcopy(self.devStateChangeList)
+			if devId not in localCopy:
+				localCopy[devId] = {}
+
+			if key in localCopy[devId]:
+				if value != localCopy[devId][key]:
+					loclocalCopyal[devId][key] = {}
+
+			localCopy[devId][key] = value
+			self.devStateChangeList = copy.deepcopy(localCopy)
+			#if self.decideMyLog(u"Special") and (key == "status" or key == "displayStatus"): self.indiLOG.log(10,u"addToStatesUpdateList (2) devId {} key:{}; value:{}".format(devid, key, value ) )
+
 
 		except	Exception as e:
 			if len(u"{}".format(e))	> 5 :
@@ -12596,7 +12620,7 @@ class Plugin(indigo.PluginBase):
 		key = ""
 		local = ""
 		try:
-			if len(self.devStateChangeList) ==0: return
+			if len(self.devStateChangeList) == 0: return
 			local = copy.deepcopy(self.devStateChangeList)
 			self.devStateChangeList ={}
 			changedOnly = {}
@@ -12608,15 +12632,16 @@ class Plugin(indigo.PluginBase):
 					dev =indigo.devices[int(devId)]
 					for key in local[devId]:
 						value = local[devId][key]
+						#if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"executeUpdateStatesList (1) dev {} key:{}; value:{}".format(dev.name, key, value ) )
 						if u"{}".format(value) != u"{}".format(dev.states[key]):
 							if devId not in changedOnly: changedOnly[devId]=[]
 							changedOnly[devId].append({u"key":key,u"value":value})
 							if key == u"status":
-								#self.indiLOG.log(10,u"in executeUpdateStatesList dev {} key:{}; value:{}".format(dev.name, key, value ) )
+								#if "MAC" in dev.states and self.decideMyLog(u"", MAC=dev.states["MAC"]): self.indiLOG.log(10,u"executeUpdateStatesList(2) dev {} key:{}; value:{}".format(dev.name, key, value ) )
 								ts = datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S")
 								changedOnly[devId].append({u"key":u"lastStatusChange", u"value":ts})
-								changedOnly[devId].append({u"key":u"displayStatus",	   u"value":self.padDisplay(value)+ts[5:] } )
-								changedOnly[devId].append({u"key":u"onOffState",	   u"value":value in ["up","rec","ON"],   u"uiValue":self.padDisplay(value)+ts[5:] } )
+								changedOnly[devId].append({u"key":u"displayStatus",	   u"value":self.padDisplay(value)+ts } )
+								changedOnly[devId].append({u"key":u"onOffState",	   u"value":value in ["up","rec","ON"],   u"uiValue":self.padDisplay(value)+ts } )
 								self.exeDisplayStatus(dev, value, force=False)
 
 								self.statusChanged = max(1,self.statusChanged)

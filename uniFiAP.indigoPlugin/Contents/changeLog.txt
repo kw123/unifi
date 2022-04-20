@@ -1,3 +1,15 @@
+changes in V7.40.375@ 2022-04-20
+==================  
+   1. fixed status did not got up --> down (one tab was missing)
+
+
+changes in V7.40.376@ 2022-04-15
+==================  
+   1. added option (config) to change wait time between launch of listeners
+   in case you have a lot of excessive wait times, try to change this parameter
+
+
+
 changes in V7.40.375@ 2022-04-03
 ==================  
    1. added stats for wait times, check menu "PRINT Communication and processing stats"
