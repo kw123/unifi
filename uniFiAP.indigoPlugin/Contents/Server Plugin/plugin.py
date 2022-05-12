@@ -646,8 +646,6 @@ class Plugin(indigo.PluginBase):
 		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
 		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
-		self.waitTimes										= {}
-		self.blockingPgm									= ""
 	
 		self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
 		self.timeoutDICT									= u"10" #u"{}".format(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
@@ -2398,6 +2396,7 @@ class Plugin(indigo.PluginBase):
 	def buttonZeroWaitStatsCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		self.waitTimes["yesterday"] = copy.copy(self.waitTimes["today"] ) 
 		self.waitTimes["today"] = {}
+		self.saveDataStats(force=True)
 		return valuesDict
 
 
@@ -2424,7 +2423,8 @@ class Plugin(indigo.PluginBase):
 					tag = "---TOTAL----"
 					xx = self.waitTimes[dd][ytag][tag]
 					avWait = xx["tot"] / max(1, xx["n"])
-					out += u"{:21s}  {:11}{:13.3f}  {:7.3f} {:5}{:5}{:5}{:5}{:5}{:5}{:5} {:8.1f}\n\n".format(tag, xx["n"], xx["tot"], avWait, xx[".1"], xx[".5"], xx["1"], xx["3"], xx["6"], xx["12"],xx["20"], xx["max"]  )
+					out += u"{:21s}  {:11}{:13.3f}  {:7.3f} {:5}{:5}{:5}{:5}{:5}{:5}{:5} {:8.1f}\n".format(tag, xx["n"], xx["tot"], avWait, xx[".1"], xx[".5"], xx["1"], xx["3"], xx["6"], xx["12"],xx["20"], xx["max"]  )
+				out += u"N-pgms Blocking > 1={}, max blocking pgms={} (several pgms waiting in sequence)\n\n".format(self.waitTimes[dd]["QlenGT1"], self.waitTimes[dd]["QlenMax"] )
 
 			if hourlyReport:
 				self.indiLOG.log(10, out+trailer)
@@ -3933,7 +3933,7 @@ class Plugin(indigo.PluginBase):
 			for rec in data:
 				#{"rx_bytes":1090.4761904761904,"tx_bytes":1428.904761904762,"time":1613157900000,"user":"b8:27:eb:c8:c7:ab","o":"user","oid":"b8:27:eb:c8:c7:ab"},
 				if "user" not in rec or "time" not in rec or "tx_bytes" not in rec: 
-					if not oneBad: self.indiLOG.log(10,"updateDevStateswRXTXbytes user/time/rx tx_bytes   not in rec:{}".format(rec))
+					#if not oneBad: self.indiLOG.log(10,"updateDevStateswRXTXbytes user/time/rx tx_bytes   not in rec:{}".format(rec))
 					oneBad = True
 					continue
 
@@ -5730,7 +5730,7 @@ class Plugin(indigo.PluginBase):
 		self.lastHour		= nowDT.hour
 		self.logQueue		= Queue.Queue()
 		self.logQueueDict	= Queue.Queue()
-		self.waitQueue		= PriorityQueue()
+		self.blockWaitQueue		= PriorityQueue()
 		self.apDict			= {}
 		self.countLoop		= 0
 		self.upDownTimers	= {}
@@ -6321,7 +6321,7 @@ class Plugin(indigo.PluginBase):
 		self.executeUpdateStatesList()
 		if len(self.sendBroadCastEventsList) >0: self.sendBroadCastNOW()
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"main")
 
 		if self.lastMinuteCheck != datetime.datetime.now().minute:
 			self.lastMinuteCheck = datetime.datetime.now().minute
@@ -7090,24 +7090,35 @@ class Plugin(indigo.PluginBase):
 		self.saveDataStats()
 
 	####-----------------	 ---------
-	def saveDataStats(self):
-		if time.time() - 60	 < self.lastSaveDataStats: return
+	def saveDataStats(self, force = False):
+		if time.time() - 60	 < self.lastSaveDataStats and not force: return
 		self.lastSaveDataStats = time.time()
 		self.writeJson(self.dataStats, fName=self.indigoPreferencesPluginDir+"dataStats", sort=False, doFormat=True )
+		self.writeJson(self.waitTimes, fName=self.indigoPreferencesPluginDir+"waitTimes", sort=True, doFormat=True )
+
 
 	####-----------------	 ---------
 	def readDataStats(self):
-		self.lastSaveDataStats	= time.time() -60
+		self.lastSaveDataStats	= time.time() - 60
+		self.waitTimes = {}
+		self.dataStats = {}
+
 		try:
-			f=open(self.indigoPreferencesPluginDir+"dataStats","r")
+			f = open(self.indigoPreferencesPluginDir+"waitTimes","r")
+			self.waitTimes = json.loads(f.read())
+			f.close()
+		except: pass
+
+		try:
+			f = open(self.indigoPreferencesPluginDir+"dataStats","r")
 			self.dataStats = json.loads(f.read())
 			f.close()
 			if u"tcpip" not in self.dataStats:
 				self.resetDataStats( calledFrom="readDataStats 1")
-			return
-		except: pass
+			return 
+		except: 
+			self.resetDataStats( calledFrom="readDataStats 2")
 
-		self.resetDataStats( calledFrom="readDataStats 2")
 		return
 	### init,save,write data stats for receiving messages
 	####-----------------	 --------- END
@@ -9789,7 +9800,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 				self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doVDmessages")
 		
 		return
 
@@ -9887,7 +9898,7 @@ class Plugin(indigo.PluginBase):
 
 		self.executeUpdateStatesList()
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doGWmessages")
 
 		return
 
@@ -9907,7 +9918,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doSWmessages")
 		
 		return
 
@@ -10160,7 +10171,7 @@ class Plugin(indigo.PluginBase):
 
 		self.executeUpdateStatesList()
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doAPmessages")
 
 		return
 
@@ -10454,7 +10465,6 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def doSWITCHdictClients(self, apDict, swNumb, ipNDevice, MACSW, hostnameSW, ipNumber):
 
-		self.setBlockAccess(u"doSWITCHdict")
 
 		try:
 
@@ -10475,8 +10485,6 @@ class Plugin(indigo.PluginBase):
 
 
 			if useIP not in self.deviceUp[u"SW"]:
-				if not self.waitQueue.empty(): self.waitQueue.get()
-				
 				return
 
 			switchNumber = -1
@@ -10487,9 +10495,9 @@ class Plugin(indigo.PluginBase):
 				break
 
 			if switchNumber < 0:
-				if not self.waitQueue.empty(): self.waitQueue.get()
-				
 				return
+
+			self.setBlockAccess(u"doSWITCHdict")
 
 			swN		= u"{}".format(switchNumber)
 			suffixN = suffix+u"_"+swN
@@ -10686,7 +10694,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doSWITCHdict")
 
 		return
 
@@ -10845,7 +10853,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			self.exceptionHandler(40,e)
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doGWHost_table")
 		
 		return
 
@@ -11008,7 +11016,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			self.exceptionHandler(40,e)
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doGWDvi_stats")
 		
 		return
 
@@ -11019,12 +11027,11 @@ class Plugin(indigo.PluginBase):
 	def doWiFiCLIENTSdict(self,adDict, GHz, ipNDevice, apN, ipNumber):
 		try:
 	
-			self.setBlockAccess(u"doWiFiCLIENTSdict")
 
 			if len(adDict) == 0:
-				if not self.waitQueue.empty(): self.waitQueue.get()
-				
 				return
+
+			self.setBlockAccess(u"doWiFiCLIENTSdict")
 
 			if self.decideMyLog(u"Dict") or self.debugDevs[u"AP"][int(apN)]: self.indiLOG.log(10,u"DC-WF-00   {:13s}#{} ... vap_table..[sta_table]: {}".format(ipNumber,apN, adDict) )
 
@@ -11347,7 +11354,7 @@ class Plugin(indigo.PluginBase):
 			except	Exception as e:
 				self.exceptionHandler(40,e)
 
-			if not self.waitQueue.empty(): self.waitQueue.get()
+			self.unsetBlockAccess(u"doWiFiCLIENTSdict")
 			
 		except	Exception as e:
 			self.exceptionHandler(40,e)
@@ -11477,7 +11484,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doAPdictsSELF")
 		
 		return
 
@@ -11869,7 +11876,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doGatewaydictSELF")
 		
 		return
 
@@ -12005,7 +12012,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doNeighborsdict")
 		
 		return
 
@@ -12292,7 +12299,7 @@ class Plugin(indigo.PluginBase):
 		except	Exception as e:
 			self.exceptionHandler(40,e)
 
-		if not self.waitQueue.empty(): self.waitQueue.get()
+		self.unsetBlockAccess(u"doSWdictSELF")
 		
 
 		return
@@ -12599,7 +12606,7 @@ class Plugin(indigo.PluginBase):
 
 			if key in localCopy[devId]:
 				if value != localCopy[devId][key]:
-					loclocalCopyal[devId][key] = {}
+					localCopy[devId][key] = {}
 
 			localCopy[devId][key] = value
 			self.devStateChangeList = copy.deepcopy(localCopy)
@@ -12743,69 +12750,100 @@ class Plugin(indigo.PluginBase):
 		self.executeUpdateStatesList()
 		return
 
-	####---------------- wait for other tasks done  (ie main and fill messgaes ) wait max 6 secs ---------
+
+	####---------------- wait for other tasks to finish (ie main and fill messages ) wait max 9 secs ---------
+	#### unblock 
+	def unsetBlockAccess(self, waitingPgm):
+		try:
+			qLen = self.blockWaitQueue.qsize()
+			if qLen == 0: return 
+			#if qlengthNow == 1: 
+			#	self.blockWaitQueue.get()
+			#	return
+			tempQueue = PriorityQueue()
+			for nn in range(qLen):
+				item = self.blockWaitQueue.queue[qLen-nn-1]
+				if item == waitingPgm: continue
+				tempQueue.put(item)
+
+			self.blockWaitQueue = tempQueue
+
+		except Exception as e:
+			self.exceptionHandler(40,e)
+
+		return 
+
+	#### block
 	def setBlockAccess(self, waitingPgm):
 		try:	
-			wait = time.time()
-			
-			self.blockingPgm = ""
-			for ii in range(60):
-				if self.waitQueue.empty(): break
-				self.blockingPgm = self.waitQueue.queue[0]
-				#self.indiLOG.log(10, "setBlockAccess waiting for: {}".format(self.blockingPgm))
+			waitTime = time.time()
+			blockingPgm = "None"
+			qLenMax = 0
+			for ii in range(90):
+				qlengthNow = self.blockWaitQueue.qsize()
+				qLenMax = max(qLenMax, qlengthNow)
+				if qlengthNow == 0:	break
+				if blockingPgm == "None":
+					try:	blockingPgm = self.blockWaitQueue.queue[0]
+					except Exception as e:
+						pass
+						#self.exceptionHandler(40,e)
+						#self.indiLOG.log(40, "setBlockAccess err waiting for: {}, pgmWaiting:{} queue is:{}".format(blockingPgm, waitingPgm, self.blockWaitQueue.queue))
+				#self.indiLOG.log(10, "setBlockAccess waiting for: {}, pgmWaiting:{} qlen:{}; queue is:{}".format(blockingPgm, waitingPgm, self.blockWaitQueue.qsize(), self.blockWaitQueue.queue))
 				self.sleep(0.1)
 
-			if  not self.waitQueue.empty(): self.blockingPgm = self.waitQueue.get()
-			self.waitQueue.put(waitingPgm)
-			#self.indiLOG.log(10, "setBlockAccess ended waiting for: {}".format(self.blockingPgm))
+			if  not self.blockWaitQueue.empty(): blockingPgm = self.blockWaitQueue.get()
+			self.blockWaitQueue.put(waitingPgm)
 
-			## measure waitimes 
-			wait = time.time() - wait
+			## init dicts if not present 
 			if "yesterday" not in self.waitTimes:
 				self.waitTimes = {"today":{}, "yesterday":{} }
 
 			if "startDate" not in self.waitTimes["today"]:
-				for dd in ["today"]:
-					self.waitTimes[dd]["startDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-					self.waitTimes[dd]["startTime"] = time.time()
-					self.waitTimes[dd]["lastPrint"] = time.time()
-					self.waitTimes[dd]["WaitingPgm"] = {}
-					self.waitTimes[dd]["BlockingPgm"] = {}
+				self.waitTimes["today"]["startDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+				self.waitTimes["today"]["startTime"] = time.time()
+				self.waitTimes["today"]["lastPrint"] = time.time()
+				self.waitTimes["today"]["WaitingPgm"] = {}
+				self.waitTimes["today"]["BlockingPgm"] = {}
+				self.waitTimes["today"]["QlenGT1"] = 0
+				self.waitTimes["today"]["QlenMax"] = 0
 
-			dd = "today"
+			waitTime = time.time() - waitTime
+			if qlengthNow >0: 
+				self.waitTimes["today"]["QlenMax"] = max(self.waitTimes["today"]["QlenMax"], qlengthNow)
+				if qlengthNow > 1: 
+					self.waitTimes["today"]["QlenGT1"] += 1
 
-			for yTag in [["---TOTAL----","WaitingPgm"], [waitingPgm,"WaitingPgm"], [self.blockingPgm,"BlockingPgm"], ["---TOTAL----","BlockingPgm"] ]:
-				if len(yTag[0]) < 3: continue
-				if yTag[0] not in self.waitTimes[dd][yTag[1]]: 
-					self.waitTimes[dd][yTag[1]][yTag[0]] = {"n":0, "tot":0., "max":0., ".1":0, ".5":0, "1":0, "3":0, "6":0, "12":0, "20":0}
-				if yTag[1] == "BlockingPgm" and self.blockingPgm == "": continue
-				xx = self.waitTimes[dd][yTag[1]][yTag[0]]
-				xx["n"]   += 1
-				xx["tot"] += wait
-				xx["max"]  = max(wait, xx["max"])
-				if wait > 0.1:
-					if wait <= 0.5: 
-						xx[".1"]  += 1
+			for tagCat, waitOrBlock in [["---TOTAL----", "WaitingPgm"], [waitingPgm, "WaitingPgm"], [blockingPgm, "BlockingPgm"], ["---TOTAL----", "BlockingPgm"] ]:
+				if tagCat not in self.waitTimes["today"][waitOrBlock]: 
+					self.waitTimes["today"][waitOrBlock][tagCat] = {"n":0, "tot":0., "max":0., ".1":0, ".5":0, "1":0, "3":0, "6":0, "12":0, "20":0}
+				if waitOrBlock == "BlockingPgm" and blockingPgm == "": continue
+				self.waitTimes["today"][waitOrBlock][tagCat]["n"]   += 1
+				self.waitTimes["today"][waitOrBlock][tagCat]["tot"] += waitTime
+				self.waitTimes["today"][waitOrBlock][tagCat]["max"]  = max(waitTime, self.waitTimes["today"][waitOrBlock][tagCat]["max"])
+
+				if waitTime > 0.1:
+					if waitTime <= 0.5: 
+						self.waitTimes["today"][waitOrBlock][tagCat][".1"]  += 1
 					else:
-						if wait <= 1: 
-							xx[".5"]  += 1
+						if waitTime <= 1: 
+							self.waitTimes["today"][waitOrBlock][tagCat][".5"]  += 1
 						else:
-							if wait <= 3: 
-								xx["1"]  += 1
+							if waitTime <= 3: 
+								self.waitTimes["today"][waitOrBlock][tagCat]["1"]  += 1
 							else: 
-								if wait <= 6: 
-									xx["3"]  += 1
+								if waitTime <= 6: 
+									self.waitTimes["today"][waitOrBlock][tagCat]["3"]  += 1
 								else: 
-									if wait <= 12: 
-										xx["6"]  += 1
+									if waitTime <= 12: 
+										self.waitTimes["today"][waitOrBlock][tagCat]["6"]  += 1
 									else:
-										if wait <= 20: 
-											xx["12"]  += 1
-										elif wait > 20: 
-											xx["20"]  += 1
+										if waitTime <= 20: 
+											self.waitTimes["today"][waitOrBlock][tagCat]["12"]  += 1
+										else: 
+											self.waitTimes["today"][waitOrBlock][tagCat]["20"]  += 1
 
-			self.blockingPgm = waitingPgm
-			self.waitTimes[dd]["endDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			self.waitTimes["today"]["endDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 		except Exception as e:
 			self.exceptionHandler(40,e)
