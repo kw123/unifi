@@ -18,11 +18,13 @@ import pwd
 import time
 import traceback
 try:
-	import Queue
+	import queue as queue
+	from queue import PriorityQueue
+	queueOrQueue = "queue"
 except:
-	import queue as Queue
-
-from queue import PriorityQueue
+	import Queue as queue
+	from Queue import PriorityQueue
+	queueOrQueue = "Queue"
 
 import random
 import socket
@@ -336,7 +338,7 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log(  u"check                   {}  <<<<    for detailed logging".format(self.PluginLogFile))
 		indigo.server.log(  u"Plugin short Name       {}".format(self.pluginShortName))
 		indigo.server.log(  u"my PID                  {}".format(self.myPID))	 
-		indigo.server.log(  u"set params for indigo V {}".format(self.indigoVersion))	 
+		indigo.server.log(  u"set params for indigo V {}, indigo_API V:{}, python V:{}.{}.{}".format(self.indigoVersion, indigo.server.apiVersion, sys.version_info[0], sys.version_info[1] , sys.version_info[2]))	 
 
 
 		
@@ -353,17 +355,22 @@ class Plugin(indigo.PluginBase):
 		if not checkIndigoPluginName(self, indigo): 
 			exit() 
 
-		if os.path.isfile(u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"):
-			self.pythonPath				= u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
-		elif os.path.isfile(u"/usr/local/bin/python"):
-			self.pythonPath				= u"/usr/local/bin/python"
-		elif os.path.isfile(u"/usr/bin/python2.7"):
-			self.pythonPath				= u"/usr/bin/python2.7"
+
+		self.pythonPath = "" 
+		if sys.version_info[0] > 3:
+			if os.path.isfile(u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"):
+				self.pythonPath				= u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
 		else:
+			if os.path.isfile(u"/usr/local/bin/python"):
+				self.pythonPath				= u"/usr/local/bin/python"
+			elif os.path.isfile(u"/usr/bin/python2.7"):
+				self.pythonPath				= u"/usr/bin/python2.7"
+		if self.pythonPath == "" :
 			self.indiLOG.log(40,u"FATAL error:  none of python versions 2.7 3.x is installed  ==>  stopping INDIGOplotD")
 			self.quitNOW = "none of python versions 2.7 3.x is installed "
+			self.sleep(120)
 			return
-		self.indiLOG.log(30,u"using '" +self.pythonPath +"' for utily programs")
+		self.indiLOG.log(30,u"using '{}' for utily programs and using queue from:{}".format(self.pythonPath, queueOrQueue))
 
 
 		self.checkcProfile()
@@ -554,7 +561,7 @@ class Plugin(indigo.PluginBase):
 		self.waitForMAC2vendor 								= False
 		self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
 		if self.enableMACtoVENDORlookup != "0":
-			self.M2V 										= MAC2Vendor.MAP2Vendor(pathToMACFiles=self.indigoPreferencesPluginDir+"mac2Vendor/", refreshFromIeeAfterDays = self.enableMACtoVENDORlookup, myLogger = self.indiLOG.log )
+			self.M2V 										= MAC2Vendor.MAP2Vendor(pathToMACFiles=self.indigoPreferencesPluginDir+"mac2Vendor/", refreshFromIeeAfterDays = self.enableMACtoVENDORlookup, myLogger = self.indiLOG.log)
 			self.waitForMAC2vendor 							= self.M2V.makeFinalTable()
 
 
@@ -862,7 +869,7 @@ class Plugin(indigo.PluginBase):
 			if self.MACloglist !={}:
 				self.indiLOG.log(10,u"start track-logging for MAC#s {}".format(self.MACloglist) )
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -889,7 +896,7 @@ class Plugin(indigo.PluginBase):
 				else:
 					dev.updateStateOnServer(u"displayStatus",self.padDisplay(old[0].strip())+dev.states[u"lastStatusChange"])
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 		return
@@ -950,7 +957,7 @@ class Plugin(indigo.PluginBase):
 					if oldName !="" and os.path.isfile(oldName):
 						os.system("rm "+oldName)
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					out = copy.copy(default)
 			else:
 				out = copy.copy(default)
@@ -961,7 +968,7 @@ class Plugin(indigo.PluginBase):
 					f.close()
 					os.system("rm "+oldName)
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					out = copy.copy(default)
 			return out
 
@@ -982,7 +989,7 @@ class Plugin(indigo.PluginBase):
 			return out
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return ""
 
 
@@ -1123,7 +1130,7 @@ class Plugin(indigo.PluginBase):
 				theDictList[0][u"Gtext{}".format(groupNo)] =  self.groupNames[groupNo]
 			return theDictList
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return super(Plugin, self).getDeviceConfigUiValues(pluginProps, typeId, devId)
 
@@ -1154,7 +1161,7 @@ class Plugin(indigo.PluginBase):
 					self.delayedAction[devId].append({u"action":u"updateState", u"state":"groupMember", u"value":gMembers})
 			return (True, valuesDict)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		errorDict = valuesDict
 		return (False, valuesDict, errorDict)
 
@@ -1246,7 +1253,7 @@ class Plugin(indigo.PluginBase):
 			#self.refreshCallbackMethodAlreadySet	= u"yes"
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return (valuesDict, errorsDict)
 
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1593,7 +1600,7 @@ class Plugin(indigo.PluginBase):
 			return True, valuesDict
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			errorDict = indigo.Dict()
 			errorDict[u"MSG"] = u"error please check indigo eventlog"
 			return (False, errorDict, valuesDict)
@@ -1636,7 +1643,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			outString = outString.replace("True","T").replace("False","F").replace(" ","").replace("[","").replace("]","").replace("{","").replace("}","").replace("(","").replace(")","")
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return outString
 	####-----------------	 ---------
 	def printConfigMenu(self,  valuesDict=None, typeId=""):
@@ -1745,7 +1752,7 @@ class Plugin(indigo.PluginBase):
 
 			self.indiLOG.log(20,out)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -1789,7 +1796,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,out)
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	####-----------------	 ---------
 	def printALLMACs(self):
@@ -1829,7 +1836,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 	####-----------------     ---------
@@ -1924,7 +1931,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 	####-----------------  printGroups	  ---------
@@ -1953,7 +1960,7 @@ class Plugin(indigo.PluginBase):
 							newLine = indent
 					except	Exception as e:
 						if u"{}".format(e).find(u"None") == -1:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if	newLine != indent:
 					xList += newLine
 
@@ -1983,7 +1990,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 
@@ -2082,7 +2089,7 @@ class Plugin(indigo.PluginBase):
 			ret, err = self.readPopen(cmd)
 
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				self.indiLOG.log(40,u"promptOnServer={}".format(self.connectParams[u"promptOnServer"]))
 				self.indiLOG.log(40,u"ipNumbersOf={}".format(self.ipNumbersOf[u"VD"]))
 				self.indiLOG.log(40,u"userid:{}, passwd:{}".format(userid, passwd ))
@@ -2212,7 +2219,7 @@ class Plugin(indigo.PluginBase):
 			self.fillCamerasIntoIndigo(ret, calledFrom=u"setupNVRcmd")
 			return "ok",ret
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 
@@ -2247,7 +2254,7 @@ class Plugin(indigo.PluginBase):
 								return {}
 							self.lastNVRCookie =time.time()
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 					try:
@@ -2266,9 +2273,9 @@ class Plugin(indigo.PluginBase):
 
 						return jj[u"data"]
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 			#############does not work on OSX  el capitan ssl lib too old  ##########
@@ -2299,11 +2306,11 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(10,u"Video executeCMDonNVR requests {}".format(response) )
 						return jj[u"data"]
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return []
 
 
@@ -2432,7 +2439,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20, out+trailer)
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return valuesDict
 
@@ -2487,7 +2494,7 @@ class Plugin(indigo.PluginBase):
 			out += u"\ndata stats === END===  total time measured: {:10.0f}[s] = {:s} ".format( nSecs/(24*60*60) ,time.strftime("%H:%M:%S", time.gmtime(nSecs)) ) 
 			self.indiLOG.log(20, out )
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -2504,7 +2511,7 @@ class Plugin(indigo.PluginBase):
 			out +=u"\nindigo update stats === END===  total time measured: {:10.0f}[s] = {:s}".format( nSecs/(24*60*60), time.strftime("%H:%M:%S", time.gmtime(nSecs)) )
 			self.indiLOG.log(20,out)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -2599,7 +2606,7 @@ class Plugin(indigo.PluginBase):
 			return	dbJson
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if self.decideMyLog(u"Video"): self.indiLOG.log(40," getMongoData error: {}\n{}".format(ret[0], ret[1]))
 		return []
 
@@ -2639,12 +2646,12 @@ class Plugin(indigo.PluginBase):
 							out.append(o)
 							self.indiLOG.log(40,u"makeJson error fixed " )
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 			return out, ""
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				self.indiLOG.log(40,u"makeJson error :\ndump>>>>{}".format(dumpIN)+"<<<<<" )
 		return dump, "error"
 	####-----------------	 ---------
@@ -2661,7 +2668,7 @@ class Plugin(indigo.PluginBase):
 			out=json.loads(dump[:s2+1])
 			return out, ""
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	####-----------------	 ---------
 	def replaceFunc(self, dump):
@@ -2695,7 +2702,7 @@ class Plugin(indigo.PluginBase):
 			return dump
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return ""
 
 	####-----------------	 ---------
@@ -2761,7 +2768,7 @@ class Plugin(indigo.PluginBase):
 					props = dev.pluginProps
 					self.indiLOG.log(10,u"done  {}  {} ".format(dev.name, u"{}".format(props)) )
 			except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.printALLUNIFIsreduced()
 		return valuesDict
 	####-----------------	 ---------
@@ -3147,7 +3154,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 	####-----------------	  ---------
@@ -3198,7 +3205,7 @@ class Plugin(indigo.PluginBase):
 			self.statusChanged = 1
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -3212,7 +3219,7 @@ class Plugin(indigo.PluginBase):
 				xList.append(["Group{}".format(groupNo), gName])
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return xList
 	####-----------------	 ---------
 	def filterGroups(self, filter="", valuesDict=None, typeId="", targetId=""):
@@ -3231,7 +3238,7 @@ class Plugin(indigo.PluginBase):
 						try:
 							memberMAC = indigo.devices[int(id)].states[u"MAC"]
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 						memberMAC += memberMAC+";"
 					elif nn == 6:
@@ -3239,7 +3246,7 @@ class Plugin(indigo.PluginBase):
 				xList.append([u"{}".format(groupNo), u"{}= {}".format(gName, memberMAC.strip("; "))])
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return xList
 
 	####-----------------	 ---------
@@ -3260,7 +3267,7 @@ class Plugin(indigo.PluginBase):
 				xList.append([memberDevID,dev.name + u"- "+ dev.states[u"MAC"]])
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return xList
 
 	####-----------------	 ---------
@@ -3317,7 +3324,7 @@ class Plugin(indigo.PluginBase):
 				xList.append([u"{}".format(dev.id), dev.name + u"- "+ dev.states[u"MAC"]])
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return xList
 
 	####-----------------	 ---------
@@ -3525,7 +3532,7 @@ class Plugin(indigo.PluginBase):
 			dev= indigo.devices[ID]
 			ip = dev.states[u"ipNumber"]
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			return
 		self.indiLOG.log(10,u"suspending Unifi system device {} {} - only in plugin".format(dev.name, ip) )
 		self.setSuspend(ip, time.time()+9999999)
@@ -3544,7 +3551,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(10,u"reactivating Unifi system device {} {} - only in plugin".format(dev.name, ip) )
 			except: pass
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.addToMenuXML(valuesDict)
 		return valuesDict
 
@@ -3705,7 +3712,7 @@ class Plugin(indigo.PluginBase):
 				out += "\n"
 			self.indiLOG.log(20,out)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 	####-----------------print DPI info  ---------
@@ -3771,7 +3778,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20,"== DPI report empty, no data returned ==")
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -3976,7 +3983,7 @@ class Plugin(indigo.PluginBase):
 				self.executeUpdateStatesList()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -4730,7 +4737,7 @@ class Plugin(indigo.PluginBase):
 				self.pluginPrefs[u"createUnifiDevicesCounter"] = 0
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -4801,7 +4808,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -4894,7 +4901,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,u"getunifiOSAndPort bad return from unifi controller {}, no os and / port found, tried ports:{}".format(self.unifiCloudKeyIP, tryport) )
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.indiLOG.log(40,u"getunifiOSAndPort ret:\n>>{}<<".format(u"{}".format(ret)[0:100]) )
 		return False
 
@@ -4914,7 +4921,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiCloudKeySiteNameGetNew = True
 			if wait: self.sleep(1.0)	
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 	####-----------------	 ---------
@@ -4982,7 +4989,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			self.indiLOG.log(40,u"setunifiCloudKeySiteName: " )
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.executeCMDOnControllerReset(wait=True,  calledFrom="setunifiCloudKeySiteName3")
 		return False
 
@@ -5072,10 +5079,11 @@ class Plugin(indigo.PluginBase):
 								dictRET = json.loads(respText)
 							except:
 								if iii > 0:
-									self.exceptionHandler(30,e)
-									self.indiLOG.log(40,u"UNIFI executeCMDOnController to {} curl errortext:{}".format(self.unifiCloudKeyIP, errText))
-									self.printHttpError(u"{}".format(e), respText, iii)
-								self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-curl json")
+									if unicode(e).find("None") == -1: 
+										self.indiLOG.log(30,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+										self.indiLOG.log(30,u"UNIFI executeCMDOnController to {} curl errortext:{}".format(self.unifiCloudKeyIP, errText))
+										self.printHttpError(u"{}".format(e), respText, iii)
+									self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-curl json")
 								continue
 
 							if dictRET[u"meta"][u"rc"] != u"ok":
@@ -5101,9 +5109,9 @@ class Plugin(indigo.PluginBase):
 							return []
 
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 				############# does not work on OSX	el capitan ssl lib too old	##########
@@ -5128,7 +5136,7 @@ class Plugin(indigo.PluginBase):
 
 						try: loginDict = json.loads(resp.text)
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							self.indiLOG.log(40,u"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP, resp.text))
 							self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-login json")
 							continue
@@ -5219,9 +5227,10 @@ class Plugin(indigo.PluginBase):
 							except	Exception as e:
 								if iii > 0:
 									errText = u"{}".format(e)
-									self.exceptionHandler(30,e)
-									self.indiLOG.log(20,u"executeCMDOnController has error, retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url))
-									self.printHttpError(errText, respText)
+									if unicode(e).find("None") == -1: 
+										self.indiLOG.log(30,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+										self.indiLOG.log(20,u"executeCMDOnController has error, retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url))
+										self.printHttpError(errText, respText)
 								self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-exception after json/decode ..")
 								try: resp.close()
 								except: pass
@@ -5255,7 +5264,7 @@ class Plugin(indigo.PluginBase):
 							else:								return []
 
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				## we get here when not successful
 				self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-end-error")
@@ -5263,7 +5272,7 @@ class Plugin(indigo.PluginBase):
 			return []
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.executeCMDOnControllerReset(wait=False, calledFrom="executeCMDOnController-exception")
 		return []
@@ -5291,7 +5300,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20,u"executeCMDOnController  resp:>>{}  ...  {}<<<".format(respText[0:200], respText[-200:]) )
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -5305,7 +5314,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromCamera response: {}".format(respText))
 			return "ok"
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			return "error:{}".format(e)
 		return " error"
 
@@ -5338,7 +5347,7 @@ class Plugin(indigo.PluginBase):
 						return "error, no file returned"
 					return "ok, bytes transfered: {}{}".format(fs, unit)
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				return "error:{}".format(e)
 
 			else:
@@ -5365,7 +5374,7 @@ class Plugin(indigo.PluginBase):
 					return "ok, bytes transfered: {} {}".format(ll, unit)
 				return "error {}".format(resp.status_code)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return "error:{}".format(e)
 
 
@@ -5515,7 +5524,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -5615,7 +5624,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		if update:
 			dev.replacePluginPropsOnServer(props)
 		return
@@ -5652,7 +5661,7 @@ class Plugin(indigo.PluginBase):
 			if u"lastAPMessage" not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC][u"lastAPMessage"] 	= 0
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.indiLOG.log(40,u" {}   {}   {}   {}".format( u"{}".format(xType), devIds, u"{}".format(MAC), u"{}".format(self.MAC2INDIGO)) )
 			time.sleep(300)
 
@@ -5717,7 +5726,7 @@ class Plugin(indigo.PluginBase):
 				try: 	indigo.variable.create(u"Unifi_Camera_Event_DateOfThumbNail", value ="", folder=self.folderNameIDVariables)
 				except: pass
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -5728,9 +5737,9 @@ class Plugin(indigo.PluginBase):
 		nowDT = datetime.datetime.now()
 		self.lastMinute		= nowDT.minute
 		self.lastHour		= nowDT.hour
-		self.logQueue		= Queue.Queue()
-		self.logQueueDict	= Queue.Queue()
-		self.blockWaitQueue		= PriorityQueue()
+		self.logQueue		= queue.Queue()
+		self.logQueueDict	= queue.Queue()
+		self.blockWaitQueue	= PriorityQueue()
 		self.apDict			= {}
 		self.countLoop		= 0
 		self.upDownTimers	= {}
@@ -5856,7 +5865,7 @@ class Plugin(indigo.PluginBase):
 		for devId  in self.xTypeMac:
 			try:	 dev = indigo.devices[int(devId)]
 			except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if u"{}".format(e).find(u"timeout") >-1:
 					self.sleep(20)
 					return False
@@ -5979,7 +5988,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.quitNOW = u"stop"
 			self.stop = copy.copy(self.ipNumbersOf[u"AP"])
 			return False
@@ -6014,7 +6023,7 @@ class Plugin(indigo.PluginBase):
 					self.trWebApiEventlog = threading.Thread(name=u'controllerWebApilogForUDM', target=self.controllerWebApilogForUDM, args=(waitBeforeStart, ))
 					self.trWebApiEventlog.start()
 			except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				self.quitNOW = u"stop"
 				self.stop = copy.copy(self.ipNumbersOf[u"SW"])
 				return False
@@ -6037,7 +6046,7 @@ class Plugin(indigo.PluginBase):
 						self.trSWDict[u"{}".format(ll)].start()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.quitNOW = u"stop"
 			return False
 
@@ -6190,7 +6199,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(10,u"switching off SQL logging for variables\n :{}".format(outOffV) )
 				self.indiLOG.log(10,u"switching off SQL logging for variables END\n")
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return 
 
@@ -6261,7 +6270,7 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(10,u"LOOP   return break: >>{}<<".format(ret) )
 					break
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.indiLOG.log(20,u"after loop , quitNow= >>{}<<".format(self.quitNOW ) )
 
@@ -6423,7 +6432,7 @@ class Plugin(indigo.PluginBase):
 						self.addToStatesUpdateList(devId,actionDict[u"state"], actionDict[u"value"] )
 			self.delayedAction = {}
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -6443,7 +6452,7 @@ class Plugin(indigo.PluginBase):
 			self.setGroupStatus(init=True)
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 	####-----------------	 ---------
@@ -6453,7 +6462,7 @@ class Plugin(indigo.PluginBase):
 			f.write(json.dumps(self.upDownTimers))
 			f.close()
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	####-----------------	 ---------
 	def readupDownTimers(self):
@@ -6480,12 +6489,12 @@ class Plugin(indigo.PluginBase):
 					dev= indigo.devices[int(devid)]
 				except	Exception as e:
 					if u"{}".format(e).find(u"timeout waiting") > -1:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 						return
 					if u"{}".format(e).find(u"not found in database") >-1:
 						deldev[devid] =[-1,u"dev w devID:{} does not exist".format(devid)]
 						continue
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					return
 
 				props=dev.pluginProps
@@ -6522,7 +6531,7 @@ class Plugin(indigo.PluginBase):
 				del self.upDownTimers[devId]
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -6535,10 +6544,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					expT = float(props[u"expirationTime"])
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					self.indiLOG.log(40,u"props /expirationTime={}".format(props[u"expirationTime"]))
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return expT
 
 		####-----------------  check things every minute / xx minute / hour once a day ..  ---------
@@ -6592,7 +6601,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -6831,7 +6840,7 @@ class Plugin(indigo.PluginBase):
 									changed = True
 									self.setImageAndStatus(dev,status,oldStatus=dev.states[u"status"],ts=time.time(), fing=True, level=1, text1= u"{:30s} status {:10s}; changed period, expT={:4.1f}     dt= {:4.1f}".format(dev.name, status, expT, dt), reason=u"Period Check", iType=u"PER-DEV-AP")
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 					elif dev.deviceTypeId.find(u"Device-SW") >-1:
@@ -6858,7 +6867,7 @@ class Plugin(indigo.PluginBase):
 									changed = True
 									self.setImageAndStatus(dev,status,oldStatus=dev.states[u"status"],ts=time.time(), fing=True, level=1, text1=u"{:30s} status {:10s}; changed period, expT={:4.1f}     dt= {:4.1f}".format(dev.name, status, expT, dt),reason=u"Period Check", iType=u"PER-DEV-SW")
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 
@@ -6872,7 +6881,7 @@ class Plugin(indigo.PluginBase):
 									changed=True
 									self.setImageAndStatus(dev,status,oldStatus=dev.states[u"status"],ts=time.time(), fing=self.ignoreNeighborForFing, level=1, text1=u"{:30s} status {:10s}; changed period, expT={:4.1f}     dt= {:4.1f}".format(dev.name, status, expT, dt),reason=u"Period Check other", iType=u"PER-DEV-NB")
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 					else:
 						try:
@@ -6892,11 +6901,11 @@ class Plugin(indigo.PluginBase):
 
 					self.lastSecCheck = time.time()
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return	changed
 
 
@@ -6914,7 +6923,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(10,u"checking    lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},  lastTT-db:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC][u"last_seen"] ))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return lastUpTT
 
 
@@ -6936,7 +6945,7 @@ class Plugin(indigo.PluginBase):
 			return False
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return True
 
 	###	 kill expect pids if running
@@ -7032,7 +7041,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Expect"): self.indiLOG.log(10,u"CONNtest  {}    {}is NOT running".format(cType, ipNumber) )
 			return False
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 	### test if AP are up, first ping then check if expect is running
@@ -7054,7 +7063,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,u"resetUnifiDevice  {}-{};  cmd:{}    return:{}".format(uType, ipNumber, cmd, ret) )
 			return False
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 
@@ -7070,7 +7079,7 @@ class Plugin(indigo.PluginBase):
 			if u"inErrorTime" not in self.dataStats[u"tcpip"][uType][ipNumber]:
 				self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] = 0
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 	####-----------------	 ---------
 	def zeroDataStats(self):
 		for uType in self.dataStats[u"tcpip"]:
@@ -7192,7 +7201,7 @@ class Plugin(indigo.PluginBase):
 				info = self.getNVRCamerasFromMongoDB(action=["cameras"])
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	####-----------------	 ---------
 	def getNVRIntoIndigo(self,force= False):
@@ -7315,7 +7324,7 @@ class Plugin(indigo.PluginBase):
 			self.executeUpdateStatesList()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 	####-----------------	 ---------
@@ -7391,7 +7400,7 @@ class Plugin(indigo.PluginBase):
 								dev.replacePluginPropsOnServer()
 								dev 				= indigo.devices[dev.id]
 							else:
-								self.exceptionHandler(40,e)
+								if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 								continue
 					saveCam or self.updateStatewCheck(dev,u"MAC",			MAC)
 					saveCam or self.updateStatewCheck(dev,u"apiKey",		self.cameras[MAC]["apiKey"])
@@ -7409,7 +7418,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 
@@ -7463,7 +7472,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return {}
 
 	####-----------------	 ---------
@@ -7522,7 +7531,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,outLine)
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -7723,7 +7732,7 @@ class Plugin(indigo.PluginBase):
 						self.doAPmessages([logEntry], ipNumberAP, apN, webApiLog=True)
 					lastRecIds = copy.copy(thisRecIds)
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				for ii in range(100):
 					if not lastRecIdFound: break
 					if self.pluginState == "stop": break
@@ -7731,7 +7740,7 @@ class Plugin(indigo.PluginBase):
 					if time.time() - lastRead > self.controllerWebEventReadON: break
 			self.indiLOG.log(10,u"ctlWebUDM: exiting plugin state = stop" )
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -7789,7 +7798,7 @@ class Plugin(indigo.PluginBase):
 			return True
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 
 
@@ -7807,7 +7816,7 @@ class Plugin(indigo.PluginBase):
 			self.fillcontrollerDBForClients(dataDict)
 		except	Exception as e:
 			if u"{}".format(e).find(u"None") == -1:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	####-----------------	 ---------
 	def fillcontrollerDBForClients(self, dataDict):
@@ -7894,7 +7903,7 @@ class Plugin(indigo.PluginBase):
 						self.executeUpdateStatesList()
 
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					if u"{}".format(e).find(u"timeout waiting for response")>-1:
 						self.getcontrollerDBForClientsLast = time.time()
 						return 
@@ -7902,7 +7911,7 @@ class Plugin(indigo.PluginBase):
 			self.getcontrollerDBForClientsLast = time.time()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -8020,7 +8029,7 @@ class Plugin(indigo.PluginBase):
 					self.setGroupStatus()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.indiLOG.log(30,u"getMessages: stopping listener process for :{} - {}".format(uType, ipNumber )  )
 		return
 
@@ -8033,7 +8042,7 @@ class Plugin(indigo.PluginBase):
 				 (ut == u"GW" and self.debugDevs[u"GW"]) ): 
 				return True
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 		
 	####-----------------	 ---------
@@ -8053,7 +8062,7 @@ class Plugin(indigo.PluginBase):
 			return False
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 
 	####-----------------	 ---------
@@ -8147,7 +8156,7 @@ class Plugin(indigo.PluginBase):
 			lastOkRestart					= time.time()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			combinedLines 	= ""
 			retCode 		= 2
 			self.sleep(15)
@@ -8192,7 +8201,7 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(40,lfs)
 					goodDataReceivedTime = 1 # this forces a restart of the listener
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime
 
@@ -8209,7 +8218,7 @@ class Plugin(indigo.PluginBase):
 			return retCode
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return retCode
 
 
@@ -8226,7 +8235,7 @@ class Plugin(indigo.PluginBase):
 			return retCode
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return retCode
 
 	####-----------------	 ---------
@@ -8238,7 +8247,7 @@ class Plugin(indigo.PluginBase):
 			return retCode
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return retCode
 
 	####-----------------	 ---------
@@ -8267,7 +8276,7 @@ class Plugin(indigo.PluginBase):
 				self.logQueue.put((newlinesFromServer,ipNumber,apN, uType,unifiDeviceType))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.indiLOG.log(30,u"checkAndPrepDict: error for {} - {}".format(uType, ipNumber )  )
 		return goodDataReceivedTime, lastMSG
 
@@ -8307,7 +8316,7 @@ class Plugin(indigo.PluginBase):
 						self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] -= 30
 
 					except	Exception as e:
-							errtext = self.exceptionHandler(0,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							pingTest = self.testAPandPing(ipNumber,uType) 
 							okTest = self.testServerIfOK(ipNumber,uType) 
 							retryPeriod = float(self.readDictEverySeconds[uType[0:2]]) + 10.
@@ -8329,7 +8338,7 @@ class Plugin(indigo.PluginBase):
 				combinedLines = ""
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			self.indiLOG.log(30,u"checkAndPrepDict: error for {} - {}".format(uType, ipNumber )  )
 			goodDataReceivedTime = 1
 			combinedLines = ""
@@ -8391,7 +8400,7 @@ class Plugin(indigo.PluginBase):
 				return ListenProcessFileHandle, ""
 			self.sleep(0.1)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			return "", "error {}".format(e)
 		self.indiLOG.log(40,u"startConnect timeout, not able to  connect after 20 tries ")
 		return "","error connecting"
@@ -8422,7 +8431,7 @@ class Plugin(indigo.PluginBase):
 								self.testServerIfOK( ipN, aa, batch=True)
 	
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -8501,7 +8510,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,u"testServerIfOK: ==========={}  ssh response, tags {} not found : ==> \n{}".format(ipNumber, tags, xx) )
 			return False
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 
 ####-------------------------------------------------------------------------####
@@ -8523,7 +8532,7 @@ class Plugin(indigo.PluginBase):
 							f.write(line+u"\n")
 						f.close()
 					except Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 					return [u"",""], False
 
@@ -8537,7 +8546,7 @@ class Plugin(indigo.PluginBase):
 						ret, err = self.readPopen(fixcode )
  
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return ret, True
 
 
@@ -8558,7 +8567,7 @@ class Plugin(indigo.PluginBase):
 				if tag in test:	 return True
 			self.indiLOG.log(10,u"\n==========={}  ssh response, tags {} not found : ==> {}".format(ipNumber, tags, test) )
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 
 	####-----------------	 ---------
@@ -8585,7 +8594,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(10,u"Connection: {} login disabled, userid is empty".format(uType) )
 			return userid, passwd
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return "",""
 
 
@@ -8665,7 +8674,7 @@ class Plugin(indigo.PluginBase):
 
 
 			except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.indiLOG.log(30,u"comsumeLogData:  stopping process (3)")
 		return 
 
@@ -8789,7 +8798,7 @@ class Plugin(indigo.PluginBase):
 							self.PROTECT[states[u"id"]] = {u"events":{}, u"devId":devId, u"devName":dev.name, u"MAC":states[u"MAC"] , "lastUpdate":time.time()}
 						except	Exception as e:
 							errtext = u"{}".format(e)
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							if "NameNotUniqueError" in errtext:
 								self.indiLOG.log(20,u"error with : {}  will try to update the camera id in indigo device and continue, if the error percist, please delete device, will be re-created".format( devName ))
 								dev = indigo.devices[devName]
@@ -8820,7 +8829,7 @@ class Plugin(indigo.PluginBase):
 							dev = indigo.devices[devId]
 							devId = dev.id
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							if u"{}".format(e).find(u"timeout waiting") == -1: 
 								if states[u"id"] in self.PROTECT:
 									self.indiLOG.log(30,u" due to error removing cameraId: {}  from internal list:{}".format(states[u"id"], self.PROTECT[states[u"id"]]))
@@ -8829,7 +8838,7 @@ class Plugin(indigo.PluginBase):
 
 
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 			# cleanup old devices not used
 			if time.time() - self.lastRefreshProtect < 300:
@@ -8860,7 +8869,7 @@ class Plugin(indigo.PluginBase):
 			#self.indiLOG.log(10,u"getProtectIntoIndigo: *********   elapsed time (2):{:.1f}".format(time.time() - elapsedTime))
 	
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -8913,7 +8922,7 @@ class Plugin(indigo.PluginBase):
 					
 
 			except	Exception as e:
-				sself.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				self.sleep(10)
 		self.indiLOG.log(30,u"comsumeLogData:  stopping process (3)")
 		return 
@@ -9038,7 +9047,7 @@ class Plugin(indigo.PluginBase):
 					checkIds[newId] = cameraId
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return checkIds
 
 
@@ -9083,7 +9092,7 @@ class Plugin(indigo.PluginBase):
 				for evId in rmEvent:
 					del self.PROTECT[cameraId][u"events"][evId]
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return True
 
 
@@ -9201,10 +9210,10 @@ class Plugin(indigo.PluginBase):
 							self.addToStatesUpdateList(dev.id, u"smartDetect", smartDetect )
 
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -9232,7 +9241,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 			self.addToMenuXML(valuesDict)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -9259,7 +9268,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 			self.addToMenuXML(valuesDict)
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -9293,7 +9302,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict[u"MSG"] =  u"ok"  if ok else  u"error"
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 	####-----------------	 ---------
@@ -9312,7 +9321,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 			valuesDict[u"MSG"] =  u"ok"  if ok else  u"error"
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 	####-----------------	 ---------
@@ -9359,7 +9368,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"setupProtectcmd returned data: {} ".format(data[area]))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.addToMenuXML(valuesDict)
 		return valuesDict
 
@@ -9424,7 +9433,7 @@ class Plugin(indigo.PluginBase):
 
 			self.addToMenuXML(valuesDict)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 ####-----------------	 ---------
@@ -9468,7 +9477,7 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getSnapshot  writing data to {};  length {} ".format(fName, len(data)))
 			valuesDict[u"MSG"] = u"shapshot done"
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
@@ -9484,7 +9493,7 @@ class Plugin(indigo.PluginBase):
 			self.lastRefreshProtect = time.time() - self.refreshProtectCameras +1
 			return data
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 
@@ -9554,7 +9563,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,out)
 			valuesDict[u"MSG"] = u"printed"
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 	###########################################
@@ -9702,7 +9711,7 @@ class Plugin(indigo.PluginBase):
 						dev = indigo.devices[dev.id]
 						self.saveCameraEventsStatus = True
 					except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							if u"NameNotUniqueError" in u"{}".format(e):
 								dev = indigo.devices[u"Camera_"+cameraName+"_"+MAC]
 								self.indiLOG.log(10,u"states  {}".format(dev.states))
@@ -9725,7 +9734,7 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(10,u"MS-VD----  "+"rejected event number {}".format(evNo)+" resetting event No ; time after listener lauch: %5.1f"%(time.time() - self.listenStart[ipNumber][uType]))
 							self.addToStatesUpdateList(dev.id,u"eventNumber", evNo)
 					except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							self.indiLOG.log(40,u"rejected event dump  "+ipNumber+"    {}".format(self.listenStart))
 							self.addToStatesUpdateList(dev.id,u"eventNumber", evNo)
 
@@ -9791,14 +9800,14 @@ class Plugin(indigo.PluginBase):
 										if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"MS-VD-EV-  "+u"path "+ self.changedImagePath+u"     does not exist.. no event files copied")
 
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				self.cameras[MAC][u"eventsLast"] = copy.copy(self.cameras[MAC][u"events"][evNo])
 				self.addToStatesUpdateList(dev.id,u"eventNumber", int(evNo) )
 				self.executeUpdateStatesList()
 
 		except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doVDmessages")
 		
@@ -9883,7 +9892,7 @@ class Plugin(indigo.PluginBase):
 							folder			=self.folderNameIDCreated,
 							props			={u"useWhatForStatus":"DHCP","useAgeforStatusDHCP":"-1",isType:True})
 					except	Exception as e:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 						continue
 					self.setupStructures(xType, dev, MAC)
 					self.setupBasicDeviceStates(dev, MAC, "UN", "", "", "", u" status up       GW msg new device", "STATUS-DHCP")
@@ -9894,7 +9903,7 @@ class Plugin(indigo.PluginBase):
 
 			self.executeUpdateStatesList()
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.executeUpdateStatesList()
 
@@ -9916,7 +9925,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doSWmessages")
 		
@@ -10024,7 +10033,7 @@ class Plugin(indigo.PluginBase):
 								continue
 						except Exception as e:
 							if u"{}".format(e).find(u"not in list") >-1: 		continue
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 					up = True
@@ -10132,7 +10141,7 @@ class Plugin(indigo.PluginBase):
 											self.upDownTimers[devId][u"down"] =	 time.time()  # this is a down message
 											self.upDownTimers[devId][u"up"]	  = 0.
 								except	Exception as e:
-									self.exceptionHandler(40,e)
+									if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 						if self.updateDescriptions:
@@ -10154,7 +10163,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								props			={u"useWhatForStatus":"WiFi","useWhatForStatusWiFi":"Expiration",isType:True})
 						except Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 						self.setupStructures(xType, dev, MAC)
 						self.addToStatesUpdateList(dev.id,u"AP", ipNumberAP+"-#{}".format(apN))
@@ -10167,7 +10176,7 @@ class Plugin(indigo.PluginBase):
 						dev = indigo.devices[dev.id]
 						self.setupStructures(xType, dev, MAC)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.executeUpdateStatesList()
 
@@ -10235,7 +10244,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(logLevel,u"comsumeDictData Total excessive time consumed:{:5.1f}[secs]; {:16}-{:2}-{:6}; items:{:2} len:{:},  item:{:}".format(-consumedTimeQueue, nextItem[1], nextItem[2], nextItem[3], queueItemCount, len(nextItem[0]),  u"{}".format(nextItem[0])[0:100]) )
 	
 			except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.indiLOG.log(30,u"comsumeDictData: stopping process (3)")
 		return 
 
@@ -10337,7 +10346,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
 		return
@@ -10385,7 +10394,7 @@ class Plugin(indigo.PluginBase):
 					self.saveMACdata()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -10416,10 +10425,10 @@ class Plugin(indigo.PluginBase):
 					if u"useWhatForStatus" not in props or props[u"useWhatForStatus"].find(suffix) == -1:	 continue
 				except	Exception as e:
 					if u"{}".format(e).find(u"timeout waiting") > -1:
-						self.exceptionHandler(40,e)
+						if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 						self.indiLOG.log(40,u"communication to indigo is interrupted")
 						return
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					self.indiLOG.log(40,u"deleting device from internal lists -- MAC:"+ MAC+";  devId:{}".format(devId))
 					delMAC[MAC]=1
 					continue
@@ -10454,7 +10463,7 @@ class Plugin(indigo.PluginBase):
 				del	 self.MAC2INDIGO[xType][MAC]
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -10672,7 +10681,7 @@ class Plugin(indigo.PluginBase):
 								props			={u"useWhatForStatus":"SWITCH","useupTimeforStatusSWITCH":"",isType:True})
 
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 						self.setupStructures(xType, dev, MAC)
@@ -10692,7 +10701,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doSWITCHdict")
 
@@ -10831,7 +10840,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								props			={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 						self.setupStructures(xType, dev, MAC)
@@ -10852,7 +10861,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.unsetBlockAccess(u"doGWHost_table")
 		
 		return
@@ -10994,7 +11003,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								props			={ "useWhatForStatus":"DHCP","useAgeforStatusDHCP": "-1","useWhatForStatusWiFi":"", isType:True})
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 						self.setupStructures(xType, dev, MAC)
@@ -11015,7 +11024,7 @@ class Plugin(indigo.PluginBase):
 
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.unsetBlockAccess(u"doGWDvi_stats")
 		
 		return
@@ -11311,7 +11320,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameIDCreated,
 								props			={u"useWhatForStatus":u"WiFi,DHCP", u"useWhatForStatusWiFi":u"Expiration",isType:True})
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							try:
 								devName += u"_"+( u"{}".format(time.time() - int(time.time())) ).split(".")[1] # create random name
 								self.indiLOG.log(30,u"trying again to create device with different name "+devName)
@@ -11325,7 +11334,7 @@ class Plugin(indigo.PluginBase):
 									folder			=self.folderNameIDCreated,
 									props			={u"useWhatForStatus":u"WiFi,DHCP", u"useWhatForStatusWiFi":u"Expiration",isType:True})
 							except	Exception as e:
-								self.exceptionHandler(40,e)
+								if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 								continue
 
 
@@ -11352,12 +11361,12 @@ class Plugin(indigo.PluginBase):
 				self.executeUpdateStatesList()
 
 			except	Exception as e:
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 			self.unsetBlockAccess(u"doWiFiCLIENTSdict")
 			
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 	clientHostNames
 
 
@@ -11473,7 +11482,7 @@ class Plugin(indigo.PluginBase):
 							self.buttonConfirmGetAPDevInfoFromControllerCALLBACK()
 							indigo.variable.updateValue(u"Unifi_New_Device", u"{}/{}/{}".format(dev.name, MAC, ipNumber) )
 						except	Exception as e:
-								self.exceptionHandler(40,e)
+								if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 								self.indiLOG.log(40,u"failed to create dev: {}_ ".format(devName, MAC))
 								break
 
@@ -11482,7 +11491,7 @@ class Plugin(indigo.PluginBase):
 			self.executeUpdateStatesList()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doAPdictsSELF")
 		
@@ -11815,7 +11824,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog(u"Dict", MAC=MAC): self.indiLOG.log(10,u"DC-GW-1--- {}  ip:{}  {}  new device".format(MAC, ipNDevice, dev.name) )
 					isNew = False #  fill the rest in next section
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 			if not isNew:
 				if u"uptime" in gwDict and gwDict[u"uptime"] != "" and u"upSince" in dev.states:				self.addToStatesUpdateList(dev.id,u"upSince",time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-gwDict[u"uptime"])) )
@@ -11874,7 +11883,7 @@ class Plugin(indigo.PluginBase):
 				self.setStatusUpForSelfUnifiDev(MAC)
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doGatewaydictSELF")
 		
@@ -11989,7 +11998,7 @@ class Plugin(indigo.PluginBase):
 								folder			=self.folderNameNeighbors,
 								props			={u"useWhatForStatus":"",isType:True})
 						except	Exception as e:
-							self.exceptionHandler(40,e)
+							if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							continue
 
 						self.setupStructures(xType, dev, MAC)
@@ -12010,7 +12019,7 @@ class Plugin(indigo.PluginBase):
 				self.executeUpdateStatesList()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doNeighborsdict")
 		
@@ -12115,7 +12124,7 @@ class Plugin(indigo.PluginBase):
 								rxRate = "%1d" % ((port[u"tx_bytes"] - portsMAC[u"txLast"]) / dt + 0.5)
 								txRate = "%1d" % ((port[u"rx_bytes"] - portsMAC[u"rxLast"]) / dt + 0.5)
 							except	Exception as e:
-								self.exceptionHandler(40,e)
+								if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 							try:
 								errors = u"{}".format(port[u"tx_dropped"] + port[u"tx_errors"] + port[u"rx_errors"] + port[u"rx_dropped"])
 							except:
@@ -12172,7 +12181,7 @@ class Plugin(indigo.PluginBase):
 											SWP = "DL"
 
 									except	Exception as e:
-											self.exceptionHandler(40,e)
+											if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 							portsMAC["link"] = SWP
 
@@ -12290,14 +12299,14 @@ class Plugin(indigo.PluginBase):
 					dev = indigo.devices[dev.id]
 					self.setupStructures(xType, dev, MAC)
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					self.indiLOG.log(40,u"     for mac#"+MAC+";  hostname: "+ hostname)
 					self.indiLOG.log(40,u"MAC2INDIGO: {}".format(self.MAC2INDIGO[xType]))
 
 			self.executeUpdateStatesList()
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		self.unsetBlockAccess(u"doSWdictSELF")
 		
@@ -12322,7 +12331,7 @@ class Plugin(indigo.PluginBase):
 				except:pass
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 	####----------------- if FINGSCAN is enabled send update signal	 ---------
@@ -12354,7 +12363,7 @@ class Plugin(indigo.PluginBase):
 									plug.executeAction(u"unifiUpdate", props={u"deviceId": [devid]})
 									self.fingscanTryAgain = False
 								except	Exception as e:
-									self.exceptionHandler(40,e)
+									if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 									self.fingscanTryAgain = True
 
 			else:
@@ -12375,7 +12384,7 @@ class Plugin(indigo.PluginBase):
 						break
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		self.sendUpdateToFingscanList ={}
 		return x
 
@@ -12400,10 +12409,10 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog(u"BC"): self.indiLOG.log(10,u"BroadCast-   "+u"updating BC with {}".format(msg) )
 					indigo.server.broadcastToSubscribers(u"deviceStatusChanged", json.dumps(msg))
 				except	Exception as e:
-					self.exceptionHandler(40,e)
+					if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return x
 
 	####-----------------	 ---------
@@ -12421,7 +12430,7 @@ class Plugin(indigo.PluginBase):
 					self.addToStatesUpdateList(dev.id,u"vendor", vendor)
 					self.moveToUnifiSystem(dev, vendor)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 	####-----------------	 ---------
@@ -12454,7 +12463,7 @@ class Plugin(indigo.PluginBase):
 				indigo.device.moveToFolder(dev.id, value=self.folderNameIDSystemID)
 				self.indiLOG.log(10,u"moving "+dev.name+u";  to folderID: {}".format(self.folderNameIDSystemID))
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 	####-----------------	 ---------
@@ -12496,7 +12505,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog(u"Logic", MAC=MAC): self.indiLOG.log(10,u"STAT-Chang {} st changed  {}->{}; {}".format(dev.states[u"MAC"], dev.states[u"status"], newStatus, text1))
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return
 
@@ -12515,7 +12524,7 @@ class Plugin(indigo.PluginBase):
 				self.sleep(waitBeforePing)
 			return self.checkPing(IPNumber, waitForPing=waitForPing, countPings=countPings, nPings=nPings, waitAfterPing=waitAfterPing, calledFrom=calledFrom)
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 	####-----------------	 ---------
@@ -12541,17 +12550,26 @@ class Plugin(indigo.PluginBase):
 			if retCode !=0 and verbose:  self.indiLOG.log(10,u"ping to:{}, dev not responding".format(IPnumber))
 			return retCode
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 	####-----------------	 ---------
 	def sendWakewOnLan(self, MAC, calledFrom=""):
 		if self.broadcastIP !="9.9.9.255":
 			data = ''.join(['FF' * 6, (MAC.upper()).replace(':', '') * 16])
+			if sys.version_info[0] > 2:  # >  python 2
+				data = bytes(data,"utf8").hex()
+			else:
+				data = data.encode("hex")
 			sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-			sock.sendto(data.decode("hex"), (self.broadcastIP, 9))
-			if self.decideMyLog(u"Ping"):  self.indiLOG.log(10,calledFrom+" "+u"sendWakewOnLan for "+MAC+";    called from "+calledFrom+";  bc ip: "+self.broadcastIP)
+			try:
+				sock.sendto(data, (self.broadcastIP, 9))
+			except Exception as e:
+				if unicode(e).find("None") == -1: 
+					self.indiLOG.log(30,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+					self.indiLOG.log(30,u"type:{},  data:{}".format(type(data), data))
+			if self.decideMyLog(u"Ping"):  self.indiLOG.log(10,u"{} sendWakewOnLan for {};    called from {};  bc ip: {}".format(calledFrom, MAC, calledFrom, self.broadcastIP))
 		return
 
 	####-----------------	 ---------
@@ -12566,7 +12584,7 @@ class Plugin(indigo.PluginBase):
 				name = self.indigoPreferencesPluginDir + u"dict-"+unifiDeviceType+u"#{}".format(apNumb)
 				self.writeJson( apDict, fName=name+".txt", sort=False, doFormat=True )
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -12615,7 +12633,7 @@ class Plugin(indigo.PluginBase):
 
 		except	Exception as e:
 			if len(u"{}".format(e))	> 5 :
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return
 
 
@@ -12672,7 +12690,7 @@ class Plugin(indigo.PluginBase):
 							try:
 								dev.updateStatesOnServer(changedOnly[devId])
 							except	Exception as e:
-								self.exceptionHandler(40,e)
+								if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 						else:
 							for uu in changedOnly[devId]:
 								dev.updateStateOnServer(uu[u"key"],uu[u"value"])
@@ -12683,7 +12701,7 @@ class Plugin(indigo.PluginBase):
 				#self.triggerEvent(u"someStatusHasChanged")
 		except	Exception as e:
 			if len(u"{}".format(e))	> 5 :
-				self.exceptionHandler(40,e)
+				if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				try:
 					self.indiLOG.log(40,"{}     {}  {};  devStateChangeList:\n{}".format(dev.name, devId , key, local) )
 				except:pass
@@ -12757,19 +12775,28 @@ class Plugin(indigo.PluginBase):
 		try:
 			qLen = self.blockWaitQueue.qsize()
 			if qLen == 0: return 
+			if qLen == 1:
+				self.blockWaitQueue = PriorityQueue()
+				return 
+
 			#if qlengthNow == 1: 
 			#	self.blockWaitQueue.get()
 			#	return
 			tempQueue = PriorityQueue()
+			blockingPGM = ""
 			for nn in range(qLen):
-				item = self.blockWaitQueue.queue[qLen-nn-1]
-				if item == waitingPgm: continue
+				try: 
+					blockingPGM = self.blockWaitQueue.queue[qLen-nn-1]
+				except: 
+					tempQueue = PriorityQueue()
+					break 
+				if blockingPGM == waitingPgm: continue
 				tempQueue.put(item)
 
 			self.blockWaitQueue = tempQueue
 
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return 
 
@@ -12787,7 +12814,7 @@ class Plugin(indigo.PluginBase):
 					try:	blockingPgm = self.blockWaitQueue.queue[0]
 					except Exception as e:
 						pass
-						#self.exceptionHandler(40,e)
+						#if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 						#self.indiLOG.log(40, "setBlockAccess err waiting for: {}, pgmWaiting:{} queue is:{}".format(blockingPgm, waitingPgm, self.blockWaitQueue.queue))
 				#self.indiLOG.log(10, "setBlockAccess waiting for: {}, pgmWaiting:{} qlen:{}; queue is:{}".format(blockingPgm, waitingPgm, self.blockWaitQueue.qsize(), self.blockWaitQueue.queue))
 				self.sleep(0.1)
@@ -12846,7 +12873,7 @@ class Plugin(indigo.PluginBase):
 			self.waitTimes["today"]["endDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 		return 
 
@@ -12857,26 +12884,8 @@ class Plugin(indigo.PluginBase):
 			ret, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 			return ret.decode('utf_8'), err.decode('utf_8')
 		except Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
-####-----------------  exception logging ---------
-	def exceptionHandler(self, level, exception_error_message):
-
-		try:
-			try: 
-				if u"{}".format(exception_error_message).find("None") >-1: return exception_error_message
-			except: 
-				pass
-
-			filename, line_number, method, statement = traceback.extract_tb(sys.exc_info()[2])[-1]
-			#module = filename.split('/')
-			log_message = "'{}'".format(exception_error_message )
-			log_message +=  "\n{} @line {}: '{}'".format(method, line_number, statement)
-			if level > 0:
-				self.indiLOG.log(level, log_message)
-			return "'{}'".format(log_message )
-		except Exception as e:
-			indigo.server.log( "{}".format(e))
 
 
 ########################################
@@ -12905,7 +12914,7 @@ class Plugin(indigo.PluginBase):
 			if msgLevel in self.debugLevel:							return True
 
 		except	Exception as e:
-			self.exceptionHandler(40,e)
+			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 ####-----------------  valiable formatter for differnt log levels ---------
 # call with: 

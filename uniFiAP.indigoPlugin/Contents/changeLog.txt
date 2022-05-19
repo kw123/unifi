@@ -1,7 +1,11 @@
-changes in V7.40.378@ 2022-05-26
+changes in V7.40.379@ 2022-05-19
+==================  
+   1. fixed: No module named queue
+
+
+changes in V7.40.378@ 2022-04-26
 ==================  
    1. fixed waitqueue for stats analysis, gave sometimes an error..  when queue was empty
-
 
 
 changes in V7.40.377@ 2022-04-20

@@ -17,19 +17,19 @@ import json
 class MAP2Vendor:
 
 	########################################
-	def __init__(self, pathToMACFiles = "", refreshFromIeeAfterDays = 10, myLogger = "" ):
+	def __init__(self, pathToMACFiles = "", refreshFromIeeAfterDays = 10, myLogger = ""):
 
 		self.ML = myLogger
-		self.myLog( u"MAP2Vendor initializing")
+		self.myLog( u"MAP2Vendor initializing with python v:{}".format(sys.version_info[0]))
 
-		self.minSizeOfFiles ={"mac2Vendor.json":700000, "oui":500000,"mam": 30000, "oui36":40000}
+		self.minSizeOfFiles = {"mac2Vendor.json":700000, "oui":500000,"mam": 30000, "oui36":40000}
 
 		self.getFilesStatus = "init" 
 
-		self.mac2VendorDict ={"6":{},"7":{},"9":{}}
+		self.mac2VendorDict = {"6":{},"7":{},"9":{}}
 
-		self.MAChome	 = os.path.expanduser("~")+"/"
-		
+		self.MAChome	 	= os.path.expanduser("~")+"/"
+
 		if pathToMACFiles !="":
 			self.filePath = pathToMACFiles
 			if self.filePath[-1]!="/": self.filePath+="/"
@@ -60,7 +60,7 @@ class MAP2Vendor:
 
 		return 
 
- 	def myLog( self, text ):
+	def myLog( self, text ):
 		if self.ML == "": 
 			return 
 		elif self.ML == "print":
@@ -103,52 +103,71 @@ class MAP2Vendor:
 
 	########################################
 	def makeFinalTable(self):
+		try:
 
-		if self.isFileCurrent("mac2Vendor.json"):
-			f = open(self.filePath+"mac2Vendor.json","r")
-			test = json.loads(f.read())
-			f.close()
-			if "6" in test:
-				if len(test["6"]) < 10000:
-					return False
-			else:
-					return False
+			if self.isFileCurrent("mac2Vendor.json"):
+				test = {}
+				try:
+					if sys.version_info[0] == 3:
+						f = open(self.filePath+"mac2Vendor.json","r", encoding="utf-8")
+					else:
+						f = open(self.filePath+"mac2Vendor.json","r")
+					test = json.loads(f.read())
+					f.close()
+				except Exception as e:
+					self.myLog( u"error reading file {} in prefs dir, errcode:{}".format("mac2Vendor.json", e))
+	
+				if "6" in test:
+					if len(test["6"]) < 10000:
+						return False
+				else:
+						return False
 
-			self.mac2VendorDict = test
-			self.myLog( u"MAP2Vendor initializing  finished, read from mac2Vendor.json file")
-			return True
+				self.mac2VendorDict = test
+				self.myLog( u"MAP2Vendor initializing  finished, read from mac2Vendor.json file")
+				return True
 			
-		if not ( self.isFileCurrent("oui") or
-				 self.isFileCurrent("mam" )  or
-				 self.isFileCurrent("oui36") ):
-				if  self.getFilesStatus == "submitted"  :
-					self.myLog( u"MAP2Vendor initializing  still waiting for download")
-				return False
+			if not ( self.isFileCurrent("oui") or
+					 self.isFileCurrent("mam" )  or
+					 self.isFileCurrent("oui36") ):
+					if  self.getFilesStatus == "submitted"  :
+						self.myLog( u"MAP2Vendor initializing still waiting for download")
+					return False
 
-		self.getFilesStatus = "finished" 
+			self.getFilesStatus = "finished" 
 
-		self.mac2VendorDict ={"6":{},"7":{},"9":{}}
+			self.mac2VendorDict ={"6":{},"7":{},"9":{}}
 
-		self.importFile("oui",  "6")
-		self.importFile("mam",  "7")
-		self.importFile("oui36","9")
+			self.importFile("oui",  "6")
+			self.importFile("mam",  "7")
+			self.importFile("oui36","9")
 
-		f = open(self.filePath+"mac2Vendor.json","w")
-		f.write(json.dumps(self.mac2VendorDict))
-		f.close()
+			f = open(self.filePath+"mac2Vendor.json","w")
+			f.write(json.dumps(self.mac2VendorDict))
+			f.close()
 
+			return True
+		except Exception as e:
+			self.myLog( u"error reading file {}, errcode:{}".format("mac2Vendor.json", e))
 		return True
 
 
 	########################################
 	def importFile(self, fn, size):
-		f = open(self.filePath+fn,"r")
-		dat = f.readlines()
-		f.close()
-		for line in dat:
-			item= line.split(",")
-			if len(item) < 2: continue
-			self.mac2VendorDict[size][item[0]]=item[1].strip("\n")
+		try:
+			if sys.version_info[0] == 3:
+				f = open(self.filePath+fn,"r", encoding="utf-8")
+			else:
+				f = open(self.filePath+fn,"r")
+			dat = f.readlines()
+			f.close()
+			for line in dat:
+				item= line.split(",")
+				if len(item) < 2: continue
+				self.mac2VendorDict[size][item[0]]=item[1].strip("\n")
+		except Exception as e:
+			self.myLog( u"error reading file {}, errcode:{}".format(fn, e))
+			
 		return
 
 	########################################
