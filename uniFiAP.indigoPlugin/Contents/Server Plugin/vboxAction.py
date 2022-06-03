@@ -11,6 +11,7 @@ import datetime
 import json
 import sys
 import os
+import codecs
 global logfile
 
 ### ------------------------ ###

@@ -761,11 +761,6 @@ in actions you can setup most of the config as as well as get snapshots
 	<Field id="debugSpecial"       type="checkbox" > <Label>... (19) Special debug for development:</Label>						</Field>
 	<Field id="debugall"           type="checkbox" > <Label>... (20) all of the above = everything:</Label>						</Field>
 
-	<Field id="logFileActive2"     type="menu"       > <Label> send DETAILED logs to ..:</Label>
-		<List>
-			<Option value="indigo"   > .. Perceptive Automation/Indigo x/Logs/com.karlwachs.uniFiAP/plugin.log </Option>
-		</List>
-	</Field>
 
 	<Field id="infoLabel227" type="label"> <Label>.                     for DETAILED time tracking set indigo variable "enableTimeTracking_UniFi"</Label>  </Field>
 

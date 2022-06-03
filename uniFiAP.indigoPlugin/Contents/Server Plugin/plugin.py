@@ -17,6 +17,10 @@ import sys
 import pwd
 import time
 import traceback
+import platform
+import struct
+import codecs
+
 try:
 	import queue as queue
 	from queue import PriorityQueue
@@ -233,7 +237,6 @@ kDefaultPluginPrefs = {
 	"debugSpecial":								False,
 	"debugDictFile":							False,
 	"debugall":									False,
-	"logFileActive2":							"indigo",
 	"do_cProfile":								"on/off/print",
 	"rebootUnifiDeviceOnError":					True,
 	"restartListenerEvery":						"999999999",
@@ -268,25 +271,21 @@ class Plugin(indigo.PluginBase):
 	def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
 		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 
-		#pfmt = logging.Formatter('%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
-		#self.plugin_file_handler.setFormatter(pfmt)
-
+	
 		self.pluginShortName 			= u"UniFi"
-
-
 		self.quitNOW					= ""
+		self.delayedAction				={}
 		self.updateConnectParams		= time.time() - 100
+###############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
-		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split("Indigo")[0]
+		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split(u"Indigo")[0]
 		self.pathToPlugin 				= self.completePath(os.getcwd())
 
-		major, minor, release 			= map(int, indigo.server.version.split("."))
-		self.indigoRelease				= release
+		major, minor, release 			= map(int, indigo.server.version.split(u"."))
 		self.indigoVersion 				= float(major)+float(minor)/10.
+		self.indigoRelease 				= release
 
-
-		self.delayedAction				={}
 		self.pluginVersion				= pluginVersion
 		self.pluginId					= pluginId
 		self.pluginName					= pluginId.split(".")[-1]
@@ -297,37 +296,40 @@ class Plugin(indigo.PluginBase):
 		self.MACuserName				= pwd.getpwuid(os.getuid())[0]
 
 		self.MAChome					= os.path.expanduser(u"~")
-		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
-		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
+		self.userIndigoDir				= self.MAChome + u"/indigo/"
+		self.indigoPreferencesPluginDir = self.getInstallFolderPath+u"Preferences/Plugins/"+self.pluginId+"/"
+		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
+		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +u"/plugin.log"
 
-		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
-						logging.DEBUG:       "%(asctime)s %(msg)s",
-						logging.INFO:        "%(asctime)s %(msg)s",
-						logging.WARNING:     "%(asctime)s %(msg)s",
-						logging.ERROR:       "%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s",
-						logging.CRITICAL:    "%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s" }
+		formats=	{   logging.THREADDEBUG: u"%(asctime)s %(msg)s",
+						logging.DEBUG:       u"%(asctime)s %(msg)s",
+						logging.INFO:        u"%(asctime)s %(msg)s",
+						logging.WARNING:     u"%(asctime)s %(msg)s",
+						logging.ERROR:       u"%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s",
+						logging.CRITICAL:    u"%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s" }
 
-		date_Format = { logging.THREADDEBUG: "%d %H:%M:%S",
-						logging.DEBUG:       "%d %H:%M:%S",
-						logging.INFO:        "%d %H:%M:%S",
-						logging.WARNING:     "%d %H:%M:%S",
-						logging.ERROR:       "%Y-%m-%d %H:%M:%S",
-						logging.CRITICAL:    "%Y-%m-%d %H:%M:%S" }
-		formatter = LevelFormatter(fmt="%(msg)s", datefmt="%Y-%m-%d %H:%M:%S", level_fmts=formats, level_date=date_Format)
+		date_Format = { logging.THREADDEBUG: u"%Y-%m-%d %H:%M:%S",		# 5
+						logging.DEBUG:       u"%Y-%m-%d %H:%M:%S",		# 10
+						logging.INFO:        u"%Y-%m-%d %H:%M:%S",		# 20
+						logging.WARNING:     u"%Y-%m-%d %H:%M:%S",		# 30
+						logging.ERROR:       u"%Y-%m-%d %H:%M:%S",		# 40
+						logging.CRITICAL:    u"%Y-%m-%d %H:%M:%S" }		# 50
+		formatter = LevelFormatter(fmt=u"%(msg)s", datefmt=u"%Y-%m-%d %H:%M:%S", level_fmts=formats, level_date=date_Format)
 
 		self.plugin_file_handler.setFormatter(formatter)
-		self.indiLOG = logging.getLogger("Plugin")  
+		self.indiLOG = logging.getLogger(u"Plugin")  
 		self.indiLOG.setLevel(logging.THREADDEBUG)
 
 		self.indigo_log_handler.setLevel(logging.INFO)
-		indigo.server.log(u"initializing  ... ")
 
-		indigo.server.log(  u"path To files:          =================")
-		indigo.server.log(  u"indigo                  {}".format(self.indigoRootPath))
-		indigo.server.log(  u"installFolder           {}".format(self.indigoPath))
-		indigo.server.log(  u"plugin.py               {}".format(self.pathToPlugin))
-		indigo.server.log(  u"Plugin params           {}".format(self.indigoPreferencesPluginDir))
-
+		self.indiLOG.log(20,u"initializing  ...")
+		self.indiLOG.log(20,u"path To files:          =================")
+		self.indiLOG.log(10,u"indigo                  {}".format(self.indigoRootPath))
+		self.indiLOG.log(10,u"installFolder           {}".format(self.indigoPath))
+		self.indiLOG.log(10,u"plugin.py               {}".format(self.pathToPlugin))
+		self.indiLOG.log(10,u"indigo                  {}".format(self.indigoRootPath))
+		self.indiLOG.log(20,u"detailed logging        {}".format(self.PluginLogFile))
+		self.indiLOG.log(20,u"testing logging levels, for info only: ")
 		self.indiLOG.log( 0,u"logger  enabled for     0 ==> TEST ONLY ")
 		self.indiLOG.log( 5,u"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
 		self.indiLOG.log(10,u"logger  enabled for     DEBUG          ==> TEST ONLY ")
@@ -335,12 +337,31 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(30,u"logger  enabled for     WARNING        ==> TEST ONLY ")
 		self.indiLOG.log(40,u"logger  enabled for     ERROR          ==> TEST ONLY ")
 		self.indiLOG.log(50,u"logger  enabled for     CRITICAL       ==> TEST ONLY ")
-		indigo.server.log(  u"check                   {}  <<<<    for detailed logging".format(self.PluginLogFile))
-		indigo.server.log(  u"Plugin short Name       {}".format(self.pluginShortName))
-		indigo.server.log(  u"my PID                  {}".format(self.myPID))	 
-		indigo.server.log(  u"set params for indigo V {}, indigo_API V:{}, python V:{}.{}.{}".format(self.indigoVersion, indigo.server.apiVersion, sys.version_info[0], sys.version_info[1] , sys.version_info[2]))	 
+		self.indiLOG.log(10,u"Plugin short Name       {}".format(self.pluginShortName))
+		self.indiLOG.log(10,u"my PID                  {}".format(self.myPID))	 
+		self.indiLOG.log(10,u"Achitecture             {}".format(platform.platform()))	 
+		self.indiLOG.log(10,u"OS                      {}".format(platform.mac_ver()[0]))	 
+		self.indiLOG.log(10,u"indigo V                {}".format(indigo.server.version))	 
+		self.indiLOG.log(10,u"python V                {}.{}.{}".format(sys.version_info[0], sys.version_info[1] , sys.version_info[2]))	 
 
+		self.pythonPath = ""
+		if sys.version_info[0] >2:
+			if os.path.isfile(u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"):
+				self.pythonPath				= u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
+		else:
+			if os.path.isfile(u"/usr/local/bin/python"):
+				self.pythonPath				= u"/usr/local/bin/python"
+			elif os.path.isfile(u"/usr/bin/python2.7"):
+				self.pythonPath				= u"/usr/bin/python2.7"
+		if self.pythonPath == "":
+				self.indiLOG.log(40,u"FATAL error:  none of python versions 2.7 3.x is installed  ==>  stopping {}".format(self.pluginId))
+				self.quitNOW = "none of python versions 2.7 3.x is installed "
+				exit()
+		self.indiLOG.log(20,u"using '{}' for utily programs".format(self.pythonPath))
 
+###############  END common for all plugins ############
+
+		return
 		
 ####
 
@@ -355,509 +376,497 @@ class Plugin(indigo.PluginBase):
 		if not checkIndigoPluginName(self, indigo): 
 			exit() 
 
-
-		self.pythonPath = "" 
-		if sys.version_info[0] > 3:
-			if os.path.isfile(u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"):
-				self.pythonPath				= u"/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
-		else:
-			if os.path.isfile(u"/usr/local/bin/python"):
-				self.pythonPath				= u"/usr/local/bin/python"
-			elif os.path.isfile(u"/usr/bin/python2.7"):
-				self.pythonPath				= u"/usr/bin/python2.7"
-		if self.pythonPath == "" :
-			self.indiLOG.log(40,u"FATAL error:  none of python versions 2.7 3.x is installed  ==>  stopping INDIGOplotD")
-			self.quitNOW = "none of python versions 2.7 3.x is installed "
-			self.sleep(120)
-			return
-		self.indiLOG.log(30,u"using '{}' for utily programs and using queue from:{}".format(self.pythonPath, queueOrQueue))
-
-
-		self.checkcProfile()
-
-
-		self.debugLevel = []
-		for d in _debugAreas:
-			if self.pluginPrefs.get(u"debug"+d, False): self.debugLevel.append(d)
-
-
-		self.logFile		 	= ""
-		self.logFileActive	 	= self.pluginPrefs.get(u"logFileActive2", u"standard")
-		self.maxLogFileSize	 	= 1*1024*1024
-		self.lastCheckLogfile	= time.time()
-		self.setLogfile(u"{}".format(self.pluginPrefs.get(u"logFileActive2", u"standard")))
-
-
-		self.varExcludeSQLList = [u"Unifi_New_Device",u"Unifi_With_IPNumber_Change",u"Unifi_With_Status_Change",u"Unifi_Camera_with_Event",u"Unifi_Camera_Event_PathToThumbnail","Unifi_Camera_Event_DateOfThumbNail","Unifi_Camera_Event_Date"]
-		#self.varExcludeSQLList = [u"Unifi_New_Device",u"Unifi_With_IPNumber_Change",u"Unifi_With_Status_Change"]
-
-		self.UserID					= {}
-		self.PassWd					= {}
-		self.connectParamsDefault 	= {}
-		self.connectParamsDefault[u"expectRestart"]		= {	u"APtail": u"restart.exp",
-															u"GWtail": u"restart.exp",
-															u"UDtail": u"restart.exp",
-															u"SWtail": u"restart.exp",
-															u"VDtail": u"restart.exp",
-															u"GWdict": u"restart.exp",
-															u"UDdict": u"restart.exp",
-															u"SWdict": u"restart.exp",
-															u"APdict": u"restart.exp",
-															u"GWctrl": u"restart.exp",
-															u"UDctrl": u"restart.exp",
-															u"VDdict": u"restart.exp"
-														}
-		self.connectParamsDefault[u"expectCmdFile"]		= {	u"APtail": u"execLog.exp",
-															u"GWtail": u"execLog.exp",
-															u"UDtail": u"execLog.exp",
-															u"SWtail": u"execLog.exp",
-															u"VDtail": u"execLogVideo.exp",
-															u"GWdict": u"dictLoop.exp",
-															u"UDdict": u"dictLoop.exp",
-															u"SWdict": u"dictLoop.exp",
-															u"APdict": u"dictLoop.exp",
-															u"GWctrl": u"simplecmd.exp",
-															u"UDctrl": u"simplecmd.exp",
-															u"VDdict": u"simplecmd.exp"
-														}
-		self.connectParamsDefault[u"commandOnServer"]	= {	u"APtail": u"/usr/bin/tail -F /var/log/messages",
-															u"GWtail": u"/usr/bin/tail -F /var/log/messages",
-															u"UDtail": u"/usr/bin/tail -F /var/log/messages",
-															u"SWtail": u"/usr/bin/tail -F /var/log/messages",
-															u"VDtail": u"/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
-															u"VDdict": u"not implemented",
-															u"GWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
-															u"UDdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
-															u"SWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
-															u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
-															u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
-															u"APdict": u"mca-ctrl -t dump | sed -e 's/^ *//'"
-														}
-		self.connectParamsDefault[u"enableListener"]	= {	u"APtail": True,
-															u"GWtail": True,
-															u"UDtail": True,
-															u"SWtail": True,
-															u"VDtail": True,
-															u"VDdict": True,
-															u"GWdict": True,
-															u"UDdict": True,
-															u"SWdict": True,
-															u"GWctrl": True,
-															u"UDctrl": True,
-															u"APdict": True
-														}
-		self.connectParamsDefault[u"promptOnServer"] 	= {}
-		"""
-															u"APtail": u"\# ",
-															u"GWtail": u":~",
-															u"GWctrl": u":~",
-															u"UDtail": u"\# ",
-															u"UDctrl": u"\# ",
-															u"SWtail": u"\# ",
-															u"VDtail": u"VirtualBox",
-															u"VDdict": u"VirtualBox",
-															u"GWdict": u":~",
-															u"UDdict": u"\# ",
-															u"SWdict": u"\# ",
-															u"APdict": u"\# "}
-		"""
-		self.connectParamsDefault[u"startDictToken"]	= {	u"APtail": u"x",
-															u"GWtail": u"x",
-															u"UDtail": u"x",
-															u"SWtail": u"x",
-															u"VDtail": u"x",
-															u"GWdict": u"mca-dump | sed -e 's/^ *//'",
-															u"UDdict": u"mca-dump | sed -e 's/^ *//'",
-															u"SWdict": u"mca-dump | sed -e 's/^ *//'",
-															u"APdict": u"mca-dump | sed -e 's/^ *//'"
-														}
-		self.connectParamsDefault[u"endDictToken"]		= {	u"APtail": u"x",
-															u"GWtail": u"x",
-															u"UDtail": u"x",
-															u"VDtail": u"x",
-															u"GWdict": u"xxxThisIsTheEndTokenxxx",
-															u"UDdict": u"xxxThisIsTheEndTokenxxx",
-															u"SWdict": u"xxxThisIsTheEndTokenxxx",
-															u"APdict": u"xxxThisIsTheEndTokenxxx"
-														}
-		self.connectParamsDefault[u"UserID"]			= {	u"unixDevs": u"",
-															u"unixUD":   u"",
-															u"unixNVR":  u"",
-															u"nvrWeb":   u"",
-															u"unixDevs": u"",
-															u"unixUD":   u"",
-															u"webCTRL":  u""
-														}
-		self.connectParamsDefault[u"PassWd"]			= {	u"unixDevs": u"",
-															u"unixUD":   u"",
-															u"unixNVR":  u"",
-															u"nvrWeb":   u"",
-															u"unixDevs": u"",
-															u"unixUD":   u"",
-															u"webCTRL":  u""
-														}
-		self.tryHTTPPorts 		= [u"443",u"8443"]
-		self.HTTPretCodes		= { u"200": {u"os":u"unifi_os", u"unifiApiLoginPath":u"/api/auth/login", u"unifiApiWebPage":u"/proxy/network/api/s" },
-									u"302": {u"os":u"std",      u"unifiApiLoginPath":u"/api/login",      u"unifiApiWebPage":u"/api/s" }  }
-		self.OKControllerOS = [u"std",u"unifi_os"]
-
-
-		self.connectParams = copy.copy(self.connectParamsDefault)
-
-		try: 	
-			xx = json.loads(self.pluginPrefs.get(u"connectParams",u"{}"))
-			if xx != {}:
-				self.connectParams = copy.copy(xx)
-			for item1 in self.connectParamsDefault:
-				if item1 not in self.connectParams:
-					self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
-				else:
-					for item2 in self.connectParamsDefault[item1]:
-						if item2 not in self.connectParams[item1]:
-							self.connectParams[item1][item2] = copy.copy(self.connectParamsDefault[item1][item2])
-
-				if item1 in [u"startDictToken",u"endDictToken"]:
-					self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
-		except:	
-			pass
-
-		if self.connectParams[u"UserID"][u"unixDevs"] == "": 	self.connectParams[u"UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiUserID","")
-		if self.connectParams[u"UserID"][u"unixUD"]   == "": 	self.connectParams[u"UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiUserIDUDM","")
-		if self.connectParams[u"UserID"][u"unixNVR"]  == "": 	self.connectParams[u"UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXUserID","")
-		if self.connectParams[u"UserID"][u"nvrWeb"]   == "": 	self.connectParams[u"UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebUserID","")
-		if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERUserID","")
-
-		if self.connectParams[u"PassWd"][u"unixDevs"] == "": 	self.connectParams[u"PassWd"][u"unixDevs"] = self.pluginPrefs.get(u"unifiPassWd","")
-		if self.connectParams[u"PassWd"][u"unixUD"]   == "": 	self.connectParams[u"PassWd"][u"unixUD"]   = self.pluginPrefs.get(u"unifiPassWdUDM","")
-		if self.connectParams[u"PassWd"][u"unixNVR"]  == "": 	self.connectParams[u"PassWd"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXPassWd","")
-		if self.connectParams[u"PassWd"][u"nvrWeb"]   == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebPassWd","")
-		if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERPassWd","")
-		##indigo.server.log(u" connectParams:{}".format(self.connectParams))
-
-		self.stop 											= []
-		self.PROTECT 										= {}
-
-		self.launchWaitSeconds								= float(self.pluginPrefs.get(u"launchWaitSeconds","3.13"))
-		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	self.MAChome))
-		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
-		self.unifiNVRSession								= ""
-		self.nvrVIDEOapiKey									= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
-
-		self.copyProtectsnapshots							= self.pluginPrefs.get(u"copyProtectsnapshots","on")
-		self.refreshProtectCameras							= float(self.pluginPrefs.get(u"refreshProtectCameras",180.))
-		self.protecEventSleepTime 							= float(self.pluginPrefs.get(u"protecEventSleepTime",4.))
-		self.vmMachine										= self.pluginPrefs.get(u"vmMachine",  "")
-		self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
-		self.vmDisk											= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
-		self.mountPathVM									= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
-		self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
-		self.unifiNVRSession								= ""
-
-		self.menuXML										= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
-		self.pluginPrefs[u"menuXML"]						= json.dumps(self.menuXML)
-		self.restartRequest									= {}
-		self.lastMessageReceivedInListener					= {}
-		self.waitForMAC2vendor 								= False
-		self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
-		if self.enableMACtoVENDORlookup != "0":
-			self.M2V 										= MAC2Vendor.MAP2Vendor(pathToMACFiles=self.indigoPreferencesPluginDir+"mac2Vendor/", refreshFromIeeAfterDays = self.enableMACtoVENDORlookup, myLogger = self.indiLOG.log)
-			self.waitForMAC2vendor 							= self.M2V.makeFinalTable()
-
-
-		self.enableSqlLogging								= self.pluginPrefs.get(u"enableSqlLogging",True)
-		self.pluginPrefs[u"createUnifiDevicesCounter"]		= int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))
-
-		self.lastupdateDevStateswRXTXbytes					= time.time() - 100
-		self.updateDescriptions								= self.pluginPrefs.get(u"updateDescriptions", True)
-		self.ignoreNeighborForFing							= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
-		self.ignoreNewNeighbors								= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
-		self.ignoreNewClients								= self.pluginPrefs.get(u"ignoreNewClients", False)
-		self.enableFINGSCAN									= self.pluginPrefs.get(u"enableFINGSCAN", False)
-		self.count_APDL_inPortCount							= self.pluginPrefs.get(u"count_APDL_inPortCount", "1")
-		self.sendUpdateToFingscanList						= {}
-		self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
-		self.sendBroadCastEventsList						= []
-		self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get(u"unifiCloudKeyListOfSiteNames", "[]"))
-		self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
-		self.csrfToken 										= ""
-		self.numberForUDM									= {u"AP":4,u"SW":12}
-
-		self.rebootUnifiDeviceOnError						= self.pluginPrefs.get(u"rebootUnifiDeviceOnError", True)
-
-
-		self.refreshCallbackMethodAlreadySet 				= u"no" 
-
-		self.unifiControllerOS 								= ""
-		self.unifiApiWebPage								= ""
-		self.unifiApiLoginPath								= ""
-		self.unifControllerCheckPortNumber					= self.pluginPrefs.get(u"unifControllerCheckPortNumber", "1") 
-		self.overWriteControllerPort						= self.pluginPrefs.get(u"overWriteControllerPort", "")
-		self.lastPortNumber									= ""
-		self.unifiCloudKeyPort								= ""
-		self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", u"std")
-		self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", u"ON")
-		self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", u"default")
-		self.unifiCloudKeySiteNameGetNew 					= False
-
-
-		if self.unifiControllerType == u"off" or self.unifiCloudKeyMode	== u"off" or self.connectParams[u"UserID"][u"webCTRL"] == "":
-			self.unifiCloudKeyMode = u"off"
-			self.pluginPrefs[u"unifiCloudKeyMode"] = ""
-			self.unifiControllerType = "off"
-			self.pluginPrefs[u"unifiControllerType"] = ""
-			self.connectParams[u"UserID"][u"nvrWeb"]  = ""
-
-		if self.unifiControllerType.find(u"UDM") > -1:
-			self.unifiCloudKeyMode							= self.pluginPrefs.get(u"unifiCloudKeyMode", u"ON")
-			if self.unifiControllerType.find(u"UDM") > -1:
-				self.unifiCloudKeyMode == u"ON"
-				self.pluginPrefs[u"unifiCloudKeyMode"] 		= u"ON"
-
 		try:
-			self.controllerWebEventReadON 					= int(self.pluginPrefs.get(u"controllerWebEventReadON",u"-1"))
-		except:
-			self.controllerWebEventReadON  					= -1
-		if self.unifiControllerType == u"UDMpro": 
-			self.controllerWebEventReadON  					= -1
 
-		self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
-		self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
+			self.checkcProfile()
 
-		try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", "16384"))
-		except: self.readBuffer								= 16384
-		self.maxConsumedTimeQueueForWarning					= float(self.pluginPrefs.get(u"maxConsumedTimeQueueForWarning", "5"))
-		self.maxConsumedTimeForWarning						= float(self.pluginPrefs.get(u"maxConsumedTimeForWarning", "3"))
+			self.debugLevel = []
+			for d in _debugAreas:
+				if self.pluginPrefs.get(u"debug"+d, False): self.debugLevel.append(d)
+			self.indiLOG.log(20,u"debug settings :{} ".format(self.debugLevel))
 
 
-		self.lastCheckForCAMERA								= 0
-		self.saveCameraEventsLastCheck						= 0
-		self.cameraEventWidth								= int(self.pluginPrefs.get(u"cameraEventWidth", u"720"))
-		self.imageSourceForEvent							= self.pluginPrefs.get(u"imageSourceForEvent", u"noImage")
-		self.imageSourceForSnapShot							= self.pluginPrefs.get(u"imageSourceForSnapShot", "unoImage")
 
-		self.listenStart									= {}
-		self.useStrictToLogin								= self.pluginPrefs.get(u"useStrictToLogin", False)
-		self.unifiControllerSession							= ""
+			if not os.path.isdir(self.indigoPreferencesPluginDir):
+				self.indiLOG.log(20, u" creating plugin prefs directory:{}".format(self.indigoPreferencesPluginDir))
+				os.mkdir(self.indigoPreferencesPluginDir)
 
-		self.curlPath										= self.pluginPrefs.get(u"curlPath", "/usr/bin/curl")
-		if len(self.curlPath) < 4:
-			self.curlPath									= "/usr/bin/curl"
-			self.pluginPrefs[u"curlPath"] 					= self.curlPath
+			self.varExcludeSQLList = [u"Unifi_New_Device",u"Unifi_With_IPNumber_Change",u"Unifi_With_Status_Change",u"Unifi_Camera_with_Event",u"Unifi_Camera_Event_PathToThumbnail","Unifi_Camera_Event_DateOfThumbNail","Unifi_Camera_Event_Date"]
+			#self.varExcludeSQLList = [u"Unifi_New_Device",u"Unifi_With_IPNumber_Change",u"Unifi_With_Status_Change"]
 
-		self.requestOrcurl									= self.pluginPrefs.get(u"requestOrcurl", u"curl")
+			self.UserID					= {}
+			self.PassWd					= {}
+			self.connectParamsDefault 	= {}
+			self.connectParamsDefault[u"expectRestart"]		= {	u"APtail": u"restart.exp",
+																u"GWtail": u"restart.exp",
+																u"UDtail": u"restart.exp",
+																u"SWtail": u"restart.exp",
+																u"VDtail": u"restart.exp",
+																u"GWdict": u"restart.exp",
+																u"UDdict": u"restart.exp",
+																u"SWdict": u"restart.exp",
+																u"APdict": u"restart.exp",
+																u"GWctrl": u"restart.exp",
+																u"UDctrl": u"restart.exp",
+																u"VDdict": u"restart.exp"
+															}
+			self.connectParamsDefault[u"expectCmdFile"]		= {	u"APtail": u"execLog.exp",
+																u"GWtail": u"execLog.exp",
+																u"UDtail": u"execLog.exp",
+																u"SWtail": u"execLog.exp",
+																u"VDtail": u"execLogVideo.exp",
+																u"GWdict": u"dictLoop.exp",
+																u"UDdict": u"dictLoop.exp",
+																u"SWdict": u"dictLoop.exp",
+																u"APdict": u"dictLoop.exp",
+																u"GWctrl": u"simplecmd.exp",
+																u"UDctrl": u"simplecmd.exp",
+																u"VDdict": u"simplecmd.exp"
+															}
+			self.connectParamsDefault[u"commandOnServer"]	= {	u"APtail": u"/usr/bin/tail -F /var/log/messages",
+																u"GWtail": u"/usr/bin/tail -F /var/log/messages",
+																u"UDtail": u"/usr/bin/tail -F /var/log/messages",
+																u"SWtail": u"/usr/bin/tail -F /var/log/messages",
+																u"VDtail": u"/usr/bin/tail -F /var/lib/unifi-video/logs/motion.log",
+																u"VDdict": u"not implemented",
+																u"GWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
+																u"UDdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
+																u"SWdict": u"mca-ctrl -t dump | sed -e 's/^ *//'",
+																u"GWctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
+																u"UDctrl": u"mca-ctrl -t dump-cfg | sed -e 's/^ *//'",
+																u"APdict": u"mca-ctrl -t dump | sed -e 's/^ *//'"
+															}
+			self.connectParamsDefault[u"enableListener"]	= {	u"APtail": True,
+																u"GWtail": True,
+																u"UDtail": True,
+																u"SWtail": True,
+																u"VDtail": True,
+																u"VDdict": True,
+																u"GWdict": True,
+																u"UDdict": True,
+																u"SWdict": True,
+																u"GWctrl": True,
+																u"UDctrl": True,
+																u"APdict": True
+															}
+			self.connectParamsDefault[u"promptOnServer"] 	= {}
+			"""
+																u"APtail": u"\# ",
+																u"GWtail": u":~",
+																u"GWctrl": u":~",
+																u"UDtail": u"\# ",
+																u"UDctrl": u"\# ",
+																u"SWtail": u"\# ",
+																u"VDtail": u"VirtualBox",
+																u"VDdict": u"VirtualBox",
+																u"GWdict": u":~",
+																u"UDdict": u"\# ",
+																u"SWdict": u"\# ",
+																u"APdict": u"\# "}
+			"""
+			self.connectParamsDefault[u"startDictToken"]	= {	u"APtail": u"x",
+																u"GWtail": u"x",
+																u"UDtail": u"x",
+																u"SWtail": u"x",
+																u"VDtail": u"x",
+																u"GWdict": u"mca-dump | sed -e 's/^ *//'",
+																u"UDdict": u"mca-dump | sed -e 's/^ *//'",
+																u"SWdict": u"mca-dump | sed -e 's/^ *//'",
+																u"APdict": u"mca-dump | sed -e 's/^ *//'"
+															}
+			self.connectParamsDefault[u"endDictToken"]		= {	u"APtail": u"x",
+																u"GWtail": u"x",
+																u"UDtail": u"x",
+																u"VDtail": u"x",
+																u"GWdict": u"xxxThisIsTheEndTokenxxx",
+																u"UDdict": u"xxxThisIsTheEndTokenxxx",
+																u"SWdict": u"xxxThisIsTheEndTokenxxx",
+																u"APdict": u"xxxThisIsTheEndTokenxxx"
+															}
+			self.connectParamsDefault[u"UserID"]			= {	u"unixDevs": u"",
+																u"unixUD":   u"",
+																u"unixNVR":  u"",
+																u"nvrWeb":   u"",
+																u"unixDevs": u"",
+																u"unixUD":   u"",
+																u"webCTRL":  u""
+															}
+			self.connectParamsDefault[u"PassWd"]			= {	u"unixDevs": u"",
+																u"unixUD":   u"",
+																u"unixNVR":  u"",
+																u"nvrWeb":   u"",
+																u"unixDevs": u"",
+																u"unixUD":   u"",
+																u"webCTRL":  u""
+															}
+			self.tryHTTPPorts 		= [u"443",u"8443"]
+			self.HTTPretCodes		= { u"200": {u"os":u"unifi_os", u"unifiApiLoginPath":u"/api/auth/login", u"unifiApiWebPage":u"/proxy/network/api/s" },
+										u"302": {u"os":u"std",      u"unifiApiLoginPath":u"/api/login",      u"unifiApiWebPage":u"/api/s" }  }
+			self.OKControllerOS = [u"std",u"unifi_os"]
 
-		self.expectPath 									= "/usr/bin/expect"
 
-		self.restartIfNoMessageSeconds						= 130 #int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 130))
-		self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
-		self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
+			self.connectParams = copy.copy(self.connectParamsDefault)
+
+			try: 	
+				xx = json.loads(self.pluginPrefs.get(u"connectParams",u"{}"))
+				if xx != {}:
+					self.connectParams = copy.copy(xx)
+				for item1 in self.connectParamsDefault:
+					if item1 not in self.connectParams:
+						self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
+					else:
+						for item2 in self.connectParamsDefault[item1]:
+							if item2 not in self.connectParams[item1]:
+								self.connectParams[item1][item2] = copy.copy(self.connectParamsDefault[item1][item2])
+
+					if item1 in [u"startDictToken",u"endDictToken"]:
+						self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
+			except:	
+				pass
+
+			if self.connectParams[u"UserID"][u"unixDevs"] == "": 	self.connectParams[u"UserID"][u"unixDevs"] = self.pluginPrefs.get(u"unifiUserID","")
+			if self.connectParams[u"UserID"][u"unixUD"]   == "": 	self.connectParams[u"UserID"][u"unixUD"]   = self.pluginPrefs.get(u"unifiUserIDUDM","")
+			if self.connectParams[u"UserID"][u"unixNVR"]  == "": 	self.connectParams[u"UserID"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXUserID","")
+			if self.connectParams[u"UserID"][u"nvrWeb"]   == "": 	self.connectParams[u"UserID"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebUserID","")
+			if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERUserID","")
+
+			if self.connectParams[u"PassWd"][u"unixDevs"] == "": 	self.connectParams[u"PassWd"][u"unixDevs"] = self.pluginPrefs.get(u"unifiPassWd","")
+			if self.connectParams[u"PassWd"][u"unixUD"]   == "": 	self.connectParams[u"PassWd"][u"unixUD"]   = self.pluginPrefs.get(u"unifiPassWdUDM","")
+			if self.connectParams[u"PassWd"][u"unixNVR"]  == "": 	self.connectParams[u"PassWd"][u"unixNVR"]  = self.pluginPrefs.get(u"nvrUNIXPassWd","")
+			if self.connectParams[u"PassWd"][u"nvrWeb"]   == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"nvrWebPassWd","")
+			if self.connectParams[u"PassWd"][u"webCTRL"]  == "": 	self.connectParams[u"PassWd"][u"nvrWeb"]   = self.pluginPrefs.get(u"unifiCONTROLLERPassWd","")
+			##indigo.server.log(u" connectParams:{}".format(self.connectParams))
+
+			self.stop 											= []
+			self.PROTECT 										= {}
+
+			self.launchWaitSeconds								= float(self.pluginPrefs.get(u"launchWaitSeconds","3.13"))
+			self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+			self.changedImagePath								= self.completePath(self.pluginPrefs.get(u"changedImagePath", 	self.MAChome))
+			self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
+			self.unifiNVRSession								= ""
+			self.nvrVIDEOapiKey									= self.pluginPrefs.get(u"nvrVIDEOapiKey","")
+
+			self.copyProtectsnapshots							= self.pluginPrefs.get(u"copyProtectsnapshots","on")
+			self.refreshProtectCameras							= float(self.pluginPrefs.get(u"refreshProtectCameras",180.))
+			self.protecEventSleepTime 							= float(self.pluginPrefs.get(u"protecEventSleepTime",4.))
+			self.vmMachine										= self.pluginPrefs.get(u"vmMachine",  "")
+			self.vboxPath										= self.completePath(self.pluginPrefs.get(u"vboxPath",    		"/Applications/VirtualBox.app/Contents/MacOS/"))
+			self.vmDisk											= self.pluginPrefs.get(u"vmDisk",  								"/Volumes/data4TB/Users/karlwachs/VirtualBox VMs/ubuntu/NewVirtualDisk1.vdi")
+			self.mountPathVM									= self.pluginPrefs.get(u"mountPathVM", "/home/yourid/osx")
+			self.videoPath										= self.completePath(self.pluginPrefs.get(u"videoPath",    		"/Volumes/data4TB/Users/karlwachs/video/"))
+			self.unifiNVRSession								= ""
+
+			self.menuXML										= json.loads(self.pluginPrefs.get(u"menuXML", "{}"))
+			self.pluginPrefs[u"menuXML"]						= json.dumps(self.menuXML)
+			self.restartRequest									= {}
+			self.lastMessageReceivedInListener					= {}
+			self.waitForMAC2vendor 								= False
+			self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get(u"enableMACtoVENDORlookup","21"))
+			if self.enableMACtoVENDORlookup != "0":
+				self.M2V 										= MAC2Vendor.MAP2Vendor(pathToMACFiles=self.indigoPreferencesPluginDir+"mac2Vendor/", refreshFromIeeAfterDays = self.enableMACtoVENDORlookup, myLogger = self.indiLOG.log)
+				self.waitForMAC2vendor 							= self.M2V.makeFinalTable()
+
+
+			self.enableSqlLogging								= self.pluginPrefs.get(u"enableSqlLogging",True)
+			self.pluginPrefs[u"createUnifiDevicesCounter"]		= int(self.pluginPrefs.get(u"createUnifiDevicesCounter",0))
+
+			self.lastupdateDevStateswRXTXbytes					= time.time() - 100
+			self.updateDescriptions								= self.pluginPrefs.get(u"updateDescriptions", True)
+			self.ignoreNeighborForFing							= self.pluginPrefs.get(u"ignoreNeighborForFing", True)
+			self.ignoreNewNeighbors								= self.pluginPrefs.get(u"ignoreNewNeighbors", False)
+			self.ignoreNewClients								= self.pluginPrefs.get(u"ignoreNewClients", False)
+			self.enableFINGSCAN									= self.pluginPrefs.get(u"enableFINGSCAN", False)
+			self.count_APDL_inPortCount							= self.pluginPrefs.get(u"count_APDL_inPortCount", "1")
+			self.sendUpdateToFingscanList						= {}
+			self.enableBroadCastEvents							= self.pluginPrefs.get(u"enableBroadCastEvents", "0")
+			self.sendBroadCastEventsList						= []
+			self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get(u"unifiCloudKeyListOfSiteNames", "[]"))
+			self.unifiCloudKeyIP								= self.pluginPrefs.get(u"unifiCloudKeyIP", "")
+			self.csrfToken 										= ""
+			self.numberForUDM									= {u"AP":4,u"SW":12}
+
+			self.rebootUnifiDeviceOnError						= self.pluginPrefs.get(u"rebootUnifiDeviceOnError", True)
+
+
+			self.refreshCallbackMethodAlreadySet 				= u"no" 
+
+			self.unifiControllerOS 								= ""
+			self.unifiApiWebPage								= ""
+			self.unifiApiLoginPath								= ""
+			self.unifControllerCheckPortNumber					= self.pluginPrefs.get(u"unifControllerCheckPortNumber", "1") 
+			self.overWriteControllerPort						= self.pluginPrefs.get(u"overWriteControllerPort", "")
+			self.lastPortNumber									= ""
+			self.unifiCloudKeyPort								= ""
+			self.unifiControllerType							= self.pluginPrefs.get(u"unifiControllerType", u"std")
+			self.unifiCloudKeyMode								= self.pluginPrefs.get(u"unifiCloudKeyMode", u"ON")
+			self.unifiCloudKeySiteName							= self.pluginPrefs.get(u"unifiCloudKeySiteName", u"default")
+			self.unifiCloudKeySiteNameGetNew 					= False
+
+
+			if self.unifiControllerType == u"off" or self.unifiCloudKeyMode	== u"off" or self.connectParams[u"UserID"][u"webCTRL"] == "":
+				self.unifiCloudKeyMode = u"off"
+				self.pluginPrefs[u"unifiCloudKeyMode"] = ""
+				self.unifiControllerType = "off"
+				self.pluginPrefs[u"unifiControllerType"] = ""
+				self.connectParams[u"UserID"][u"nvrWeb"]  = ""
+
+			if self.unifiControllerType.find(u"UDM") > -1:
+				self.unifiCloudKeyMode							= self.pluginPrefs.get(u"unifiCloudKeyMode", u"ON")
+				if self.unifiControllerType.find(u"UDM") > -1:
+					self.unifiCloudKeyMode == u"ON"
+					self.pluginPrefs[u"unifiCloudKeyMode"] 		= u"ON"
+
+			try:
+				self.controllerWebEventReadON 					= int(self.pluginPrefs.get(u"controllerWebEventReadON",u"-1"))
+			except:
+				self.controllerWebEventReadON  					= -1
+			if self.unifiControllerType == u"UDMpro": 
+				self.controllerWebEventReadON  					= -1
+
+			self.unifiControllerBackupON						= self.pluginPrefs.get(u"unifiControllerBackupON", False)
+			self.ControllerBackupPath							= self.pluginPrefs.get(u"ControllerBackupPath", "")
+
+			try: self.readBuffer								= int(self.pluginPrefs.get(u"readBuffer", "16384"))
+			except: self.readBuffer								= 16384
+			self.maxConsumedTimeQueueForWarning					= float(self.pluginPrefs.get(u"maxConsumedTimeQueueForWarning", "5"))
+			self.maxConsumedTimeForWarning						= float(self.pluginPrefs.get(u"maxConsumedTimeForWarning", "3"))
+
+
+			self.lastCheckForCAMERA								= 0
+			self.saveCameraEventsLastCheck						= 0
+			self.cameraEventWidth								= int(self.pluginPrefs.get(u"cameraEventWidth", u"720"))
+			self.imageSourceForEvent							= self.pluginPrefs.get(u"imageSourceForEvent", u"noImage")
+			self.imageSourceForSnapShot							= self.pluginPrefs.get(u"imageSourceForSnapShot", "unoImage")
+
+			self.listenStart									= {}
+			self.useStrictToLogin								= self.pluginPrefs.get(u"useStrictToLogin", False)
+			self.unifiControllerSession							= ""
+
+			self.curlPath										= self.pluginPrefs.get(u"curlPath", "/usr/bin/curl")
+			if len(self.curlPath) < 4:
+				self.curlPath									= "/usr/bin/curl"
+				self.pluginPrefs[u"curlPath"] 					= self.curlPath
+
+			self.requestOrcurl									= self.pluginPrefs.get(u"requestOrcurl", u"curl")
+
+			self.expectPath 									= "/usr/bin/expect"
+
+			self.restartIfNoMessageSeconds						= 130 #int(self.pluginPrefs.get(u"restartIfNoMessageSeconds", 130))
+			self.expirationTime									= int(self.pluginPrefs.get(u"expirationTime", 120) )
+			self.expTimeMultiplier								= float(self.pluginPrefs.get(u"expTimeMultiplier", 2))
 
 	
-		self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
-		self.timeoutDICT									= u"10" #u"{}".format(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
-		self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
-		self.folderNameNeighbors							= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
-		self.folderNameVariables							= self.pluginPrefs.get(u"folderNameVariables", "UNIFI")
-		self.folderNameSystem								= self.pluginPrefs.get(u"folderNameSystem",	   "UNIFI_system")
-		self.fixExpirationTime								= self.pluginPrefs.get(u"fixExpirationTime",	True)
-		self.MACignorelist									= {}
-		self.MACSpecialIgnorelist							= {}
-		self.HANDOVER										= {}
-		self.lastUnifiCookieCurl							= 0
-		self.lastUnifiCookieRequests						= 0
-		self.lastNVRCookie									= 0
-		self.pendingCommand									= []
-		self.groupNames										= []
-		for groupNo in range(_GlobalConst_numberOfGroups):
-			self.groupNames.append(self.pluginPrefs.get("Group{}".format(groupNo), "Group".format(groupNo)))
+			self.loopSleep										= 5     # float(self.pluginPrefs.get(u"loopSleep", 8))
+			self.timeoutDICT									= u"10" #u"{}".format(int(self.pluginPrefs.get(u"timeoutDICT", 10)))
+			self.folderNameCreated								= self.pluginPrefs.get(u"folderNameCreated",   "UNIFI_created")
+			self.folderNameNeighbors							= self.pluginPrefs.get(u"folderNameNeighbors", "UNIFI_neighbors")
+			self.folderNameVariables							= self.pluginPrefs.get(u"folderNameVariables", "UNIFI")
+			self.folderNameSystem								= self.pluginPrefs.get(u"folderNameSystem",	   "UNIFI_system")
+			self.fixExpirationTime								= self.pluginPrefs.get(u"fixExpirationTime",	True)
+			self.MACignorelist									= {}
+			self.MACSpecialIgnorelist							= {}
+			self.HANDOVER										= {}
+			self.lastUnifiCookieCurl							= 0
+			self.lastUnifiCookieRequests						= 0
+			self.lastNVRCookie									= 0
+			self.pendingCommand									= []
+			self.groupNames										= []
+			for groupNo in range(_GlobalConst_numberOfGroups):
+				self.groupNames.append(self.pluginPrefs.get("Group{}".format(groupNo), "Group".format(groupNo)))
 
-		self.groupStatusList								= [{"members":{},"allHome":False,"allAway":False,"oneHome":False,"oneAway":False,"nHome":0,"nAway":0} for i in range(_GlobalConst_numberOfGroups )]
-		self.groupStatusListALL								= {"nHome":0,"nAway":0,"anyChange":False}
+			self.groupStatusList								= [{"members":{},"allHome":False,"allAway":False,"oneHome":False,"oneAway":False,"nHome":0,"nAway":0} for i in range(_GlobalConst_numberOfGroups )]
+			self.groupStatusListALL								= {"nHome":0,"nAway":0,"anyChange":False}
 
-		self.triggerList									= []
-		self.statusChanged									= 0
-		self.msgListenerActive								= {}
+			self.triggerList									= []
+			self.statusChanged									= 0
+			self.msgListenerActive								= {}
 
-		self.devsEnabled									= {}
-		self.debugDevs										= {}
-		self.ipNumbersOf									= {}
-		self.deviceUp										= {}
-		self.numberOfActive									= {}
-
-
-
-		self.createEntryInUnifiDevLogActive					= True #self.pluginPrefs.get(u"createEntryInUnifiDevLogActive",	False)
-		self.lastcreateEntryInUnifiDevLog 					= time.time()
-
-		self.updateStatesList								= {}
-		self.logCount										= {}
-		self.ipNumbersOf[u"AP"]								= ["" for nn in range(_GlobalConst_numberOfAP)]
-		self.devsEnabled[u"AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
-		self.debugDevs[u"AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
-
-		self.ipNumbersOf[u"SW"]								= ["" for nn in range(_GlobalConst_numberOfSW)]
-		self.devsEnabled[u"SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
-		self.debugDevs[u"SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
+			self.devsEnabled									= {}
+			self.debugDevs										= {}
+			self.ipNumbersOf									= {}
+			self.deviceUp										= {}
+			self.numberOfActive									= {}
 
 
-		self.devNeedsUpdate									= {}
 
-		self.MACloglist										= {}
+			self.createEntryInUnifiDevLogActive					= True #self.pluginPrefs.get(u"createEntryInUnifiDevLogActive",	False)
+			self.lastcreateEntryInUnifiDevLog 					= time.time()
 
-		self.readDictEverySeconds							= {}
-		self.readDictEverySeconds[u"AP"]					= 63
-		self.readDictEverySeconds[u"GW"]					= 63
-		self.readDictEverySeconds[u"SW"]					= 63
-		self.readDictEverySeconds[u"UD"]					= 63
-		self.readDictEverySeconds[u"DB"]					= 41
-		self.getcontrollerDBForClientsLast					= 0
-		self.lastResetUnifiDevice							= {}
-		self.devStateChangeList								= {}
-		self.deviceUp[u"AP"]								= {}
-		self.deviceUp[u"SW"]								= {}
-		self.deviceUp[u"GW"]								= {}
-		self.deviceUp[u"VD"]								= {}
-		self.deviceUp[u"UD"]								= {}
-		self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
+			self.updateStatesList								= {}
+			self.logCount										= {}
+			self.ipNumbersOf[u"AP"]								= ["" for nn in range(_GlobalConst_numberOfAP)]
+			self.devsEnabled[u"AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
+			self.debugDevs[u"AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
 
-		self.restartListenerEvery							= float(self.pluginPrefs.get(u"restartListenerEvery", "999999999"))
+			self.ipNumbersOf[u"SW"]								= ["" for nn in range(_GlobalConst_numberOfSW)]
+			self.devsEnabled[u"SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
+			self.debugDevs[u"SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
 
-		#####  check AP parameters
-		self.numberOfActive[u"AP"] =0
-		for i in range(_GlobalConst_numberOfAP):
-			ip0 											= self.pluginPrefs.get(u"ip{}".format(i), "")
-			ac												= self.pluginPrefs.get(u"ipON{}".format(i), "")
-			deb												= self.pluginPrefs.get(u"debAP{}".format(i), "")
-			if not self.isValidIP(ip0): ac 					= False
-			self.deviceUp[u"AP"][ip0] 						= time.time()
-			self.ipNumbersOf[u"AP"][i] 						= ip0
-			self.debugDevs[u"AP"][i] 						= deb
-			if ac:
-				self.devsEnabled[u"AP"][i]					= True
-				self.numberOfActive[u"AP"] 					+= 1
+
+			self.devNeedsUpdate									= {}
+
+			self.MACloglist										= {}
+
+			self.readDictEverySeconds							= {}
+			self.readDictEverySeconds[u"AP"]					= 63
+			self.readDictEverySeconds[u"GW"]					= 63
+			self.readDictEverySeconds[u"SW"]					= 63
+			self.readDictEverySeconds[u"UD"]					= 63
+			self.readDictEverySeconds[u"DB"]					= 41
+			self.getcontrollerDBForClientsLast					= 0
+			self.lastResetUnifiDevice							= {}
+			self.devStateChangeList								= {}
+			self.deviceUp[u"AP"]								= {}
+			self.deviceUp[u"SW"]								= {}
+			self.deviceUp[u"GW"]								= {}
+			self.deviceUp[u"VD"]								= {}
+			self.deviceUp[u"UD"]								= {}
+			self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
+
+			self.restartListenerEvery							= float(self.pluginPrefs.get(u"restartListenerEvery", "999999999"))
+
+			#####  check AP parameters
+			self.numberOfActive[u"AP"] =0
+			for i in range(_GlobalConst_numberOfAP):
+				ip0 											= self.pluginPrefs.get(u"ip{}".format(i), "")
+				ac												= self.pluginPrefs.get(u"ipON{}".format(i), "")
+				deb												= self.pluginPrefs.get(u"debAP{}".format(i), "")
+				if not self.isValidIP(ip0): ac 					= False
+				self.deviceUp[u"AP"][ip0] 						= time.time()
+				self.ipNumbersOf[u"AP"][i] 						= ip0
+				self.debugDevs[u"AP"][i] 						= deb
+				if ac:
+					self.devsEnabled[u"AP"][i]					= True
+					self.numberOfActive[u"AP"] 					+= 1
  
-		#####  check switch parameters
-		self.numberOfActive[u"SW"]									= 0
-		for i in range(_GlobalConst_numberOfSW):
-			ip0														= self.pluginPrefs.get(u"ipSW{}".format(i), "")
-			ac														= self.pluginPrefs.get(u"ipSWON{}".format(i), "")
-			deb														= self.pluginPrefs.get(u"debSW{}".format(i), "")
-			if not self.isValidIP(ip0): ac 							= False
-			self.deviceUp[u"SW"][ip0] 								= time.time()
-			self.ipNumbersOf[u"SW"][i] 								= ip0
-			self.debugDevs[u"SW"][i] 								= deb
-			if ac:
-				self.devsEnabled[u"SW"][i] 							= True
-				self.numberOfActive[u"SW"] 							+= 1
+			#####  check switch parameters
+			self.numberOfActive[u"SW"]									= 0
+			for i in range(_GlobalConst_numberOfSW):
+				ip0														= self.pluginPrefs.get(u"ipSW{}".format(i), "")
+				ac														= self.pluginPrefs.get(u"ipSWON{}".format(i), "")
+				deb														= self.pluginPrefs.get(u"debSW{}".format(i), "")
+				if not self.isValidIP(ip0): ac 							= False
+				self.deviceUp[u"SW"][ip0] 								= time.time()
+				self.ipNumbersOf[u"SW"][i] 								= ip0
+				self.debugDevs[u"SW"][i] 								= deb
+				if ac:
+					self.devsEnabled[u"SW"][i] 							= True
+					self.numberOfActive[u"SW"] 							+= 1
 
-		#####  check UGA parameters
-		ip0 														= self.pluginPrefs.get(u"ipUGA",  "")
-		ac															= self.pluginPrefs.get(u"ipUGAON",False)
-		self.debugDevs[u"GW"] 										= self.pluginPrefs.get(u"debGW",False)
-
-
-		if self.isValidIP(ip0) and ac:
-			self.ipNumbersOf[u"GW"] 								= ip0
-			self.devsEnabled[u"GW"] 								= True
-			self.deviceUp[u"GW"][ip0] 								= time.time()
-		else:
-			self.ipNumbersOf[u"GW"] 								= ""
-			self.devsEnabled[u"GW"]									= False
-
-		self.enablecheckforUnifiSystemDevicesState					= self.pluginPrefs.get(u"enablecheckforUnifiSystemDevicesState","off")
-
-		#####  check DB parameters
-		ip0 														= self.pluginPrefs.get(u"unifiCloudKeyIP",  "")
-		ac															= self.pluginPrefs.get(u"unifiCloudKeyMode","ON")
-		self.useDBInfoForWhichDevices								= self.pluginPrefs.get(u"useDBInfoForWhichDevices","all")
-		if self.isValidIP(self.unifiCloudKeyIP) and (ac.find("ON") > -1 or ac.find("UDM") or self.useDBInfoForWhichDevices in ["all","perDevice"]):
-			self.unifiCloudKeyMode = "ON"
-			self.pluginPrefs[u"unifiCloudKeyMode"] = "ON"
-			self.devsEnabled[u"DB"] = True
-		else:
-			self.devsEnabled[u"DB"]	= False
-
-		#####  check UDM parameters
-		ip0 														= self.pluginPrefs.get(u"ipUDM",  "")
-		ac															= self.pluginPrefs.get(u"ipUDMON",False)
-		self.debugDevs[u"UD"] 										= self.pluginPrefs.get(u"debUD",False)
-		self.ipNumbersOf[u"UD"] 									= ip0
-		self.deviceUp[u"UD"]										= time.time()
-
-		if self.isValidIP(ip0) and ac:
-			self.devsEnabled[u"UD"] 								= True
-			self.ipNumbersOf[u"SW"][self.numberForUDM[u"SW"]]		= ip0
-			self.ipNumbersOf[u"AP"][self.numberForUDM[u"AP"]]		= ip0
-			self.ipNumbersOf[u"GW"] 							  	= ip0
-			self.devsEnabled[u"SW"][self.numberForUDM[u"SW"]] 		= True
-			self.devsEnabled[u"AP"][self.numberForUDM[u"AP"]] 		= True
-			self.numberOfActive[u"SW"] 								= max(1,self.numberOfActive[u"SW"] )
-			self.numberOfActive[u"AP"] 								= max(1,self.numberOfActive[u"AP"] )
-			self.pluginPrefs[u"ipON"] 								= True
-			self.pluginPrefs[u"ipSWON"] 							= True
-			self.pluginPrefs[u"ip{}".format(self.numberForUDM[u"AP"])]   = ip0
-			self.pluginPrefs[u"ipSW{}".format(self.numberForUDM[u"SW"])] = ip0
-		else:
-			self.devsEnabled[u"UD"] = False
+			#####  check UGA parameters
+			ip0 														= self.pluginPrefs.get(u"ipUGA",  "")
+			ac															= self.pluginPrefs.get(u"ipUGAON",False)
+			self.debugDevs[u"GW"] 										= self.pluginPrefs.get(u"debGW",False)
 
 
+			if self.isValidIP(ip0) and ac:
+				self.ipNumbersOf[u"GW"] 								= ip0
+				self.devsEnabled[u"GW"] 								= True
+				self.deviceUp[u"GW"][ip0] 								= time.time()
+			else:
+				self.ipNumbersOf[u"GW"] 								= ""
+				self.devsEnabled[u"GW"]									= False
 
-		#####  check video parameters
-		self.cameraSystem										= self.pluginPrefs.get(u"cameraSystem", "off")
+			self.enablecheckforUnifiSystemDevicesState					= self.pluginPrefs.get(u"enablecheckforUnifiSystemDevicesState","off")
 
-		self.cameras							 				= {}
-		self.ipNumbersOf[u"VD"] 								= ""
-		self.VIDEOUP											= 0
-		self.unifiVIDEONumerOfEvents 							= 0
-		if self.cameraSystem == "nvr":
-			try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
-			except: self.unifiVIDEONumerOfEvents				= 1000
-			self.cameras						 				= {}
-			self.saveCameraEventsStatus			 				= False
+			#####  check DB parameters
+			ip0 														= self.pluginPrefs.get(u"unifiCloudKeyIP",  "")
+			ac															= self.pluginPrefs.get(u"unifiCloudKeyMode","ON")
+			self.useDBInfoForWhichDevices								= self.pluginPrefs.get(u"useDBInfoForWhichDevices","all")
+			if self.isValidIP(self.unifiCloudKeyIP) and (ac.find("ON") > -1 or ac.find("UDM") or self.useDBInfoForWhichDevices in ["all","perDevice"]):
+				self.unifiCloudKeyMode = "ON"
+				self.pluginPrefs[u"unifiCloudKeyMode"] = "ON"
+				self.devsEnabled[u"DB"] = True
+			else:
+				self.devsEnabled[u"DB"]	= False
 
-			ip0 												= self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
-			self.ipNumbersOf[u"VD"] 							= ip0
-			self.VIDEOUP										= 0
-			if self.isValidIP(ip0) and self.connectParams[u"UserID"][u"unixNVR"] != "" and self.connectParams[u"PassWd"][u"unixNVR"] != "":
-				self.VIDEOUP	 								= time.time()
-		elif self.cameraSystem == "protect":
-			pass
-		else:
-			pass
+			#####  check UDM parameters
+			ip0 														= self.pluginPrefs.get(u"ipUDM",  "")
+			ac															= self.pluginPrefs.get(u"ipUDMON",False)
+			self.debugDevs[u"UD"] 										= self.pluginPrefs.get(u"debUD",False)
+			self.ipNumbersOf[u"UD"] 									= ip0
+			self.deviceUp[u"UD"]										= time.time()
 
-		self.lastCheckForNVR 								= 0
-
-		self.getFolderId()
-
-		self.readSuspend()
-
-
-		for ll in range(len(self.ipNumbersOf[u"AP"])):
-			self.killIfRunning(self.ipNumbersOf[u"AP"][ll],u"")
-		for ll in range(len(self.ipNumbersOf[u"SW"])):
-			self.killIfRunning(self.ipNumbersOf[u"SW"][ll],u"")
-		self.killIfRunning(self.ipNumbersOf[u"GW"], "")
-
-
-		self.readDataStats()  # must come before other dev/states updates ...
-
-		self.groupStatusINIT()
-		self.setGroupStatus(init=True)
-		self.readCamerasStats()
-		self.readMACdata()
-		self.checkDisplayStatus()
-		self.getMACloglist()
-
-		self.pluginStartTime 								= time.time()+150
+			if self.isValidIP(ip0) and ac:
+				self.devsEnabled[u"UD"] 								= True
+				self.ipNumbersOf[u"SW"][self.numberForUDM[u"SW"]]		= ip0
+				self.ipNumbersOf[u"AP"][self.numberForUDM[u"AP"]]		= ip0
+				self.ipNumbersOf[u"GW"] 							  	= ip0
+				self.devsEnabled[u"SW"][self.numberForUDM[u"SW"]] 		= True
+				self.devsEnabled[u"AP"][self.numberForUDM[u"AP"]] 		= True
+				self.numberOfActive[u"SW"] 								= max(1,self.numberOfActive[u"SW"] )
+				self.numberOfActive[u"AP"] 								= max(1,self.numberOfActive[u"AP"] )
+				self.pluginPrefs[u"ipON"] 								= True
+				self.pluginPrefs[u"ipSWON"] 							= True
+				self.pluginPrefs[u"ip{}".format(self.numberForUDM[u"AP"])]   = ip0
+				self.pluginPrefs[u"ipSW{}".format(self.numberForUDM[u"SW"])] = ip0
+			else:
+				self.devsEnabled[u"UD"] = False
 
 
-		self.checkforUnifiSystemDevicesState 				= "start"
 
-		self.killIfRunning("", "")
+			#####  check video parameters
+			self.cameraSystem										= self.pluginPrefs.get(u"cameraSystem", "off")
 
-		try: 	os.mkdir(self.indigoPreferencesPluginDir+"backup")
-		except: pass
+			self.cameras							 				= {}
+			self.ipNumbersOf[u"VD"] 								= ""
+			self.VIDEOUP											= 0
+			self.unifiVIDEONumerOfEvents 							= 0
+			if self.cameraSystem == "nvr":
+				try:	self.unifiVIDEONumerOfEvents 				= int(self.pluginPrefs.get(u"unifiVIDEONumerOfEvents", 1000))
+				except: self.unifiVIDEONumerOfEvents				= 1000
+				self.cameras						 				= {}
+				self.saveCameraEventsStatus			 				= False
+
+				ip0 												= self.pluginPrefs.get(u"nvrIP", "192.168.1.x")
+				self.ipNumbersOf[u"VD"] 							= ip0
+				self.VIDEOUP										= 0
+				if self.isValidIP(ip0) and self.connectParams[u"UserID"][u"unixNVR"] != "" and self.connectParams[u"PassWd"][u"unixNVR"] != "":
+					self.VIDEOUP	 								= time.time()
+			elif self.cameraSystem == "protect":
+				pass
+			else:
+				pass
+
+			self.lastCheckForNVR 								= 0
+
+			self.getFolderId()
+
+			self.readSuspend()
+
+
+			for ll in range(len(self.ipNumbersOf[u"AP"])):
+				self.killIfRunning(self.ipNumbersOf[u"AP"][ll],u"")
+			for ll in range(len(self.ipNumbersOf[u"SW"])):
+				self.killIfRunning(self.ipNumbersOf[u"SW"][ll],u"")
+			self.killIfRunning(self.ipNumbersOf[u"GW"], "")
+
+
+			self.readDataStats()  # must come before other dev/states updates ...
+
+			self.groupStatusINIT()
+			self.setGroupStatus(init=True)
+			self.readCamerasStats()
+			self.readMACdata()
+			self.checkDisplayStatus()
+			self.getMACloglist()
+
+			self.pluginStartTime 								= time.time()+150
+
+
+			self.checkforUnifiSystemDevicesState 				= "start"
+
+			self.killIfRunning("", "")
+
+			try: 	os.mkdir(self.indigoPreferencesPluginDir+"backup")
+			except: pass
+
+
+		except Exception as e:
+			self.exceptionHandler(40, e)
+			exit(0)
+
 
 		return
 
@@ -951,7 +960,7 @@ class Plugin(indigo.PluginBase):
 			out = copy.copy(default)
 			if os.path.isfile(newName):
 				try:
-					f = open(newName, u"r")
+					f = self.openEncoding(newName, u"r")
 					out	 = json.loads(f.read())
 					f.close()
 					if oldName !="" and os.path.isfile(oldName):
@@ -963,7 +972,7 @@ class Plugin(indigo.PluginBase):
 				out = copy.copy(default)
 			if oldName !="" and os.path.isfile(oldName):
 				try:
-					f = open(oldName, u"r")
+					f = self.openEncoding(oldName, u"r")
 					out	 = json.loads(f.read())
 					f.close()
 					os.system("rm "+oldName)
@@ -983,7 +992,7 @@ class Plugin(indigo.PluginBase):
 				out = json.dumps(data, sort_keys=sort)
 
 			if fName !="":
-				f=open(fName,u"w")
+				f = self.openEncoding(fName,u"w")
 				f.write(out)
 				f.close()
 			return out
@@ -1593,8 +1602,6 @@ class Plugin(indigo.PluginBase):
 			self.updateConnectParams  = time.time() - 100
 			valuesDict[u"connectParams"] = json.dumps(self.connectParams)
 
-			self.setLogfile(u"{}".format(valuesDict[u"logFileActive2"]),config=True)
-
 			self.groupStatusINIT()
 
 			return True, valuesDict
@@ -1653,7 +1660,7 @@ class Plugin(indigo.PluginBase):
 			out += u"\nUniFi   =============plugin config Parameters========"
 
 			out += u"\ndebugAreas".ljust(40)							+	u"{}".format(self.debugLevel)
-			out += u"\nlogFile".ljust(40)								+	self.logFile
+			out += u"\nlogFile".ljust(40)								+	self.PluginLogFile
 			out += u"\nenableFINGSCAN".ljust(40)						+	u"{}".format(self.enableFINGSCAN)[0]
 			out += u"\ncount_APDL_inPortCount".ljust(40)				+	u"{}".format(self.count_APDL_inPortCount == "1")[0]
 			out += u"\nenableBroadCastEvents".ljust(40)					+	u"{}".format(self.enableBroadCastEvents == "1")[0]
@@ -2336,7 +2343,7 @@ class Plugin(indigo.PluginBase):
 	def buttonVboxActionStopCALLBACKaction(self, action1=None):
 		self.buttonVboxActionStopCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionStopCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		cmd = json.dumps({u"action":[u"stop"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.logFile})
+		cmd = json.dumps({u"action":[u"stop"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.PluginLogFile})
 		if not self.execVboxAction(cmd): return
 		ip = self.ipNumbersOf[u"VD"]
 		for dev in indigo.devices.iter(u"props.isUniFi"):
@@ -2350,7 +2357,7 @@ class Plugin(indigo.PluginBase):
 	def buttonVboxActionStartCALLBACKaction(self, action1=None):
 		self.buttonVboxActionStartCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionStartCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		cmd = {"action":["start","mountDisk"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.logFile,"vmDisk":self.vmDisk }
+		cmd = {"action":["start","mountDisk"], "vmMachine":self.vmMachine, "vboxPath":self.vboxPath, "logfile":self.PluginLogFile,"vmDisk":self.vmDisk }
 		mountCmd  = self.buttonMountOSXDriveOnVboxCALLBACK(returnCmd=True)
 		self.execVboxAction(json.dumps(cmd),action2=json.dumps(mountCmd))
 		return valuesDict
@@ -2359,7 +2366,7 @@ class Plugin(indigo.PluginBase):
 	def buttonVboxActionCompressCALLBACKaction(self, action1=None):
 		self.buttonVboxActionCompressCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionCompressCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		cmd = {u"action":[u"stop",u"compress",u"start",u"mountDisk"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.logFile,u"vmDisk":self.vmDisk }
+		cmd = {u"action":[u"stop",u"compress",u"start",u"mountDisk"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.PluginLogFile,u"vmDisk":self.vmDisk }
 		mountCmd  = self.buttonMountOSXDriveOnVboxCALLBACK(returnCmd=True)
 		if not self.execVboxAction(json.dumps(cmd),action2=json.dumps(mountCmd)): return
 		ip = self.ipNumbersOf[u"VD"]
@@ -2373,7 +2380,7 @@ class Plugin(indigo.PluginBase):
 	def buttonVboxActionBackupCALLBACKaction(self, action1=None):
 		self.buttonVboxActionBackupCALLBACK(valuesDict= action1.props)
 	def buttonVboxActionBackupCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		cmd = {u"action":[u"stop",u"backup",u"start",u"mountDisk"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.logFile,u"vmDisk":self.vmDisk }
+		cmd = {u"action":[u"stop",u"backup",u"start",u"mountDisk"], u"vmMachine":self.vmMachine, u"vboxPath":self.vboxPath, u"logfile":self.PluginLogFile,u"vmDisk":self.vmDisk }
 		mountCmd  = self.buttonMountOSXDriveOnVboxCALLBACK(returnCmd=True)
 		if not self.execVboxAction(json.dumps(cmd),action2=json.dumps(mountCmd)): return
 		ip = self.ipNumbersOf[u"VD"]
@@ -3721,7 +3728,7 @@ class Plugin(indigo.PluginBase):
 			data = {}
 			data["app"] = self.executeCMDOnController(dataSEND={'type': 'by_app'}, pageString=u"stat/sitedpi", jsonAction=u"returnData", cmdType=u"post")
 			data["cat"] = self.executeCMDOnController(dataSEND={'type': 'by_cat'}, pageString=u"stat/sitedpi", jsonAction=u"returnData", cmdType=u"post")
-			f = open(self.pathToPlugin+"unifi_dpi.json","r")
+			f = self.openEncoding(self.pathToPlugin+"unifi_dpi.json","r")
 			catappInfo = json.loads(f.read())
 			f.close()
 			#self.indiLOG.log(20,u"{}".format(catappInfo))
@@ -5358,7 +5365,7 @@ class Plugin(indigo.PluginBase):
 				resp	= session.get(url, stream=True)
 				if self.decideMyLog(u"Video"): self.indiLOG.log(10,u"Video: getSnapshotfromNVR response {}[kB]: {}; ".format(len(resp.content)/1024, resp.status_code) )
 				if u"{}".format(resp.status_code) == "200":
-					f = open(fileName,"wb")
+					f = self.openEncoding(fileName,"wb")
 					f.write(resp.content)
 					f.close()
 					unit=""
@@ -6095,9 +6102,9 @@ class Plugin(indigo.PluginBase):
 			if pri !="": pick = pri
 			else:		 pick = 'cumtime'
 			outFile		= self.indigoPreferencesPluginDir+"timeStats"
-			indigo.server.log(" print time track stats to: {}.dump / txt  with option:{} ".format(outFile, pick) )
+			self.indiLOG.log(10," print time track stats to: {}.dump / txt  with option:{} ".format(outFile, pick) )
 			self.pr.dump_stats(outFile+".dump")
-			sys.stdout 	= open(outFile+".txt", "w")
+			sys.stdout 	= self.openEncoding(outFile+".txt", "w")
 			stats 		= pstats.Stats(outFile+".dump")
 			stats.strip_dirs()
 			stats.sort_stats(pick)
@@ -6127,7 +6134,7 @@ class Plugin(indigo.PluginBase):
 			self.cProfileVariableLoaded = 0
 			self.do_cProfile  			= u"x"
 			self.timeTrVarName 			= u"enableTimeTracking_"+self.pluginShortName
-			indigo.server.log(u"testing if variable {} is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)".format(self.timeTrVarName))
+			self.indiLOG.log(10,u"testing if variable {} is == on/off/print-option to enable/end/print time tracking of all functions and methods (option:'',calls,cumtime,pcalls,time)".format(self.timeTrVarName))
 
 		self.lastTimegetcProfileVariable = time.time()
 
@@ -6135,7 +6142,7 @@ class Plugin(indigo.PluginBase):
 		if self.do_cProfile != cmd:
 			if cmd == "on":
 				if  self.cProfileVariableLoaded ==0:
-					indigo.server.log(u"======>>>>   loading cProfile & pstats libs for time tracking;  starting w cProfile ")
+					self.indiLOG.log(10,u"======>>>>   loading cProfile & pstats libs for time tracking;  starting w cProfile ")
 					self.pr = cProfile.Profile()
 					self.pr.enable()
 					self.cProfileVariableLoaded = 2
@@ -6224,7 +6231,7 @@ class Plugin(indigo.PluginBase):
 
 		self.sleep(1)
 		if self.quitNOW !="":
-			indigo.server.log( u"runConcurrentThread stopping plugin due to:  ::::: {} :::::".format(self.quitNOW))
+			self.indiLOG.log(20, u"runConcurrentThread stopping plugin due to:  ::::: {} :::::".format(self.quitNOW))
 			serverPlugin = indigo.server.getPlugin(self.pluginId)
 			serverPlugin.restart(waitUntilDone=False)
 		return
@@ -6232,7 +6239,7 @@ class Plugin(indigo.PluginBase):
 ####-----------------   main loop            ---------
 	def dorunConcurrentThread(self):
 
-		indigo.server.log(u" start   runConcurrentThread, initializing loop settings and threads ..")
+		self.indiLOG.log(10,u" start   runConcurrentThread, initializing loop settings and threads ..")
 
 
 		indigo.server.savePluginPrefs()
@@ -6458,7 +6465,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def saveupDownTimers(self):
 		try:
-			f = open(self.indigoPreferencesPluginDir+"upDownTimers","w")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"upDownTimers","w")
 			f.write(json.dumps(self.upDownTimers))
 			f.close()
 		except	Exception as e:
@@ -6467,7 +6474,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def readupDownTimers(self):
 		try:
-			f = open(self.indigoPreferencesPluginDir+"upDownTimers","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"upDownTimers","r")
 			self.upDownTimers = json.loads(f.read())
 			f.close()
 		except:
@@ -7113,13 +7120,13 @@ class Plugin(indigo.PluginBase):
 		self.dataStats = {}
 
 		try:
-			f = open(self.indigoPreferencesPluginDir+"waitTimes","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"waitTimes","r")
 			self.waitTimes = json.loads(f.read())
 			f.close()
 		except: pass
 
 		try:
-			f = open(self.indigoPreferencesPluginDir+"dataStats","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"dataStats","r")
 			self.dataStats = json.loads(f.read())
 			f.close()
 			if u"tcpip" not in self.dataStats:
@@ -7170,7 +7177,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def readCamerasStats(self):
 		try:
-			f=open(self.indigoPreferencesPluginDir+"CamerasStats","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"CamerasStats","r")
 			self.cameras = json.loads(f.read())
 			f.close()
 			self.saveCameraEventsStatus = True
@@ -7567,19 +7574,19 @@ class Plugin(indigo.PluginBase):
 	def readMACdata(self):
 		self.lastSaveMAC2INDIGO	 = time.time() -21
 		try:
-			f=open(self.indigoPreferencesPluginDir+"MAC2INDIGO","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"MAC2INDIGO","r")
 			self.MAC2INDIGO= json.loads(f.read())
 			f.close()
 		except:
 			self.MAC2INDIGO= {"UN":{},u"GW":{},u"SW":{},u"AP":{},u"NB":{}}
 		try:
-			f=open(self.indigoPreferencesPluginDir+"MACignorelist","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"MACignorelist","r")
 			self.MACignorelist= json.loads(f.read())
 			f.close()
 		except:
 			self.MACignorelist ={}
 		try:
-			f=open(self.indigoPreferencesPluginDir+"MACSpecialIgnorelist","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"MACSpecialIgnorelist","r")
 			self.MACSpecialIgnorelist= json.loads(f.read())
 			f.close()
 		except:
@@ -7608,7 +7615,7 @@ class Plugin(indigo.PluginBase):
 	def readSuspend(self):
 		self.suspendedUnifiSystemDevicesIP={}
 		try:
-			f=open(self.indigoPreferencesPluginDir+"suspended","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"suspended","r")
 			self.suspendedUnifiSystemDevicesIP = json.loads(f.read())
 			f.close()
 		except: pass
@@ -8323,7 +8330,7 @@ class Plugin(indigo.PluginBase):
 							if time.time() - self.dataStats[u"tcpip"][uType][ipNumber][u"inErrorTime"] < retryPeriod or not pingTest or not okTest:
 								msgF = combinedLines.replace("\r","").replace("\n","")
 								self.indiLOG.log(20,u"checkAndPrepDict JSON len:{}; {}...\n...  {}".format(len(combinedLines),msgF[0:100], msgF[-40:]) )
-								self.indiLOG.log(20,u".... in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.logFile ))
+								self.indiLOG.log(20,u".... in receiving DICTs for {}-{};  for details check unifi logfile  at: {} ".format(uType, ipNumber, self.PluginLogFile ))
 								self.indiLOG.log(10,u".... ping test:  {}".format(" ok " if pingTest  else " bad") )
 								self.indiLOG.log(10,u".... ssh test:   {}".format(" ok " if okTest else " bad") )
 								self.indiLOG.log(10,u".... uid/passwd:>{}<".format(self.getUidPasswd(uType, ipNumber)) )
@@ -8388,8 +8395,8 @@ class Plugin(indigo.PluginBase):
 				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				##pid = ListenProcessFileHandle.pid
 				msg = u"{}".format(ListenProcessFileHandle.stderr)
-				if msg.find(u"open file") == -1:	# try this again
-					self.indiLOG.log(40,u"uType {}; IP#: {}; error connecting {}".format(uType, ipNumber, msg) )
+				if msg.find(u"open file") == -1 and msg.find("io.BufferedReader") == -1:	# try this again
+					self.indiLOG.log(40,u"startConnect {}; IP#: {}; error connecting {}".format(uType, ipNumber, msg) )
 					self.sleep(20)
 					continue
 
@@ -8522,10 +8529,10 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(40,u'ERROR can not update hosts known_hosts file,    "/usr/bin/csrutil status" shows system enabled SIP; please edit manually with \n"nano {}/.ssh/known_hosts"\n and delete line starting with {}'.format(self.MAChome, ipNumber) )
 					self.indiLOG.log(40,u"trying to fix from within plugin, if it happens again you need to do it manually")
 					try:
-						f = open(self.MAChome+u'/.ssh/known_hosts',u"r")
+						f = self.openEncoding(self.MAChome+u'/.ssh/known_hosts',u"r")
 						lines = f.readlines()
 						f.close()
-						f = open(self.MAChome+u'/.ssh/known_hosts',u"w")
+						f = self.openEncoding(self.MAChome+u'/.ssh/known_hosts',u"w")
 						for line in lines:
 							if line.find(ipNumber) >-1: continue
 							if len(line) < 10: continue
@@ -9138,7 +9145,7 @@ class Plugin(indigo.PluginBase):
 							if  debug or self.decideMyLog(u"Protect"): self.indiLOG.log(10,u"getProtectEvents: camID:{}, evId:{}; getting thumbnail, datalen:{}; thumbnail: {}; devId:{}".format(cameraId, evID, len(data),  protectEV["rawEvent"][u"thumbnail"], self.PROTECT[cameraId][u"devId"]))
 							if len(data) > 0:
 								eventJpeg = self.changedImagePath.rstrip("/")+u"/"+dev.name+"_"+status+"_thumbnail.jpeg"
-								f = open(eventJpeg,"wb")
+								f = self.openEncoding(eventJpeg,"wb")
 								f.write(data)
 								f.close()
 								protectEV[u"thumbnailLastCopyTime"] = time.time()
@@ -9154,7 +9161,7 @@ class Plugin(indigo.PluginBase):
 								params = {"accessKey": "", "h": wh[1], "w": wh[0],}
 								data = self.executeCMDOnController(dataSEND=params, pageString=u"api/heatmaps/{}".format(protectEV["rawEvent"][u"heatmap"]), jsonAction=u"protect", cmdType=u"get", protect=True, raw=True, ignore40x=True)
 								if len(data) > 0:
-									f = open(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_"+status+"_heatmap.jpeg","wb")
+									f = self.openEncoding(self.changedImagePath.rstrip("/")+u"/"+dev.name+"_"+status+"_heatmap.jpeg","wb")
 									f.write(data)
 									f.close()
 
@@ -11745,13 +11752,13 @@ class Plugin(indigo.PluginBase):
 						if len(sysStats[xx]) > 0:
 							if type(sysStats[xx]) == type({}):
 								try:
-									for key, value in sysStats[xx].iteritems():
-										if   key == u"Board (CPU)": temperature_Board_CPU 	= GT.getNumber(value)
-										elif key == u"Board (PHY)":	temperature_Board_PHY 	= GT.getNumber(value)
-										elif key == u"CPU": 		temperature_CPU 		= GT.getNumber(value)
-										elif key == u"PHY": 		temperature_PHY 		= GT.getNumber(value)
-								except:
-									self.indiLOG.log(30,u"doGatewaydictSELF sysStats[temp]err : {}".format(sysStats[xx]))
+									for key in sysStats[xx]:
+										if   key == u"Board (CPU)": temperature_Board_CPU 	= GT.getNumber(sysStats[xx][key])
+										elif key == u"Board (PHY)":	temperature_Board_PHY 	= GT.getNumber(sysStats[xx][key])
+										elif key == u"CPU": 		temperature_CPU 		= GT.getNumber(sysStats[xx][key])
+										elif key == u"PHY": 		temperature_PHY 		= GT.getNumber(sysStats[xx][key])
+								except Exception as e:
+									self.indiLOG.log(30,u"doGatewaydictSELF sysStats[temp]err : {}, key:{}, value:{}, error:{}".format(sysStats[xx], key, sysStats[xx][key], e))
 							else:
 								temperature	 = GT.getNumber(sysStats[xx])
 			for xx in [u"temperatures"]:
@@ -12556,19 +12563,25 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def sendWakewOnLan(self, MAC, calledFrom=""):
 		if self.broadcastIP !="9.9.9.255":
-			data = ''.join(['FF' * 6, (MAC.upper()).replace(':', '') * 16])
+			bc = self.broadcastIP
+			macaddress = MAC.upper().replace(":",'')
 			if sys.version_info[0] > 2:  # >  python 2
-				data = bytes(data,"utf8").hex()
+				temp = b''
+				for i in range(0, len(macaddress), 2):
+					temp += struct.pack('B', int(macaddress[i: i + 2], 16))
+				data = b'FFFFFFFFFFFF' + temp * 16
+
 			else:
+				data = ''.join(['FFFFFFFFFFFF', macaddress * 16])
 				data = data.encode("hex")
 			sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 			try:
-				sock.sendto(data, (self.broadcastIP, 9))
+				sock.sendto(data, (bc, 9))
 			except Exception as e:
 				if unicode(e).find("None") == -1: 
 					self.indiLOG.log(30,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
-					self.indiLOG.log(30,u"type:{},  data:{}".format(type(data), data))
+					self.indiLOG.log(30,u"sendWakewOnLan, type:{},  data:{}  broadcastIP type:{}, {}".format(type(data), data, type(self.broadcastIP), self.broadcastIP))
 			if self.decideMyLog(u"Ping"):  self.indiLOG.log(10,u"{} sendWakewOnLan for {};    called from {};  bc ip: {}".format(calledFrom, MAC, calledFrom, self.broadcastIP))
 		return
 
@@ -12665,6 +12678,7 @@ class Plugin(indigo.PluginBase):
 								#if "MAC" in dev.states and self.decideMyLog(u"", MAC=dev.states["MAC"]): self.indiLOG.log(10,u"executeUpdateStatesList(2) dev {} key:{}; value:{}".format(dev.name, key, value ) )
 								ts = datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S")
 								changedOnly[devId].append({u"key":u"lastStatusChange", u"value":ts})
+								changedOnly[devId].append({u"key":u"previousStatusChange", u"value":dev.states["lastStatusChange"]})
 								changedOnly[devId].append({u"key":u"displayStatus",	   u"value":self.padDisplay(value)+ts } )
 								changedOnly[devId].append({u"key":u"onOffState",	   u"value":value in ["up","rec","ON"],   u"uiValue":self.padDisplay(value)+ts } )
 								self.exeDisplayStatus(dev, value, force=False)
@@ -12791,7 +12805,7 @@ class Plugin(indigo.PluginBase):
 					tempQueue = PriorityQueue()
 					break 
 				if blockingPGM == waitingPgm: continue
-				tempQueue.put(item)
+				tempQueue.put(blockingPGM)
 
 			self.blockWaitQueue = tempQueue
 
@@ -12887,6 +12901,16 @@ class Plugin(indigo.PluginBase):
 			if unicode(e).find("None") == -1: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 
+####-------------------------------------------------------------------------####
+	def openEncoding(self, ff, readOrWrite):
+
+		try:
+			if sys.version_info[0]  > 2:
+				return open( ff, readOrWrite, encoding="utf-8")
+			else:
+				return codecs.open( ff ,readOrWrite, "utf-8")
+		except	Exception as e:
+			self.indiLOG.log(40,u"decideMyLog in Line '%s' has error='%s'" % (sys.exc_info()[2].tb_lineno, e))
 
 ########################################
 ########################################
@@ -12894,16 +12918,6 @@ class Plugin(indigo.PluginBase):
 ########################################
 ########################################
 
-	####----------------- ---------
-	def setLogfile(self, lgFile, config=False):
-		self.logFileActive =lgFile
-		if   self.logFileActive =="standard":	self.logFile = ""
-		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
-		else:									self.logFile = self.indigoPreferencesPluginDir +"plugin.log"
-		self.indiLOG.log(20,"myLogSet setting parameters -- logFileActive= {}; logFile= {};  debugLevel= {}".format(self.logFileActive, self.logFile, self.debugLevel))
-		if config:
-			self.indiLOG.log(20,"... debug enabled for GW-dev:{}, AP-dev:{}, SW-dev:{}".format( self.replaceTrueFalse(self.debugDevs[u"GW"]), self.replaceTrueFalse(self.debugDevs[u"AP"]), self.replaceTrueFalse(self.debugDevs[u"SW"]) ) )
-		return
 
 	####-----------------	 ---------
 	def decideMyLog(self, msgLevel, MAC=""):
