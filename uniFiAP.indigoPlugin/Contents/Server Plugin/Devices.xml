@@ -822,6 +822,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>status</TriggerLabel>
 					<ControlPageLabel>status</ControlPageLabel>
 			</State>
+			<State id="previousStatusChange">
+				<ValueType>String</ValueType>
+				<TriggerLabel>previousStatusChange</TriggerLabel>
+				<ControlPageLabel>previousStatusChange</ControlPageLabel>
+			</State>
 			<State id="displayStatus">
 					<ValueType>String</ValueType>
 					<TriggerLabel>displayStatus</TriggerLabel>
@@ -4403,6 +4408,12 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 			<States>
+				<State id="previousStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>previousStatusChange</TriggerLabel>
+					<ControlPageLabel>previousStatusChange</ControlPageLabel>
+				</State>
+
 				<State id="status">
 					<ValueType>String</ValueType>
 					<TriggerLabel>status</TriggerLabel>

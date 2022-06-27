@@ -1,3 +1,9 @@
+changes in V7.40.382@ 2022-06-04
+==================  
+   1. suppress error message that File suspended does not exist
+   2. added option to supress Exsessive time used ... set in config at the bottom 
+   3. fixed error msg: state key previousStatusChange not defined
+
 changes in V7.40.380@ 2022-06-04
 ==================  
    1. replaced all f = open() with f=self.openEncoding() method that does the utf8 depending on sys.version_info[0] >2 

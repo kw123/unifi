@@ -830,6 +830,7 @@ it might be a good idea to force them every xx hours</Label>
 			<Option value="9"  > 9 secs</Option>
 			<Option value="10"  > 10 secs</Option>
 			<Option value="20"  > 20 secs</Option>
+			<Option value="99999"  > supress message</Option>
 		</List>
 	</Field>
 
@@ -847,6 +848,7 @@ it might be a good idea to force them every xx hours</Label>
 			<Option value="9"  > 9 secs</Option>
 			<Option value="10"  > 10 secs</Option>
 			<Option value="20"  > 20 secs</Option>
+			<Option value="99999"  > supress message</Option>
 		</List>
 	</Field>
 

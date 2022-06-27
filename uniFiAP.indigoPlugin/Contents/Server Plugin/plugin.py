@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /Library/Frameworks/Python.framework/Versions/Current/bin/python3
 # -*- coding: utf-8 -*-
 ####################
 # uniFi Plugin
@@ -7605,7 +7605,7 @@ class Plugin(indigo.PluginBase):
 	def delSuspend(self,ip):
 		if ip in self.suspendedUnifiSystemDevicesIP:
 			del self.suspendedUnifiSystemDevicesIP[ip]
-			self.writeSuspend()
+		self.writeSuspend()
 	####-----------------	 ---------
 	def writeSuspend(self):
 		try:
@@ -7613,12 +7613,13 @@ class Plugin(indigo.PluginBase):
 		except: pass
 	####-----------------	 ---------
 	def readSuspend(self):
-		self.suspendedUnifiSystemDevicesIP={}
+		self.suspendedUnifiSystemDevicesIP = {}
 		try:
-			f = self.openEncoding(self.indigoPreferencesPluginDir+"suspended","r")
+			f = self.openEncoding(self.indigoPreferencesPluginDir+"suspended", "r", showError=False)
 			self.suspendedUnifiSystemDevicesIP = json.loads(f.read())
 			f.close()
 		except: pass
+		self.writeSuspend()
 	### ----------- manage suspend status
 	####-----------------	 -----------   END
 
@@ -12902,15 +12903,14 @@ class Plugin(indigo.PluginBase):
 
 
 ####-------------------------------------------------------------------------####
-	def openEncoding(self, ff, readOrWrite):
-
+	def openEncoding(self, ff, readOrWrite, showError=True):
 		try:
 			if sys.version_info[0]  > 2:
 				return open( ff, readOrWrite, encoding="utf-8")
 			else:
 				return codecs.open( ff ,readOrWrite, "utf-8")
 		except	Exception as e:
-			self.indiLOG.log(40,u"decideMyLog in Line '%s' has error='%s'" % (sys.exc_info()[2].tb_lineno, e))
+			if showError: self.indiLOG.log(40,u"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 ########################################
 ########################################
