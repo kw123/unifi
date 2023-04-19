@@ -22,11 +22,11 @@ expect {
 }
 set timeout 3
 expect "Permission denied" {send \003\r"; exit 1}
-sleep 2
+sleep 1
 expect -re $
 send "\r"
 expect "$promptOnServer" {puts "startxxxx\r";}
-sleep 1.0
+sleep 1
 
 set timeout $mcatimeout
 send "\r"
@@ -34,7 +34,7 @@ send "\r"
         sleep 0.2
         expect "$promptOnServer"
         send "$cmd \r"
-        sleep 6
+        sleep 10
         expect "$promptOnServer"
         sleep 1
         puts "$endDictToken$i\r"
@@ -44,7 +44,6 @@ send "\r"
         if {$logfile != "doNotSendAliveMessage"} {
             send "echo ThisIsTheAliveTestFromUnifiToPlugin >> $logfile\r"
         }
-
     }
 
 expect "$promptOnServer"

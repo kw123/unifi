@@ -1,4 +1,16 @@
-changes in V7.40.382@ 2022-06-04
+changes in V2022.41.383@ 2023-04-18
+==================  
+   1. fixed error for unifi protect event thumbnails 
+      in some cisrcumstance the thumbnail is not available immedeately after event.
+      the plugin now  tests if the thumbnail image is ready, then they are copied. this might take up to 10 secs.
+      in addition a "snapshot" is taken immediately. they can be requested at any time 
+
+   2. removed code for old  deprecated nvr video system. The plugin now only supports PROTECT
+
+   3.  made config a little more readable
+
+
+changes in V2022.40.382@ 2022-06-04
 ==================  
    1. suppress error message that File suspended does not exist
    2. added option to supress Exsessive time used ... set in config at the bottom 
