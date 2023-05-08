@@ -1,3 +1,15 @@
+
+changes in V2022.42.384@ 2023-05-07
+==================  
+1. added menu item to clean up ~/.ssh/know_hostsfile
+   if you have issues with ssh loging in to your unifi devices, you can now reset the entries in ~/.ssh/konwn_hosts file
+
+2. added config option in userid/password section to ignore known_hosts
+   ie use      ssh -o StrictHostKeyChecking=no userid@x.y.x.z
+   instead of  ssh userid@x.y.x.z
+
+
+
 changes in V2022.41.383@ 2023-04-18
 ==================  
    1. fixed error for unifi protect event thumbnails 

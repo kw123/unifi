@@ -4,7 +4,8 @@ set ipNumber [lindex $argv 2 ]
 set dirOnController [lindex $argv 3]
 
 set timeout 20
-spawn  scp $userID@$ipNumber:$dirOnController/\* .
+if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no scp $userID@$ipNumber:$dirOnController/\* .} else {spawn  scp $userID@$ipNumber:$dirOnController/\* .}
+
 expect {
     "(yes/no" {
         send "yes\n"

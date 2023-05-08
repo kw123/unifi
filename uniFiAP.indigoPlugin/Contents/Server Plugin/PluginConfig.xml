@@ -263,6 +263,15 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>..  password :</Label>
 	</Field>
 
+	<Field id="hostFileCheck"  		type="menu"   > 
+		<Label>.. disable strict host checking (ignore know_hosts file for ssh) :</Label> 
+		<List>
+			<Option value="ignore"  >disable / ignore</Option>
+			<Option value="no"      >use </Option>
+		</List>
+	</Field>
+ 
+
 	<Field id="simpleSeparatorCO" 			type="separator"/>
  
  

@@ -3,7 +3,8 @@ set password [lindex $argv 1 ]
 set ipNumber [lindex $argv 2 ] 
 
 set timeout 10
-spawn  ssh $userID@$ipNumber
+if {[lindex $argv 3] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
+
 expect {
     "(yes/no" {send "yes\r"  
         expect "assword" { send "$password\n"} 

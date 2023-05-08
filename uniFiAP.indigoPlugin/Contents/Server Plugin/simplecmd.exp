@@ -6,7 +6,7 @@ set sep [lindex $argv 4]
 set cmd [lindex $argv 5]
 
 set timeout 20
-spawn  ssh $userID@$ipNumber
+if  {[lindex $argv 6] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}}
 expect {
     "(yes/no" {
         send "yes\n"

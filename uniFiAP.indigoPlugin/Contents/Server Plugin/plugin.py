@@ -65,7 +65,6 @@ kDefaultPluginPrefs = {
 	"ignoreNewClients":							False,
 	"ignoreNewNeighbors":						False,
 	"ignoreNeighborForFing":					True,
-	"ignoreNewClients":							False,
 	"enableBroadCastEvents":					"0",
 	"enableFINGSCAN":							False,
 	"enableSqlLogging":							True,
@@ -245,6 +244,7 @@ kDefaultPluginPrefs = {
 	"restartListenerEvery":						"999999999",
 	"maxConsumedTimeQueueForWarning":			"10",
 	"maxConsumedTimeForWarning":				"15",
+	"hostFileCheck":							"no",
 	"readBuffer":								"16384" 
 }
 
@@ -487,16 +487,12 @@ class Plugin(indigo.PluginBase):
 																"unixUD":   "",
 																"unixNVR":  "",
 																"nvrWeb":   "",
-																"unixDevs": "",
-																"unixUD":   "",
 																"webCTRL":  ""
 															}
 			self.connectParamsDefault["PassWd"]			= {	"unixDevs": "",
 																"unixUD":   "",
 																"unixNVR":  "",
 																"nvrWeb":   "",
-																"unixDevs": "",
-																"unixUD":   "",
 																"webCTRL":  ""
 															}
 			self.tryHTTPPorts 		= ["443","8443"]
@@ -613,7 +609,7 @@ class Plugin(indigo.PluginBase):
 			if self.unifiControllerType.find("UDM") > -1:
 				self.unifiCloudKeyMode							= self.pluginPrefs.get("unifiCloudKeyMode", "ON")
 				if self.unifiControllerType.find("UDM") > -1:
-					self.unifiCloudKeyMode == "ON"
+					self.unifiCloudKeyMode = "ON"
 					self.pluginPrefs["unifiCloudKeyMode"] 		= "ON"
 
 			try:
@@ -2015,6 +2011,61 @@ class Plugin(indigo.PluginBase):
 
 
 
+
+####-------------------------------------------------------------------------####
+	def resetHostsFileCALLBACKmenu(self, valuesDict=None, typeId="", devId=0):
+		if valuesDict is None: valuesDict = {}
+		fn = "{}/.ssh/known_hosts".format(self.MAChome)
+
+		if os.path.isfile(fn):
+			os.remove(fn)
+
+		if not os.path.isfile(fn):
+			valuesDict["MSG"] = "{} file deleted".format(fn)
+			self.indiLOG.log(30,"ssh known hosts file deleted:{}".format(fn))
+
+		else:
+			valuesDict["MSG"] = "ERROR {} file NOT deleted".format(fn)
+			self.indiLOG.log(30,"Error ssh known hosts file  NOT deleted:{}".format(fn))
+
+		return valuesDict
+
+
+####-------------------------------------------------------------------------####
+	def resetHostsFileOnlyUnifiCALLBACKmenu(self, valuesDict=None, typeId="", devId=0):
+		if valuesDict is None: valuesDict = {}
+		fn = "{}/.ssh/known_hosts".format(self.MAChome)
+		removed = ""
+
+		ipList = self.ipNumbersOf["AP"] + self.ipNumbersOf["SW"] + [self.ipNumbersOf["GW"] ] +[self.ipNumbersOf["UD"]]
+		if os.path.isfile(fn):
+			try:
+				for ipN in ipList:
+					if  self.isValidIP(ipN):
+						f = open(fn, "r")
+						lines  = f.readlines()
+						f.close()
+
+						f = open(fn, "w")
+						for line in lines:
+							if len(line) < 10: continue
+							if line.find(ipN) >-1:
+								self.indiLOG.log(30,"ssh known_hosts: removed line:{}".format(line.strip("\n")))
+								continue
+							f.write(line.strip("\n")+"\n")
+						f.close()
+
+			except	Exception as e:
+				if "{}".format(e).find("None") == -1:
+					if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+
+
+		valuesDict["MSG"] = "rmved IPNs entries, see logfile"
+
+		return valuesDict
+
+
+
 	####-----------------  data stats menu items	---------
 	def buttonRestartVDListenerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		self.restartRequest["VDtail"] = "VD"
@@ -2111,6 +2162,7 @@ class Plugin(indigo.PluginBase):
 			cmd +=	"'"+self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf["VD"]])+"' " 
 			cmd += cmdIN
 			if self.decideMyLog("Expect"):  self.indiLOG.log(10,"CameraInfo "+ cmd)
+			cmd +=  self.getHostFileCheck()
 
 			if returnCmd: return cmd
 
@@ -2650,6 +2702,8 @@ class Plugin(indigo.PluginBase):
 			cmd += "'" + self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf["VD"]]) + "' " 
 			cmd += " XXXXsepXXXXX " 
 			cmd += cmdstr
+			cmd +=  self.getHostFileCheck()
+
 			if self.decideMyLog("Expect"): self.indiLOG.log(10,"UNIFI getMongoData cmd " +cmd )
 			ret, err = self.readPopen(cmd)
 			dbJson, error= self.makeJson(ret, "XXXXsepXXXXX")
@@ -2797,7 +2851,9 @@ class Plugin(indigo.PluginBase):
 		cmd+= "'"+self.pathToPlugin + "rebootUNIFIdeviceAP.exp" + "' "
 		cmd+= "'"+self.connectParams["UserID"][uType] + "' '"+self.connectParams["PassWd"][uType] + "' "
 		cmd+= ipNumber + " "
-		cmd+= "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' &"
+		cmd+= "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' "
+		cmd +=  self.getHostFileCheck()
+		cmd +=   " &"
 		if self.decideMyLog("Expect"): self.indiLOG.log(10,"REBOOT: "+cmd )
 		ret, err = self.readPopen(cmd)
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"REBOOT returned: {}-{}".format(ret, err) )
@@ -3555,7 +3611,9 @@ class Plugin(indigo.PluginBase):
 		cmd += "'"+self.connectParams["UserID"]["unixDevs"] + "' '"+self.connectParams["PassWd"]["unixDevs"] + "' "
 		cmd += ipNumber + " "
 		cmd += port + " "
-		cmd += "'" + self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) +"' &"
+		cmd += "'" + self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) +"' "
+		cmd +=  self.getHostFileCheck()
+		cmd +=   " &"
 		if self.decideMyLog("Expect"): self.indiLOG.log(10,"RECYCLE: "+cmd )
 		ret, err = self.readPopen(cmd)
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"RECYCLE returned: {}-{}".format(ret, err))
@@ -3580,7 +3638,8 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmactivateCALLBACKaction(self, action1=None):
 		self.buttonConfirmactivateCALLBACKbutton(valuesDict=action1.props)
 
-	 ####-----------------	suspend / activate unifi devices	---------
+
+	####-----------------	suspend / activate unifi devices	---------
 	def buttonConfirmsuspendCALLBACKbutton(self, valuesDict=None, typeId="", devId=""):
 		try:
 			ID = int(valuesDict["selectedDevice"])
@@ -3623,6 +3682,7 @@ class Plugin(indigo.PluginBase):
 		cmd += " '"+self.connectParams["PassWd"]["unixDevs"]+"' "
 		cmd +=     self.unifiCloudKeyIP
 		cmd += " '"+self.ControllerBackupPath.rstrip("/")+"'"
+		cmd +=  self.getHostFileCheck()
 
 		if self.decideMyLog("Expect"): self.indiLOG.log(10,"backup cmd: {}".format(cmd) )
 
@@ -4830,6 +4890,7 @@ class Plugin(indigo.PluginBase):
 			cmd += "'"+self.connectParams["promptOnServer"][self.ipNumbersOf["GW"]] + "' " 
 			cmd += " XXXXsepXXXXX " + " " 
 			cmd += "\""+self.escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf["GW"]])+"\""
+			cmd +=  self.getHostFileCheck()
 
 			if self.decideMyLog("Expect"): self.indiLOG.log(10," UGA EXPECT CMD: {}".format(cmd))
 			ret, err = self.readPopen(cmd)
@@ -5007,14 +5068,14 @@ class Plugin(indigo.PluginBase):
 			elif method == "response":
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
 				ret	= self.unifiControllerSession.get(urlSite, cookies=cookies,  headers=headers, verify=False).text
-				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
+				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
 
 			elif method == "curl":
 				cmdSite  = self.curlPath+" --insecure  'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
 				#cmdSite  = self.curlPath+" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
 				if self.decideMyLog("ConnectionCMD"):self.indiLOG.log(10,"setunifiCloudKeySiteName cmd:{}".format(cmdSite))
 				ret, err = self.readPopen(cmdSite)
-				 # should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
+				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
 
 			else:
 				return False
@@ -5154,7 +5215,7 @@ class Plugin(indigo.PluginBase):
 									if "{}".format(e).find("None") == -1: 
 										self.indiLOG.log(30,"{}; line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 										self.indiLOG.log(30,"UNIFI executeCMDOnController to {} curl errortext:{}".format(self.unifiCloudKeyIP, errText))
-										self.printHttpError("{}".format(e), respText, iii)
+										self.printHttpError("{}".format(e), respText, ind=iii)
 									self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-curl json")
 								continue
 
@@ -5353,7 +5414,7 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	   ---------
-	def printHttpError(self, errtext, respText):
+	def printHttpError(self, errtext, respText, ind=0):
 		try:
 			detected = False
 			test =[["error=Expecting object","( char ",")"],["ordinal not in range"," in position ",":"]]
@@ -5365,7 +5426,7 @@ class Plugin(indigo.PluginBase):
 							charpos = errtext[cpos+len(tt[1]):]
 							charpos = int(charpos.split(tt[2])[0])
 							cp = max(0,charpos-10)
-							self.indiLOG.log(20,"executeCMDOnController   bad char >>{}<<;  @{} in\n {}...{}".format(respText[cp:cp+20], charpos, respText[0:200], respText[-200:]))
+							self.indiLOG.log(20,"executeCMDOnController Ind:{}  bad char >>{}<<;  @{} in\n {}...{}".format(ind, respText[cp:cp+20], charpos, respText[0:200], respText[-200:]))
 							detected = True
 					except: pass
 
@@ -5462,7 +5523,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					var = indigo.variables[varName]
 				except:
-					 indigo.variable.create(varName,"0",folder=self.folderNameIDVariables)
+					indigo.variable.create(varName,"0",folder=self.folderNameIDVariables)
 
 		for tType in ["Home","Away","lastChange"]:
 			varName="Unifi_Count_ALL_"+tType
@@ -5718,7 +5779,7 @@ class Plugin(indigo.PluginBase):
 				self.MAC2INDIGO[xType]={}
 
 			if MAC not in self.MAC2INDIGO[xType]:
-			   self.MAC2INDIGO[xType][MAC] = {}
+				self.MAC2INDIGO[xType][MAC] = {}
 
 			self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
 			if "ipNumber" in dev.states:
@@ -5904,8 +5965,8 @@ class Plugin(indigo.PluginBase):
 			self.executeUpdateStatesList()
 
 		for devid in delDEV:
-			 sself.indiLOG.log(10," deleting , bad mac "+ devid )
-			 indigo.device.delete[int(devid)]
+			self.indiLOG.log(10," deleting , bad mac "+ devid )
+			indigo.device.delete(int(devid))
 
 
 
@@ -6113,8 +6174,8 @@ class Plugin(indigo.PluginBase):
 						if self.unifiControllerType.find("UDM") > -1 and ll == self.numberForUDM["SW"]: continue
 						ipn = self.ipNumbersOf["SW"][ll]
 						if self.decideMyLog("Logic"): self.indiLOG.log(10,"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
-	 #					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
-	 #					 self.trSWLog["{}".format(ll)].start()
+	 					#					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
+	 					#					 self.trSWLog["{}".format(ll)].start()
 						waitBeforeStart += addtoWait
 						self.trSWDict["{}".format(ll)] = threading.Thread(name='getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, "SWdict",waitBeforeStart,))
 						self.trSWDict["{}".format(ll)].start()
@@ -6639,6 +6700,7 @@ class Plugin(indigo.PluginBase):
 			cmd += " '"+self.connectParams["PassWd"]["unixUD"]+"' "
 			cmd +=      self.unifiCloudKeyIP
 			cmd += " '"+self.escapeExpect(self.connectParams["promptOnServer"][self.unifiCloudKeyIP])+"' "
+			cmd +=  self.getHostFileCheck()
 
 			if self.decideMyLog("UDM"): self.indiLOG.log(10,"getUDMpro_sensors: get sensorValues from UDMpro w cmd: {}".format(cmd) )
 
@@ -7133,7 +7195,8 @@ class Plugin(indigo.PluginBase):
 			cmd += self.pathToPlugin + self.connectParams["expectRestart"][uType] + "' "
 			cmd += "'"+userid + "' '"+passwd + "' " 
 			cmd += ipNumber + " " 
-			cmd += "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' " 
+			cmd += "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' "  
+			cmd +=  self.getHostFileCheck()
 			ret, err = self.readPopen(cmd)
 			self.indiLOG.log(10,"resetUnifiDevice  {}-{};  cmd:{}    return:{}".format(uType, ipNumber, cmd, ret) )
 			return False
@@ -8461,7 +8524,7 @@ class Plugin(indigo.PluginBase):
 					if uType.find("AP") > -1:
 						cmd += " /var/log/messages"
 					else:
-						 cmd += "  doNotSendAliveMessage"
+						cmd += "  doNotSendAliveMessage"
 
 				else:
 					cmd = self.expectPath + " '" 
@@ -8471,6 +8534,7 @@ class Plugin(indigo.PluginBase):
 					cmd += "'"+self.escapeExpect(self.connectParams["promptOnServer"][ipNumber])+"' " 
 					cmd += " \""+self.connectParams["commandOnServer"][uType]+"\" "
 
+				cmd +=  self.getHostFileCheck()
 				if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: cmd {}".format(cmd) )
 				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				##pid = ListenProcessFileHandle.pid
@@ -8531,7 +8595,8 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(40,"testServerIf ssh connection OK: userid>>{}<<, passwd>>{}<<  wrong for {}-{}".format(userid, passwd, uType, ipNumber) )
 				return False
 
-			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber
+			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber 
+			cmd+= self.getHostFileCheck()
 
 
 			if ipNumber in self.lastMessageReceivedInListener: self.lastMessageReceivedInListener[ipNumber] = time.time()
@@ -8644,6 +8709,7 @@ class Plugin(indigo.PluginBase):
 			if userid =="": return False
 
 			cmd = self.expectPath +" '" + self.pathToPlugin +"setaccessToLog.exp' '" + userid + "' '" + passwd + "' " + ipNumber + " '" +self.escapeExpect(self.connectParams["promptOnServer"][ipNumber])+"' "
+			cmd +=  self.getHostFileCheck()
 			#if self.decideMyLog("Expect"): 
 			if self.decideMyLog("Expect"): self.indiLOG.log(10,cmd)
 			ret, err = self.readPopen(cmd)
@@ -9793,7 +9859,7 @@ class Plugin(indigo.PluginBase):
 
 
 				if MAC not in self.cameras:
-					 self.cameras[MAC] = {"cameraName":cameraName,"events":{},"eventsLast":{"start":0,"stop":0},"devid":-1,"uuid":"", "ip":"", "apiKey":""}
+					self.cameras[MAC] = {"cameraName":cameraName,"events":{},"eventsLast":{"start":0,"stop":0},"devid":-1,"uuid":"", "ip":"", "apiKey":""}
 
 				if evNo not in	self.cameras[MAC]["events"]:
 					self.cameras[MAC]["events"][evNo] = {"start":0,"stop":0}
@@ -12762,6 +12828,14 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	#### wake on lan and pings	END
 	####-----------------	 ---------
+
+
+
+####-------------------------------------------------------------------------####
+	def getHostFileCheck(self):
+		if self.pluginPrefs.get("hostFileCheck","") == "ignore":
+			return " yes "
+		return " no "
 
 
 	####-----------------	 ---------

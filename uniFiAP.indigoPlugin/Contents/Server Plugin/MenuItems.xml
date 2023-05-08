@@ -3,7 +3,7 @@
 
 
 	<MenuItem id="testevent">
-		<Name>test event</Name>
+		<Name>test event..</Name>
 		<ConfigUI>
 			<Field   id="evnumber" type="textfield" >
 				<Label>enter evn number:</Label>
@@ -15,7 +15,7 @@
 	</MenuItem>
 
 	<MenuItem id="printConfig">
-		<Name>PRINT parameters to logfile </Name>
+		<Name>PRINT parameters to logfile ..</Name>
 		<ConfigUI>
 
 				<Field id="printConfig" type="button"> 
@@ -57,7 +57,7 @@
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="printDevInfoFromController">
-		<Name>PRINT &#38; get info from UniFi Controller DB and UGA</Name>
+		<Name>PRINT &#38; get info from UniFi Controller DB and UGA..</Name>
 		<ConfigUI>
 			<Field	id="Label01" type="label"> 
 			<Label>Make sure that retention is set properly in MAINTENANCE in the controller
@@ -232,7 +232,7 @@
 	</MenuItem>
 
 	<MenuItem id="dataStats">
-		<Name>PRINT Communication and processing stats</Name>
+		<Name>PRINT Communication and processing stats..</Name>
 		<ConfigUI>
 			<Field	id="Label11" type="label"> 
 				<Label>print stats to logfile,  TCPIP or PROCESSING-WAIT-times </Label> 
@@ -256,7 +256,7 @@
 	</MenuItem>
 
 	<MenuItem id="logMACs">
-		<Name>TRACK info for specific MAC in logfile</Name>
+		<Name>TRACK info for specific MAC in logfile..</Name>
 		<ConfigUI>
 			<Field	   id="keepMAClogList" type="menu" defaultValue="0">
 				<Label>keep / delete MAC numbers after restart:</Label>
@@ -278,7 +278,7 @@
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="ignoreMACs">
-		<Name>(UN)IGNORE UniFi clients</Name>
+		<Name>(UN)IGNORE UniFi clients..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
@@ -333,8 +333,30 @@
 		</ConfigUI>
 	</MenuItem>
 
+
+
+	<MenuItem id="clearHostsFile">
+		<Name>Reset ssh known hosts file..</Name>
+		<ConfigUI>
+			<Field id="MSG" type="textfield"     defaultValue=""> <Label>message from plugin:</Label></Field>
+
+			<Field id="label1" type="label">
+				<Label>reset .ssh/know_hosts file;  = delete file or remove only UNIFI entries</Label>
+			</Field>
+
+             <Field  id="execDelete" type="button"	>
+				<Label>click to</Label><Title>DELETE file</Title> <CallbackMethod>resetHostsFileCALLBACKmenu</CallbackMethod>
+			</Field>
+
+
+             <Field  id="execremovePRIOnly" type="button"	>
+				<Label>click to</Label><Title>REMOVE all UNIFI entries</Title> <CallbackMethod>resetHostsFileOnlyUnifiCALLBACKmenu</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+
 	<MenuItem id="restartListeners">
-		<Name>LISTENERS ... Manage </Name>
+		<Name>LISTENERS ... Manage ..</Name>
 		<ConfigUI>
 				<Field	  id="resetCam" type="button" tooltip="" >
 					<Label>Camera listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
@@ -421,7 +443,7 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="ManageGroupsTypes">
-		<Name>Groups ... Manage device types</Name>
+		<Name>Groups ... Manage device types..</Name>
 		<ConfigUI>
 			<Field id="labeladdremovetypes" type="label"> <Label>ADD or remove devices TYPES from to groups:</Label>  </Field>
 			<Field	   id="addRemoveGroupsWhichDevice" type="menu" defaultValue="system">
@@ -450,7 +472,7 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="ManageGroupsIndividual">
-		<Name>Groups ... Manage individual devices</Name>
+		<Name>Groups ... Manage individual devices..</Name>
 		<ConfigUI>
 			<Field id="labeladdremove01" type="label"> <Label>ADD or RENMOVE individual devices to from groups:</Label>	</Field>
 
@@ -499,7 +521,7 @@ it will make the plugin restart </Label>
 	<MenuItem id="dCameras"> <Name>-------------Cameras ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
 	<MenuItem id="CameraActionsProtect">
-		<Name>CAMERA - protect Info and Settings, actions, print info</Name>
+		<Name>CAMERA - protect Info and Settings, actions, print info..</Name>
 		<ConfigUI>
 
 			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
@@ -786,12 +808,12 @@ it will make the plugin restart </Label>
 
 	<MenuItem id="dActions"> <Name>-------------Actions	 ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 	<MenuItem id="getBackupFilesFromControllerid">
-		<Name>Copy controller backup files to indigo server pref dir</Name>
+		<Name>Copy controller backup files to indigo server pref dir..</Name>
 		<CallbackMethod>getBackupFilesFromController</CallbackMethod>
 	</MenuItem>
 
 	<MenuItem id="setDevicesOptimized">
-		<Name>SET ALL  UniFi devices PROPS to .... </Name>
+		<Name>SET ALL  UniFi devices PROPS to  ..</Name>
 		<ConfigUI>
 			<Field	  id="confirm11" type="button" tooltip="will set all WiFi devices to Optimized, IDLETIME = 30 secs or Uptime changed" >
 				<Label>Change all Wifi devices to OPTIMIZED</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSetWifiOptCALLBACK</CallbackMethod>
@@ -869,7 +891,7 @@ it will make the plugin restart </Label>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="powerCyclePort">
-		<Name>POWER cycle a port on a UniFi switch</Name>
+		<Name>POWER cycle a port on a UniFi switch..</Name>
 		<ConfigUI>
 			<Field	  id="onOffCycle" type="menu" tooltip="" >
 				<List>
@@ -905,7 +927,7 @@ it will make the plugin restart </Label>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="reconnectWiFiClient">
-		<Name>Re-CONNECT a wifi client (kick)</Name>
+		<Name>Re-CONNECT a wifi client (kick)..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
@@ -921,7 +943,7 @@ it will make the plugin restart </Label>
 	</MenuItem>
 
 	<MenuItem id="blockClient">
-		<Name>(UN) BLOCK a client</Name>
+		<Name>(UN) BLOCK a client..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
@@ -940,7 +962,7 @@ it will make the plugin restart </Label>
 	</MenuItem>
 
 	<MenuItem id="enableDisableUniFiAPDevice">
-		<Name>EN-DISABLE - reboot a UniFi device </Name>
+		<Name>EN-DISABLE - reboot a UniFi device ..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
@@ -1000,7 +1022,7 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="activateSuspendUnifiDevice">
-		<Name>SUSPEND-ACTIVATE a UniFi system device (effects plugin only)</Name>
+		<Name>SUSPEND-ACTIVATE a UniFi system device (effects plugin only)..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
@@ -1022,7 +1044,7 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="APledONoff">
-		<Name>Set AP LEDs ON/off</Name>
+		<Name>Set AP LEDs ON/off..</Name>
 		<ConfigUI>
 			<Field   id="MSG" type="textfield" defaultValue="ok" readonly ="true">
 				<Label>MSG from plugin:</Label>
