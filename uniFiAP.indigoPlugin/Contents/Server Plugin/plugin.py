@@ -4965,7 +4965,7 @@ class Plugin(indigo.PluginBase):
 
 					cmd = "https://{}:{}".format(self.unifiCloudKeyIP, self.overWriteControllerPort)
 					if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(20,"getunifiOSAndPort cmd:{}".format(cmd) )
-					resp = requests.head(cmd, verify=False, timeout=7.0 )
+					resp = requests.head(cmd, verify=False, timeout=10.)
 
 				respCode = str(resp.status_code)
 				if respCode in ["200", "302"]:
@@ -5264,7 +5264,7 @@ class Plugin(indigo.PluginBase):
 						dataLogin = json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]}) #  , "strict":self.useStrictToLogin})
 						if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"Connection: requests login url:{};\ndataLogin:{};\nloginHeaders:{};".format(url, dataLogin, loginHeaders) )
 
-						resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=(2.,4.), verify=False)
+						resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=10., verify=False)
 						if self.decideMyLog("ConnectionRET"): self.indiLOG.log(10,"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
 
 						try: loginDict = json.loads(resp.text)
@@ -5326,22 +5326,22 @@ class Plugin(indigo.PluginBase):
 								setStream	= False
 							timeused		= 0
 
-							if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
-							elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+							if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+							elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
 							elif cmdType == "get":	
 								if dataSEND == {}:
-													resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+													resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
 								else:
 									if protect: # get protect needs params= not json=
-													resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=(3.,10.), stream=setStream)
+													resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=10., stream=setStream)
 													if setStream: 
 														rawData = resp.raw.read()
 														#self.indiLOG.log(10,"executeCMDOnController protect  url:{} params:{}; stream:{}, len(resp.raw.read):{}".format(url, dataSEND, setStream, len(rawData) ))
 									else:
-													resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+													resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
 
-							elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
-							else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=(3.,10.), stream=setStream)
+							elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+							else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
 								
 							try:
 								retCode		= copy.copy(resp.status_code )

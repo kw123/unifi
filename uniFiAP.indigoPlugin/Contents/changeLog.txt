@@ -1,4 +1,10 @@
 
+changes in V2022.42.385@ 2023-07-22
+==================  
+1. set http req timeout to 10 secs from various options (2,4/3,10...) depending on application.
+
+
+
 changes in V2022.42.384@ 2023-05-07
 ==================  
 1. added menu item to clean up ~/.ssh/know_hostsfile
