@@ -1,7 +1,8 @@
 
-changes in V2022.42.386@ 2023-07-20
+changes in V2022.42.387@ 2023-07-20
 ==================  
 1. added config option in general section to set request - curl timeout to any value >=1 sec
+2. made error logging more verbose 
 
 
 changes in V2022.42.385@ 2023-07-19
