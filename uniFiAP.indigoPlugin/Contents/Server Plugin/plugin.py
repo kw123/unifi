@@ -239,6 +239,7 @@ kDefaultPluginPrefs = {
 	"debugSpecial":								False,
 	"debugDictFile":							False,
 	"debugall":									False,
+	"showLoginTest":							True,
 	"do_cProfile":								"on/off/print",
 	"rebootUnifiDeviceOnError":					True,
 	"restartListenerEvery":						"999999999",
@@ -304,6 +305,7 @@ class Plugin(indigo.PluginBase):
 		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
 		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
+		self.showLoginTest 				= pluginPrefs.get('showLoginTest',True)
 
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
 						logging.DEBUG:       "%(asctime)s %(msg)s",
@@ -333,15 +335,16 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(10,"plugin.py               {}".format(self.pathToPlugin))
 		self.indiLOG.log(10,"indigo                  {}".format(self.indigoRootPath))
 		self.indiLOG.log(20,"detailed logging        {}".format(self.PluginLogFile))
-		self.indiLOG.log(20,"testing logging levels, for info only: ")
-		self.indiLOG.log( 0,"logger  enabled for     0 ==> TEST ONLY ")
-		self.indiLOG.log( 5,"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
-		self.indiLOG.log(10,"logger  enabled for     DEBUG          ==> TEST ONLY ")
-		self.indiLOG.log(20,"logger  enabled for     INFO           ==> TEST ONLY ")
-		self.indiLOG.log(30,"logger  enabled for     WARNING        ==> TEST ONLY ")
-		self.indiLOG.log(40,"logger  enabled for     ERROR          ==> TEST ONLY ")
-		self.indiLOG.log(50,"logger  enabled for     CRITICAL       ==> TEST ONLY ")
-		self.indiLOG.log(10,"Plugin short Name       {}".format(self.pluginShortName))
+		if self.showLoginTest:
+			self.indiLOG.log(20,"testing logging levels, for info only: ")
+			self.indiLOG.log( 0,"logger  enabled for     0 ==> TEST ONLY ")
+			self.indiLOG.log( 5,"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
+			self.indiLOG.log(10,"logger  enabled for     DEBUG          ==> TEST ONLY ")
+			self.indiLOG.log(20,"logger  enabled for     INFO           ==> TEST ONLY ")
+			self.indiLOG.log(30,"logger  enabled for     WARNING        ==> TEST ONLY ")
+			self.indiLOG.log(40,"logger  enabled for     ERROR          ==> TEST ONLY ")
+			self.indiLOG.log(50,"logger  enabled for     CRITICAL       ==> TEST ONLY ")
+			self.indiLOG.log(10,"Plugin short Name       {}".format(self.pluginShortName))
 		self.indiLOG.log(10,"my PID                  {}".format(self.myPID))	 
 		self.indiLOG.log(10,"Achitecture             {}".format(platform.platform()))	 
 		self.indiLOG.log(10,"OS                      {}".format(platform.mac_ver()[0]))	 
@@ -918,6 +921,7 @@ class Plugin(indigo.PluginBase):
 		self.debugLevel = []
 		for d in _debugAreas:
 			if theDict.get("debug"+d, False): self.debugLevel.append(d)
+		self.showLoginTest = self.pluginPrefs.get("showLoginTest", True)
 		if writeToLog: self.indiLOG.log(20,"debug settings :{} ".format(self.debugLevel))
 
 
@@ -1682,7 +1686,7 @@ class Plugin(indigo.PluginBase):
 			out += "\nsleep in main loop  ".ljust(40)					+	"{:.0f} [sec]".format(self.loopSleep)
 			out += "\nuse curl or request".ljust(40)					+	self.requestOrcurl
 			out += "\ncurl path".ljust(40)								+	self.curlPath
-			out += "\ncurl/requests timeout".ljust(40)					+	self.requestTimeout
+			out += "\ncurl/requests timeout".ljust(40)					+	"{:.0f} [sec]".format(self.requestTimeout)
 			out += "\ncpu used since restart: ".ljust(40) 				+	self.getCPU(self.myPID)
 			out += "\n" 
 			out += "\n====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events"
@@ -5273,12 +5277,12 @@ class Plugin(indigo.PluginBase):
 						try: loginDict = json.loads(resp.text)
 						except	Exception as e:
 							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-							self.indiLOG.log(40,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP, resp.text))
+							self.indiLOG.log(30,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP, resp.text))
 							self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-login json")
 							continue
 
 						if  resp.status_code != requests.codes.ok:
-							self.indiLOG.log(40,"UNIFI executeCMDOnController  login url:{}\ngives, ok not found or status_code:{} not in [{}]\n  error: {}\n".format(url,resp.status_code, requests.codes.ok, resp.text[0:300]) )
+							self.indiLOG.log(30,"UNIFI executeCMDOnController  login url:{}\ngives, ok not found or status_code:{} not in [{}]\n  error: {}\n".format(url,resp.status_code, requests.codes.ok, resp.text[0:300]) )
 							self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-login ret code not ok")
 							continue
 						if 'X-CSRF-Token' in resp.headers:

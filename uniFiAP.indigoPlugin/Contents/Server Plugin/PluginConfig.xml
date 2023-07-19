@@ -740,6 +740,7 @@ in actions you can setup most of the config as as well as get snapshots
 		<Label>Show DEBUG section........................................................:</Label>  
 	</Field>
 
+	<Field    id="showLoginTest"       type="checkbox"         > <Label> show logging test at startup:</Label>  </Field>
 	<Field id="debugLogic"         type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (1) Logic:</Label>												</Field>
 	<Field id="debugLog"           type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (2) logMessages:</Label>										</Field>
 	<Field id="debugLogDetails"    type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (3) ...  Details:</Label>										</Field>
