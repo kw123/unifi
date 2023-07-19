@@ -1,5 +1,10 @@
 
-changes in V2022.42.385@ 2023-07-22
+changes in V2022.42.386@ 2023-07-20
+==================  
+1. added config option in general section to set request - curl timeout to any value >=1 sec
+
+
+changes in V2022.42.385@ 2023-07-19
 ==================  
 1. set http req timeout to 10 secs from various options (2,4/3,10...) depending on application.
 

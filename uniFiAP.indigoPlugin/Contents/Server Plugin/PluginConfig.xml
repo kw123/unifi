@@ -123,6 +123,10 @@
 		</List>
 	</Field>
 
+	<Field id="requestTimeout"              	type="textfield"  visibleBindingId="generalON" visibleBindingValue="true"  tooltip="general parameter for all requests and curl timeout"  > 
+	<Label>timeout for requets and curl:</Label> 
+	</Field>
+
 	<Field id="simpleSeparatorFN" 			type="separator"/>
 
 

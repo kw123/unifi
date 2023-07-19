@@ -245,6 +245,7 @@ kDefaultPluginPrefs = {
 	"maxConsumedTimeQueueForWarning":			"10",
 	"maxConsumedTimeForWarning":				"15",
 	"hostFileCheck":							"no",
+	"requestTimeout":							"10",
 	"readBuffer":								"16384" 
 }
 
@@ -596,6 +597,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerType							= self.pluginPrefs.get("unifiControllerType", "std")
 			self.unifiCloudKeyMode								= self.pluginPrefs.get("unifiCloudKeyMode", "ON")
 			self.unifiCloudKeySiteName							= self.pluginPrefs.get("unifiCloudKeySiteName", "default")
+			self.requestTimeout									= max(1., float(self.pluginPrefs.get("requestTimeout", 10.)))
 			self.unifiCloudKeySiteNameGetNew 					= False
 
 
@@ -1314,7 +1316,7 @@ class Plugin(indigo.PluginBase):
 			self.refreshProtectCameras						= float(valuesDict["refreshProtectCameras"])
 			self.protecEventSleepTime						= float(valuesDict["protecEventSleepTime"])
 			self.unifControllerCheckPortNumber				= valuesDict["unifControllerCheckPortNumber"] 
-
+			self.requestTimeout								= max(1., float(valuesDict["requestTimeout"]))
 
 			self.cameraEventWidth							= int(valuesDict["cameraEventWidth"])
 
@@ -1680,6 +1682,7 @@ class Plugin(indigo.PluginBase):
 			out += "\nsleep in main loop  ".ljust(40)					+	"{:.0f} [sec]".format(self.loopSleep)
 			out += "\nuse curl or request".ljust(40)					+	self.requestOrcurl
 			out += "\ncurl path".ljust(40)								+	self.curlPath
+			out += "\ncurl/requests timeout".ljust(40)					+	self.requestTimeout
 			out += "\ncpu used since restart: ".ljust(40) 				+	self.getCPU(self.myPID)
 			out += "\n" 
 			out += "\n====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events"
@@ -2331,14 +2334,14 @@ class Plugin(indigo.PluginBase):
 				url = "https://"+self.ipNumbersOf["VD"]+ ":7443/api/2.0/camera/"+"?apiKey=" + self.nvrVIDEOapiKey
 
 			if self.requestOrcurl.find("curl") > -1:
-				cmdL  = self.curlPath+" --insecure -c /tmp/nvrCookie --data '"+json.dumps({"username":self.connectParams["UserID"]["nvrWeb"],"password":self.connectParams["PassWd"]["nvrWeb"]})+"' 'https://"+self.ipNumbersOf["VD"]+":7443/api/login'"
+				cmdL  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure -c /tmp/nvrCookie --data '"+json.dumps({"username":self.connectParams["UserID"]["nvrWeb"],"password":self.connectParams["PassWd"]["nvrWeb"]})+"' 'https://"+self.ipNumbersOf["VD"]+":7443/api/login'"
 				if data =={} or data =="": dataDict = ""
 				else:					   dataDict = " --data '"+json.dumps(data)+"' "
 				if	 cmdType == "put":	  cmdTypeUse= " -X PUT "
 				elif cmdType == "post":  cmdTypeUse= " -X post "
 				elif cmdType == "get":	  cmdTypeUse= "     "
 				else:					  cmdTypeUse= " "
-				cmdR = self.curlPath+" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + "'" +url+ "'"
+				cmdR = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure -b /tmp/nvrCookie  --header \"Content-Type: application/json\" "+cmdTypeUse +  dataDict + "'" +url+ "'"
 
 				try:
 					try:
@@ -4965,7 +4968,7 @@ class Plugin(indigo.PluginBase):
 
 					cmd = "https://{}:{}".format(self.unifiCloudKeyIP, self.overWriteControllerPort)
 					if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(20,"getunifiOSAndPort cmd:{}".format(cmd) )
-					resp = requests.head(cmd, verify=False, timeout=10.)
+					resp = requests.head(cmd, verify=False, timeout=self.requestTimeout)
 
 				respCode = str(resp.status_code)
 				if respCode in ["200", "302"]:
@@ -5014,7 +5017,7 @@ class Plugin(indigo.PluginBase):
 				for port in tryport:
 					# this cmd will return http code only (I= header only, -s = silent -o send std to null, -w print http reply code)
 					# curl --insecure  -I -s -o /dev/null -w "%{http_code}" 'https://192.168.1.2:8443'
-					cmdOS = self.curlPath+" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+":"+port+"'"
+					cmdOS = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure  -I -s -o /dev/null -w \"%{http_code}\" 'https://"+self.unifiCloudKeyIP+":"+port+"'"
 					ret, err = self.readPopen(cmdOS)
 					if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"getunifiOSAndPort trying port#:>{}< gives ret code:{}".format(cmdOS, ret) )
 					if ret in self.HTTPretCodes: 
@@ -5067,12 +5070,12 @@ class Plugin(indigo.PluginBase):
 
 			elif method == "response":
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
-				ret	= self.unifiControllerSession.get(urlSite, cookies=cookies,  headers=headers, verify=False).text
+				ret	= self.unifiControllerSession.get(urlSite, cookies=cookies,  headers=headers, timeout=self.requestTimeout, verify=False).text
 				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
 
 			elif method == "curl":
-				cmdSite  = self.curlPath+" --insecure  'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
-				#cmdSite  = self.curlPath+" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+				cmdSite  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure  'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
+				#cmdSite  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/self/sites'"
 				if self.decideMyLog("ConnectionCMD"):self.indiLOG.log(10,"setunifiCloudKeySiteName cmd:{}".format(cmdSite))
 				ret, err = self.readPopen(cmdSite)
 				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
@@ -5156,8 +5159,8 @@ class Plugin(indigo.PluginBase):
 
 				if useCurl:
 					#cmdL  = curl  --insecure -c /tmp/unifiCookie -H "Content-Type: application/json"  --data '{"username":"karlwachs","password":"457654aA.unifi"}' https://192.168.1.2:8443/api/login
-					#cmdL  = self.curlPath+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
-					cmdLogin  = self.curlPath+" --max-time 10 --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"],"strict":self.useStrictToLogin})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+"'"
+					#cmdL  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure -c /tmp/unifiCookie --data '"                                      +json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/api/login'"
+					cmdLogin  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure -c /tmp/unifiCookie -H \"Content-Type: application/json\" --data '"+json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"],"strict":self.useStrictToLogin})+"' 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath+"'"
 					if dataSEND =={}: 	dataSendSTR = ""
 					else:		 		dataSendSTR = " --data '"+json.dumps(dataSEND)+"' "
 					if	 cmdType == "put":	 						cmdTypeUse= " -X PUT "
@@ -5200,7 +5203,7 @@ class Plugin(indigo.PluginBase):
 							if not self.setunifiCloudKeySiteName(method = "curl"): continue
 
 						#cmdDATA  = curl  --insecure -b /tmp/unifiCookie' --data '{"within":999,"_limit":1000}' https://192.168.1.2:8443/api/s/default/stat/event
-						cmdDATA  = self.curlPath+" --max-time 10 --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
+						cmdDATA  = self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" --insecure -b /tmp/unifiCookie " +dataSendSTR+cmdTypeUse+ " 'https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiWebPage+"/"+self.unifiCloudKeySiteName+"/"+pageString.strip("/")+"'"
 
 						if self.decideMyLog("ConnectionCMD"):	self.indiLOG.log(10,"Connection: {}".format(cmdDATA) )
 						if startText != "":					 	self.indiLOG.log(10,"Connection: {}".format(startText) )
@@ -5264,7 +5267,7 @@ class Plugin(indigo.PluginBase):
 						dataLogin = json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]}) #  , "strict":self.useStrictToLogin})
 						if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"Connection: requests login url:{};\ndataLogin:{};\nloginHeaders:{};".format(url, dataLogin, loginHeaders) )
 
-						resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=10., verify=False)
+						resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=self.requestTimeout, verify=False)
 						if self.decideMyLog("ConnectionRET"): self.indiLOG.log(10,"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
 
 						try: loginDict = json.loads(resp.text)
@@ -5326,22 +5329,22 @@ class Plugin(indigo.PluginBase):
 								setStream	= False
 							timeused		= 0
 
-							if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
-							elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+							if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
+							elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 							elif cmdType == "get":	
 								if dataSEND == {}:
-													resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+													resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 								else:
 									if protect: # get protect needs params= not json=
-													resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=10., stream=setStream)
+													resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=self.requestTimeout, stream=setStream)
 													if setStream: 
 														rawData = resp.raw.read()
 														#self.indiLOG.log(10,"executeCMDOnController protect  url:{} params:{}; stream:{}, len(resp.raw.read):{}".format(url, dataSEND, setStream, len(rawData) ))
 									else:
-													resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+													resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 
-							elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
-							else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=10., stream=setStream)
+							elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
+							else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 								
 							try:
 								retCode		= copy.copy(resp.status_code )
@@ -5442,7 +5445,7 @@ class Plugin(indigo.PluginBase):
 	def getSnapshotfromCamera(self, indigoCameraId, fileName):
 		try:
 			dev		= indigo.devices[int(indigoCameraId)]
-			cmdR	= self.curlPath +" 'http://"+dev.states["ip"] +"/snap.jpeg' > "+ fileName
+			cmdR	= self.curlPath+" --max-time {:.0f}".format(self.requestTimeout) +" 'http://"+dev.states["ip"] +"/snap.jpeg' > "+ fileName
 			if self.decideMyLog("Video"): self.indiLOG.log(10,"Video: getSnapshotfromNVR with: {}".format(cmdR) )
 			respText, errText = self.readPopen(cmdR)
 			if self.decideMyLog("Video"): self.indiLOG.log(10,"Video: getSnapshotfromCamera response: {}".format(respText))
@@ -5460,7 +5463,7 @@ class Plugin(indigo.PluginBase):
 			camApiKey = indigo.devices[int(indigoCameraId)].states["apiKey"]
 			url			= "http://"+self.ipNumbersOf["VD"] +":7080/api/2.0/snapshot/camera/"+camApiKey+"?force=true&width={}".format(width)+"&apiKey="+self.nvrVIDEOapiKey
 			if self.requestOrcurl.find("curl") > -1:
-				cmdR	= self.curlPath+" -o '" + fileName +"'  '"+ url+"'"
+				cmdR	= self.curlPath+" --max-time {:.0f}".format(self.requestTimeout)+" -o '" + fileName +"'  '"+ url+"'"
 				try:
 					if self.decideMyLog("Video"): self.indiLOG.log(10,"Video: {}".format(cmdR) )
 					ret = subprocess.Popen(cmdR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[1]
