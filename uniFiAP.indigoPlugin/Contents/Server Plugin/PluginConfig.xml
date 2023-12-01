@@ -293,11 +293,16 @@ Leave userid and password blank if you want to disable querying the controller</
 		</List>
 	</Field>
 
- 	<Field id="enablecheckforUnifiSystemDevicesState"  		type="menu"  visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro,std,hosted" > 
-		<Label>.. check for new unifi system devices:</Label> 
+ 	<Field id="checkForNewUnifiSystemDevicesEvery"  		type="menu"  visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro,std,hosted" > 
+		<Label>.. check for new unifi system devices every:</Label> 
 		<List>
-			<Option value="off"  >off</Option>
-			<Option value="ON"   >ON</Option>
+			<Option value="0"  >off</Option>
+			<Option value="2"   >2 minutes</Option>
+			<Option value="5"   >5 minutes</Option>
+			<Option value="10"   >10 minutes</Option>
+			<Option value="15"   >15 minutes</Option>
+			<Option value="20"   >20 minutes</Option>
+			<Option value="25"   >25 minutes</Option>
 		</List>
 	</Field>
 
@@ -750,7 +755,6 @@ in actions you can setup most of the config as as well as get snapshots
 	<Field id="debugConnectionRET" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (6.1) http connection to unifi devices  show result:</Label>	</Field>
 	<Field id="debugExpect"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (7) Expect command...:</Label>									</Field>
 	<Field id="debugExpectRET"     type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (7.1) Expect command return strings:</Label>					</Field>
-	<Field id="debugVideo"         type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (8) NVR system Video...:</Label>								</Field>
 	<Field id="debugFing"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (9) Fing:</Label>												</Field>
 	<Field id="debugBC"            type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (10) BroadCast:</Label>											</Field>
 	<Field id="debugPing"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (11) Ping WOL:</Label>											</Field>

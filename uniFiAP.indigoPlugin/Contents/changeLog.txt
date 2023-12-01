@@ -1,3 +1,21 @@
+changes in V2022.42.394@ 2023-12-01
+==================  
+	added checks for setup a new install if not all parameters and devices are set.
+
+
+changes in V2022.42.393@ 2023-10-12
+==================  
+	fixed error failedControllerLogin - the erros occures only when communications to unifi devices is dead for an extended period of time 
+
+
+
+
+changes in V2022.42.392@ 2023-07-24
+==================  
+	added debug statement for no data read
+	fixed some debugging setups and check for new devices
+
+
 
 changes in V2022.42.389@ 2023-07-20
 ==================  
