@@ -511,21 +511,24 @@ class Plugin(indigo.PluginBase):
 
 
 			self.connectParams = copy.copy(self.connectParamsDefault)
+			useDefault = ["endDictToken", "startDictToken", "commandOnServer", "expectCmdFile", "expectRestart"]
 
 			try: 	
-				xx = json.loads(self.pluginPrefs.get("connectParams","{}"))
-				if xx != {}:
-					self.connectParams = copy.copy(xx)
-				for item1 in self.connectParamsDefault:
-					if item1 not in self.connectParams:
-						self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
-					else:
-						for item2 in self.connectParamsDefault[item1]:
-							if item2 not in self.connectParams[item1]:
-								self.connectParams[item1][item2] = copy.copy(self.connectParamsDefault[item1][item2])
+					xx = json.loads(self.pluginPrefs.get("connectParams","{}"))
+					if xx != {}:
+						self.connectParams = copy.deepcopy(xx)
+					for item1 in self.connectParamsDefault:
+						if item1 in useDefault:
+							self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
+							continue
 
-					if item1 in ["startDictToken","endDictToken"]:
-						self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
+						if item1 not in self.connectParams:
+							self.connectParams[item1] = copy.deepcopy(self.connectParamsDefault[item1])
+						else:
+							for item2 in self.connectParamsDefault[item1]:
+								if item2 not in self.connectParams[item1]:
+									self.connectParams[item1][item2] = copy.copy(self.connectParamsDefault[item1][item2])
+
 			except:	
 				pass
 
@@ -3133,6 +3136,7 @@ class Plugin(indigo.PluginBase):
 		for dev in indigo.devices.iter(self.pluginId):
 			if "MAC" in dev.states:
 				mac = dev.states["MAC"]
+				if len(mac) < 5: continue
 				if self.isValidMAC(mac):
 					xlist.append([dev.states["MAC"],dev.name+" - "+dev.states["MAC"]])
 				else:
@@ -3144,24 +3148,28 @@ class Plugin(indigo.PluginBase):
 		xlist = []
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "MAC" in dev.states:
+				if len(dev.states["MAC"]) < 5: continue
 				xlist.append([dev.states["MAC"],dev.name+"--"+dev.states["MAC"] ])
 		return sorted(xlist, key=lambda x: x[1])
 
 	####-----------------	 ---------
 	def filterMACunifiAndCameraOnly(self, filter="", valuesDict=None, typeId="", targetId=""):
 		xlist = []
-		maclist =[]
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "MAC" in dev.states:
 				if dev.deviceTypeId not in ["UniFi"] : continue
+				if len(dev.states["MAC"]) < 5: continue
 				if "status" in dev.states and dev.states["status"].find("up") >-1:
 					xlist.append([dev.states["MAC"],dev.name+"--"+dev.states["MAC"] ])
-					maclist.append(dev.states["MAC"])
+
 		for dev in indigo.devices.iter("props.isCamera"):
 			if "MAC" in dev.states:
 				if dev.deviceTypeId not in ["camera"] : continue
 				if dev.states["MAC"] in maclist: continue
+				if len(dev.states["MAC"]) < 5: continue
 				xlist.append([dev.states["MAC"],dev.name+"--"+dev.states["MAC"] ])
+
+		self.indiLOG.log(20,f"filterMACunifiAndCameraOnly, xlist: {xlist:}")
 		return sorted(xlist, key=lambda x: x[1])
 
 	####-----------------	 ---------
@@ -3178,6 +3186,7 @@ class Plugin(indigo.PluginBase):
 							useMe = False
 							break
 					if useMe:
+						if len(dev.states["MAC"]) < 5: continue
 						xlist.append([dev.states["MAC"],dev.name+"--"+dev.states["MAC"] ])
 
 		return sorted(xlist, key=lambda x: x[1])
@@ -3187,6 +3196,7 @@ class Plugin(indigo.PluginBase):
 		xlist = []
 		for dev in indigo.devices.iter("props.isAP"):
 			if "MAC" in dev.states:
+				if len(dev.states["MAC"]) < 5: continue
 				if "status" in dev.states and dev.states["status"].find("up") >-1:
 					xlist.append([dev.states["MAC"],dev.name+"--"+dev.states["MAC"] ])
 		return sorted(xlist, key=lambda x: x[1])
@@ -3196,12 +3206,15 @@ class Plugin(indigo.PluginBase):
 	def filterMACunifiIgnored(self, filter="", valuesDict=None, typeId="", targetId=""):
 		xlist = []
 		for MAC in self.MACignorelist:
+				if len(MAC) < 5: continue
 				textMAC = MAC
 				for dev in indigo.devices.iter("props.isUniFi,props.isCamera"):
 					if "MAC" in dev.states and MAC == dev.states["MAC"]:
 						textMAC = dev.name+" - "+MAC
 						break
 				xlist.append([MAC,textMAC])
+
+		self.indiLOG.log(20,f"filterMACunifiIgnored, xlist: {xlist:}")
 		return sorted(xlist, key=lambda x: x[1])
 
 	####-----------------  logging for specific MAC number	 ---------
@@ -3209,6 +3222,7 @@ class Plugin(indigo.PluginBase):
 	def filterMACspecialUNIgnore(self, filter="", valuesDict=None, typeId="", targetId=""):
 		xlist = []
 		for MAC in self.MACSpecialIgnorelist:
+			if len(dev.states["MAC"]) < 5: continue
 			xlist.append([MAC,MAC])
 		return sorted(xlist, key=lambda x: x[1])
 
@@ -8170,7 +8184,7 @@ class Plugin(indigo.PluginBase):
 
 					## should we stop?, is our IP number listed?
 				if ipNumber in self.stop:
-					self.indiLOG.log(10,uType+ "getMessage: stop = True for ip# {}".format(ipNumber) )
+					self.indiLOG.log(10,"{}  getMessage: stop = True for ip# {}".format(uType, ipNumber) )
 					self.stop.remove(ipNumber)
 					return
 
@@ -8195,7 +8209,7 @@ class Plugin(indigo.PluginBase):
 					noDataCounter += 1
 					if self.debugThisDevices(uType, apNint):
 						if noDataCounter % noDataCounterMax[useType] == 0:
-							self.indiLOG.log(20,"noDataCounter for: {} {}  = {}".format(ipNumber, uType, noDataCounter))
+							self.indiLOG.log(20,"noDataCounter for: {} {}  = {} tries".format(ipNumber, uType, noDataCounter))
 					continue
 
 
@@ -8520,7 +8534,7 @@ class Plugin(indigo.PluginBase):
 			lastMSG = combinedLines
 			ppp = combinedLines.split(self.connectParams["startDictToken"][uType])
 			if self.debugThisDevices(uType, apN):
-					self.indiLOG.log(10,"checkAndPrepDict:  {}/{} , check ==2?:{} into check 1 startDictToken:'{:}' ".format(uType, ipNumber, len(ppp), self.connectParams["startDictToken"][uType]))
+					self.indiLOG.log(10,"checkAndPrepDict:  {}/{} , check ==2?:{} into check 1 startDictToken:'{:}' , inputlines:{} first 100 ".format(uType, ipNumber, len(ppp), self.connectParams["startDictToken"][uType], combinedLines[0:100]))
 
 			if len(ppp) == 2:
 				endTokenPos = ppp[1].find(self.connectParams["endDictToken"][uType])
@@ -8624,7 +8638,7 @@ class Plugin(indigo.PluginBase):
 					cmd += " \""+self.connectParams["commandOnServer"][uType]+"\" "
 
 				cmd +=  self.getHostFileCheck()
-				if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: cmd {}".format(cmd) )
+				if self.decideMyLog("Expect"): self.indiLOG.log(20,"startConnect: cmd {}".format(cmd) )
 				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				##pid = ListenProcessFileHandle.pid
 				msg = "{}".format(ListenProcessFileHandle.stderr)
@@ -8950,10 +8964,16 @@ class Plugin(indigo.PluginBase):
 				devList = {}
 				MAClist = {}
 				for dev in indigo.devices.iter("props.isProtectCamera"):
-					cameraId = dev.states["id"]
+					
+					cameraId = dev.states.get("id","-1")
+					if cameraId == "-1":
+						self.indiLOG.log(30,"getProtectIntoIndigo: device :{} is not properly defined as camera, please delete and recreate  ".format(dev.name))
+						continue
+
 					if dev.states["MAC"] in MAClist:
 						self.indiLOG.log(30,"getProtectIntoIndigo: duplicated MAC number:{} in indigo devices, please delete one : {}, currently ignoring: [{},{}]  ".format(dev.states["MAC"], MAClist[dev.states["MAC"]],  dev.id, dev.name ))
 						continue
+
 					MAClist[dev.states["MAC"]] = [dev.id, dev.name]
 					if dev.states["id"] not in self.PROTECT:
 						self.PROTECT[cameraId] = {"events":{}, "devId":dev.id, "devName":dev.name, "MAC":dev.states["MAC"], "lastUpdate":time.time()}

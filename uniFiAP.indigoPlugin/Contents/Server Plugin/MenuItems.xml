@@ -2,18 +2,6 @@
 <MenuItems>
 
 
-	<MenuItem id="testevent">
-		<Name>test event..</Name>
-		<ConfigUI>
-			<Field   id="evnumber" type="textfield" >
-				<Label>enter evn number:</Label>
-			</Field>
-			<Field	  id="test" type="button" tooltip="" >
-				<Label>Click to run test</Label><Title>EXECUTE </Title> <CallbackMethod>goevevnt</CallbackMethod>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
-
 	<MenuItem id="printConfig">
 		<Name>PRINT parameters to logfile ..</Name>
 		<ConfigUI>

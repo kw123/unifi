@@ -1,3 +1,11 @@
+changes in V2022.42.395@ 2023-12-06
+==================  
+-	added check for protect camera: is properly defined?
+     line 8953, in getProtectIntoIndigo  cameraId = dev.states["id"] KeyError: 'key id not found in dict'
+- fixed mismatch for detecting dicts start end while listening to AP SW etc.
+
+
+
 changes in V2022.42.394@ 2023-12-01
 ==================  
 	added checks for setup a new install if not all parameters and devices are set.
