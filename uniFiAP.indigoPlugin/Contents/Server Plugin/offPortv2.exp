@@ -5,7 +5,7 @@ set port [lindex $argv 3]
 set endToken [lindex $argv 4]
 
 set timeout 20
-if  {[lindex $argv 5] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
+if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
 
 expect {
     "(yes/no" {
@@ -25,24 +25,8 @@ send "\r"
 
 expect "$endToken" {
     sleep 0.1
-    send "telnet localhost 23\r"
-    sleep 0.1
-    send "enable\r"
-    sleep 0.05
-    send "configure\r"
-    sleep 0.05
-    send "interface 0/$port\r"
-    sleep 0.05
-    send "poe opmode auto\r"
-    sleep 0.05
-    send "exit\r"
-    sleep 0.05
-    send "exit\r"
-    sleep 0.05
-    send "exit\r"
-    sleep 0.05
-    send "exit\r"
-    sleep 0.05
+    send "/bin/swctrl poe set off id $port\r"
+    sleep 1
     send "exit\r"
     }
 sleep 0.2

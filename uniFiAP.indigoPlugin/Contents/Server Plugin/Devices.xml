@@ -3999,7 +3999,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 						<Option value="120"	 > 2  minutes</Option>
 						<Option value="180"	 > 3  minutes</Option>
 						<Option value="240"	 > 4  minutes</Option>
-						<Option value="300"	 > 5  minutes</Option>
+						<Option value="300"	 > 5  minutes use this for miniswitch</Option>
 						<Option value="360"	 > 6  minutes</Option>
 						<Option value="420"	 > 7  minutes</Option>
 						<Option value="490"	 > 8  minutes</Option>
@@ -4183,7 +4183,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 						<Option value="75"	 >75  seconds</Option>
 						<Option value="90"	 >90  seconds (default)</Option>
 						<Option value="120"	 > 2  minutes</Option>
-						<Option value="180"	 > 3  minutes</Option>
+						<Option value="180"	 > 3  minutes use this for miniswitch</Option>
 						<Option value="240"	 > 4  minutes</Option>
 						<Option value="300"	 > 5  minutes</Option>
 						<Option value="360"	 > 6  minutes</Option>

@@ -52,6 +52,7 @@
 	<Field id="expTimeMultiplier"   		type="menu"  visibleBindingId="generalON" visibleBindingValue="true" tooltip=" eg UP to down is 60 choosing 3 down to expired is 180 secs ">
 		<Label>Status goes from DOWN to EXP after x times UP to DOWN time:</Label>
 		<List>
+			<Option value="1.0" >x=1.0</Option>
 			<Option value="1.5" >x=1.5</Option>
 			<Option value="2"   >x=2</Option>
 			<Option value="2.5" >x=2.5</Option>
@@ -298,6 +299,8 @@ Leave userid and password blank if you want to disable querying the controller</
 		<List>
 			<Option value="0"  >off</Option>
 			<Option value="2"   >2 minutes</Option>
+			<Option value="3"   >3 minutes use this if you have a mini switch</Option>
+			<Option value="4"   >4 minutes</Option>
 			<Option value="5"   >5 minutes</Option>
 			<Option value="10"   >10 minutes</Option>
 			<Option value="15"   >15 minutes</Option>
@@ -581,6 +584,18 @@ Then disable listener process
 			<Option value="1"  >Yes</Option>
 		</List>
 	</Field>
+	<Field id="portCommandversion"   				type="menu" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
+		<Label>Use switch command version (for POE on/off):</Label>
+		<List>
+			<Option value=""  >CLI command</Option>
+			<Option value="v2" >unix swctrl</Option>
+		</List>
+	</Field>
+
+	<Field id="portCommandversionLabel" type="label" 							visibleBindingId="swON"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Label>The plugin supports 2 methods to set POE on/off/cycle. CLI is the older way. Some of the new switches only support unix swctrl command. With a recent software version also older switches support swctrl command.
+</Label>  </Field>
+
 
 	<Field id="ipSWON0"  type="checkbox"   visibleBindingId="swON"     visibleBindingValue="true"> <Label>.. Switch  0  active:---------------------</Label>  	</Field>
 	<Field id="ipSW0"    type="textfield"  visibleBindingId="ipSWON0"  visibleBindingValue="true"> <Label>- ipNumber of unifi switch 0:</Label>  				</Field>

@@ -1,3 +1,9 @@
+changes in V2022.42.396@ 2023-12-15
+==================  
+-	added option to select a differetnt way to set POE on/off switches. Some newer switch devices only support a unix command swctrl
+    all of my older switches also support unix swctrl command.
+
+
 changes in V2022.42.395@ 2023-12-06
 ==================  
 -	added check for protect camera: is properly defined?

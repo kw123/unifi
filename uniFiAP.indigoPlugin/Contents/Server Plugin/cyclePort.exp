@@ -5,7 +5,7 @@ set port [lindex $argv 3]
 set endToken [lindex $argv 4]
 
 set timeout 20
-if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else{spawn  ssh $userID@$ipNumber}
+if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
 
 expect {
     "(yes/no" {
