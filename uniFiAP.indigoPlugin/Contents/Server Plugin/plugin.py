@@ -5090,7 +5090,7 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def executeCMDOnControllerReset(self, wait=False, calledFrom=""):
+	def executeCMDOnControllerReset(self, wait=1, calledFrom=""):
 		try:
 			if calledFrom != "":
 				if self.decideMyLog("Protect"): self.indiLOG.log(10,"executeCMDOnControllerReset called from:{}".format(calledFrom) )
@@ -5102,7 +5102,7 @@ class Plugin(indigo.PluginBase):
 			self.lastUnifiCookieRequests = 0.
 			self.lastUnifiCookieCurl = 0	
 			self.unifiCloudKeySiteNameGetNew = True
-			if wait: self.sleep(2.0)	
+			if wait > 0: self.sleep(wait)	
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
@@ -5136,7 +5136,7 @@ class Plugin(indigo.PluginBase):
 				dictRET = json.loads(ret)
 			except :
 				self.indiLOG.log(30,"setunifiCloudKeySiteName for {} has error, getting site ID, no json object returned: >>{}<<".format(self.unifiCloudKeyIP, "{}".format(ret)))
-				self.executeCMDOnControllerReset(wait=True, calledFrom="setunifiCloudKeySiteName1")
+				self.executeCMDOnControllerReset(wait=5, calledFrom="setunifiCloudKeySiteName1")
 				return False
 		
 				
@@ -5166,14 +5166,14 @@ class Plugin(indigo.PluginBase):
 						return False
 
 
-			self.indiLOG.log(20,"setunifiCloudKeySiteName  id  not found ret:>>{}<<".format(ret))
-			self.executeCMDOnControllerReset(wait=True,  calledFrom="setunifiCloudKeySiteName2")
+			self.indiLOG.log(20,"setunifiCloudKeySiteName  id  not found ret:>>{}<<, resetting connection".format(ret))
+			self.executeCMDOnControllerReset(wait=5,  calledFrom="setunifiCloudKeySiteName2")
 			return False
 
 		except	Exception as e:
 			self.indiLOG.log(40,"setunifiCloudKeySiteName: " )
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		self.executeCMDOnControllerReset(wait=True,  calledFrom="setunifiCloudKeySiteName3")
+		self.executeCMDOnControllerReset(wait=5,  calledFrom="setunifiCloudKeySiteName3")
 		return False
 
 
@@ -5190,10 +5190,13 @@ class Plugin(indigo.PluginBase):
 			if self.unifiCloudKeyMode.find("ON") == -1 and self.unifiCloudKeyMode != "UDM": return []
 
 
+			maxretry = 3
 			#if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"into executeCMDOnController 2 " )
-			for iii in range(2):
+			for iii in range(maxretry):
 				if not repeatIfFailed and iii > 0: return []
-				if iii == 1: self.sleep(0.2)
+				if iii > 0: 
+					self.sleep(iii+1)
+					if protect: self.sleep(iii+3)
 
 				# get port and which unifi os:
 				if not self.getunifiOSAndPort(): 
@@ -5263,19 +5266,19 @@ class Plugin(indigo.PluginBase):
 							errText  = ret[1]#.decode("utf8")
 							try:
 								dictRET = json.loads(respText)
-							except:
+							except	Exception as e:
 								if iii > 0:
 									if "{}".format(e).find("None") == -1: 
 										self.indiLOG.log(30,"", exc_info=True)
 										self.indiLOG.log(30,"UNIFI executeCMDOnController to {} curl errortext:{}".format(self.unifiCloudKeyIP, errText))
 										self.printHttpError("{}".format(e), respText, ind=iii)
-									self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-curl json")
+									self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-curl json")
 								continue
 
 							if dictRET["meta"]["rc"] != "ok":
 								if iii == 0:
 									self.indiLOG.log(40," Connection error: >>{}<<\n{}".format(self.unifiCloudKeyIP, respText, errText))
-								self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-curl dict not ok")
+								self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-curl dict not ok")
 								continue
 
 							if self.decideMyLog("ConnectionRET"):
@@ -5303,56 +5306,70 @@ class Plugin(indigo.PluginBase):
 				############# does not work on OSX	el capitan ssl lib too old	##########
 				if not useCurl:
 
+					## login?
 					if self.unifiControllerSession == "" or (time.time() - self.lastUnifiCookieRequests) > 99: # every 99 secs token cert
-						if self.unifiControllerSession != "":
-							try: 	self.unifiControllerSession.close()
-							except: pass
-							self.unifiControllerSession = ""
+								if self.unifiControllerSession != "":
+									try: 	self.unifiControllerSession.close()
+									except: pass
+									self.unifiControllerSession = ""
 
-						if self.unifiControllerSession == "":
-							self.unifiControllerSession	 = requests.Session()
+								if self.unifiControllerSession == "":
+									self.unifiControllerSession	 = requests.Session()
 
-						url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
-						loginHeaders = {"Accept": "application/json", "Content-Type": "application/json", "referer": "/login"}
-						dataLogin = json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]}) #  , "strict":self.useStrictToLogin})
-						if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"Connection: requests login url:{};\ndataLogin:{};\nloginHeaders:{};".format(url, dataLogin, loginHeaders) )
+								url = "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+self.unifiApiLoginPath
+								loginHeaders = {"Accept": "application/json", "Content-Type": "application/json", "referer": "/login"}
+								dataLogin = json.dumps({"username":self.connectParams["UserID"]["webCTRL"],"password":self.connectParams["PassWd"]["webCTRL"]}) #  , "strict":self.useStrictToLogin})
+								if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"Connection: requests login url:{};\ndataLogin:{};\nloginHeaders:{};".format(url, dataLogin, loginHeaders) )
+								resp = ""
+								try:
+									resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=self.requestTimeout, verify=False)
+									if isinstance(resp, str):
+										self.failedControllerLoginCount += 1 
+										if self.failedControllerLoginCount > 1:
+											self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{},".format(self.failedControllerLoginCount , url) )
+										continue
 
-						resp  = self.unifiControllerSession.post(url,  headers=loginHeaders, data = dataLogin, timeout=self.requestTimeout, verify=False)
-						if self.decideMyLog("ConnectionRET"): self.indiLOG.log(10,"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
+									if self.decideMyLog("ConnectionRET"): self.indiLOG.log(10,"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
+									loginDict = json.loads(resp.text)
 
-						try: loginDict = json.loads(resp.text)
-						except	Exception as e:
-							if "{}".format(e).find("timed out") > -1:
-									self.indiLOG.log(40," read timed out to {}".format(url))
+								except	Exception as e:
+									if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
+										self.quitNOW = "restart due to failed Controller Login count  > {}".format(self.failedControllerLoginCount )
+										return []
+
+									self.failedControllerLoginCount += 1 
+									if self.failedControllerLoginCount > 1:
+										self.indiLOG.log(30,"UNIFI executeCMDOnController  error: >>{}<<".format(e) )
+										self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found,  response: >>{}<<".format(self.failedControllerLoginCount , url, str(resp) ) )
+										if "{}".format(e).find("timed out") == -1:
+											if "{}".format(e).find("None") == -1: self.indiLOG.log(30,"", exc_info=True)
+
+									self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-login ret code not ok")
 									continue
-							else:
-								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-							self.indiLOG.log(30,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<".format(self.unifiCloudKeyIP, resp.text))
-							self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-login json")
-							continue
+								if  resp == "" or resp.status_code != requests.codes.ok:
+									self.failedControllerLoginCount += 1 
+									if self.failedControllerLoginCount > 2:
+										self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found, response: >>{}<<\n".format(self.failedControllerLoginCount , url, str(resp) ) )
+									self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-login ret code not ok")
+									if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
+										self.quitNOW = "restart due to failed Controller Login count  = {}".format(self.failedControllerLoginCount )
+										return []
+									self.sleep(10)
+									continue
 
-						if  resp.status_code != requests.codes.ok:
-							self.failedControllerLoginCount += 1 
-							self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found,  or status_code:{} not in >>{}<<\n  error: >>{}<<\n".format(self.failedControllerLoginCount , url,resp.status_code, requests.codes.ok, resp.text[0:300]) )
-							self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-login ret code not ok")
-							self.sleep(5)
-							if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
-								self.quitNOW = "restart due to failed Controller Login count  > {}".format(self.failedControllerLoginCount )
-								return []
-								
-							continue
-						if 'X-CSRF-Token' in resp.headers:
-							self.csrfToken = resp.headers['X-CSRF-Token']
-				
+								if 'X-CSRF-Token' in resp.headers:
+									self.csrfToken = resp.headers['X-CSRF-Token']
 
-						self.lastUnifiCookieRequests = time.time()
-		
+								self.lastUnifiCookieRequests = time.time()
+
+					## login failed ?		
 					if self.unifiControllerSession == "": 
-						self.executeCMDOnControllerReset(wait=False, calledFrom="executeCMDOnController-unifiControllerSession = blank")
+						self.executeCMDOnControllerReset( calledFrom="executeCMDOnController-unifiControllerSession = blank")
 						if self.decideMyLog("Protect"): self.indiLOG.log(10,"Connection: session =blank, continue ")
 						continue
 
+					## prep and then get data
 					headers = {"Accept": "application/json", "Content-Type": "application/json"}
 					if self.csrfToken != "":
 						headers['X-CSRF-Token'] = self.csrfToken
@@ -5372,8 +5389,8 @@ class Plugin(indigo.PluginBase):
 					if self.unifiCloudKeySiteName == "": continue
 					self.unifiCloudKeySiteNameGetNew = False
 
-					if self.failedControllerLoginCount  > 0:
-						self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN fixed after #{} tries ".format(self.failedControllerLoginCount ) )
+					if self.failedControllerLoginCount  > 1:
+						self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN fixed after {} tries".format(self.failedControllerLoginCount ) )
 					self.failedControllerLoginCount = 0
 				
 					if protect:
@@ -5383,18 +5400,21 @@ class Plugin(indigo.PluginBase):
 
 					if self.decideMyLog("ConnectionCMD"):	self.indiLOG.log(10,"Connection: requests:{};\nheader:{};\ndataSEND:{};\ncookies:{};\ncmdType:{}".format(url, headers, dataSEND, cookies,cmdType) )
 					if startText !="":						self.indiLOG.log(10,"Connection: requests: startText{},".format(startText) )
-					try:
-							retCode			= ""
-							respText 		= ""
-							dictRET			= ""
-							rawData			= ""
-							if raw:	
-								setStream	= True
-							else:
-								setStream	= False
-							timeused		= 0
 
-							try:
+					## get data 
+					retCode			= ""
+					respText 		= ""
+					dictRET			= ""
+					rawData			= ""
+					if raw:	
+						setStream	= True
+					else:
+						setStream	= False
+					timeused		= 0
+
+					try: # for any unknown error check around the whole thing
+
+							try: # here we actuaally get the data 
 								if	 cmdType == "put":	resp = self.unifiControllerSession.put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 								elif cmdType == "post":	resp = self.unifiControllerSession.post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 								elif cmdType == "get":	
@@ -5402,25 +5422,37 @@ class Plugin(indigo.PluginBase):
 														resp =	self.unifiControllerSession.get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 									else:
 										if protect: # get protect needs params= not json=
+											try:
 														resp =	self.unifiControllerSession.get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=self.requestTimeout, stream=setStream)
-														if setStream: 
-															rawData = resp.raw.read()
-															#self.indiLOG.log(10,"executeCMDOnController protect  url:{} params:{}; stream:{}, len(resp.raw.read):{}".format(url, dataSEND, setStream, len(rawData) ))
+											except	Exception as e:
+												if iii > 0:
+													if "{}".format(e).find("object has no attribute") > -1:
+														if maxretry-iii-1 >0:	self.indiLOG.log(30,"bad read / connect to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
+														else:					self.indiLOG.log(30,"bad read / connect to {:55s}  giving up after {} tries".format(url, maxretry))
+												if iii > 1: self.executeCMDOnControllerReset( calledFrom="executeCMDOnController-iii > 1")
+												continue
+											if setStream: 
+												rawData = resp.raw.read()
+												#self.indiLOG.log(10,"executeCMDOnController protect  url:{} params:{}; stream:{}, len(resp.raw.read):{}".format(url, dataSEND, setStream, len(rawData) ))
 										else:
-														resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
+											resp =	self.unifiControllerSession.get(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 
 								elif cmdType == "patch":resp = self.unifiControllerSession.patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
 								else:					resp = self.unifiControllerSession.put(url,   	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=self.requestTimeout, stream=setStream)
+								## got something
 								
 							except	Exception as e:
-								if "{}".format(e).find("timed out") > -1:
-									self.indiLOG.log(40," read timed out to {}".format(url))
+								if f"{e}".find("timed out") > -1 or f"{e}".find("Connection refused") > -1:
+									if iii > 1:
+										if maxretry-iii-1 > 0:	self.indiLOG.log(30,"read timed out to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
+										else:					self.indiLOG.log(30,"read timed out to {:55s}  giving up after {} tries".format(url, maxretry))
+									if iii > 1: self.executeCMDOnControllerReset( calledFrom="executeCMDOnController-iii > 1")
 									continue
 				
-								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+								if "{}".format(e).find("None") == -1: self.indiLOG.log(30,f"error at get/put..: {e}, for url:{url}, dataSEND:{dataSEND}")
 								continue
 
-							try:
+							try:  ## now lets see what we got
 								retCode		= copy.copy(resp.status_code )
 								respText 	= copy.copy(resp.text)
 								retStatus	= resp.status_code
@@ -5429,7 +5461,6 @@ class Plugin(indigo.PluginBase):
 								if self.decideMyLog("ConnectionRET"):	
 									self.indiLOG.log(10,"executeCMDOnController retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}\n>>>{}<<<".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url, respText))
 								headers 	= copy.copy(resp.headers)
-
 								if not raw:
 									dictRET	= json.loads(respText)
 
@@ -5442,7 +5473,7 @@ class Plugin(indigo.PluginBase):
 										self.indiLOG.log(30,"", exc_info=True)
 										self.indiLOG.log(20,"executeCMDOnController has error, retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, len(respText), self.unifiControllerOS, cmdType, url))
 										self.printHttpError(errText, respText)
-								self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-exception after json/decode ..")
+								self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-exception after json/decode ..")
 								try: resp.close()
 								except: pass
 								continue
@@ -5451,16 +5482,25 @@ class Plugin(indigo.PluginBase):
 								if retCode != requests.codes.ok:
 									if iii == 1 and (not ignore40x or "{}".format(retCode).find("40") !=0):
 										self.indiLOG.log(40,"error:>> url:{}, resp code:{}".format(url, retCode))
-									if (not ignore40x or "{}".format(retCode).find("40") !=0): self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-retcode not ok")
+									if (not ignore40x or "{}".format(retCode).find("40") !=0): self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-retcode not ok")
 									continue
 							else:
+								if "meta" not in dictRET:
+									if maxretry-iii-1 >0:	self.indiLOG.log(30,"bad connect to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
+									else:					self.indiLOG.log(30,"bad connect to {:55s}  giving up after {} tries".format(url, maxretry))
+									if iii > 1: self.executeCMDOnControllerReset( calledFrom="executeCMDOnController-iii > 1")
+									continue
+
 								if dictRET["meta"]["rc"] != "ok":
 									if iii == 1 and (not ignore40x or "{}".format(retCode).find("40") !=0):
 										self.indiLOG.log(40,"error:>> url:{}, resp:{}".format(url, respText[0:100]))
-									if  (not ignore40x or "{}".format(retCode).find("40") !=0): self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-dict ret not ok")
+									if  (not ignore40x or "{}".format(retCode).find("40") !=0): self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-dict ret not ok")
 									continue
 
 							self.lastUnifiCookieRequests = time.time()
+
+							if iii > 1:
+								self.indiLOG.log(30,"error conenct to {:55s}  fixed after {}. try".format(url, iii+1))
 
 							if 'X-CSRF-Token' in headers:
 								self.csrfToken = headers['X-CSRF-Token']
@@ -5478,14 +5518,14 @@ class Plugin(indigo.PluginBase):
 						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 				## we get here when not successful
-				self.executeCMDOnControllerReset(wait=True, calledFrom="executeCMDOnController-end-error")
+				self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-end-error")
 
 			return []
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-		self.executeCMDOnControllerReset(wait=False, calledFrom="executeCMDOnController-exception")
+		self.executeCMDOnControllerReset( calledFrom="executeCMDOnController-exception")
 		return []
 
 
@@ -6251,7 +6291,7 @@ class Plugin(indigo.PluginBase):
 						if self.unifiControllerType.find("UDM") > -1 and ll == self.numberForUDM["SW"]: continue
 						ipn = self.ipNumbersOf["SW"][ll]
 						if self.decideMyLog("Logic"): self.indiLOG.log(10,"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
-	 					#					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
+						#					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
 	 					#					 self.trSWLog["{}".format(ll)].start()
 						waitBeforeStart += addtoWait
 						self.trSWDict["{}".format(ll)] = threading.Thread(name='getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, "SWdict",waitBeforeStart,))
@@ -8416,6 +8456,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def readFromUnifiDevice(self, goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, lastLine, newDataStartTime):
 		try:
+			lfs = ""
 			try:
 				if ListenProcessFileHandle == "": 
 					self.indiLOG.log(20,"readFromUnifiDevice: read handle not defined for {}-{}, sleeping 15 secs ".format(uType, ipNumber))
@@ -8426,7 +8467,6 @@ class Plugin(indigo.PluginBase):
 					return goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime
 
 				newlinesFromServer = ""
-				lfs = ""
 				lfs = os.read(ListenProcessFileHandle.stdout.fileno(),self.readBuffer).decode("utf8") 
 				newlinesFromServer = "{}".format(lfs) 
 				if newlinesFromServer != "":
@@ -9386,7 +9426,12 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectEvents: check :{}".format(checkIds))
 			for evID in checkIds:
 				cameraId 	= checkIds[evID]
-				protectEV 	= self.PROTECT[cameraId]["events"][evID]
+				if evID 				not in self.PROTECT[cameraId]["events"]: 		continue
+				if "eventType" 			not in self.PROTECT[cameraId]["events"][evID]: 	continue
+				if "rawEvent" 			not in self.PROTECT[cameraId]["events"][evID]: 	continue
+				if "thumbnailCopied" 	not in self.PROTECT[cameraId]["events"][evID]: 	continue
+
+				protectEV 	= self.PROTECT[cameraId]["events"].get(evID,{})
 				smartDetect	= ""
 				dev 		= ""
 				eventJpeg	= ""
@@ -12478,33 +12523,51 @@ class Plugin(indigo.PluginBase):
 
 					for port in portTable:
 
+						rxRate = "0"
+						txRate = "0"
+
 						if "port_idx" not in port: continue
 						ID = port["port_idx"]
 						idS = "{:02d}".format(ID) # state name
 
-						if "{}".format(ID) not in self.MAC2INDIGO[xType][MAC]["ports"]:
+						if f"{ID}" not in self.MAC2INDIGO[xType][MAC]["ports"]:
 							self.MAC2INDIGO[xType][MAC]["ports"]["{}".format(ID)] = {"rxLast": 0, "txLast": 0, "timeLast": 0,"poe":"","fullDuplex":"","link":"","nClients":0}
-						portsMAC = self.MAC2INDIGO[xType][MAC]["ports"]["{}".format(ID)]
-						if portsMAC["timeLast"] != 0. and "tx_bytes" in port:
+						portsMAC = self.MAC2INDIGO[xType][MAC]["ports"][f"{ID}"]
+						if portsMAC["timeLast"] != 0. and "tx_bytes" in port and "rx_bytes" in port:
 							try:
 								dt = max(5, time.time() - portsMAC["timeLast"]) * 1000
-								rxRate = "{:.1f}".format( (port["tx_bytes"] - portsMAC["txLast"]) / dt + 0.5)
-								txRate = "{:.1f}".format( (port["rx_bytes"] - portsMAC["rxLast"]) / dt + 0.5)
+								txLast = portsMAC.get("txLast", 0)
+								if txLast == "": txLast = 0
+								rxLast = portsMAC.get("rxLast", 0)
+								if rxLast == "": rxLast = 0
+
+								tx_bytes = portsMAC.get("tx_bytes", 0)
+								if tx_bytes == "": tx_bytes = 0
+								rx_bytes = portsMAC.get("rx_bytes", 0)
+								if rx_bytes == "": rx_bytes = 0
+
+								txRate = "{:.1f}".format( (tx_bytes - txLast) / dt + 0.5)
+								rxRate = "{:.1f}".format( (rx_bytes - rxLast) / dt + 0.5)
+
 							except	Exception as e:
-								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+								if "{}".format(e).find("None") == -1: 
+									self.indiLOG.log(40,"", exc_info=True)
+									self.indiLOG.log(30,f" switch ip:{ipNDevice},  port:{port}, portsMAC:{portsMAC}")
+								continue
 							try:
-								errors = "{}".format(port["tx_dropped"] + port["tx_errors"] + port["rx_errors"] + port["rx_dropped"])
+								errors = "{}".format(port.get("tx_dropped",0) + port.get("tx_errors",0) + port.get("rx_errors",0) + port.get("rx_dropped",0) )
 							except:
 								errors = "?"
 							if port["full_duplex"]:
 								fullDuplex = "FD"
 							else:
 								fullDuplex = "HD"
-							portsMAC["fullDuplex"] = fullDuplex+"-" + ("{}".format(port["speed"]))
+							portsMAC["fullDuplex"] = "{}-{}".format( fullDuplex, port.get("speed") )
 
 							nDevices = 0
 							if "mac_table" in port:
 								nDevices = len(port["mac_table"])
+
 							portsMAC["nClients"] = nDevices
 							ppp = "#C: {:02d}" .format(nDevices) # of clients
 

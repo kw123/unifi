@@ -1,3 +1,17 @@
+changes in V2022.43.397@ 2024-01-13
+==================  
+-	in case of http error, the plugin does not print a large dump anymore, but it will
+     = check if timeout, retry 2 more times, if sucessful, a warning will occur .. fixed after xx tries
+     = if not sucessfult it will try 30 more times (after some minutes) and if not sucesfull the plugin will reload eg when the unifi device is down, or you load a new software
+
+
+
+
+changes in V2022.42.397@ 2023-12-25
+==================  
+-	added check and logging when connection to controller does not work properly
+
+
 changes in V2022.42.396@ 2023-12-15
 ==================  
 -	added option to select a differetnt way to set POE on/off switches. Some newer switch devices only support a unix command swctrl
