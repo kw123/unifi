@@ -685,6 +685,18 @@ Then disable listener process
 			</List>
 	</Field>
 
+	<Field id="protectIP" type="textfield"  defaultValue="192.168.1.xx" visibleBindingId="CAMON" visibleBindingValue="true"> 
+		<Label>ip number of protect recorder...                                   :</Label>  
+	</Field>
+
+	<Field id="createNameNone" type="menu"  defaultValue="true" visibleBindingId="CAMON" visibleBindingValue="true"> 
+		<Label>create camera devices with name eq None...                                                            :</Label>  
+			<List>
+			<Option value="no"  >no</Option>
+			<Option value="yes" >yes</Option>
+			</List>
+	</Field>
+
 	<Field id="protecEventSleepTime"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
 		<Label>..query system for new events every:</Label>  
 			<List>

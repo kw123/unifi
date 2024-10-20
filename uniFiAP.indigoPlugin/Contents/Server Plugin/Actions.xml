@@ -283,6 +283,58 @@
         </ConfigUI>
     </Action>
 
+
+    <Action id="CAMERAgeneralProtect">
+        <Name>CAMERAS general command</Name>
+        <CallbackMethod>buttonSendCommandToProtectgeneralCALLBACKaction</CallbackMethod>        
+        <ConfigUI>
+            <Field id="cameraDeviceSelected" type="menu" defaultValue="" >
+                <Label>select camera device:</Label>
+                <List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
+            </Field>
+
+			<Field	   id="method" type="menu" defaultValue="post"  >
+				<List>
+					<Option value="get"			> get</Option>
+					<Option value="put"			> put</Option>
+					<Option value="post"		> post</Option>
+					<Option value="patch"		> patch</Option>
+				</List>
+				<Label>method:</Label>
+			</Field>
+
+			<Field	   id="api" type="textfield" defaultValue="cameras"  >
+				<Label>api URL string eg cameras:</Label>
+			</Field>
+
+			<Field	   id="endpoint" type="textfield" defaultValue=""  >
+				<Label>url endpoint:</Label>
+			</Field>
+
+			<Field	   id="json" type="textfield" defaultValue="{}"  >
+				<Label>enter json string (use true not True):</Label>
+			</Field>
+
+			<Field	   id="debug" type="menu" defaultValue="1"  >
+				<List>
+					<Option value="1" > on</Option>
+					<Option value="0" > off</Option>
+				</List>
+				<Label>debug (show detaild logging in plugin.log):</Label>
+			</Field>
+
+			<Field	   id="repeatIfFailed" type="menu" defaultValue="1"  >
+				<List>
+					<Option value="1" > on</Option>
+					<Option value="0" > off</Option>
+				</List>
+				<Label>if bad connect, retry connect:</Label>
+			</Field>
+
+        </ConfigUI>
+    </Action>
+
+
     <Action id="powerCyclePort">
         <Name>POWER  cycle a port on a UniFi switch</Name>
         <CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        

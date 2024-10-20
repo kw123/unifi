@@ -1,3 +1,30 @@
+changes in V2022.46.408@ 2024-10-16
+==================  
+-   adding option to have protect recording and controller in 2 different devices
+    in config set enable split controller and protect
+              then set the 2 ipnumbers for the 2 devices
+- added  general action for camera. can do any action in script.
+
+
+changes in V2022.45.405@ 2024-10-10
+==================  
+-   added test menu for camera commands (for development)
+-   added zoom option for cameras in menu and actions
+
+changes in V2022.44.405@ 2024-10-10
+==================  
+-   added error logging for camera section
+-   added check for name is none in cameras, added option in config to create / not create these devices 
+-   added state "created" for camera devices 
+-   added 3 secs for time window for event detetction 
+-   added menu item to zoom/ move camera, experimental 
+
+
+changes in V2022.43.399@ 2024-01-22
+==================  
+-   if not logged in due to eg expiration, better logging 
+-   suppress "fixed after xx" try for protect thumbnail http-gets. this can take longer depending on how long an event takes
+
 changes in V2022.43.397@ 2024-01-13
 ==================  
 -	in case of http error, the plugin does not print a large dump anymore, but it will

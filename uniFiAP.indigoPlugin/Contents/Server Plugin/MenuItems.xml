@@ -781,6 +781,30 @@ it will make the plugin restart </Label>
 			</Field>
 
 
+			<Field id="simpleSeparatorZOOM" type="separator"/>
+
+			<Field id="zoomLabel" type="label" >
+				  <Label>        === Set zoom  and digital positions of camera </Label>
+			</Field>
+
+
+             <Field     id="zoomPosition" type="textfield" defaultValue="-1" >
+                <Label>zoomPosition 1-99 (-1=do not change):</Label>
+           </Field>
+
+            <Field     id="dZoomCenterX" type="textfield" defaultValue="-1" >
+                <Label>digital ZoomCenter X 1-99 (-1=do not change):</Label>
+           </Field>
+
+            <Field     id="dZoomCenterY" type="textfield" defaultValue="-1" >
+                <Label>digital ZoomCenter Y 1-99 (-1=do not change):</Label>
+           </Field>
+
+			<Field	  id="setZoomProtect" type="button" tooltip="" >
+				<Label>--- Click to </Label><Title>Set Zoom </Title><CallbackMethod>buttonSendCommandToProtectsetzoomCALLBACK</CallbackMethod>
+			</Field>
+
+
 
 			<Field id="simpleSeparator30" type="separator"/>
 
@@ -792,6 +816,95 @@ it will make the plugin restart </Label>
 
 		</ConfigUI>
 	</MenuItem>
+
+
+	<MenuItem id="CameraActionsProtectTest">
+		<Name>CAMERA - protect send test commands..</Name>
+		<ConfigUI>
+
+			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras </Label></Field>
+
+			<Field	  id="MSG" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
+			<Field id="simpleSeparatormsg" type="separator"/>
+
+			<Field	   id="cameraDeviceSelected" type="menu" defaultValue="" >
+				<Label>1. Select     ==========>        camera device:</Label>
+				<List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
+			</Field>
+			<Field	  id="camerasep" type="Label" > <Label>.      --------------------------------------------------  .</Label>	 </Field>
+
+			<Field	  id="cameraProtectCmdxlabel" type="Label" > <Label>2. Action === </Label>	 </Field>
+			<Field id="simpleSeparatorACTIONS" type="separator"/>
+
+
+			<Field	   id="method" type="menu" defaultValue="post"  >
+				<List>
+					<Option value="get"			> get</Option>
+					<Option value="put"			> put</Option>
+					<Option value="post"		> post</Option>
+					<Option value="patch"		> patch</Option>
+				</List>
+				<Label>method:</Label>
+			</Field>
+
+			<Field	   id="api" type="textfield" defaultValue="cameras"  >
+				<Label>api URL string eg api/cameras:</Label>
+			</Field>
+
+			<Field	   id="endpoint" type="textfield" defaultValue=""  >
+				<Label>url endpoint:</Label>
+			</Field>
+			<Field id="endpointLabel" type="textfield" fontSize="small" defaultValue="eg move, ptz/goto/x, empty"  readonly="true"> <Label></Label></Field>
+
+			<Field	   id="json" type="textfield" defaultValue="{}"  >
+				<Label>enter json string (use true not True):</Label>
+			</Field>
+
+			<Field id="jsonpointLabel0" type="label" fontSize="small" defaultValue=""> 
+				<Label>Json examples:</Label></Field>
+			<Field id="jsonpointLabel1" type="textfield" fontSize="small" defaultValue="{'type':'zoom','payload':{'zoomPos':1234,'zoomSpeed':5}}" readonly="true"> 
+				<Label>zoom: endpoint=move, method=post, URL=api/camera</Label></Field>
+
+			<Field id="jsonpointLabel2" type="textfield" fontSize="small" defaultValue="{'type':'center','payload':{'x':1234,'y':3434,'z':400}}" readonly="true"> 
+				<Label>pos: endpoint=move, method=post, URL=api/camera:</Label></Field>
+
+			<Field id="jsonpointLabel3" type="textfield" fontSize="small" defaultValue="{'type':'relative','payload':{'panPos':10000,'tiltPos':500,'panSpeed':5,'tiltSpeed':5,'scale':5}}" readonly="true"> 
+				<Label>relative: endpoint=move, method=post, URL=api/camera</Label></Field>
+
+			<Field id="jsonpointLabel4" type="textfield" fontSize="small" defaultValue="{}" readonly="true"> 
+				<Label>pred. pos: endpoint=ptz/goto/5, method=post, URL=api/camera</Label></Field>
+
+			<Field id="jsonpointLabel10" type="textfield" fontSize="small" defaultValue="{'ledSettings':{'blinkRate': 0,'isEnabled':true}}" readonly="true"> 
+				<Label>LEDenable: endpoint=empty, method=push, URL=camera</Label></Field>
+
+			<Field id="jsonpointLabel11" type="textfield" fontSize="small" defaultValue="{'ispSettings':{'zoomPosition': 50, 'dZoomCenterX':50, 'dZoomCenterY':50}}" readonly="true"> 
+				<Label>set zoom: endpoint=empty, method=push, URL=camera</Label></Field>
+
+			<Field	  id="jsonLabels" type="Label" > <Label>see logfile for examples</Label>	 </Field>
+
+			<Field	   id="debug" type="menu" defaultValue="1"  >
+				<List>
+					<Option value="1"			> on</Option>
+					<Option value="0"			> off</Option>
+				</List>
+				<Label>debug (show detaild logging in plugin.log):</Label>
+			</Field>
+
+			<Field	   id="repeatIfFailed" type="menu" defaultValue="0"  >
+				<List>
+					<Option value="1"			> on</Option>
+					<Option value="0"			> off</Option>
+				</List>
+				<Label>if bad connect, retry connect::</Label>
+			</Field>
+
+			<Field	  id="sendTestToProtect" type="button" tooltip=""  >
+				<Label>--- Click to </Label><Title>SEND CMD</Title><CallbackMethod>buttonSendCommandToProtectTestCALLBACK</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
 
 
 	<MenuItem id="dActions"> <Name>-------------Actions	 ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>

@@ -543,6 +543,24 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>micVolume</ControlPageLabel>
 			</State>
 
+			<State id="zoomPosition">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>zoomPosition</TriggerLabel>
+					<ControlPageLabel>zoomPosition</ControlPageLabel>
+			</State>
+
+			<State id="dZoomCenterX">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>dZoomCenterX</TriggerLabel>
+					<ControlPageLabel>dZoomCenterX</ControlPageLabel>
+			</State>
+
+			<State id="dZoomCenterY">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>dZoomCenterY</TriggerLabel>
+					<ControlPageLabel>dZoomCenterY</ControlPageLabel>
+			</State>
+
 			<State id="hasSpeaker">
 					<ValueType>Boolean</ValueType>
 					<TriggerLabel>hasSpeaker</TriggerLabel>
@@ -643,6 +661,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ValueType>String</ValueType>
 					<TriggerLabel>displayStatus</TriggerLabel>
 					<ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+					<ValueType>String</ValueType>
+					<TriggerLabel>created</TriggerLabel>
+					<ControlPageLabel>created</ControlPageLabel>
 			</State>
 
 
