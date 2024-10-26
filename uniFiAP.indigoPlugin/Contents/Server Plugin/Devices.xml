@@ -167,13 +167,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 
 			<Field id="unifi-sep-04" type="separator"/>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
@@ -814,13 +807,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -1056,49 +1042,34 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 	</Device>
 
 
-	<Device type="sensor" id="NVR">
-		<Name>NVR-video</Name>
+	<Device type="sensor" id="system_protect">
+		<Name>Protect system</Name>
 		<UiDisplayStateId>displayStatus</UiDisplayStateId>
 		<ConfigUI>
-			<Field id="isNVR"	  type="checkbox"	  defaultValue="true" hidden="yes"> </Field>
+			<Field id="isSystemDev"	  type="checkbox"	  defaultValue="true" hidden="yes"> </Field>
 
 				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
 				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
 				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
 				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
 				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
-			   <Field	 id="expirationTime"	   type="menu"	defaultValue="90"
-						  tooltip=" overwrites common expiration time set in config ">
-					<Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
-					<List>
-						<Option value="1"	 > 1  seconds (for testing)</Option>
-						<Option value="10"	 >10  seconds (for testing)</Option>
-						<Option value="20"	 >20  seconds (for testing)</Option>
-						<Option value="30"	 >30  seconds </Option>
-						<Option value="40"	 >40  seconds </Option>
-						<Option value="60"	 >60  seconds </Option>
-						<Option value="90"	 >90  seconds (default)</Option>
-						<Option value="120"	 > 2  minutes</Option>
-						<Option value="180"	 > 3  minutes</Option>
-						<Option value="240"	 > 4  minutes</Option>
-						<Option value="300"	 > 5  minutes</Option>
-						<Option value="360"	 > 6  minutes</Option>
-						<Option value="420"	 > 7  minutes</Option>
-						<Option value="490"	 > 8  minutes</Option>
-						<Option value="540"	 > 9  minutes</Option>
-						<Option value="600"	 >10  minutes</Option>
-						<Option value="-1"	 >use common expiration time</Option>
-					</List>
-				</Field>
-			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
+			<Field id="lab0" type="label"	>	<Label>config for Protect system, can be the same as the controller:</Label>	 </Field>
+
+			<Field	 id="cameraSystem"	 type="menu"  defaultValue="protect"  >
+				<Label>enable camera system:</Label>
 				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
+					<Option value="off"  >off </Option>
+					<Option value="protect" >protect on </Option>
 				</List>
 			</Field>
+
+			<Field id="protectIP"		type="textfield"	 defaultValue="192.168.1.xx"	>	<Label>IP number of protect system:</Label>	 </Field>
+			<Field id="protectPORT" 	type="textfield"	 defaultValue="443" 			>	<Label>Port number of protect system:</Label>	 </Field>
+			<Field id="protectUserId" 	type="textfield"	 defaultValue="" 				>	<Label>Userid  of protect system:</Label>	 </Field>
+			<Field id="protectPassword"	type="textfield"	 defaultValue="" 				>	<Label>Password of protect system:</Label>	 </Field>
+			<Field id="unifi-sep-03"	type="separator"/>
+
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -1133,46 +1104,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>groupMember</TriggerLabel>
 					<ControlPageLabel>groupMember</ControlPageLabel>
 			</State>
-			<State id="cpuLoad">
-					<ValueType>String</ValueType>
-					<TriggerLabel>cpu</TriggerLabel>
-					<ControlPageLabel>cpu</ControlPageLabel>
-			</State>
-			<State id="dirName">
-					<ValueType>String</ValueType>
-					<TriggerLabel>dirName</TriggerLabel>
-					<ControlPageLabel>dirName</ControlPageLabel>
-			</State>
-			<State id="memoryUsed">
-					<ValueType>String</ValueType>
-					<TriggerLabel>memoryUsed</TriggerLabel>
-					<ControlPageLabel>memoryUsed</ControlPageLabel>
-			</State>
-			<State id="diskAvail">
-					<ValueType>String</ValueType>
-					<TriggerLabel>diskAvail</TriggerLabel>
-					<ControlPageLabel>diskAvail</ControlPageLabel>
-			</State>
-			<State id="diskUsed">
-					<ValueType>String</ValueType>
-					<TriggerLabel>diskUsed</TriggerLabel>
-					<ControlPageLabel>diskUsed</ControlPageLabel>
-			</State>
-			<State id="rtspPort">
-					<ValueType>String</ValueType>
-					<TriggerLabel>rtspPort</TriggerLabel>
-					<ControlPageLabel>rtspPort</ControlPageLabel>
-			</State>
-			<State id="rtmpsPort">
-					<ValueType>String</ValueType>
-					<TriggerLabel>rtmpsPort</TriggerLabel>
-					<ControlPageLabel>rtmpsPort</ControlPageLabel>
-			</State>
-			<State id="rtmpPort">
-					<ValueType>String</ValueType>
-					<TriggerLabel>rtmpPort</TriggerLabel>
-					<ControlPageLabel>rtmpPort</ControlPageLabel>
-			</State>
+
 			<State id="ipNumber">
 					<ValueType>String</ValueType>
 					<TriggerLabel>ipNumber</TriggerLabel>
@@ -1188,15 +1120,200 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>MAC</TriggerLabel>
 					<ControlPageLabel>MAC</ControlPageLabel>
 			</State>
-			<State id="apiKey">
+			<State id="created">
 					<ValueType>String</ValueType>
-					<TriggerLabel>apiKey</TriggerLabel>
-					<ControlPageLabel>apiKey</ControlPageLabel>
+					<TriggerLabel>created</TriggerLabel>
+					<ControlPageLabel>created</ControlPageLabel>
 			</State>
-			<State id="apiAccess">
-					<ValueType>Boolean</ValueType>
-					<TriggerLabel>apiAccess</TriggerLabel>
-					<ControlPageLabel>apiAccess</ControlPageLabel>
+			<State id="upSince">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upSince</TriggerLabel>
+					<ControlPageLabel>upSince</ControlPageLabel>
+			</State>
+			<State id="disk_total">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_total</TriggerLabel>
+					<ControlPageLabel>disk_total</ControlPageLabel>
+			</State>
+			<State id="disk_used">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_used</TriggerLabel>
+					<ControlPageLabel>disk_used</ControlPageLabel>
+			</State>
+			<State id="disk_free">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_free</TriggerLabel>
+					<ControlPageLabel>disk_free</ControlPageLabel>
+			</State>
+			<State id="memory_total">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_total</TriggerLabel>
+					<ControlPageLabel>memory_total</ControlPageLabel>
+			</State>
+			<State id="memory_used">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_used</TriggerLabel>
+					<ControlPageLabel>memory_used</ControlPageLabel>
+			</State>
+			<State id="memory_free">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_free</TriggerLabel>
+					<ControlPageLabel>memory_free</ControlPageLabel>
+			</State>
+			<State id="numberOfCameras">
+					<ValueType>Number</ValueType>
+					<TriggerLabel>numberOfCameras</TriggerLabel>
+					<ControlPageLabel>numberOfCameras</ControlPageLabel>
+			</State>
+			<State id="lastCameraEvent">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastCameraEvent</TriggerLabel>
+					<ControlPageLabel>lastCameraEvent</ControlPageLabel>
+			</State>
+			<State id="cpu_temp">
+					<ValueType>String</ValueType>
+					<TriggerLabel>cpu_temp</TriggerLabel>
+					<ControlPageLabel>cpu_temp</ControlPageLabel>
+			</State>
+			<State id="cpu_load">
+					<ValueType>String</ValueType>
+					<TriggerLabel>cpu_load</TriggerLabel>
+					<ControlPageLabel>cpu_load</ControlPageLabel>
+			</State>
+
+
+		</States>
+	</Device>
+
+
+	<Device type="sensor" id="system_controller">
+		<Name>Controller system</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isSystemDev"	  type="checkbox"	  defaultValue="true" hidden="yes"> </Field>
+
+				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
+				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
+
+			<Field id="lab0" type="label"	>	<Label>config for controller system, can be the same as Protect:</Label>	 </Field>
+
+
+			<Field id="unifiControllerType" type="menu"	 defaultValue="std" readOnly = "no">	
+				<Label>.. controller Type:</Label> 
+				<List>
+					<Option value="std"   	>cloud key, combined systems like UCG max</Option>
+					<Option value="UDM"     >UDM 	</Option>
+					<Option value="UDMPro"  >UDM-pro </Option>
+					<Option value="hosted"  >hosted eg MAC, rPi, .. (will set port to 8443, site name to default)</Option>
+					<Option value="off"   	>off</Option>
+				</List>
+			</Field>
+
+			<Field id="unifiCloudKeyIP" type="textfield"	 defaultValue="192.168.1.xx" readOnly = "no">	<Label>IP number of system:</Label>	 </Field>
+
+			<Field id="unifiCONTROLLERUserID"      type="textfield" >
+				<Label>http:  web UserID for CONTROLLER/UDM:</Label>
+			</Field>
+		
+			<Field id="unifiCONTROLLERPassWd"   	type="textfield"  >
+				<Label>...  password:</Label>
+			</Field>
+
+		
+			<Field id="unifiCloudKeySiteName" 	type="textfield" default="default"	    visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+				<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/, leave empty for default:</Label>  
+			</Field>
+		
+		   <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+				<Label>in most cases do not touch this, it will auto adapt</Label>  
+			</Field>
+		
+			<Field id="overWriteControllerPort" 	type="textfield" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+				<Label>.. controller port #, leave empty for auto detect</Label>  
+			</Field>
+		   <Field id="overWriteControllerPortLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+				<Label>use this option only if port # is not 8443 or 443 or if you have another system that uses one of these ports</Label>  
+			</Field>
+			<Field id="unifControllerCheckPortNumber" 	type="menu" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+				<Label>..  check controller port Number</Label>  
+				<List>
+					<Option value="1"  >check if port is ok</Option>
+					<Option value="0"  >do not check if port number is ok</Option>
+				</List>
+			</Field>
+		   <Field id="unifControllerCheckPortNumberLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+				<Label>set to off and port to 443 if controller v &gt;= 6.5.55 and you have connection problems</Label>  
+			</Field>
+			<Field id="useStrictToLogin" type="checkbox"	 defaultValue="False" readOnly = "no">	<Label>.. Use strict:true:</Label>	 </Field>
+
+			<Field id="infoLabel217" 				type="label" fontColor="green"> 
+				<Label>== Controller info (for web / http controller commands):  </Label>  
+			</Field>
+		
+			<Field id="unifiCloudKeyMode"  		type="menu" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro,std,hosted"  > 
+				<Label>.. use controler info:</Label> 
+				<List>
+					<Option value="ONreportsOnly"  >only manual reports</Option>
+					<Option value="ON"             >ON  = all functions</Option>
+					<Option value="UDM"            >UDM mode for WiFi, no reports (included in ON)</Option>
+					<Option value="off"            >off </Option>
+				</List>
+			</Field>
+
+			<Field id="unifi-sep-03" type="separator"/>
+
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+		</ConfigUI>
+
+		<States>
+			<State id="status">
+					<ValueType>String</ValueType>
+					<TriggerLabel>status</TriggerLabel>
+					<ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+					<ValueType>String</ValueType>
+					<TriggerLabel>displayStatus</TriggerLabel>
+					<ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="groupMember">
+					<ValueType>String</ValueType>
+					<TriggerLabel>groupMember</TriggerLabel>
+					<ControlPageLabel>groupMember</ControlPageLabel>
+			</State>
+
+			<State id="ipNumber">
+					<ValueType>String</ValueType>
+					<TriggerLabel>ipNumber</TriggerLabel>
+					<ControlPageLabel>ipNumber</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastStatusChange</TriggerLabel>
+					<ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="MAC">
+					<ValueType>String</ValueType>
+					<TriggerLabel>MAC</TriggerLabel>
+					<ControlPageLabel>MAC</ControlPageLabel>
 			</State>
 			<State id="created">
 					<ValueType>String</ValueType>
@@ -1207,6 +1324,46 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ValueType>String</ValueType>
 					<TriggerLabel>upSince</TriggerLabel>
 					<ControlPageLabel>upSince</ControlPageLabel>
+			</State>
+			<State id="disk_total">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_total</TriggerLabel>
+					<ControlPageLabel>disk_total</ControlPageLabel>
+			</State>
+			<State id="disk_used">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_used</TriggerLabel>
+					<ControlPageLabel>disk_used</ControlPageLabel>
+			</State>
+			<State id="disk_free">
+					<ValueType>String</ValueType>
+					<TriggerLabel>disk_free</TriggerLabel>
+					<ControlPageLabel>disk_free</ControlPageLabel>
+			</State>
+			<State id="memory_total">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_total</TriggerLabel>
+					<ControlPageLabel>memory_total</ControlPageLabel>
+			</State>
+			<State id="memory_used">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_used</TriggerLabel>
+					<ControlPageLabel>memory_used</ControlPageLabel>
+			</State>
+			<State id="memory_free">
+					<ValueType>String</ValueType>
+					<TriggerLabel>memory_free</TriggerLabel>
+					<ControlPageLabel>memory_free</ControlPageLabel>
+			</State>
+			<State id="cpu_temp">
+					<ValueType>String</ValueType>
+					<TriggerLabel>cpu_temp</TriggerLabel>
+					<ControlPageLabel>cpu_temp</ControlPageLabel>
+			</State>
+			<State id="cpu_load">
+					<ValueType>String</ValueType>
+					<TriggerLabel>cpu_load</TriggerLabel>
+					<ControlPageLabel>cpu_load</ControlPageLabel>
 			</State>
 
 
@@ -1251,13 +1408,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -1711,13 +1861,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -2024,13 +2167,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -2287,13 +2423,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -2540,13 +2669,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -2784,13 +2906,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -3013,13 +3128,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -3233,13 +3341,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -3449,13 +3550,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -3648,13 +3742,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -3843,13 +3930,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -4033,13 +4113,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -4219,13 +4292,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
@@ -4403,13 +4469,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				</Field>
 			<Field id="unifi-sep-03" type="separator"/>
 
-			<Field	 id="enableBroadCastEvents"	 type="menu"  defaultValue="0" tooltip=" this will enable plugin-plugin bc of status changes ie to EVENTS plugin" >
-				<Label>:send broadcasts to other plugins for status up/x changes</Label>
-				<List>
-					<Option value="0" >NO </Option>
-					<Option value="1" >YES send BC, must be enabled in config  </Option>
-				</List>
-			</Field>
 			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
 			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
 			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>

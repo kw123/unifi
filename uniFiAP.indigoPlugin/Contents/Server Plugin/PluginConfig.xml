@@ -205,7 +205,7 @@ Or trigger on any change in variable ..lastChange to check if anything device fr
 	<Field id="unifiControllerType"  	type="menu"  > 
 		<Label>.. controller Type:</Label> 
 		<List>
-			<Option value="std"   	>cloud key </Option>
+			<Option value="std"   	>cloud keyloud key, combined systems like UCG max</Option>
 			<Option value="UDM"     >UDM 	</Option>
 			<Option value="UDMPro"  >UDM-pro </Option>
 			<Option value="hosted"  >hosted eg MAC, rPi, .. (will set port to 8443, site name to default)</Option>
@@ -328,12 +328,6 @@ device settings
 </Label> 
 	 </Field>
 
-
-
-
-
-
-
  
 	<Field id="unifiCloudKeyIP"       	type="textfield"  visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
 		<Label>..ipNumber of controller</Label>  
@@ -369,11 +363,6 @@ device settings
 
  
 
-
-
-
-
-
 	<Field id="unifiControllerBackupON" 	type="checkbox"  > 
   	<Label>Backup of controller files - once a day ...............................:</Label>  
 	</Field>
@@ -394,7 +383,7 @@ device settings
 	</Field>
 
 	<Field id="infoLabelbackup2a"  			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
-		<Label>- for cloudKey or:</Label>  
+		<Label> ...    or:</Label>  
 	</Field>
 
 	<Field id="infoLabelbackup3" 			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
@@ -677,7 +666,7 @@ Then disable listener process
 		<Label>Show Camera section........................................................:</Label>  
 	</Field>
 
-	<Field id="cameraSystem" type="menu"  defaultValue="true" visibleBindingId="CAMON" visibleBindingValue="true"> 
+	<Field id="cameraSystem" type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
 		<Label>System type...                                                            :</Label>  
 			<List>
 			<Option value="off"     >off</Option>
@@ -685,11 +674,24 @@ Then disable listener process
 			</List>
 	</Field>
 
-	<Field id="protectIP" type="textfield"  defaultValue="192.168.1.xx" visibleBindingId="CAMON" visibleBindingValue="true"> 
+
+	<Field id="protectUserId" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
+		<Label>protect userid (http)...                                   :</Label>  
+	</Field>
+
+	<Field id="protectPassword" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
+		<Label>protect password (http)...                                   :</Label>  
+	</Field>
+
+	<Field id="protectIP" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
 		<Label>ip number of protect recorder...                                   :</Label>  
 	</Field>
 
-	<Field id="createNameNone" type="menu"  defaultValue="true" visibleBindingId="CAMON" visibleBindingValue="true"> 
+	<Field id="protectPORT" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
+		<Label>... port Number                                   :</Label>  
+	</Field>
+
+	<Field id="createNameNone" type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
 		<Label>create camera devices with name eq None...                                                            :</Label>  
 			<List>
 			<Option value="no"  >no</Option>
@@ -700,12 +702,12 @@ Then disable listener process
 	<Field id="protecEventSleepTime"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
 		<Label>..query system for new events every:</Label>  
 			<List>
-			<Option value="0.2" >0.2 seconds</Option>
-			<Option value="0.5" >0.5 seconds</Option>
-			<Option value="1"   >1 seconds</Option>
-			<Option value="2"   >2 seconds default</Option>
-			<Option value="3"   >3 seconds</Option>
-			<Option value="4"   >4 seconds</Option>
+			<Option value="200" >0.2 seconds</Option>
+			<Option value="500" >0.5 seconds</Option>
+			<Option value="1000">1 seconds</Option>
+			<Option value="2000">2 seconds default</Option>
+			<Option value="3000">3 seconds</Option>
+			<Option value="4000">4 seconds</Option>
 			</List>
 	</Field>
 

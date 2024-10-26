@@ -1,0 +1,26 @@
+set userID [lindex $argv 0 ] 
+set password [lindex $argv 1 ] 
+set ipNumber [lindex $argv 2 ] 
+set endToken [lindex $argv 3 ]
+
+set timeout 5
+if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
+
+expect {
+    "(yes/no" {
+        send "yes\n"
+        sleep 0.1
+        expect "assword" { send "$password\n"}
+    }
+    "assword: " {
+        send "$password\n"
+    }
+}
+set timeout 1
+expect "$endToken"
+
+send "df\rfree\rubnt-systool cpuload\r\rubnt-systool cputemp\r"
+expect "$endToken"
+sleep 1
+send "exit\r"
+expect eof

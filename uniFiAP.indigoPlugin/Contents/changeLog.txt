@@ -1,15 +1,32 @@
-changes in V2022.46.408@ 2024-10-16
+changes in V2022.47.424@ 2024-10-26
 ==================  
--   adding option to have protect recording and controller in 2 different devices
-    in config set enable split controller and protect
-              then set the 2 ipnumbers for the 2 devices
-- added  general action for camera. can do any action in script.
+-   added devices for system controller an system protect (they can be the same but will show as 2)
+    the relevant properties (like in config) can be set here
+    important dev states are presented: disk space, memory utilization .. 
+-   added option for different userid/password and port for protect vs controller device
+    if not specified it is set as same 
+    you can set them in config and device edit for controller and protect system devices 
 
 
-changes in V2022.45.405@ 2024-10-10
+
+changes in V2022.46.422@ 2024-10-20
 ==================  
--   added test menu for camera commands (for development)
--   added zoom option for cameras in menu and actions
+-   adding option to have protect recording and controller on 2 different devices
+    in config in camera section set protect ip and port number, if not set they will inherit the controller ip and port number and hence be on the same box
+    they must be on the same os level and settings:
+    same user id, same password. protect is fixed to be on port 433 and hence controller also ahs to be on port 433.. at least for the time being.
+
+- added  action to set zoom, position (only G5+) brightness, saturation, sharpness, hue, pan tilt,... 
+
+- added  general action for camera. can do any action in script: zoom, set to predefined positions, set contrast, led on off, speak on off ,...  
+    with this you can eg drive zoom with indigo variables or dev states in a indigo server action script
+	see examples
+
+- changed protecEventSleepTime from 0.5 secs to 500mSec in puglinconfig. as 0.5 is not propery show as 0.5 but 0.4999999 and hece not displayed in config
+
+
+- removed obsolete  NVR type video functions (predecessor to protect) 
+
 
 changes in V2022.44.405@ 2024-10-10
 ==================  

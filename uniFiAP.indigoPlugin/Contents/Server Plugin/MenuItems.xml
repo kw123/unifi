@@ -527,10 +527,24 @@ it will make the plugin restart </Label>
 				<Label>1. Select     ==========>        camera device:</Label>
 				<List class="self" filter="" method="filterCameraDevice"  dynamicReload="false"/>
 			</Field>
+			<Field	   id="debug" type="menu" defaultValue="1"  >
+				<List>
+					<Option value="1" > on</Option>
+					<Option value="0" > off</Option>
+				</List>
+				<Label>debug (show detaild logging in plugin.log):</Label>
+			</Field>
+
+			<Field	   id="repeatIfFailed" type="menu" defaultValue="0"  >
+				<List>
+					<Option value="1" > on</Option>
+					<Option value="0" > off</Option>
+				</List>
+				<Label>if bad connect, retry connect:</Label>
+			</Field>
 			<Field	  id="camerasep" type="Label" > <Label>.      --------------------------------------------------  .</Label>	 </Field>
 
 			<Field	  id="cameraProtectCmdxlabel" type="Label" > <Label>2. Actions === </Label>	 </Field>
-			<Field id="simpleSeparatorACTIONS" type="separator"/>
 <!--
 			<Field	   id="lcdMessage" type="textField" defaultValue="do not change"  >
 				<Label>=== lcd message if present                     set:</Label>
@@ -541,6 +555,7 @@ it will make the plugin restart </Label>
 
 			<Field id="simpleSeparatorlcd" type="separator"/>
 -->
+			<Field id="simpleSeparatorACTIONS" type="separator"/>
 
 			<Field	   id="camLEDenabled" type="menu" defaultValue="0"  >
 				<Label>=== LED                                  set ON off:</Label>
@@ -562,11 +577,13 @@ it will make the plugin restart </Label>
 			<Field	   id="motionRecordEnabledProtect" type="menu" defaultValue="motion"   >
 				<Label>=== MOTION  ...                            mode:</Label>
 				 <List>
-					<Option value="-1"				>do not change</Option>
-					<Option value="never"	 >never</Option>
-					<Option value="motion"	 >motion</Option>
-					<Option value="smartDetect"	 >smartDetect</Option>
-					<Option value="always"	 >always</Option>
+					<Option value="-1"			>do not change</Option>
+					<Option value="never"	 	>never</Option>
+					<Option value="schedule"	>schedule</Option>
+					<Option value="detections"	>detections</Option>
+					<Option value="always"	 	>always</Option>
+					<Option value="motion"	 	>motion (requires function in camera)</Option>
+					<Option value="smartDetect"	 >smartDetect (requires function in camera)</Option>
 				 </List>
 			</Field>
 
@@ -863,22 +880,22 @@ it will make the plugin restart </Label>
 			<Field id="jsonpointLabel0" type="label" fontSize="small" defaultValue=""> 
 				<Label>Json examples:</Label></Field>
 			<Field id="jsonpointLabel1" type="textfield" fontSize="small" defaultValue="{'type':'zoom','payload':{'zoomPos':1234,'zoomSpeed':5}}" readonly="true"> 
-				<Label>zoom: endpoint=move, method=post, URL=api/camera</Label></Field>
+				<Label>zoom: endpoint=move, method=post, api=api/camera</Label></Field>
 
 			<Field id="jsonpointLabel2" type="textfield" fontSize="small" defaultValue="{'type':'center','payload':{'x':1234,'y':3434,'z':400}}" readonly="true"> 
-				<Label>pos: endpoint=move, method=post, URL=api/camera:</Label></Field>
+				<Label>pos: endpoint=move, method=post, api=api/camera:</Label></Field>
 
 			<Field id="jsonpointLabel3" type="textfield" fontSize="small" defaultValue="{'type':'relative','payload':{'panPos':10000,'tiltPos':500,'panSpeed':5,'tiltSpeed':5,'scale':5}}" readonly="true"> 
-				<Label>relative: endpoint=move, method=post, URL=api/camera</Label></Field>
+				<Label>relative: endpoint=move, method=post, api=api/camera</Label></Field>
 
 			<Field id="jsonpointLabel4" type="textfield" fontSize="small" defaultValue="{}" readonly="true"> 
-				<Label>pred. pos: endpoint=ptz/goto/5, method=post, URL=api/camera</Label></Field>
+				<Label>pred. pos: endpoint=ptz/goto/5, method=post, api=api/camera</Label></Field>
 
 			<Field id="jsonpointLabel10" type="textfield" fontSize="small" defaultValue="{'ledSettings':{'blinkRate': 0,'isEnabled':true}}" readonly="true"> 
-				<Label>LEDenable: endpoint=empty, method=push, URL=camera</Label></Field>
+				<Label>LEDenable: endpoint=empty, method=patch, api=camera</Label></Field>
 
 			<Field id="jsonpointLabel11" type="textfield" fontSize="small" defaultValue="{'ispSettings':{'zoomPosition': 50, 'dZoomCenterX':50, 'dZoomCenterY':50}}" readonly="true"> 
-				<Label>set zoom: endpoint=empty, method=push, URL=camera</Label></Field>
+				<Label>set zoom: endpoint=empty, method=patch, api=camera</Label></Field>
 
 			<Field	  id="jsonLabels" type="Label" > <Label>see logfile for examples</Label>	 </Field>
 

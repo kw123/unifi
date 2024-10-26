@@ -2,9 +2,10 @@ set userID [lindex $argv 0 ]
 set password [lindex $argv 1 ] 
 set ipNumber [lindex $argv 2 ] 
 set dirOnController [lindex $argv 3]
+set endToken [lindex $argv 5]
 
 set timeout 20
-if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no scp $userID@$ipNumber:$dirOnController/\* .} else {spawn  scp $userID@$ipNumber:$dirOnController/\* .}
+if  {[lindex $argv 4] == "yes"} {spawn  sftp -o StrictHostKeyChecking=no $userID@$ipNumber } else {spawn  sftp $userID@$ipNumber}
 
 expect {
     "(yes/no" {
@@ -16,4 +17,12 @@ expect {
         send "$password\n"
     }
 }
+set timeout 2
+expect "$endToken"
+
+send "cd $dirOnController\r"
+send "get *\r"
+sleep 4
+
+send "exit"
 expect eof
