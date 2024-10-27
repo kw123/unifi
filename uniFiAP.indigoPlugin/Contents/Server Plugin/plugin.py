@@ -710,8 +710,8 @@ class Plugin(indigo.PluginBase):
 			self.debugDevs["SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
 			self.isMiniSwitch									= [False for nn in range(_GlobalConst_numberOfSW)]
 
-			self.lastcheckIfControllerDevIsSetupCheck 			= time.time()-90
-			self.checkIfControllerDevIsSetupCheckEvery			= 100
+			self.checkIfControllerDevIsSetupCheckEvery			= 300  # check every 5 minutes
+			self.lastcheckIfControllerDevIsSetupCheck 			= time.time() - self.checkIfControllerDevIsSetupCheckEvery + 10
 			self.devNeedsUpdate									= {}
 
 			self.MACloglist										= {}
@@ -3260,80 +3260,91 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(20,"getDiskspace: ret {}-{}".format(ret, err))
 
 		startfound = 0
-		DiskTot, DiskUsed, DiskFree, 	MemTot, MemUsed, MemFree, 	SharedTot, SharedUsed, SharedFree,	cpuload, cputemp = ("0","0","0",	 "0","0","0", 	"0","0","0", "not available", "not available")
+		DiskTot, DiskUsed, DiskFree, 	MemTot, MemUsed, MemFree, 	SharedTot, SharedUsed, SharedFree,	cpuload, cputemp = ("not available","not available","not available",	 "not available","not available","not available", 	"not available","not available","not available", "not available", "not available")
 
 		for line in ret.split("\n"):
 			if len(line) < 2: continue
 			test = line.split()
 			#self.indiLOG.log(20,f"getDiskspace: test: 0  {line:}")
 
+			# cehck for line Filesystem                    1K-blocks      Used Available Use% Mounted on
 			if line.find("Filesystem    ") == 0: 
 				startfound = 1
 				continue
 
 			if startfound < 1: continue
 
+			# in next section?
 			if startfound == 1 and line.find("     total   ") > -1: 
 				startfound = 2
 				continue
 
+			# use this line for disk space info 
 			if startfound == 1 and test[-1].find("volume") > -1: 
+				startfound = 2
 				#self.indiLOG.log(20,f"getDiskspace: test: 6  {test:}")
 				#dev, DiskT, DiskU, DiskF, use, name = test
-				DiskTot  = int(test[1])
-				DiskUsed = int(test[2])
-				DiskFree = int(test[3])
-				startfound = 2
+				try:
+					DiskTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])/1024./1024.)))+"GB"
+					DiskUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])/1024./1024.)))+"GB"
+					DiskFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])/1024./1024.)))+"GB"
+				except: pass
 				continue
 
+			# we are after filesystem, checking for Mem:
 			if startfound == 2 and test[0] == "Mem:":
-				#name, MemTot, MemUsed, MemFree, sharedM, buffM, MemAvailable = test
-				MemTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])//1024)))+"MB"
-				MemUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])//1024)))+"MB"
-				MemFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])//1024)))+"MB"
 				startfound = 3
+				#name, MemTot, MemUsed, MemFree, sharedM, buffM, MemAvailable = test
+				if len(test) > 3:
+					try:
+						MemTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])//1024)))+"MB"
+						MemUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])//1024)))+"MB"
+						MemFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])//1024)))+"MB"
+					except:	pass
 				continue
 
 
+			# not used, but decoded
 			if startfound == 3 and test[0] == "Swap:": 
-				nameS, SharedTot, SharedUsed, SharedFree = test
 				startfound = 4
+				if len(test) > 3:
+					try:
+						SharedTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])/1024./1024.)))+"GB"
+						SharedUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])/1024./1024.)))+"GB"
+						SharedFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])/1024./1024.)))+"GB"
+					except: pass
 				continue
 
+			# set command cpu load found, next line is cpu?
 			if startfound == 4 and test[-1] == "cpuload": 
-				#self.indiLOG.log(20,f"getDiskspace: test: 4  {test:}")
 				startfound = 5
+				#self.indiLOG.log(20,f"getDiskspace: test: 4  {test:}")
 				continue
 
+			# line cpuload command was found, this must be the number
 			if startfound == 5 and line.find(prompt) > -1: 
-				cpu = ""
-				for c in line[0:6]: 
-					if c in ["0","1","2","3","4","5","6","7","8","9","."]: cpu += c
-					else: break
-				if len(cpu) >2: cpuload = cpu+"%"
 				startfound = 6
+				if len(line) > 3:
+					cpu = ""
+					for c in line[0:3]: 
+						if c in ["0","1","2","3","4","5","6","7","8","9","."]: cpu += c # use only numbers and .
+						else: break
+					if len(cpu) > 2: cpuload = cpu+"%"
 				continue
 
+			# command cputemp was found, skip to next line?
 			if startfound == 6 and test[-1] == "cputemp" and line.find("root") > -1: 
 				#self.indiLOG.log(20,f"getDiskspace: test: 6  {test:}")
 				startfound = 7
 				continue
 
+			# command cputemp was found in last line , this number must be cpu temp
 			if startfound == 7: 
-				cputemp = test[0]+"ºC"
-				#self.indiLOG.log(20,f"getDiskspace: cpuload: 7  {cputemp:}")
 				startfound = 8
+				if len(test[0]) > 2:
+					cputemp = test[0]+"ºC"
+				#self.indiLOG.log(20,f"getDiskspace: cpuload: 7  {cputemp:}")
 				break
-
-		if DiskTot != 0:
-				# return value is in 1Kbyte units
-				DiskTot  = re.sub(patternAddKomma,r",\g<0>",str(int(DiskTot/1024./1024)))+"GB"
-				DiskUsed = re.sub(patternAddKomma,r",\g<0>",str(int(DiskUsed/1024./1024)))+"GB"
-				DiskFree = re.sub(patternAddKomma,r",\g<0>",str(int(DiskFree/1024./1024)))+"GB"
-
-		#self.indiLOG.log(20,f"getDiskspace: df:   {DiskTot:}, {DiskUsed:}, {DiskFree:}")
-		#self.indiLOG.log(20,f"getDiskspace: mem:  {MemTot:}, {MemUsed:}, {MemFree:}")
-		#self.indiLOG.log(20,f"getDiskspace: swap: {SharedTot:}, {SharedUsed:}, {SharedFree:}")
 
 		return DiskTot,	DiskUsed, DiskFree, MemTot, MemUsed, MemFree, SharedTot, SharedUsed, SharedFree, cpuload, cputemp 
 
@@ -6877,15 +6888,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							refresh = True
 							break
 				disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, cpu_load, cpu_temp = self.getDiskspace(self.unifiCloudKeyIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
-				if "disk_total" in systemDev.states:
-					if disk_total		!= systemDev.states.get("disk_total","---"):	self.addToStatesUpdateList(systemDev.id,"disk_total",	disk_total)
-					if disk_used		!= systemDev.states.get("disk_used","---"):		self.addToStatesUpdateList(systemDev.id,"disk_used",	disk_used)
-					if disk_free		!= systemDev.states.get("disk_free","---"):		self.addToStatesUpdateList(systemDev.id,"disk_free",	disk_free)
-					if memory_total		!= systemDev.states.get("memory_total","---"):	self.addToStatesUpdateList(systemDev.id,"memory_total",	memory_total)
-					if memory_used		!= systemDev.states.get("memory_used","---"):	self.addToStatesUpdateList(systemDev.id,"memory_used",	memory_used)
-					if memory_free		!= systemDev.states.get("memory_free","---"):	self.addToStatesUpdateList(systemDev.id,"memory_free",	memory_free)
-					if cpu_temp			!= systemDev.states.get("cpu_temp","---"):		self.addToStatesUpdateList(systemDev.id,"cpu_temp",		cpu_temp)
-					if cpu_load			!= systemDev.states.get("cpu_load","---"):		self.addToStatesUpdateList(systemDev.id,"cpu_load",		cpu_load)
+				self.setstateIfNotEmpty(systemDev, "disk_total", 	disk_total )
+				self.setstateIfNotEmpty(systemDev, "disk_used", 	disk_used )
+				self.setstateIfNotEmpty(systemDev, "disk_free", 	disk_free )
+				self.setstateIfNotEmpty(systemDev, "memory_total", 	memory_total )
+				self.setstateIfNotEmpty(systemDev, "memory_used", 	memory_used )
+				self.setstateIfNotEmpty(systemDev, "memory_free", 	memory_free )
+				self.setstateIfNotEmpty(systemDev, "cpu_temp", 		cpu_temp )
+				self.setstateIfNotEmpty(systemDev, "cpu_load", 		cpu_load )
 
 			if refresh:
 					self.setSystemDeviceStatus(dev, MAC, self.unifiCloudKeyIP)
@@ -6956,17 +6966,16 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								break
 								refresh = True
 	
-					if "disk_total" in protectDev.states:
-						if self.protectIP != self.unifiCloudKeyIP:
-							disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, 	cpu_load, cpu_temp = self.getDiskspace(self.protectIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
-						if disk_total		!= protectDev.states.get("disk_total","---"):	self.addToStatesUpdateList(protectDev.id,"disk_total",		disk_total)
-						if disk_used		!= protectDev.states.get("disk_used","---"):	self.addToStatesUpdateList(protectDev.id,"disk_used",		disk_used)
-						if disk_free		!= protectDev.states.get("disk_free","---"):	self.addToStatesUpdateList(protectDev.id,"disk_free",		disk_free)
-						if memory_total		!= protectDev.states.get("memory_total","---"):	self.addToStatesUpdateList(protectDev.id,"memory_total",	memory_total)
-						if memory_used		!= protectDev.states.get("memory_used","---"):	self.addToStatesUpdateList(protectDev.id,"memory_used",		memory_used)
-						if memory_free		!= protectDev.states.get("memory_free","---"):	self.addToStatesUpdateList(protectDev.id,"memory_free",		memory_free)
-						if cpu_temp			!= protectDev.states.get("cpu_temp","---"):		self.addToStatesUpdateList(protectDev.id,"cpu_temp",		cpu_temp)
-						if cpu_load			!= protectDev.states.get("cpu_load","---"):		self.addToStatesUpdateList(protectDev.id,"cpu_load",		cpu_load)
+					if self.protectIP != self.unifiCloudKeyIP:
+						disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, 	cpu_load, cpu_temp = self.getDiskspace(self.protectIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
+						self.setstateIfNotEmpty(protectDev, "disk_total", 	disk_total )
+						self.setstateIfNotEmpty(protectDev, "disk_used", 	disk_used )
+						self.setstateIfNotEmpty(protectDev, "disk_free", 	disk_free )
+						self.setstateIfNotEmpty(protectDev, "memory_total",	memory_total )
+						self.setstateIfNotEmpty(protectDev, "memory_used", 	memory_used )
+						self.setstateIfNotEmpty(protectDev, "memory_free", 	memory_free )
+						self.setstateIfNotEmpty(protectDev, "cpu_temp", 	cpu_temp )
+						self.setstateIfNotEmpty(protectDev, "cpu_load", 	cpu_load )
 
 					if refresh:
 						self.setSystemDeviceStatus(protectDev, MAC, self.protectIP)
@@ -6992,7 +7001,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 		return 
-		
+	
+
+	########################### #################
+	def setstateIfNotEmpty(self, dev, name, value):
+		try:
+			if value == "": return 
+			if value == "not available" and len(dev.states[name]) == 0: return # only first time if never set, dont do read errors
+			if value != dev.states.get(name,"---"):	self.addToStatesUpdateList(dev.id,name,	value)
+		except: pass
+		return 
+	
 	########################### #################
 	def checkIfControllerDBInfoActive(self, xType, MAC, props, lastUpTT, expT, dev):
 		try:
@@ -7014,8 +7033,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try:
 			if status == "forceoff":
 				if self.isValidIP(IP) and self.isValidMAC(MAC):
-					if dev.states["status"] != "config&offline":
-						self.addToStatesUpdateList(dev.id,"status", "config&offl")
+					if dev.states["status"] != "confg&offline":
+						self.addToStatesUpdateList(dev.id,"status", "confg&offl")
 				else:
 					if dev.states["status"] != "disabled":
 						self.addToStatesUpdateList(dev.id,"status", "disabled")
@@ -7033,14 +7052,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.isValidIP(IP) and self.isValidMAC(MAC):
 
 				if status == "up" or self.checkPing(IP, nPings=2, waitForPing=1000, calledFrom="setSystemDeviceStatus", verbose=False) == 0:
-					if dev.states["status"] != "config&onl":
-						self.addToStatesUpdateList(dev.id,"status", "config&onl")
+					if dev.states["status"] != "confg&onl":
+						self.addToStatesUpdateList(dev.id,"status", "confg&onl")
 						dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 						indigo.device.enable(dev, value=True)
 
 				else:
-					if dev.states["status"] != "config&offline":
-						self.addToStatesUpdateList(dev.id,"status", "config&offline")
+					if dev.states["status"] != "confg&offl":
+						self.addToStatesUpdateList(dev.id,"status", "confg&offl")
 						dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
 
 			else:

@@ -1,11 +1,14 @@
-changes in V2022.47.424@ 2024-10-26
+changes in V2022.47.425@ 2024-10-26
 ==================  
 -   added devices for system controller an system protect (they can be the same but will show as 2)
     the relevant properties (like in config) can be set here
-    important dev states are presented: disk space, memory utilization .. 
+    important dev states are preseneted: disk space, memory utilization .. 
 -   added option for different userid/password and port for protect vs controller device
     if not specified it is set as same 
-    you can set them in config and device edit for controller and protect system devices 
+    you can set them in config aand device edit for controller and proetct system devices 
+-   added error catch for bad read of disk space from unifi conroller / protect systemetc 
+
+
 
 
 
