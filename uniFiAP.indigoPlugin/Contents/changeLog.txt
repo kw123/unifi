@@ -1,3 +1,9 @@
+changes in V2022.47.426@ 2025-05-04
+==================  
+fixed line  8854, 'props' is not defined
+
+
+
 changes in V2022.47.425@ 2024-10-26
 ==================  
 -   added devices for system controller an system protect (they can be the same but will show as 2)

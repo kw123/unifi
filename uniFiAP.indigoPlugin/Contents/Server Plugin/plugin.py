@@ -8845,6 +8845,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.PROTECT[cameraId]["events"][newId] =  {"eventStart":0, "eventEnd":0, "ringTime":0, "eventType":"", "thumbnailLastCopyTime": time.time() + 50, "thumbnailCopied": False, "status": "","rawEvent":copy.deepcopy(event)}
 					if dev == "":
 						dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
+					props = dev.pluginProps
 
 					if self.decideMyLog("ProtEvents"): self.indiLOG.log(10,"getProtectEvents: camID:{}, evId:{}; {}: new event; type:{}".format(cameraId, newId, self.PROTECT[cameraId]["devName"], event["type"]))
 					self.PROTECT[cameraId]["events"][newId]["eventStart"] 			= event["start"]/1000.
