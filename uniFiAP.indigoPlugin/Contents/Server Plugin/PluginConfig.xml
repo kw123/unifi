@@ -1,8 +1,29 @@
 <?xml version="1.0"?>
 <PluginConfig>
 
-	<Field id="infoLabel1" 				type="label"> 
+	<Field id="infolabel00" 					type="label" fontColor="orange"> 
 		<Label>Ubiquity  UniFi AP-Switch-Gateway plugin  Developed by Karl Wachs</Label>  
+	</Field>
+	<Field id="infoLabel1" 				type="label"> 
+		<Label>It gets data from the access points and switches as well as from the controller and 
+   the gateway and protect camera system
+It can and likely has several userids and passwords for the different devices.
+- one for ssh connect to AP and switches (set in controller)
+- one for http connection to the controller 
+   you need to create a "local" userid on the controller for the http access
+- one for http connection to the protect system 
+   (should be the same as the controller if they are on the same hardware)
+- one for ssh connection to the controller and or gateway, the userid is likely "root"
+
+It combines the different data sources to create
+- unifi (client) devices - one for each IP network member (also one for each switch, ap, ..)
+- AP one "system device" for each;  the states contain  info about traffic etc
+- SW one "system device" for each;  the states contain  info about traffic, ports etc
+- GW; the states contain info about the network, internet etc
+- protect system; the dev states contain info about disk space, cpu, memory ...
+- protect cameras; one for each; the states contain info about the last events etc
+
+(some of the larger sections can be turned off to make it easier to scroll through) </Label>  
 	</Field>
 
 	<Field id="simpleSeparator22" 		type="separator"/>
@@ -205,7 +226,7 @@ Or trigger on any change in variable ..lastChange to check if anything device fr
 	<Field id="unifiControllerType"  	type="menu"  > 
 		<Label>.. controller Type:</Label> 
 		<List>
-			<Option value="std"   	>cloud keyloud key, combined systems like UCG max</Option>
+			<Option value="std"   	>cloud key, combined systems like UCG  / CGM max</Option>
 			<Option value="UDM"     >UDM 	</Option>
 			<Option value="UDMPro"  >UDM-pro </Option>
 			<Option value="hosted"  >hosted eg MAC, rPi, .. (will set port to 8443, site name to default)</Option>
@@ -213,54 +234,55 @@ Or trigger on any change in variable ..lastChange to check if anything device fr
 		</List>
 	</Field>
 
-   <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
 		<Label>selecting UDM(pro) will automatically: 
-1. activate (w. same IP#) SW#14, USG, AP#4 (for UDM not -PRO) 
+1. activate (w. same IP#) SW#12, USG, AP#4 (for UDM not -PRO) 
 2. set controller info to ON or UDM</Label>  
 	</Field>
 
-	<Field id="infoLabelDifferentUIDs0" 		type="label"   > 
+	<Field id="infoLabelDifferentUIDs0" 		type="label"  > 
 		<Label>There can be several sets of UserIDs-password - They could all be the same, depending on YOUR setup</Label> 
 	</Field>
 
-	<Field id="infoLabelDifferentUIDs" 		type="label"   fontSize="small" fontColor="darkgrey"> 
+	<Field id="infoLabelDifferentUIDs" 		type="label"   fontSize="small" fontColor="darkgrey"  > 
 		<Label>.           1. the UID-password  you use to login via web browser (http) to your UniFi controller
 .           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
 .           3. the unix UID-passwd    when you ssh in terminal to the UDM pro 
+.           4. the protect UID-passwd    http login to protect camara system (set in the camera section) 
 
 </Label>  
 	</Field>
 
-	<Field id="unifiCONTROLLERUserID"      type="textfield" >
+	<Field id="unifiCONTROLLERUserID"      type="textfield"   >
 		<Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
 	</Field>
 
-	<Field id="unifiCONTROLLERPassWd"   	type="textfield"  >
+	<Field id="unifiCONTROLLERPassWd"   	type="textfield"   >
 		<Label>...  password:</Label>
 	</Field>
 
-   <Field id="unifiControllerTypeLabel2"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="unifiControllerTypeLabel2"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
 		<Label>for UniFi controller v 6.x  MAC OS 10.14 or greater is neeed. MAC OS 10.13 and lower do not support the proper ssl/tsl security required by unifi controller v 6.x software
 Leave userid and password blank if you want to disable querying the controller</Label>  
 	</Field>
 
-	<Field id="useStrictToLogin"       	type="checkbox"  > 
+	<Field id="useStrictToLogin"       	type="checkbox"   > 
 		<Label>... Use strict:true </Label>
 	 </Field>
 
-	<Field id="infoLabelstrict" 			type="label" 		 alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="infoLabelstrict" 			type="label" 		 alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
 		<Label>Option for login to CONTROLLER webpage. This option might be needed for UDM non pro depending on config/setup/version</Label>  
 	</Field>
 
-	<Field id="unifiUserID"   			type="textfield"  >
+	<Field id="unifiUserID"   			type="textfield"   >
 		<Label>2. .............................. ssh unix UserID of AP,SW,GW - not UDM:</Label>
 	</Field>
 
-	<Field id="unifiPassWd"   			type="textfield" >
+	<Field id="unifiPassWdz"   			type="textfield"  >
 		<Label>..  password:</Label>
 	</Field>
 
-	<Field id="unifiUserIDUDM"   		type="textfield" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro" >
+	<Field id="unifiUserIDUDM"   		type="textfield" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro"  >
 		<Label>3. ............................................................. ssh unix UDM UserID:</Label>
 	</Field>
 
@@ -268,7 +290,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>..  password :</Label>
 	</Field>
 
-	<Field id="hostFileCheck"  		type="menu"   > 
+	<Field id="hostFileCheck"  		type="menu"    > 
 		<Label>.. disable strict host checking (ignore know_hosts file for ssh) :</Label> 
 		<List>
 			<Option value="ignore"  >disable / ignore</Option>
@@ -298,14 +320,17 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>.. check for new unifi system devices every:</Label> 
 		<List>
 			<Option value="0"  >off</Option>
-			<Option value="2"   >2 minutes</Option>
-			<Option value="3"   >3 minutes use this if you have a mini switch</Option>
-			<Option value="4"   >4 minutes</Option>
-			<Option value="5"   >5 minutes</Option>
-			<Option value="10"   >10 minutes</Option>
-			<Option value="15"   >15 minutes</Option>
-			<Option value="20"   >20 minutes</Option>
-			<Option value="25"   >25 minutes</Option>
+			<Option value="19"   >20 sec for testing </Option>
+			<Option value="59"   >1 minute </Option>
+			<Option value="91"   >1.5 minutes use this if you have a mini switch(only updates every 90 secs)</Option>
+			<Option value="121"   >2 minutes</Option>
+			<Option value="181"   >3 minutes</Option>
+			<Option value="241"   >4 minutes</Option>
+			<Option value="300"   >5 minutes</Option>
+			<Option value="600"   >10 minutes</Option>
+			<Option value="900"   >15 minutes</Option>
+			<Option value="1200"   >20 minutes</Option>
+			<Option value="1800"   >25 minutes</Option>
 		</List>
 	</Field>
 
@@ -651,8 +676,8 @@ Then disable listener process
 	<Field id="isMini12"  type="checkbox"  visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- is mini switch type </Label>  						</Field>
 	<Field id="debSW12"  type="checkbox"   visibleBindingId="ipSWON12" visibleBindingValue="true"> <Label>- log debug msg from this dev</Label>  				</Field>
 
-	<Field id="ipSWON12Label" type="label" visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
-	<Label>This is used as switch device part of a UDM system</Label>  </Field>
+	<Field id="ipSWON12Label" type="label" visibleBindingId="ipSWON12" visibleBindingValue="true" alignWithControl="true" fontColor="red"> 
+	<Label>#12 MUST be used as switch device for part of a UDM system</Label>  </Field>
 	<Field id="simpleSeparatorvideo0" 			type="separator"/>
 
 

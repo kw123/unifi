@@ -533,7 +533,7 @@
 
 
 	<Action id="powerCyclePort">
-		<Name>POWER  cycle a port on a UniFi switch</Name>
+		<Name>POWER  cycle a port on a UniFi switch using ssh to switch</Name>
 		<CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        
 		<ConfigUI>
 			<Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
@@ -549,7 +549,7 @@
 			</Field>
 			<Field    id="onOffCycle" type="menu" tooltip="" >
 				<List>
-					<Option value="ON"        >ON</Option>
+					<Option value="ON"         >ON</Option>
 					<Option value="OFF"        >OFF</Option>
 					<Option value="CYCLE"      >CYCLE</Option>
 				</List>
@@ -558,24 +558,36 @@
 		</ConfigUI>
 	</Action>
 
-	<Action id="powerClientCyclePort">
-		<Name>POWER  cycle UniFi Client (PORT)</Name>
-		<CallbackMethod>buttonConfirmpowerCycleClientsCALLBACKaction</CallbackMethod>        
+
+	<Action id="powerCyclePortController">
+		<Name>POWER  cycle a port on a UniFi switch using controller</Name>
+		<CallbackMethod>buttonConfirmPowercyclePortOnSwithConllerCALLBACKaction</CallbackMethod>        
 		<ConfigUI>
-			<Field     id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
-				<Label>Select UniFi-Client:</Label>
-				<List class="self" filter="" method="filterUnifiClient"  dynamicReload="no"/>
+			<Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
+				<Label>select which switch:</Label>
+				<List class="self" filter="" method="filterUnifiSwitch"  dynamicReload="false"/>
+			</Field>
+			<Field    id="confirmSW" type="button" tooltip="" >
+				<Label>confirm SW</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
+			</Field>
+			<Field     id="selectedUnifiSwitchPort" type="menu" defaultValue="1">
+				<Label>select which port(#1..xx):</Label>
+				<List class="self" filter="" method="filterUnifiSwitchPort"  dynamicReload="yes"/>
 			</Field>
 			<Field    id="onOffCycle" type="menu" tooltip="" >
 				<List>
-					<Option value="ON"        >ON</Option>
+					<Option value="ON"         >ON</Option>
 					<Option value="OFF"        >OFF</Option>
 					<Option value="CYCLE"      >CYCLE</Option>
 				</List>
 				<Label>which action</Label>
 			</Field>
+			<Field	id="Label01" type="label"> 
+				<Label>off / on commands through the controller take > 10 secs</Label> 
+			</Field>
 		</ConfigUI>
 	</Action>
+
 
 	<Action id="reconnectWiFiDevice">
 		<Name>RECONNECT  a wifi device</Name>

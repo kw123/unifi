@@ -1511,11 +1511,16 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>fanLevel</ControlPageLabel>
 				</State>
 
-
 				<State id="nClients">
 					<ValueType>number</ValueType>
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
+				</State>
+				
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -1963,6 +1968,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -2270,6 +2280,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -2526,6 +2541,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -2772,6 +2792,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -3009,6 +3034,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -3226,6 +3256,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -3439,6 +3474,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -3510,6 +3550,209 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			</States>
 	</Device>
 
+
+
+
+	<Device type="sensor" id="Device-SW-9">
+			<Name>Device-SW-9</Name>
+			<UiDisplayStateId>displayStatus</UiDisplayStateId>
+			<ConfigUI>
+				<Field id="isSwitch"	 type="checkbox"	 defaultValue="true" hidden="yes"> </Field>
+
+				<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden ="true"></Field>
+				<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden ="true"></Field>
+				<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="True"></Field>
+				<Field	  id="expirationTime"		type="menu"	 defaultValue="90"	 tooltip=" overwrites common expiration time set in config ">
+					<Label>set individual time for UP to DOWN to EXPIRED for THIS device</Label>
+					<List>
+						<Option value="1"	 > 1  seconds (for testing)</Option>
+						<Option value="10"	 >10  seconds (for testing)</Option>
+						<Option value="20"	 >20  seconds (for testing)</Option>
+						<Option value="30"	 >30  seconds</Option>
+						<Option value="40"	 >40  seconds</Option>
+						<Option value="60"	 >60  seconds</Option>
+						<Option value="75"	 >75  seconds</Option>
+						<Option value="90"	 >90  seconds (default)</Option>
+						<Option value="120"	 > 2  minutes</Option>
+						<Option value="180"	 > 3  minutes</Option>
+						<Option value="240"	 > 4  minutes</Option>
+						<Option value="300"	 > 5  minutes</Option>
+						<Option value="360"	 > 6  minutes</Option>
+						<Option value="420"	 > 7  minutes</Option>
+						<Option value="490"	 > 8  minutes</Option>
+						<Option value="540"	 > 9  minutes</Option>
+						<Option value="600"	 >10  minutes</Option>
+						<Option value="-1"	 >use common expiration time</Option>
+					</List>
+				</Field>
+			<Field id="unifi-sep-03" type="separator"/>
+
+			<Field id="Group0" type="checkbox"	 defaultValue="false"> 				<Label>Member of group0:</Label>	 </Field>
+			<Field id="Gtext0" type="textfield"	 defaultValue="0" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group1" type="checkbox"	 defaultValue="false"> 				<Label>Member of group1:</Label>	 </Field>
+			<Field id="Gtext1" type="textfield"	 defaultValue="1" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group2" type="checkbox"	 defaultValue="false"> 				<Label>Member of group2:</Label>	 </Field>
+			<Field id="Gtext2" type="textfield"	 defaultValue="2" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group3" type="checkbox"	 defaultValue="false"> 				<Label>Member of group3:</Label>	 </Field>
+			<Field id="Gtext3" type="textfield"	 defaultValue="3" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group4" type="checkbox"	 defaultValue="false"> 				<Label>Member of group4:</Label>	 </Field>
+			<Field id="Gtext4" type="textfield"	 defaultValue="4" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group5" type="checkbox"	 defaultValue="false"> 				<Label>Member of group5:</Label>	 </Field>
+			<Field id="Gtext5" type="textfield"	 defaultValue="5" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group6" type="checkbox"	 defaultValue="false"> 				<Label>Member of group6:</Label>	 </Field>
+			<Field id="Gtext6" type="textfield"	 defaultValue="6" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+			<Field id="Group7" type="checkbox"	 defaultValue="false"> 				<Label>Member of group7:</Label>	 </Field>
+			<Field id="Gtext7" type="textfield"	 defaultValue="7" readOnly = "yes">	<Label>Name:</Label>	 </Field>
+
+			</ConfigUI>
+
+
+			<States>
+				<State id="status">
+					<ValueType>String</ValueType>
+					<TriggerLabel>status</TriggerLabel>
+					<ControlPageLabel>status</ControlPageLabel>
+				</State>
+				<State id="displayStatus">
+					<ValueType>String</ValueType>
+					<TriggerLabel>displayStatus</TriggerLabel>
+					<ControlPageLabel>displayStatus</ControlPageLabel>
+				</State> 
+				<State id="groupMember">
+					<ValueType>String</ValueType>
+					<TriggerLabel>groupMember</TriggerLabel>
+					<ControlPageLabel>groupMember</ControlPageLabel>
+				</State>
+				<State id="MAC">
+					<ValueType>String</ValueType>
+					<TriggerLabel>MAC</TriggerLabel>
+					<ControlPageLabel>MAC</ControlPageLabel>
+				</State>
+				<State id="overHeating">
+					<ValueType>boolean</ValueType>
+					<TriggerLabel>overHeating</TriggerLabel>
+					<ControlPageLabel>overHeating</ControlPageLabel>
+				</State>
+				<State id="model">
+					<ValueType>String</ValueType>
+					<TriggerLabel>model</TriggerLabel>
+					<ControlPageLabel>model</ControlPageLabel>
+				</State>
+				<State id="ipNumber">
+					<ValueType>String</ValueType>
+					<TriggerLabel>ipNumber</TriggerLabel>
+					<ControlPageLabel>ipNumber</ControlPageLabel>
+				</State>
+				<State id="created">
+					<ValueType>String</ValueType>
+					<TriggerLabel>created</TriggerLabel>
+					<ControlPageLabel>created</ControlPageLabel>
+				</State>
+				<State id="hostname">
+					<ValueType>String</ValueType>
+					<TriggerLabel>hostname</TriggerLabel>
+					<ControlPageLabel>hostname</ControlPageLabel>
+				</State>
+				<State id="previousStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>previousStatusChange</TriggerLabel>
+					<ControlPageLabel>previousStatusChange</ControlPageLabel>
+				</State>
+				<State id="lastStatusChange">
+					<ValueType>String</ValueType>
+					<TriggerLabel>lastStatusChange</TriggerLabel>
+					<ControlPageLabel>lastStatusChange</ControlPageLabel>
+				</State>
+				<State id="vendor">
+					<ValueType>String</ValueType>
+					<TriggerLabel>vendor</TriggerLabel>
+					<ControlPageLabel>vendor</ControlPageLabel>
+				</State>
+
+
+				<State id="nClients">
+					<ValueType>number</ValueType>
+					<TriggerLabel>nClients</TriggerLabel>
+					<ControlPageLabel>nClients</ControlPageLabel>
+				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
+
+				<State id="port_01">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_01</TriggerLabel>
+					<ControlPageLabel>port_01</ControlPageLabel>
+				</State>
+				<State id="port_02">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_02</TriggerLabel>
+					<ControlPageLabel>port_02</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_03">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_03</TriggerLabel>
+					<ControlPageLabel>port_03</ControlPageLabel>
+				</State>
+				<State id="port_04">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_04</TriggerLabel>
+					<ControlPageLabel>port_04</ControlPageLabel>
+				</State>
+				<State id="port_05">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_05</TriggerLabel>
+					<ControlPageLabel>port_05</ControlPageLabel>
+				</State>
+				<State id="port_06">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_06</TriggerLabel>
+					<ControlPageLabel>port_06</ControlPageLabel>
+				</State>
+				<State id="port_07">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_07</TriggerLabel>
+					<ControlPageLabel>port_07</ControlPageLabel>
+				</State>
+				<State id="port_08">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_08</TriggerLabel>
+					<ControlPageLabel>port_08</ControlPageLabel>
+				</State>
+				<State id="port_09">
+					<ValueType>String</ValueType>
+					<TriggerLabel>port_09</TriggerLabel>
+					<ControlPageLabel>port_09</ControlPageLabel>
+				</State>
+
+				<State id="upDownSetting">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upDownSetting</TriggerLabel>
+					<ControlPageLabel>upDownSetting</ControlPageLabel>
+				</State>
+
+				<State id="switchNo">
+					<ValueType>String</ValueType>
+					<TriggerLabel>switchNo</TriggerLabel>
+					<ControlPageLabel>switchNo</ControlPageLabel>
+				</State>
+				<State id="upSince">
+					<ValueType>String</ValueType>
+					<TriggerLabel>upSince</TriggerLabel>
+					<ControlPageLabel>upSince</ControlPageLabel>
+				</State>
+
+			</States>
+	</Device>
 
 
 
@@ -3638,6 +3881,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -3704,6 +3952,7 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 			</States>
 	</Device>
+
 
 
 	<Device type="sensor" id="Device-SW-7">
@@ -3829,6 +4078,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ValueType>number</ValueType>
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
+				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -4018,6 +4272,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -4201,6 +4460,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
 				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
+				</State>
 
 				<State id="port_01">
 					<ValueType>String</ValueType>
@@ -4379,6 +4643,11 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ValueType>number</ValueType>
 					<TriggerLabel>nClients</TriggerLabel>
 					<ControlPageLabel>nClients</ControlPageLabel>
+				</State>
+				<State id="unifi_id">
+					<ValueType>String</ValueType>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
 				</State>
 
 				<State id="port_01">
@@ -4581,10 +4850,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>radio_2</TriggerLabel>
 					<ControlPageLabel>radio_2</ControlPageLabel>
 				</State>
-				<State id="ap_id">
+				<State id="unifi_id">
 					<ValueType>String</ValueType>
-					<TriggerLabel>ap_id</TriggerLabel>
-					<ControlPageLabel>ap_id</ControlPageLabel>
+					<TriggerLabel>unifi_id</TriggerLabel>
+					<ControlPageLabel>unifi_id</ControlPageLabel>
 				</State>
 				<State id="created">
 					<ValueType>String</ValueType>

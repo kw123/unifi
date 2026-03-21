@@ -1011,11 +1011,19 @@ it will make the plugin restart </Label>
 	<MenuItem id="powerCyclePort">
 		<Name>POWER cycle a port on a UniFi switch..</Name>
 		<ConfigUI>
+
+			<Field	id="Label01" type="label"> 
+				<Label>there are 2 options:
+(1) through direct "ssh" session to a switch (not available for mini or flex switches)
+(2) through a comand to the controller </Label> 
+			</Field>
 			<Field	  id="onOffCycle" type="menu" tooltip="" >
 				<List>
-					<Option value="ON"		  >ON</Option>
+					<Option value="ON"		   >ON </Option>
 					<Option value="OFF"		   >OFF</Option>
-					<Option value="CYCLE"	   >CYCLE</Option>
+					<Option value="CYCLE"	   >CYCLE power </Option>
+					<Option value="up"	   	   >UP (ssh only)</Option>
+					<Option value="down"	   >DOWN (ssh only)e</Option>
 				</List>
 				<Label>which action</Label>
 			</Field>
@@ -1032,18 +1040,19 @@ it will make the plugin restart </Label>
 				<List class="self" filter="" method="filterUnifiSwitchPort"	 dynamicReload="yes"/>
 			</Field>
 			<Field	  id="confirmpowerCycle" type="button" tooltip="" >
-				<Label>Click to</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
+				<Label>Click to</Label><Title>EXECUTE through ssh </Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
 			</Field>
-			<Field id="simpleSeparator2" type="separator"/>
-			<Field	   id="selectedUnifiClientSwitchPort" type="menu" defaultValue="0">
-				<Label>OR  select Unifi-CLient:</Label>
-				<List class="self" filter="" method="filterUnifiClient"	 dynamicReload="no"/>
+
+
+			<Field	  id="confirmpowerCycleConsole" type="button" tooltip="" >
+				<Label>Click to</Label><Title>EXECUTE through console </Title> <CallbackMethod>buttonConfirmPowercyclePortOnSwithConllerCALLBACK</CallbackMethod>
 			</Field>
-			<Field	  id="confirmpowerCycleClient" type="button" tooltip="" >
-				<Label>Click to</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmpowerCycleClientsCALLBACK</CallbackMethod>
+			<Field	id="Labelend" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+				<Label>off / on commands through the controller take > 10 secs</Label> 
 			</Field>
 		</ConfigUI>
 	</MenuItem>
+	
 	<MenuItem id="reconnectWiFiClient">
 		<Name>Re-CONNECT a wifi client (kick)..</Name>
 		<ConfigUI>

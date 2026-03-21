@@ -293,7 +293,7 @@ class Plugin(indigo.PluginBase):
 	
 		self.pluginShortName 			= "UniFi"
 		self.quitNOW					= ""
-		self.delayedAction				={}
+		self.delayedAction				= dict()
 		self.updateConnectParams		= time.time() - 100
 ###############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
@@ -301,7 +301,7 @@ class Plugin(indigo.PluginBase):
 		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split("Indigo")[0]
 		self.pathToPlugin 				= self.completePath(os.getcwd())
 
-		major, minor, release 			= map(int, indigo.server.version.split("."))
+		major, minor, release 			= indigo.server.version.split(".")
 		self.indigoVersion 				= float(major)+float(minor)/10.
 		self.indigoRelease 				= release
 
@@ -319,7 +319,7 @@ class Plugin(indigo.PluginBase):
 		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
 		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
-		self.showLoginTest 				= pluginPrefs.get('showLoginTest',True)
+		self.showLoginTest 				= pluginPrefs.get('showLoginTest',False)
 
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
 						logging.DEBUG:       "%(asctime)s %(msg)s",
@@ -410,15 +410,15 @@ class Plugin(indigo.PluginBase):
 			self.varExcludeSQLList = ["Unifi_New_Device","Unifi_With_IPNumber_Change","Unifi_With_Status_Change","Unifi_Camera_with_Event","Unifi_Camera_Event_PathToThumbnail","Unifi_Camera_Event_DateOfThumbNail","Unifi_Camera_Event_Date"]
 			#self.varExcludeSQLList = ["Unifi_New_Device","Unifi_With_IPNumber_Change","Unifi_With_Status_Change"]
 
-			self.triggerList									= []
+			self.triggerList									= list()
 			self.statusChanged									= 0
-			self.msgListenerActive								= {}
+			self.msgListenerActive								= dict()
 
 
 
-			self.UserID					= {}
-			self.PassWd					= {}
-			self.connectParamsDefault 	= {}
+			self.UserID					= dict()
+			self.PassWd					= dict()
+			self.connectParamsDefault 	= dict()
 			self.connectParamsDefault["expectRestart"]		= {	"APtail": "restart.exp",
 																"GWtail": "restart.exp",
 																"UDtail": "restart.exp",
@@ -463,7 +463,7 @@ class Plugin(indigo.PluginBase):
 																"UDctrl": True,
 																"APdict": True
 															}
-			self.connectParamsDefault["promptOnServer"] 	= {}
+			self.connectParamsDefault["promptOnServer"] 	= dict()
 			"""
 																"APtail": "\# ",
 																"GWtail": ":~",
@@ -514,7 +514,7 @@ class Plugin(indigo.PluginBase):
 
 			try: 	
 					xx = json.loads(self.pluginPrefs.get("connectParams","{}"))
-					if xx != {}:
+					if xx != dict():
 						self.connectParams = copy.deepcopy(xx)
 					for item1 in self.connectParamsDefault:
 						if item1 in useDefault:
@@ -541,14 +541,15 @@ class Plugin(indigo.PluginBase):
 			if self.connectParams["PassWd"]["protCTRL"] == "-": 	self.connectParams["PassWd"]["protCTRL"]  = self.connectParams["PassWd"]["webCTRL"] 
 
 			##indigo.server.log(" connectParams:{}".format(self.connectParams))
-			self.stop 											= []
-			self.PROTECT 										= {}
+			self.stop 											= list()
+			self.PROTECT 										= dict()
 			self.lastCameraEvent								= ""
 			self.failedControllerLoginCount 					= 0
 			self.failedControllerLoginCountMax					= 30
 			self.checkForNewUnifiSystemDevicesEvery				= int(self.pluginPrefs.get("checkForNewUnifiSystemDevicesEvery","10"))
 			self.launchWaitSeconds								= float(self.pluginPrefs.get("launchWaitSeconds","1.13"))
-
+			self.lastcheckForNewUnifiSystemDevices				= time.time() - 20
+			self.lastSeen										= {}
 			self.changedImagePath								= self.completePath(self.pluginPrefs.get("changedImagePath", 	self.MAChome))
 			self.copyProtectsnapshots							= self.pluginPrefs.get("copyProtectsnapshots","on")
 			self.refreshProtectCameras							= float(self.pluginPrefs.get("refreshProtectCameras",180.))
@@ -559,8 +560,8 @@ class Plugin(indigo.PluginBase):
 
 			self.menuXML										= json.loads(self.pluginPrefs.get("menuXML", "{}"))
 			self.pluginPrefs["menuXML"]							= json.dumps(self.menuXML)
-			self.restartRequest									= {}
-			self.lastMessageReceivedInListener					= {}
+			self.restartRequest									= dict()
+			self.lastMessageReceivedInListener					= dict()
 			self.waitForMAC2vendor 								= False
 			self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get("enableMACtoVENDORlookup","21"))
 			if self.enableMACtoVENDORlookup != "0":
@@ -578,9 +579,9 @@ class Plugin(indigo.PluginBase):
 			self.ignoreNewClients								= self.pluginPrefs.get("ignoreNewClients", False)
 			self.enableFINGSCAN									= self.pluginPrefs.get("enableFINGSCAN", False)
 			self.count_APDL_inPortCount							= self.pluginPrefs.get("count_APDL_inPortCount", "1")
-			self.sendUpdateToFingscanList						= {}
+			self.sendUpdateToFingscanList						= dict()
 			self.enableBroadCastEvents							= self.pluginPrefs.get("enableBroadCastEvents", "0")
-			self.sendBroadCastEventsList						= []
+			self.sendBroadCastEventsList						= list()
 			self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get("unifiCloudKeyListOfSiteNames", "[]"))
 			self.unifiCloudKeyIP								= self.pluginPrefs.get("unifiCloudKeyIP", "")
 			self.protectIP										= self.pluginPrefs.get("protectIP", "")
@@ -648,7 +649,7 @@ class Plugin(indigo.PluginBase):
 			self.imageSourceForEvent							= self.pluginPrefs.get("imageSourceForEvent", "noImage")
 			self.imageSourceForSnapShot							= self.pluginPrefs.get("imageSourceForSnapShot", "unoImage")
 
-			self.listenStart									= {}
+			self.listenStart									= dict()
 			self.useStrictToLogin								= self.pluginPrefs.get("useStrictToLogin", False)
 			self.unifiSession									= {"controller":"","protect":""}
 			self.controllerOrProtect							= "controller"
@@ -675,13 +676,13 @@ class Plugin(indigo.PluginBase):
 			self.folderNameVariables							= self.pluginPrefs.get("folderNameVariables", "UNIFI")
 			self.folderNameSystem								= self.pluginPrefs.get("folderNameSystem",	  "UNIFI_system")
 			self.fixExpirationTime								= self.pluginPrefs.get("fixExpirationTime",	True)
-			self.MACignorelist									= {}
-			self.MACSpecialIgnorelist							= {}
-			self.HANDOVER										= {}
+			self.MACignorelist									= dict()
+			self.MACSpecialIgnorelist							= dict()
+			self.HANDOVER										= dict()
 			self.lastUnifiCookieCurl							= 0
 			self.lastUnifiCookieRequests						= {"controller":0,"protect":0}
-			self.pendingCommand									= []
-			self.groupNames										= []
+			self.pendingCommand									= list()
+			self.groupNames										= list()
 			for groupNo in range(_GlobalConst_numberOfGroups):
 				self.groupNames.append(self.pluginPrefs.get("Group{}".format(groupNo), "Group".format(groupNo)))
 
@@ -692,15 +693,15 @@ class Plugin(indigo.PluginBase):
 			self.createEntryInUnifiDevLogActive					= True #self.pluginPrefs.get("createEntryInUnifiDevLogActive",	False)
 			self.lastcreateEntryInUnifiDevLog 					= time.time()
 
-			self.devsEnabled									= {}
-			self.debugDevs										= {}
-			self.ipNumbersOf									= {}
-			self.deviceUp										= {}
-			self.numberOfActive									= {}
-			self.debugDevs										= {}
+			self.devsEnabled									= dict()
+			self.debugDevs										= dict()
+			self.ipNumbersOf									= dict()
+			self.deviceUp										= dict()
+			self.numberOfActive									= dict()
+			self.debugDevs										= dict()
 
-			self.updateStatesList								= {}
-			self.logCount										= {}
+			self.updateStatesList								= dict()
+			self.logCount										= dict()
 			self.ipNumbersOf["AP"]								= ["" for nn in range(_GlobalConst_numberOfAP)]
 			self.devsEnabled["AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
 			self.debugDevs["AP"]								= [False for nn in range(_GlobalConst_numberOfAP)]
@@ -709,26 +710,27 @@ class Plugin(indigo.PluginBase):
 			self.devsEnabled["SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
 			self.debugDevs["SW"]								= [False for nn in range(_GlobalConst_numberOfSW)]
 			self.isMiniSwitch									= [False for nn in range(_GlobalConst_numberOfSW)]
-
+			self.oneMiniswitchPresent							= False
+			
 			self.checkIfControllerDevIsSetupCheckEvery			= 300  # check every 5 minutes
 			self.lastcheckIfControllerDevIsSetupCheck 			= time.time() - self.checkIfControllerDevIsSetupCheckEvery + 10
-			self.devNeedsUpdate									= {}
+			self.devNeedsUpdate									= dict()
 
-			self.MACloglist										= {}
+			self.MACloglist										= dict()
 
-			self.readDictEverySeconds							= {}
+			self.readDictEverySeconds							= dict()
 			self.readDictEverySeconds["AP"]						= 65
 			self.readDictEverySeconds["GW"]						= 65
 			self.readDictEverySeconds["SW"]						= 65
 			self.readDictEverySeconds["UD"]						= 65
 			self.readDictEverySeconds["DB"]						= 57.5
 			self.getcontrollerDBForClientsLast					= 0
-			self.lastResetUnifiDevice							= {}
-			self.devStateChangeList								= {}
-			self.deviceUp["AP"]									= {}
-			self.deviceUp["SW"]									= {}
-			self.deviceUp["GW"]									= {}
-			self.deviceUp["UD"]									= {}
+			self.lastResetUnifiDevice							= dict()
+			self.devStateChangeList								= dict()
+			self.deviceUp["AP"]									= dict()
+			self.deviceUp["SW"]									= dict()
+			self.deviceUp["GW"]									= dict()
+			self.deviceUp["UD"]									= dict()
 			self.version			 							= self.getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
 
 			self.restartListenerEvery							= float(self.pluginPrefs.get("restartListenerEvery", "999999999"))
@@ -752,6 +754,7 @@ class Plugin(indigo.PluginBase):
 			self.numberOfActive["SW"]									= 0
 			for i in range(_GlobalConst_numberOfSW):
 				self.isMiniSwitch[i]									= self.pluginPrefs.get("isMini{}".format(i),False)
+				if self.isMiniSwitch[i]: self.oneMiniswitchPresent 		= True
 				ip0														= self.pluginPrefs.get("ipSW{}".format(i), "")
 				ac														= self.pluginPrefs.get("ipSWON{}".format(i), "")
 				deb														= self.pluginPrefs.get("debSW{}".format(i), "")
@@ -817,7 +820,7 @@ class Plugin(indigo.PluginBase):
 			#####  check video parameters
 			self.cameraSystem										= self.pluginPrefs.get("cameraSystem", "off")
 
-			self.cameras							 				= {}
+			self.cameras							 				= dict()
 			self.unifiVIDEONumerOfEvents 							= 0
 
 			self.getFolderId()
@@ -863,8 +866,8 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def getMACloglist(self):
 		try:
-			self.MACloglist= self.getParamsFromFile(self.indigoPreferencesPluginDir+"MACloglist",  default ={})
-			if self.MACloglist !={}:
+			self.MACloglist= self.getParamsFromFile(self.indigoPreferencesPluginDir+"MACloglist",  default=dict())
+			if self.MACloglist != dict():
 				self.indiLOG.log(10,"start track-logging for MAC#s {}".format(self.MACloglist) )
 		except	Exception as e:
 				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -902,7 +905,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def setDebugFromPrefs(self, theDict, writeToLog=True):
-		self.debugLevel = []
+		self.debugLevel = list()
 		try:
 			for d in _debugAreas:
 				if theDict.get("debug"+d, False): self.debugLevel.append(d)
@@ -968,7 +971,8 @@ class Plugin(indigo.PluginBase):
 		return ":".join(macs)
 
 ####-------------------------------------------------------------------------####
-	def getParamsFromFile(self,newName, oldName="", default ={}): # called from read config for various input files
+	def getParamsFromFile(self,newName, oldName="", default=None): # called from read config for various input files
+			if default is None: default = dict()
 			out = copy.copy(default)
 			if os.path.isfile(newName):
 				try:
@@ -995,7 +999,7 @@ class Plugin(indigo.PluginBase):
 
 
 ####-------------------------------------------------------------------------####
-	def writeJson(self, data, fName="", sort = True, doFormat=False ):
+	def writeJson(self, data, fName="default", sort = True, doFormat=False ):
 		try:
 
 			if format:
@@ -1003,7 +1007,7 @@ class Plugin(indigo.PluginBase):
 			else:
 				out = json.dumps(data, sort_keys=sort)
 
-			if fName !="":
+			if fName != "":
 				f = self.openEncoding(fName,"w")
 				f.write(out)
 				f.close()
@@ -1187,7 +1191,7 @@ class Plugin(indigo.PluginBase):
 						del self.groupStatusList[groupNo]["members"]["{}".format(devId)]
 				if gMembers != "":
 					if devId not in self.delayedAction:
-						self.delayedAction[devId] = []
+						self.delayedAction[devId] = list()
 					self.delayedAction[devId].append({"action":"updateState", "state":"groupMember", "value":gMembers})
 
 			refresh = ""
@@ -1357,6 +1361,10 @@ class Plugin(indigo.PluginBase):
 			valuesDict["refreshCallbackMethod"]		= "setfilterunifiCloudKeyListOfSiteNames"
 			valuesDict["unifiCloudKeySiteName"]		= self.unifiCloudKeySiteName
 			valuesDict["unifControllerCheckPortNumber"] = self.unifControllerCheckPortNumber
+			valuesDict["unifiControllerType"] 		= self.unifiControllerType
+			valuesDict["useStrictToLogin"] 			= self.useStrictToLogin
+			valuesDict["unifiCloudKeyMode"] 		= self.unifiCloudKeyMode
+			
 			#self.refreshCallbackMethodAlreadySet	= "yes"
 
 		except	Exception as e:
@@ -1391,7 +1399,7 @@ class Plugin(indigo.PluginBase):
 			self.count_APDL_inPortCount						= valuesDict["count_APDL_inPortCount"]
 
 			self.enableBroadCastEvents						= valuesDict["enableBroadCastEvents"]
-			self.sendBroadCastEventsList					= []
+			self.sendBroadCastEventsList					= list()
 			self.ignoreNewNeighbors							= valuesDict["ignoreNewNeighbors"]
 			self.ignoreNewClients							= valuesDict["ignoreNewClients"]
 			#self.loopSleep									= float(valuesDict["loopSleep"])
@@ -1451,7 +1459,7 @@ class Plugin(indigo.PluginBase):
 			self.unifiCloudKeyIP							= valuesDict["unifiCloudKeyIP"]
 
 			if not self.isValidIP(valuesDict["protectIP"]):
-				 valuesDict["protectIP"] = valuesDict["unifiCloudKeyIP"]
+				valuesDict["protectIP"] = valuesDict["unifiCloudKeyIP"]
 			if self.protectIP != valuesDict["protectIP"]:
 				rebootRequired								+= "protectIP changed"
 			self.protectIP									= valuesDict["protectIP"]
@@ -1552,8 +1560,9 @@ class Plugin(indigo.PluginBase):
 			ipNew = ["" for i in range(_GlobalConst_numberOfSW)]
 			self.numberOfActive["SW"] = 0
 			for i in range(_GlobalConst_numberOfSW):
-				if self.isMiniSwitch[i] != valuesDict["isMini{}".format(i)]: rebootRequired	+= " SW type changed: {} vs {}".format(self.isMiniSwitch[i], valuesDict["isMini{}".format(i)])
+				if self.isMiniSwitch[i] != valuesDict["isMini{}".format(i)]: rebootRequired	+= 'SW #{} type changed: "{}" vs "{}"; '.format(i, self.isMiniSwitch[i], valuesDict["isMini{}".format(i)])
 				self.isMiniSwitch[i] = valuesDict["isMini{}".format(i)]
+				if self.isMiniSwitch[i]: self.oneMiniswitchPresent = True
 				ip0 = valuesDict["ipSW{}".format(i)]
 				ac	= valuesDict["ipSWON{}".format(i)]
 				self.debugDevs["SW"][i] = valuesDict["debSW{}".format(i)]
@@ -1640,7 +1649,7 @@ class Plugin(indigo.PluginBase):
 				rebootRequired	+= " video enabled/disabled;"
 
 
-			self.checkForNewUnifiSystemDevicesEvery = int(valuesDict["checkForNewUnifiSystemDevicesEvery"])
+			self.checkForNewUnifiSystemDevicesEvery = int(valuesDict.get("checkForNewUnifiSystemDevicesEvery",self.checkForNewUnifiSystemDevicesEvery ))
 
 			self.useDBInfoForWhichDevices = valuesDict["useDBInfoForWhichDevices"]
 			if self.isValidIP(self.unifiCloudKeyIP) and (self.unifiCloudKeyMode.find("ON") >-1 or self.unifiCloudKeyMode.find("UDM") > -1 or self.useDBInfoForWhichDevices in ["all","perDevice"]):
@@ -1654,7 +1663,7 @@ class Plugin(indigo.PluginBase):
 
 			if rebootRequired != "":
 				self.indiLOG.log(30,"restart " + rebootRequired)
-				self.quitNOW = "config changed"
+				self.quitNOW = "config changed "
 			self.updateConnectParams  = time.time() - 100
 			valuesDict["connectParams"] = json.dumps(self.connectParams)
 
@@ -1720,6 +1729,8 @@ class Plugin(indigo.PluginBase):
 			out += "\nlogFile".ljust(40)								+	self.PluginLogFile
 			out += "\nenableFINGSCAN".ljust(40)							+	"{}".format(self.enableFINGSCAN)[0]
 			out += "\ncheckForNewUnifiSystemDevicesEvery".ljust(40)		+	"{} minutes".format(self.checkForNewUnifiSystemDevicesEvery)
+			out += "\ncheckforUnifiSystemDevicesState".ljust(40)		+	"{} resason".format(self.checkforUnifiSystemDevicesState)
+			out += "\noneMiniswitchPresent".ljust(40)					+	"{}".format(self.oneMiniswitchPresent)
 			out += "\ncount_APDL_inPortCount".ljust(40)					+	"{}".format(self.count_APDL_inPortCount == "1")[0]
 			out += "\nenableBroadCastEvents".ljust(40)					+	"{}".format(self.enableBroadCastEvents == "1")[0]
 			out += "\nignoreNeighborForFing".ljust(40)					+	"{}".format(self.ignoreNeighborForFing)[0]
@@ -1900,9 +1911,9 @@ class Plugin(indigo.PluginBase):
 	def printALLUNIFIsreduced(self):
 		try:
 
-			lineI = []
-			lineE = []
-			lineD = []
+			lineI = list()
+			lineE = list()
+			lineD = list()
 			out = "\n"
 			dType ="UniFi"
 			out +="\n ===== UniFi device info =========                              curr.;  exp;   use ping  ; use WOL;     use what 4;       WiFi;WiFi-max;    DHCP;  SW-UPtm; lastStatusChge;                              reason;     member of;"
@@ -1971,13 +1982,13 @@ class Plugin(indigo.PluginBase):
 				else:
 					out+= "\n{:30s} {}".format(devName, line)
 
-			if lineD !=[]:
+			if lineD != list():
 				for xx in lineD:
 					out+= "\n{:30s} {}".format(xx[1],xx[0])
-			if lineE !=[]:
+			if lineE != list():
 				for xx in lineE:
 					out+= "\n{:30s} {}".format(xx[1],xx[0])
-			if lineI !=[]:
+			if lineI != list():
 				for xx in lineI:
 					out+= "\n{:30s} {}".format(xx[1],xx[0])
 
@@ -1998,7 +2009,7 @@ class Plugin(indigo.PluginBase):
 			for groupNo in range(_GlobalConst_numberOfGroups):
 				indent = "\n            "
 				xList =  ""
-				memberNames = []
+				memberNames = list()
 				for member in self.groupStatusList[groupNo]["members"]:
 					if len(member) <2: continue
 					try:
@@ -2054,7 +2065,7 @@ class Plugin(indigo.PluginBase):
 
 ####-------------------------------------------------------------------------####
 	def resetHostsFileCALLBACKmenu(self, valuesDict=None, typeId="", devId=0):
-		if valuesDict is None: valuesDict = {}
+		if valuesDict is None: valuesDict = dict()
 		fn = "{}/.ssh/known_hosts".format(self.MAChome)
 
 		if os.path.isfile(fn):
@@ -2073,7 +2084,7 @@ class Plugin(indigo.PluginBase):
 
 ####-------------------------------------------------------------------------####
 	def resetHostsFileOnlyUnifiCALLBACKmenu(self, valuesDict=None, typeId="", devId=0):
-		if valuesDict is None: valuesDict = {}
+		if valuesDict is None: valuesDict = dict()
 		fn = "{}/.ssh/known_hosts".format(self.MAChome)
 		removed = ""
 
@@ -2144,7 +2155,7 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 	def buttonResetPromptsCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		self.connectParams["promptOnServer"] = {}
+		self.connectParams["promptOnServer"] = dict()
 		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
 		indigo.server.savePluginPrefs()	
 		self.quitNOW = "restart due to prompt settings reset"
@@ -2170,7 +2181,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------  ---------
 	def buttonZeroWaitStatsCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		self.waitTimes["yesterday"] = copy.copy(self.waitTimes["today"] ) 
-		self.waitTimes["today"] = {}
+		self.waitTimes["today"] = dict()
 		self.saveDataStats(force=True)
 		return valuesDict
 
@@ -2295,7 +2306,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def makeJson(self, dumpIN, sep):  ## {} separated by \n
 		try:
-			out =[]
+			out = list()
 			temp = "empty"
 			temp2 = "empty"
 			begStr,endStr ="{","}"
@@ -2339,7 +2350,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def makeJson2(self, dump, sep):
 		try:
-			out={}
+			out = dict()
 			begStr,endStr ="{","}"
 			dump		 = dump.split(sep)
 			if len(dump) !=3: return ""
@@ -2400,7 +2411,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterUnifiDevices(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for ll in range(_GlobalConst_numberOfAP):
 			if self.devsEnabled["AP"][ll]:
 				xList.append((self.ipNumbersOf["AP"][ll]+"-APdict","AP -"+self.ipNumbersOf["AP"][ll]))
@@ -2620,7 +2631,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterWiFiDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "AP" not	 in dev.states:		  continue
 			if len(dev.states["AP"]) < 5:	  continue
@@ -2630,14 +2641,14 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterUNIFIsystemDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isSwitch,props.isGateway,props.isAP"):
 			xList.append([dev.states["MAC"].lower(),dev.name+"--"+ dev.states["MAC"] ])
 		return sorted(xList, key=lambda x: x[1])
 	####-----------------	 ---------
 	def filterCameraDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		if self.cameraSystem == "protect":	
 			for dev in indigo.devices.iter("props.isProtectCamera"):
 				for camId in self.PROTECT:
@@ -2651,7 +2662,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterUNIFIsystemDeviceSuspend(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isSwitch,props.isGateway,props.isAP"):
 			xList.append([dev.id,dev.name])
 		return sorted(xList, key=lambda x: x[1])
@@ -2659,7 +2670,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterUNIFIsystemDeviceSuspended(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isSwitch,props.isGateway,props.isAP"):
 			xList.append([dev.id,dev.name])
 		return sorted(xList, key=lambda x: x[1])
@@ -2667,7 +2678,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterAPdevices(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isAP"):
 			xList.append([dev.id,dev.name])
 		return sorted(xList, key=lambda x: x[1])
@@ -2676,7 +2687,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMACNoIgnored(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter(self.pluginId):
 			if "MAC" in dev.states:
 				if "displayStatus" in dev.states and   dev.states["displayStatus"].find("ignored") >-1: continue
@@ -2689,7 +2700,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMAC(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter(self.pluginId):
 			if "MAC" in dev.states:
 				mac = dev.states["MAC"]
@@ -2702,7 +2713,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMACunifiOnly(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "MAC" in dev.states:
 				if len(dev.states["MAC"]) < 5: continue
@@ -2711,8 +2722,8 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMACunifiAndCameraOnly(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
-		macList = []
+		xList = list()
+		macList = list()
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "MAC" in dev.states:
 				if dev.deviceTypeId not in ["UniFi"] : continue
@@ -2734,7 +2745,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMACunifiOnlyUP(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isUniFi"):
 			if "MAC" in dev.states:
 				if "status" in dev.states and dev.states["status"].find("up") > -1:
@@ -2753,7 +2764,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMAConlyAP(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isAP"):
 			if "MAC" in dev.states:
 				if len(dev.states["MAC"]) < 5: continue
@@ -2764,7 +2775,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterMACunifiIgnored(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for MAC in self.MACignorelist:
 				if len(MAC) < 5: continue
 				textMAC = MAC
@@ -2780,7 +2791,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------  logging for specific MAC number	 ---------
 	####-----------------	 ---------
 	def filterMACspecialUNIgnore(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for MAC in self.MACSpecialIgnorelist:
 			if len(dev.states["MAC"]) < 5: continue
 			xList.append([MAC,MAC])
@@ -2802,7 +2813,7 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmStopLoggingCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		self.MACloglist = {}
+		self.MACloglist = dict()
 		self.writeJson({}, fName=self.indigoPreferencesPluginDir+"MACloglist")
 		self.indiLOG.log(10," stop logging of MAC #s")
 		return valuesDict
@@ -2917,7 +2928,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterGroupNoName(self, filter="", valuesDict=None, typeId="", targetId=""):
 		try:
-			xList=[]
+			xList = list()
 			for groupNo in range(_GlobalConst_numberOfGroups):
 				members = self.groupStatusList[groupNo]["members"]
 				gName = self.groupNames[groupNo] 
@@ -2929,7 +2940,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterGroups(self, filter="", valuesDict=None, typeId="", targetId=""):
 		try:
-			xList=[]
+			xList = list()
 			for groupNo in range(_GlobalConst_numberOfGroups):
 				members = self.groupStatusList[groupNo]["members"]
 				gName = self.groupNames[groupNo] 
@@ -2962,7 +2973,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterGroupMembers(self, filter="", valuesDict=None, typeId="", targetId=""):
 		try:
-			xList=[]
+			xList = list()
 			try: groupNo = int(self.selectedGroup)
 			except: return xList
 			for memberDevID in self.groupStatusList[groupNo]["members"]:
@@ -3003,7 +3014,7 @@ class Plugin(indigo.PluginBase):
 		except: return valuesDict
 		groupPropsName = "Group".format(groupNo)
 		self.indiLOG.log(20," groupStatusList:{} removing all members".format(self.groupStatusList)  )
-		self.groupStatusList[groupNo]["members"] = {}
+		self.groupStatusList[groupNo]["members"] = dict()
 		for dev in indigo.devices.iter(self.pluginId):
 			props=dev.pluginProps
 			if groupPropsName in props and props[groupPropsName]:
@@ -3020,7 +3031,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterDevicesToAddToGroup(self, filter="", valuesDict=None, typeId="", targetId=""):
 		try:
-			xList=[]
+			xList = list()
 			try: groupNo = int(self.selectedGroup)
 			except: return xList
 			for dev in indigo.devices.iter("props.isUniFi"):
@@ -3119,13 +3130,15 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def filterUnifiSwitch(self, filter="", valuesDict=None, typeId="", targetId=""):
-		xList = []
+		xList = list()
 		for dev in indigo.devices.iter("props.isSwitch"):
 			swNo = int(dev.states["switchNo"])
 			if self.devsEnabled["SW"][swNo]:
 				xList.append(("{}".format(swNo)+"-SWtail-{}".format(dev.id), "{}".format(swNo)+"-"+self.ipNumbersOf["SW"][swNo]+"-"+dev.name))
+			#self.indiLOG.log(20,"filterUnifiSwitch  swNo:{}, name:{}".format(swNo, dev.name))
 		return xList
 
+	####-----------------	 ---------
 	def buttonConfirmSWCALLBACK(self, valuesDict=None, typeId="", targetId=""):
 		self.unifiSwitchSelectedID =  valuesDict["selectedUnifiSwitch"].split("-")[2]
 		return valuesDict
@@ -3133,7 +3146,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def filterUnifiSwitchPort(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		try:	int(self.unifiSwitchSelectedID)
 		except: return xList
 
@@ -3146,6 +3159,8 @@ class Plugin(indigo.PluginBase):
 				name  = ""
 				if	dev.states[ppp].find("poeX") >-1:
 					name = " - empty"
+				elif	dev.states[ppp] == "":
+					name = " - not set"
 				else:
 					name = ""
 					for dev2 in indigo.devices.iter("props.isUniFi"):
@@ -3165,12 +3180,15 @@ class Plugin(indigo.PluginBase):
 									if "{}".format(port) == sw[1].split("-")[0]:
 										name = " - {}".format(dev2.name)
 				xList.append([port,"port#{}{}".format(port, name)])
+			elif	dev.states[ppp] == "":
+					name = " - not set"
+					xList.append([port,"port#{}{}".format(port, name)])
 		return xList
 
 	####-----------------	 ---------
 	def filterUnifiClient(self, filter="", valuesDict=None, typeId="", targetId=""):
 
-		xList = []
+		xList = list()
 		for dev2 in indigo.devices.iter("props.isUniFi"):
 			if "SW_Port" in dev2.states and len(dev2.states["SW_Port"]) > 2:
 				sw	 = dev2.states["SW_Port"].split(":")
@@ -3184,10 +3202,6 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def buttonConfirmpowerCycleCALLBACKaction(self, action1=None):
 		return self.buttonConfirmpowerCycleCALLBACK(valuesDict=action1.props)
-
-	####-----------------	 ---------
-	def buttonConfirmpowerCycleClientsCALLBACKaction(self, action1=None):
-		return self.buttonConfirmpowerCycleClientsCALLBACK(valuesDict=action1.props)
 
 	####-----------------	 ---------
 	def buttonConfirmpowerCycleCALLBACK(self, valuesDict=None, typeId="", devId=""):
@@ -3349,6 +3363,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		return DiskTot,	DiskUsed, DiskFree, MemTot, MemUsed, MemFree, SharedTot, SharedUsed, SharedFree, cpuload, cputemp 
 
 
+	#### not offered anymore
+	####-----------------	 ---------
+	def buttonConfirmpowerCycleClientsCALLBACKaction(self, action1=None):
+		return self.buttonConfirmpowerCycleClientsCALLBACK(valuesDict=action1.props)
 
 	####-----------------	 ---------
 	def buttonConfirmpowerCycleClientsCALLBACK(self, valuesDict=None, typeId="", devId=""):
@@ -3358,6 +3376,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		valuesDict["selectedUnifiSwitchPort"]	= ip_type[1]
 		self.buttonConfirmpowerCycleCALLBACK(valuesDict)
 		return valuesDict
+	#### not offered anymore   END 
+
+
+
 
 
 	####-----------------  suspend / activate unifi devices	   ---------
@@ -3483,7 +3505,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if "useWhichMAC" in props and props["useWhichMAC"] == "MAClan":
 					MAC = dev.states["MAClan"]
 			self.indiLOG.log(10,"unifi-Report getting _id for AP {}  /stat/device/{}".format(dev.name, MAC) )
-			jData = self.executeCMDOnController(dataSEND={}, pageString="/stat/device/"+MAC, jsonAction="returnData", cmdType="get")
+			jData = self.executeCMDOnController(dataSEND=dict(), pageString="/stat/device/"+MAC, jsonAction="returnData", cmdType="get")
 
 			if len(jData) == 0 and self.unifiCloudKeyPort == "": 
 				self.indiLOG.log(10,"unifi-Report:  controller not setup, skipping other querries" )
@@ -3494,7 +3516,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.indiLOG.log(10,"unifi-Report _id not in data")
 					continue
 				self.indiLOG.log(10,"unifi-Report  _id in data:{}".format(dd["_id"]) )
-				dev.updateStateOnServer("ap_id", dd["_id"])
+				dev.updateStateOnServer("unifi_id", dd["_id"])
 				break
 		self.addToMenuXML(valuesDict)
 		return valuesDict
@@ -3510,19 +3532,19 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if "useWhichMAC" in props and props["useWhichMAC"] == "MAClan":
 					MAC = dev.states["MAClan"]
 			break	
-		self.executeCMDOnController(dataSEND={}, pageString="/stat/device/"+MAC, jsonAction="print",startText="== Unifi Device print: /stat/device/"+MAC+" ==", cmdType="get")
+		self.executeCMDOnController(dataSEND=dict(), pageString="/stat/device/"+MAC, jsonAction="print",startText="== Unifi Device print: /stat/device/"+MAC+" ==", cmdType="get")
 		return valuesDict
 
 	####-----------------	 ---------
 	def buttonConfirmPrintClientInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		MAC = valuesDict["MACdeviceSelectedclient"]
-		self.executeCMDOnController(dataSEND={}, pageString="/stat/sta/"+MAC, jsonAction="print",startText="== Client print: /stat/sta/"+MAC+" ==", cmdType="get")
+		self.executeCMDOnController(dataSEND=dict(), pageString="/stat/sta/"+MAC, jsonAction="print",startText="== Client print: /stat/sta/"+MAC+" ==", cmdType="get")
 		return valuesDict
 
 ######## reports all devcies
 	####-----------------	 ---------
 	def buttonConfirmPrintalluserInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data = self.executeCMDOnController(dataSEND={}, pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
 #		data = self.executeCMDOnController(dataSEND={"type":"all","conn":"all"}, pageString="/stat/alluser/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport3(data, "== ALL USER report ==")
 		self.fillcontrollerDBForClients(data)
@@ -3530,7 +3552,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintuserInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId="", cmdType="get"):
-		data = self.executeCMDOnController(dataSEND={}, pageString="/list/user/", jsonAction="returnData", cmdType=cmdType)
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/list/user/", jsonAction="returnData", cmdType=cmdType)
 		self.unifsystemReport3(data, "== USER report ==")
 		return valuesDict
 
@@ -3564,7 +3586,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------print DPI info  ---------
 	def buttonConfirmPrintDPIFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		try:
-			data = {}
+			data = dict()
 			data["app"] = self.executeCMDOnController(dataSEND={'type': 'by_app'}, pageString="stat/sitedpi", jsonAction="returnData", cmdType="post")
 			data["cat"] = self.executeCMDOnController(dataSEND={'type': 'by_cat'}, pageString="stat/sitedpi", jsonAction="returnData", cmdType="post")
 			f = self.openEncoding(self.pathToPlugin+"unifi_dpi.json","r")
@@ -3574,8 +3596,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			#self.indiLOG.log(20,"{}".format(data["app"]))
 			#self.indiLOG.log(20,"{}".format(data["cat"]))
 
-			out1 = []
-			out2 = []
+			out1 = list()
+			out2 = list()
 			lastUpdated = ""
 			for rr in data["cat"]: 
 				if 'last_updated' in rr:
@@ -3611,7 +3633,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							o += "{:>9,d}".format(rec["known_clients"]) 
 						out2.append(o)
 
-			if out1 !=[] or out2 !=[]:
+			if out1 != list() or out2 != list():
 				out =  "\n== UniFi  Deep Packet Info report, lastUpdated: {} == \n".format(lastUpdated)
 				out =  "\n== ** cat and app #s from https://ubntwiki.com/products/software/unifi-controller/api/cat_app_json ** \n".format(lastUpdated)
 				out += "   cat# cat Name-----------------------               rx_bytes         tx_Bytes\n"
@@ -3631,7 +3653,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 ####   general reports
 	####-----------------	 ---------
 	def buttonConfirmPrintHealthInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data = self.executeCMDOnController(dataSEND={}, pageString="/stat/health/", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/stat/health/", jsonAction="returnData", cmdType="get")
 		out = "== HEALTH report ==\n"
 		ii=0
 		for item in data:
@@ -3657,7 +3679,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintPortForWardInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data =self.executeCMDOnController(dataSEND={}, pageString="/stat/portforward/", jsonAction="returnData", cmdType="get")
+		data =self.executeCMDOnController(dataSEND=dict(), pageString="/stat/portforward/", jsonAction="returnData", cmdType="get")
 		out = "== PortForward report ==\n"
 		out += "##".ljust(4) + "name".ljust(20) + "protocol".ljust(10) + "source".ljust(16)	+ "fwd_port".rjust(9)+ "dst_port".rjust(9)+ " fwd_ip".ljust(17)+ "rx_bytes".rjust(12)+ "rx_packets".rjust(12)+"\n"
 		ii = 0
@@ -3682,7 +3704,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def buttonConfirmPrintSessionInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		toT		= int(time.time()+100)
 		fromT 	= toT - 30000
-		data = self.executeCMDOnController(dataSEND={}, pageString="/stat/session?type=all&start={:d}&end={:d}".format(fromT,toT), jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/stat/session?type=all&start={:d}&end={:d}".format(fromT,toT), jsonAction="returnData", cmdType="get")
 		out = "\n"
 		ii = 0
 		for xxx in data:
@@ -3703,7 +3725,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintAlarmInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data = self.executeCMDOnController(dataSEND={}, pageString="/list/alarm/", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/list/alarm/", jsonAction="returnData", cmdType="get")
 		self.unifsystemReport1(data, True, "    ==AlarmReport==", limit=99999)
 		self.addToMenuXML(valuesDict)
 		return valuesDict
@@ -3712,7 +3734,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintWifiConfigInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data = self.executeCMDOnController(dataSEND={}, pageString="/rest/wlanconf", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="/rest/wlanconf", jsonAction="returnData", cmdType="get")
 		out = "\n"
 		ii = 0
 		for xxx in data:
@@ -3728,7 +3750,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintWifiChannelInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data =self.executeCMDOnController(dataSEND={}, pageString="/stat/current-channel", jsonAction="returnData", cmdType="get")
+		data =self.executeCMDOnController(dataSEND=dict(), pageString="/stat/current-channel", jsonAction="returnData", cmdType="get")
 		out = "== Wifi Channel report ==\n"
 		for xxx in data:
 			for item in ["code","key","name"]:
@@ -3764,6 +3786,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			useLimit = 5*limit
 		data = self.executeCMDOnController(dataSEND={"_sort":"+time", "_limit":useLimit}, pageString="/stat/event/", jsonAction="returnData", cmdType="put")
 		self.unifsystemReport1(data, False, "     ==EVENTs ..;  last {} events ;     -- {} login events ==".format(limit, ltype), limit, PrintEventInfoLoginEvents=PrintEventInfoLoginEvents)
+		self.writeJson(data, fName=self.indigoPreferencesPluginDir+"Eventlog.json")
 		self.addToMenuXML(valuesDict)
 
 		return valuesDict
@@ -3775,10 +3798,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.lastupdateDevStateswRXTXbytes = time.time()
 			en = int( time.time()  ) * 1000
 			st = en - 300*1000
-			data = self.executeCMDOnController(dataSEND={"attrs": ["tx_bytes", "rx_bytes", "time"], "start": st, "end": en}, pageString="/stat/report/5minutes.user", jsonAction="returnData", cmdType="post")
+			dataSEND = {"attrs": ["tx_bytes", "rx_bytes", "time"], "start": st, "end": en}
+			pageString = "/stat/report/5minutes.user"
+			data = self.executeCMDOnController(dataSEND=dataSEND, pageString=pageString, jsonAction="returnData", cmdType="post")
+			if self.decideMyLog("Special"): self.indiLOG.log(20,"updateDevStateswRXTXbytes: pageString{}; dataSEND: {}; data returned:{}".format(pageString, dataSEND, data))
 
 			if len(data) == 0: return
-			MACbytes 	= {}
+			MACbytes 	= dict()
 			tNow 		= int(time.time()*1000)
 			anyUpdate 	= False
 			maxDT 		= 0
@@ -3928,7 +3954,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	def buttonConfirmPrintWlanConfInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		data = self.executeCMDOnController(dataSEND={}, pageString="list/wlanconf", jsonAction="returnData", cmdType="get")
+		data = self.executeCMDOnController(dataSEND=dict(), pageString="list/wlanconf", jsonAction="returnData", cmdType="get")
 		out = "==WLan Report =="+"\n"
 		out+= " ".ljust(4+20+6+20)+"bc_filter...".ljust(6+15) +"dtim .......".ljust(8+3+3)+"MAC_filter ........".ljust(6+20+8)+" ".ljust(15+8)+"wpa......".ljust(6+6)+"\n"
 		out+= "##".ljust(4)
@@ -4316,7 +4342,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	def execDisableAP(self, valuesDict , disable): #( true if disable )
 		dev = indigo.devices[int(valuesDict["apDeviceSelected"])]
-		ID = dev.states["ap_id"]
+		ID = dev.states["unifi_id"]
 		ip = dev.states["ipNumber"]
 		if disable: self.setSuspend(ip, time.time() + 99999999)
 		else	  : self.delSuspend(ip)
@@ -4363,6 +4389,63 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.indiLOG.log(20,"provision cmd: return  {}".format(ret) )
 		return valuesDict
 
+
+
+######## actions and menu [powercycle port on switches ]
+	####-----------------	 ---------
+	def buttonConfirmPowercyclePortOnSwithConllerCALLBACKaction(self, action1=None):
+		self.buttonConfirmPowercyclePortOnSwithConllerCALLBACK(action1.props)
+
+	def buttonConfirmPowercyclePortOnSwithConllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		onOffCycle	= valuesDict["onOffCycle"]
+		ip_type		= valuesDict["selectedUnifiSwitch"].split("-")
+		ipNumber	= self.ipNumbersOf["SW"][int(ip_type[0])]
+		portNo		= "{}".format(valuesDict.get("selectedUnifiSwitchPort",""))
+		if portNo == "": 
+			valuesDict["MSG"] = "no valid portNo :{}".format(portNo)
+			return valuesDict
+		try:	portNo = int(portNo)
+		except:
+			valuesDict["MSG"] = "no valid portNo :{}".format(portNo)
+			return valuesDict
+		try:
+			devId		= int(ip_type[2])
+			dev = indigo.devices[devId]	
+		except:
+			valuesDict["MSG"] = "no valid device :{}".format(ip_type)
+			return valuesDict
+
+		mac = dev.states["MAC"]
+		if not self.isValidMAC(mac): 
+			valuesDict["MSG"] = "no valid mac given:{}".format(mac)
+			return valuesDict
+
+		if onOffCycle == "CYCLE":
+			dataDict = {'cmd':'power-cycle','mac':mac, 'port_idx':portNo}
+			page = "/cmd/devmgr"
+			valuesDict["MSG"] = "Powercycle command send to:{}/{}  {};  page:{};  json:{}".format( devId, dev.name, ipNumber,  page,  dataDict)
+			ret = self.executeCMDOnController(dataSEND=dataDict, pageString=page, cmdType="post", cmdTypeForce=True, repeatIfFailed=False,  debugOverwrite=True)
+			
+		else:
+			unifi_id = dev.states.get("unifi_id","")
+			cmd = "auto" if onOffCycle == "ON" else "off"
+			dataDict = {"port_overrides":[{"port_idx":portNo,"poe_mode":cmd}]} 
+			page = "/rest/device/"+unifi_id
+			valuesDict["MSG"] = "Powercycle command send  page:{};  json:{}".format(  page,  dataDict)
+			ret = self.executeCMDOnController(dataSEND=dataDict, pageString=page, cmdType="put", cmdTypeForce=True, repeatIfFailed=False, debugOverwrite=True)
+
+
+		#error return == {"meta":{"rc":"error","msg":"api.err.Invalid"},"data":[]}<<<"
+		try:
+			if "meta" in ret and "rc" in ret["meta"] and ret["meta"]["rc"].find("error") >-1:
+				self.indiLOG.log(30,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle page:{}, cmd{}; return  {}".format(page, dataDict, ))
+			else:
+				self.indiLOG.log(20,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle page:{}, cmd{};".format(page, dataDict ))
+			
+		except:
+				self.indiLOG.log(30,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle cmd{} : return  {}".format(valuesDict["MSG"], ret ))
+		
+		return valuesDict
 
 
 
@@ -4431,7 +4514,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def getMenuActionConfigUiValues(self, menuId):
 		valuesDict = indigo.Dict()
-		self.menuXML ={}
+		self.menuXML = dict()
 		if menuId == "CameraActions" and ("fileNameOfImage" not in self.menuXML or len(self.menuXML["fileNameOfImage"]) <10 ):
 			if len(self.changedImagePath) > 5:
 				self.menuXML["fileNameOfImage"] = self.changedImagePath+"nameofCamera.jpeg"
@@ -4454,23 +4537,42 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def checkForNewUnifiSystemDevices(self):
 		try:
-			if self.checkForNewUnifiSystemDevicesEvery == 0:	 	return
-			if self.checkforUnifiSystemDevicesState == "": 			return
-			if self.checkforUnifiSystemDevicesState == "reboot": 	return
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 1 {}".format(self.unifiCloudKeyMode ))
 			if self.unifiCloudKeyMode != "ON":			 		
-				self.checkforUnifiSystemDevicesState  = ""
 				return
 
-			self.indiLOG.log(10,"checkForNewUnifiSystemDevices   due to: {}".format(self.checkforUnifiSystemDevicesState))
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 2 {}".format(time.time() - self.pluginStartTime  ))
+			if time.time() - self.pluginStartTime < 30: return 
+
+
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 3 {}".format(self.checkForNewUnifiSystemDevicesEvery ))
+
+			if self.checkForNewUnifiSystemDevicesEvery == 0:	 	return
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 4 {}".format(time.time() - self.lastcheckForNewUnifiSystemDevices ))
+			if time.time() - self.lastcheckForNewUnifiSystemDevices < self.checkForNewUnifiSystemDevicesEvery: return 
+			self.lastcheckForNewUnifiSystemDevices  = time.time()
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 5 {}".format(self.oneMiniswitchPresent ))
+
+			miniSwitchReason = True
+			if not self.oneMiniswitchPresent:
+				#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 6 {}".format(self.checkforUnifiSystemDevicesState ))
+				if self.checkforUnifiSystemDevicesState == "": 			return
+				if self.checkforUnifiSystemDevicesState == "reboot": 	return
+				miniSwitchReason = False
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 7 {}".format(self.unifiCloudKeyMode ))
+				
+
+			#self.indiLOG.log(10,"checkForNewUnifiSystemDevices   due to: checkforUnifiSystemDevicesState:{}, miniSwitchReason:{}".format(self.checkforUnifiSystemDevicesState, miniSwitchReason))
 			self.checkforUnifiSystemDevicesState  = ""
 
-			newDeviceFound = []
+			newDeviceFound = list()
 
 			deviceDict =		self.executeCMDOnController( pageString="/stat/device/", jsonAction="returnData", cmdType="get")
 			if self.decideMyLog("DictFile"): 
 				self.writeJson( deviceDict, fName="{}dict-Controller.json".format(self.indigoPreferencesPluginDir), sort=False, doFormat=True )
 
-			if deviceDict == []: return
+			if deviceDict == list(): return
+			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 8 writen")
 
 			devType =""
 			counter = 0
@@ -4479,8 +4581,45 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				ipNumber = ""
 				MAC		 = ""
 				if "type"   not in device: continue
-				uType	 = device["type"]
-				uModel	 = device.get("model","")
+				uType	= device["type"]
+				uModel	= device.get("model","")
+				hasSSH 	= device.get("x_has_ssh_hostkey",False)
+
+				#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']}, uModel::{uModel}, {hasSSH}, {uType}")
+				found = False
+				name = "--"
+				dev = None
+
+				#### do not handle UDM type devices (yet)
+
+				if "mac" in device and "ip" in device or "lan_ip" in device:
+						try: ipNumber = device["ip"]
+						except: ipNumber = device["lan_ip"]
+						MAC		 = device["mac"]
+
+				if MAC == "" or ipNumber == "":
+					continue
+
+
+				for dev in indigo.devices.iter("props.isSwitch,props.isAP,props.isGateway"):
+					if "MAClan" in dev.states and dev.states["MAClan"] == MAC:
+						found = True
+						name = dev.name
+						if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
+							dev.updateStateOnServer("unifi_id", device.get["_ip"])
+						break
+					if "MAC" in dev.states and dev.states["MAC"] == MAC:
+						found = True
+						name = dev.name
+						if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
+							dev.updateStateOnServer("unifi_id", device["_id"])
+						break
+						
+				#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device.get('ip','')}  {device.get('_id','none')}, found:{found}")
+
+				if uType.find("udm") > -1:
+					continue
+
 
 				if uType == "ugw":
 					if "network_table" in device:
@@ -4490,48 +4629,30 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								MAC		 = nwt["mac"]
 								break
 
-				#### do not handle UDM type devices (yet)
-				elif uType.find("udm") > -1:
-					continue
-
-				else:
-					if "mac" in device and "ip" in device:
-						ipNumber = device["ip"]
-						MAC		 = device["mac"]
-
-				if MAC == "" or ipNumber == "":
-					continue
-
-				found = False
-				name = "--"
-
-				for dev in indigo.devices.iter("props.isAP,props.isSwitch,props.isGateway"):
-					if "MAClan" in dev.states and dev.states["MAClan"] == MAC:
-						found = True
-						name = dev.name
-						break
-					if "MAC" in dev.states and dev.states["MAC"] == MAC:
-						found = True
-						name = dev.name
-						break
-						## found devce no action
-
-
 
 				if uType.find("usw") > -1: # check for miniswitches, they can not be ssh-ed, only info is in controller db
 					for i in range(len(self.ipNumbersOf["SW"])):
-						if not self.isMiniSwitch[i]: 						continue 
+						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {i}; {device['ip']}, {ipNumber} {self.ipNumbersOf['SW'][i]}")
 						if ipNumber != self.ipNumbersOf["SW"][i]: 			continue
+						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 11?; {self.isMiniSwitch[i]}")
+						self.isMiniSwitch[i] = self.isMiniSwitch[i] or uModel.find("MINI") > -1	or not hasSSH
+						if not self.isMiniSwitch[i]: continue
+						if self.isMiniSwitch[i]: self.oneMiniswitchPresent = True
+						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 12")
+						if not self.isMiniSwitch[i]: 						continue 
+						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 13")
 						if not self.isValidIP(self.ipNumbersOf["SW"][i]): 	continue
 						self.doMimiTypeSwitchesWithControllerData(device, i, found)
+						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']},  passed ")
 						break
+					if miniSwitchReason and found: continue
 
-
+				#self.indiLOG.log(20,"checkForNewUnifiSystemDevices   checking for mac:{}, ipNumber:{}, uType:{}, uModel:{}, hasSSH:{}, found:{}".format(MAC, ipNumber, uType, uModel, hasSSH, found))
 				if not found:
-
 					if uType.find("uap") >-1:
 						for i in range(len(self.ipNumbersOf["AP"])):
 							if	not self.isValidIP(self.ipNumbersOf["AP"][i]):
+								self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
 								newDeviceFound.append("uap: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["AP"][i]) )
 								self.ipNumbersOf["AP"][i]					= ipNumber
 								self.pluginPrefs["ip{}".format(i)]			= ipNumber
@@ -4552,10 +4673,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 					elif uType.find("usw") >-1:
 						for i in range(len(self.ipNumbersOf["SW"])):
-							self.isMiniSwitch[i] = uModel.find("MINI") > -1	
+							self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
 
 							if	not self.isValidIP(self.ipNumbersOf["SW"][i] ):
-								newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i]  ))
+								newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i], hasSSH ))
 								self.ipNumbersOf["SW"][i]					= ipNumber
 								self.pluginPrefs["ipSW{}".format(i)]		= ipNumber
 								self.pluginPrefs["ipSWON{}".format(i)]		= True
@@ -4565,7 +4686,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							else:
 								if self.ipNumbersOf["SW"][i] == ipNumber:
 									if not self.devsEnabled["SW"][i]: break # we know this one but it is disabled on purpose
-									newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i]  ))
+									newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i] , hasSSH  ))
 									self.ipNumbersOf["SW"][i]				= ipNumber
 									#self.devsEnabled["SW"][i]						= True # will be enabled after restart
 									self.pluginPrefs["ipSWON{}".format(i)]	= True
@@ -4601,7 +4722,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if int(self.pluginPrefs["createUnifiDevicesCounter"] ) > 1: # allow only 1 unsucessful try, then wait 10 minutes
 						self.checkforUnifiSystemDevicesState		   = ""
 					else:
-						self.indiLOG.log(30,"Connection   reboot required due to new UNIFI system device found:{}".format(newDeviceFound))
+						self.indiLOG.log(30,"checkForNewUnifiSystemDevices   reboot required due to new UNIFI system device found:{}".format(newDeviceFound))
 				except:
 						self.checkforUnifiSystemDevicesState		   = ""
 			try:	indigo.server.savePluginPrefs()
@@ -4622,7 +4743,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def executeMCAconfigDumpOnGW(self, valuesDict=None,typeId="" ):
 		keepList=["vpn","port-forward","service:radius-server","service:dhcp-server"]
 		jsonAction="print"
-		ret =[]
+		ret = list()
 		if self.connectParams["commandOnServer"]["GWctrl"].find("off") == 0: return valuesDict
 		try:
 			cmd = self.expectPath +" "
@@ -4656,8 +4777,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 															if zzzzz =="static-mapping":
 																s0 = short[z][zz][zzz][zzzz][zzzzz]
 																## need to sort
-																u =[]
-																v =[]
+																u = list()
+																v = list()
 																for t in s0:
 																	u.append((s0[t]["mac-address"],s0[t]["ip-address"]))
 																	v.append((self.fixIP(s0[t]["ip-address"]),s0[t]["ip-address"],s0[t]["mac-address"]))
@@ -4816,7 +4937,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			elif method == "request":
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
-				ret	= self.unifiSession[self.controllerOrProtect].get(urlSite, cookies=cookies,  headers=headers, timeout=self.requestTimeout, verify=False).text
+				try:
+					ret	= self.unifiSession[self.controllerOrProtect].get(urlSite, cookies=cookies,  headers=headers, timeout=self.requestTimeout, verify=False).text
+				except :
+					self.indiLOG.log(30,"setunifiCloudKeySiteName for {} has error, getting site ID {}".format(self.unifiCloudKeyIP, str(ret), self.retTextForPing(self.unifiCloudKeyIP)))
+					self.executeCMDOnControllerReset(wait=5, calledFrom="setunifiCloudKeySiteName1")
+					return False
 				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
 
 			elif method == "curl":
@@ -4845,12 +4971,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					for site in dictRET["data"]:
 						if "name" in site:
 							if not oneFound: 
-								self.unifiCloudKeyListOfSiteNames = []
+								self.unifiCloudKeyListOfSiteNames = list()
 								oneFound = True
 							if site["name"] not in self.unifiCloudKeyListOfSiteNames:
 								self.unifiCloudKeyListOfSiteNames.append(site["name"])
 
-					if self.unifiCloudKeyListOfSiteNames != []:
+					if self.unifiCloudKeyListOfSiteNames != list():
 						if self.unifiCloudKeySiteName not in self.unifiCloudKeyListOfSiteNames:
 							if self.unifiCloudKeySiteName =="":
 								self.indiLOG.log(20,"setunifiCloudKeySiteName setting site id name to >>{}<<, was empty, available list:{}".format(self.unifiCloudKeyListOfSiteNames[0],  self.unifiCloudKeyListOfSiteNames))
@@ -4874,20 +5000,23 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			return False
 
 		except	Exception as e:
-			self.indiLOG.log(40,"setunifiCloudKeySiteName: " )
-			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+			self.indiLOG.log(40,"setunifiCloudKeySiteName: general error" )
+			er = str(e)
+			if er.find("None") == -1: 
+				self.indiLOG.log(40,"{} ".format(er[0:200]))
+				self.indiLOG.log(40,"{} ".format(er[:-200]))
 		self.executeCMDOnControllerReset(wait=5,  calledFrom="setunifiCloudKeySiteName3")
 		return False
 
 
 
 	####-----------------	 ---------
-	def executeCMDOnController(self, dataSEND={}, pageString="", jsonAction="returnData", startText="", cmdType="put", cmdTypeForce = False, repeatIfFailed=True, raw=False, protect=False, ignore40x=False, debugOverwrite=False, useTimeout=0):
-
+	def executeCMDOnController(self, dataSEND=None, pageString="", jsonAction="returnData", startText="", cmdType="put", cmdTypeForce = False, repeatIfFailed=True, raw=False, protect=False, ignore40x=False, debugOverwrite=False, useTimeout=0):
+		if dataSEND is None: dataSEND = dict()
 		try:
 			#if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,f'into executeCMDOnController 1  {self.connectParams["UserID"]["webCTRL"]}   {self.unifiCloudKeyMode:}, {self.useIPForhttpCmd:}, {self.unifiControllerType :}<'  )
-			if self.unifiControllerType == "off": 					return []
-			if self.unifiCloudKeyMode   == "off":					return []
+			if self.unifiControllerType == "off": 					return list()
+			if self.unifiCloudKeyMode   == "off":					return list()
 
 			if protect:
 				self.useIPForhttpCmd = self.protectIP
@@ -4903,28 +5032,28 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			if useTimeout == 0 : useTimeout = self.requestTimeout
 
-			if not self.isValidIP(self.useIPForhttpCmd): 							return []
-			if len(self.connectParams["UserID"][selectProtOrCont]) < 2: 					return []
-			if self.unifiCloudKeyMode.find("ON") == -1 and self.unifiCloudKeyMode != "UDM": return []
+			if not self.isValidIP(self.useIPForhttpCmd): 							return list()
+			if len(self.connectParams["UserID"][selectProtOrCont]) < 2: 					return list()
+			if self.unifiCloudKeyMode.find("ON") == -1 and self.unifiCloudKeyMode != "UDM": return list()
 
 			pageString = pageString.strip("/")
 
-			dictRET = {}
-			maxretry = 3
+			dictRET = dict()
+			maxretry = 4
 			#if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"into executeCMDOnController 2 " )
-			for iii in range(maxretry):
-				if not repeatIfFailed and iii > 0: return dictRET
-				if iii > 0: 
-					self.sleep(iii+1)
-					if protect: self.sleep(iii*2. + 6.)
+			for tryCount in range(maxretry):
+				if not repeatIfFailed and tryCount > 0: return dictRET
+				if tryCount > 0: 
+					self.sleep(tryCount+1)
+					if protect: self.sleep(tryCount*2. + 6.)
 
 				# get port and which unifi os:
 				if not self.getunifiOSAndPort(): 
 					self.executeCMDOnControllerReset(wait=0)
-					return []
+					return list()
 				if self.unifiControllerOS[self.controllerOrProtect] not in self.OKControllerOS:
 					if self.decideMyLog("ConnectionCMD") or debugOverwrite: self.indiLOG.log(10,"unifiControllerOS not set : {}".format(self.unifiControllerOS[self.controllerOrProtect]) )
-					return []
+					return list()
 
 				# now execute commands
 				#### use curl if ...
@@ -4955,12 +5084,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							respText, errText = self.readPopen(cmdLogin)
 							try: loginDict = json.loads(respText)
 							except:
-								if iii == 0:
+								if tryCount == 0:
 									self.indiLOG.log(40,"UNIFI executeCMDOnController error no json object: (wrong UID/passwd, ip number?{}) ...>>{}<<\n{}".format(self.useIPForhttpCmd,respText,errText))
 									self.executeCMDOnControllerReset(wait=1)
 								continue
 							if   ( "meta" not in loginDict or  loginDict["meta"]["rc"] != "ok"):
-								if iii == 0:
+								if tryCount == 0:
 									self.indiLOG.log(40,"UNIFI executeCMDOnController  login cmd:{}\ngives  error: {}\n {}".format(cmdLogin, respText,errText) )
 								self.executeCMDOnControllerReset(wait=1)
 								continue
@@ -4991,16 +5120,16 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							try:
 								dictRET = json.loads(respText)
 							except	Exception as e:
-								if iii > 0:
+								if tryCount > 0:
 									if "{}".format(e).find("None") == -1: 
 										self.indiLOG.log(30,"", exc_info=True)
 										self.indiLOG.log(30,"UNIFI executeCMDOnController to {} curl errortext:{}".format(self.useIPForhttpCmd, errText))
-										self.printHttpError("{}".format(e), respText, ind=iii)
+										self.printHttpError("{}".format(e), respText, ind=tryCount)
 									self.executeCMDOnControllerReset(wait=5, calledFrom="executeCMDOnController-curl json")
 								continue
 
 							if dictRET["meta"]["rc"] != "ok":
-								if iii == 0:
+								if tryCount == 0:
 									self.indiLOG.log(40," Connection error: >>{}<<\n{}".format(self.useIPForhttpCmd, respText, errText))
 								self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-curl dict not ok")
 								continue
@@ -5010,7 +5139,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 							if  jsonAction == "print":
 								self.indiLOG.log(10," Connection to:{} info\n{}".format(self.useIPForhttpCmd, json.dumps(dictRET["data"],sort_keys=True, indent=2)))
-								return []
+								return list()
 
 							if  jsonAction == "returnData":
 								#self.writeJson(dictRET["data"], fName=self.indigoPreferencesPluginDir+"dict-Controller-"+pageString.replace("/","_").replace(" ","-").replace(":","=").strip("_")+".txt", sort=True, doFormat=True )
@@ -5019,7 +5148,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								#self.writeJson(dictRET["data"], fName=self.indigoPreferencesPluginDir+"dict-Controller-"+pageString.replace("/","_").replace(" ","-").replace(":","=").strip("_")+".txt", sort=True, doFormat=True )
 								return dictRET
 
-							return []
+							return list()
 
 						except	Exception as e:
 							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -5049,7 +5178,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									resp  = self.unifiSession[self.controllerOrProtect].post(url,  headers=loginHeaders, data = dataLogin, timeout=useTimeout, verify=False)
 									if isinstance(resp, str):
 										self.failedControllerLoginCount += 1 
-										if self.failedControllerLoginCount > 1:
+										if self.failedControllerLoginCount > 2:
 											self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{},".format(self.failedControllerLoginCount , url) )
 										continue
 
@@ -5057,28 +5186,33 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									loginDict = json.loads(resp.text)
 
 								except	Exception as e:
-									if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
-										self.quitNOW = "restart due to failed Controller Login count  > {}".format(self.failedControllerLoginCount )
-										return []
+									retPing = self.retTextForPing(self.useIPForhttpCmd)
+									if retPing !="":
+										self.indiLOG.log(30,"executeCMDOnController {}  {} ".format(retPing, url))
+									else:
+										if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
+											self.quitNOW = "restart due to failed Controller Login count  > {}".format(self.failedControllerLoginCount )
+											return list()
 
 									self.failedControllerLoginCount += 1 
-									if self.failedControllerLoginCount > 1:
-										self.indiLOG.log(30,"UNIFI executeCMDOnController  error: >>{}<<".format(e) )
+									if self.failedControllerLoginCount > 2:
+										#self.indiLOG.log(30,"UNIFI executeCMDOnController  error: >>{}<<".format(e) )
 										self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found,  response: >>{}<<".format(self.failedControllerLoginCount , url, str(resp) ) )
 										if "{}".format(e).find("timed out") == -1:
-											if "{}".format(e).find("None") == -1: self.indiLOG.log(30,"", exc_info=True)
+											pass
+											#if "{}".format(e).find("None") == -1: self.indiLOG.log(30,"", exc_info=True)
 
 									self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-login ret code not ok")
 									continue
 
 								if  resp == "" or resp.status_code != requests.codes.ok:
 									self.failedControllerLoginCount += 1 
-									if self.failedControllerLoginCount > 2:
+									if self.failedControllerLoginCount > 3:
 										self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found, response: >>{}<<\n".format(self.failedControllerLoginCount , url, str(resp) ) )
 									self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-login ret code not ok")
 									if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
 										self.quitNOW = "restart due to failed Controller Login count  = {}".format(self.failedControllerLoginCount )
-										return []
+										return list()
 									self.sleep(10)
 									continue
 
@@ -5138,6 +5272,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					else:
 						setStream	= False
 					timeused		= 0
+					totalTimeused	= time.time()
 
 					try: # for any unknown error check around the whole thing
 
@@ -5153,11 +5288,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 											try:
 														resp =	self.unifiSession[self.controllerOrProtect].get(url, 	params=dataSEND,	cookies=cookies, headers=headers, verify=False, timeout=useTimeout, stream=setStream)
 											except	Exception as e:
-												if iii > 0:
+												if tryCount > 0:
 													if "{}".format(e).find("object has no attribute") > -1:
-														if maxretry-iii-1 >0:	self.indiLOG.log(30,"bad read / connect to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
-														else:					self.indiLOG.log(30,"bad read / connect to {:55s}  giving up after {} tries".format(url, maxretry))
-												if iii > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-iii > 1")
+														if tryCount < maxretry -2:	pass
+														elif maxretry-tryCount-2 > 0:	self.indiLOG.log(10,"bad read / connect to {:55s}  will try again {} more times".format(url, maxretry-tryCount-2))
+														else:						self.indiLOG.log(20,"bad read / connect to {:55s}  giving up after {} tries".format(url, maxretry))
+												if tryCount > 2: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-tryCount > 1")
 												continue
 											if setStream: 
 												rawData = resp.raw.read()
@@ -5167,48 +5303,68 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 								else:	
 									self.indiLOG.log(30,"executeCMDOnController bad method type: url:{} type:{}".format(url, cmdType))
-									return []				
+									return list()				
 								## got something
 								
 							except	Exception as e:
-								if f"{e}".find("timed out") > -1 or f"{e}".find("Connection refused") > -1:
-									if iii > 1:
-										if maxretry-iii-1 > 0:	self.indiLOG.log(30,"executeCMDOnController read timed out to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
-										else:					self.indiLOG.log(30,"executeCMDOnController read timed out to {:55s}  giving up after {} tries".format(url, maxretry))
-									if iii > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-iii > 1")
+								retPing = self.retTextForPing(self.useIPForhttpCmd)
+								if retPing !="":
+									self.indiLOG.log(30,"executeCMDOnController {}  {} {}".format(retPing, url, maxretry-tryCount-2))
+									if tryCount > 1:
+										if tryCount < maxretry -2:	pass
+										elif maxretry-tryCount-2 > 0:	self.indiLOG.log(10,"executeCMDOnController read timed out to {:55s}  will try again {} more times".format(url, maxretry-tryCount-2))
+										else:							self.indiLOG.log(10,"executeCMDOnController read timed out to {:55s}  giving up after {} tries".format(url, maxretry))
+									if tryCount > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-tryCount > 1")
 									continue
+								else:
+									
+									if f"{e}".find("timed out") > -1 or f"{e}".find("Connection refused") > -1:
+										if tryCount > 1:
+											if tryCount < maxretry -2:		pass
+											elif maxretry-tryCount-2 > 0:	self.indiLOG.log(10,"executeCMDOnController read timed out to {:55s}  will try again {} more times".format(url, maxretry-tryCount-2))
+											else:						self.indiLOG.log(10,"executeCMDOnController read timed out to {:55s}  giving up after {} tries".format(url, maxretry))
+										if tryCount > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-tryCount > 1")
+										continue
 				
-								if "{}".format(e).find("None") == -1: self.indiLOG.log(30,f"error at get/put..: {e}, for url:{url}, dataSEND:{dataSEND}")
+								#if "{}".format(e).find("None") == -1: self.indiLOG.log(30,f"error at get/put..: {e}, for url:{url}, dataSEND:{dataSEND}")
 								continue
 
 							try:  ## now lets see what we got
-								retCode		= copy.copy(resp.status_code )
-								respText 	= copy.copy(resp.text)
-								retStatus	= resp.status_code
+								retCode		= resp.status_code 
+								respText 	= resp.text
 								##respText 	= respText.decode("utf8")
 								timeused 	= resp.elapsed.total_seconds()	
+								headers 	= resp.headers
+								ll = len(respText)
 								if self.decideMyLog("ConnectionRET") or debugOverwrite:	
-									self.indiLOG.log(10,"executeCMDOnController retCode:{}, time used:{}; os:{}; cmdType:{}, url:{}\nheaders:{}\ncont length:{}; retText>>>{}<<<".format(retCode, timeused,  self.unifiControllerOS[self.controllerOrProtect], cmdType, url, headers, len(respText), respText))
-								headers 	= copy.copy(resp.headers)
+									self.indiLOG.log(10,"executeCMDOnController retCode:{}, time used:{:.3f}, tot:{:.3f}; os:{}; cmdType:{}, url:{}\nheaders:{}\ncont length:{}; retText>>>{}<<<".format(retCode, timeused, time.time()-totalTimeused,  self.unifiControllerOS[self.controllerOrProtect], cmdType, url, headers, len(respText), respText))
 								if not raw:
 									if len(respText) > 0:
+										if respText[0] not in ["{","["] or respText[-1] not in ["}","]"]: #is it json?
+											# its Not
+											maxText = min(ll, 10)
+											self.indiLOG.log(10,"executeCMDOnController return for url:{} timeused:{:.3f},  nchar:{}, bad json:\n>>>{} .... {}<<<".format(url, timeused, ll, respText[:maxText], respText[-maxText:]))
+											continue	
 										try: dictRET	= json.loads(respText)
 										except:
-											self.indiLOG.log(20,"executeCMDOnController retCode: returned data json loads did not work for: url:{}  with:n>{}<\n status:{}  retCode:{}, headers:{}".format(url, respText, retStatus, retCode, headers))
+											maxText = min(ll, 100)
+											self.indiLOG.log(10,"executeCMDOnController retCode: returned data json loads did not work for: url:{} timeused:{:.3f},  nchar:{}, bad json:\n>>>{} .... {}<<<\n  retCode:{}, headers:{}".format(url, timeused, ll, respText[:maxText], respText[-maxText:], retCode, headers))
 											dictRET = ""
+											continue
 									else:
 										dictRET = ""
 										if self.decideMyLog("ConnectionRET") or debugOverwrite:	
-											self.indiLOG.log(20,"executeCMDOnController retCode: no data returned")
+											self.indiLOG.log(10,"executeCMDOnController retCode: no data returned")
+										continue
 
 								resp.close()
 								
 							except	Exception as e:
-								if iii > 0:
+								if tryCount > 0:
 									errText = "{}".format(e)
 									if "{}".format(e).find("None") == -1: 
-										self.indiLOG.log(30,"", exc_info=True)
-										self.indiLOG.log(20,"executeCMDOnController has error, retCode:{}, time used:{}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, len(respText), self.unifiControllerOS[self.controllerOrProtect], cmdType, url))
+										self.indiLOG.log(10,"", exc_info=True)
+										self.indiLOG.log(10,"executeCMDOnController has error, retCode:{}, resp time used:{:3f} totT:{:.3f}; cont length:{} os:{}; cmdType:{}, url:{}".format(retCode, timeused, time.time()-totalTimeused,  len(respText), self.unifiControllerOS[self.controllerOrProtect], cmdType, url))
 										self.printHttpError(errText, respText)
 								if repeatIfFailed: self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-exception after json/decode ..")
 								try: resp.close()
@@ -5217,28 +5373,31 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
  
 							if protect:
 								if retCode != requests.codes.ok:
-									if iii == 1 and (not ignore40x or "{}".format(retCode).find("40") !=0):
-										self.indiLOG.log(30,"protect error:>> url:{}, resp code:{}".format(url, retCode))
+									if tryCount > 0 and (not ignore40x or "{}".format(retCode).find("40") !=0):
+										self.indiLOG.log(10,"protect error:>> url:{}, resp code:{}".format(url, retCode))
 									if (not ignore40x or "{}".format(retCode).find("40") != 0) and  repeatIfFailed: self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-retcode not ok")
 									continue
 							else:
 								if "meta" not in dictRET:
-									if maxretry-iii-1 >0:	self.indiLOG.log(30,"bad connect to {:55s}  will try again {} more times".format(url, maxretry-iii-1))
-									else:					self.indiLOG.log(30,"bad connect to {:55s}  giving up after {} tries".format(url, maxretry))
-									if iii > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-iii > 1")
+									if tryCount < maxretry -2:		pass
+									elif maxretry-tryCount-2 > 0:	self.indiLOG.log(10,"bad connect to {:55s}  will try again {} more times".format(url, maxretry-tryCount-2))
+									else:						self.indiLOG.log(10,"bad connect to {:55s}  giving up after {} tries".format(url, maxretry))
+									if tryCount > 1: self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-tryCount > 1")
 									continue
 
 								if dictRET["meta"]["rc"] != "ok":
-									if iii == 1 and (not ignore40x or "{}".format(retCode).find("40") !=0):
-										self.indiLOG.log(30,"controller error:>> url:{}, resp:{}".format(url, respText[0:100]))
+									if tryCount == 1 and (not ignore40x or "{}".format(retCode).find("40") !=0):
+										self.indiLOG.log(10,"controller error:>> url:{}, resp:{}".format(url, respText[0:100]))
 									if  (not ignore40x or "{}".format(retCode).find("40") !=0) and  repeatIfFailed: self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-dict ret not ok")
 									continue
 
 							self.lastUnifiCookieRequests[self.controllerOrProtect]  = time.time()
 
-							if iii > 1 and not protect:
-								self.indiLOG.log(30,"error connect to {:55s}  fixed after {}. try".format(url, iii+1))
-
+							if tryCount > 1 and not protect:
+								self.indiLOG.log(10,"error connect to {:55s}  fixed after {}. try".format(url, tryCount+1))
+							elif tryCount > 0:
+								self.indiLOG.log(10,"error connect to {:55s}  fixed after {}. try".format(url, tryCount+1))
+							
 							if 'X-CSRF-Token' in headers:
 								self.csrfToken[self.controllerOrProtect] = headers['X-CSRF-Token']
 
@@ -5249,7 +5408,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							if raw:								return rawData
 							elif jsonAction == "returnData":	return dictRET["data"]
 							elif jsonAction == "protect":		return dictRET
-							else:								return []
+							else:								return list()
 
 					except	Exception as e:
 						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -5257,13 +5416,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				## we get here when not successful
 				if repeatIfFailed: self.executeCMDOnControllerReset( wait=5, calledFrom="executeCMDOnController-end-error")
 
-			return []
+			return list()
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 		self.executeCMDOnControllerReset(  calledFrom="executeCMDOnController-exception")
-		return []
+		return list()
 
 
 
@@ -5332,7 +5491,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.groupStatusListALL["nHome"] = 0
 			self.groupStatusListALL["nAway"] = 0
 
-			okList = {}
+			okList = dict()
 
 
 			for dev in indigo.devices.iter(self.pluginId):
@@ -5363,7 +5522,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.groupStatusList[groupNo]["nAway"]	 	+=1
 
 			for groupNo in  range(_GlobalConst_numberOfGroups):
-				removeList=[]
+				removeList= list()
 				for member in self.groupStatusList[groupNo]["members"]:
 					if member not in okList:
 						removeList.append(member)
@@ -5555,10 +5714,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.xTypeMac[devIds]["MAC"]	= MAC
 
 			if xType not in self.MAC2INDIGO:
-				self.MAC2INDIGO[xType]={}
+				self.MAC2INDIGO[xType] = dict()
 
 			if MAC not in self.MAC2INDIGO[xType]:
-				self.MAC2INDIGO[xType][MAC] = {}
+				self.MAC2INDIGO[xType][MAC] = dict()
 
 			self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
 			if "ipNumber" in dev.states:
@@ -5568,10 +5727,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			except: self.MAC2INDIGO[xType][MAC]["lastUp"] = 0.
 
 
-			if "last_seen" 	not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["last_seen"] 		= -1
-			if "use_fixedip" 	not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["use_fixedip"] 	= False
-			if "blocked" 		not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["blocked"] 		= False
-			if "lastAPMessage" not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["lastAPMessage"] 	= 0
+			if "previousSeen" 	not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["previousSeen"] 	= -1
+			if "last_seen" 		not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["last_seen"] 		= -1
+			if "use_fixedip" 	not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["use_fixedip"] 		= False
+			if "blocked" 		not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["blocked"] 			= False
+			if "lastAPMessage" 	not in self.MAC2INDIGO[xType][MAC]:	self.MAC2INDIGO[xType][MAC]["lastAPMessage"] 	= 0
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -5600,7 +5760,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 		if xType =="SW":
 			if "ports" not in self.MAC2INDIGO[xType][MAC]:
-				self.MAC2INDIGO[xType][MAC]["ports"] = {}
+				self.MAC2INDIGO[xType][MAC]["ports"] = dict()
 			if "upTime" not in self.MAC2INDIGO[xType][MAC]:
 				self.MAC2INDIGO[xType][MAC]["upTime"] = ""
 
@@ -5653,10 +5813,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.logQueue		= queue.Queue()
 		self.logQueueDict	= queue.Queue()
 		self.blockWaitQueue	= PriorityQueue()
-		self.apDict			= {}
+		self.apDict			= dict()
 		self.countLoop		= 0
-		self.upDownTimers	= {}
-		self.xTypeMac		= {}
+		self.upDownTimers	= dict()
+		self.xTypeMac		= dict()
 		self.broadcastIP	= "9.9.9.255"
 
 		self.writeJson(dataVersion, fName=self.indigoPreferencesPluginDir + "dataVersion")
@@ -5670,11 +5830,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.MacToNamesOK = True
 		if self.enableMACtoVENDORlookup:
 			self.indiLOG.log(10,"..getting missing vendor names for MAC #")
-		self.MAC2INDIGO = {}
+		self.MAC2INDIGO = dict()
 		self.readMACdata()
 
 		self.indiLOG.log(10,"..setup dicts  ..")
-		delDEV = {}
+		delDEV = dict()
 		for dev in indigo.devices.iter(self.pluginId):
 			if dev.deviceTypeId in["client","camera"]: continue
 			if "status" not in dev.states:
@@ -5750,7 +5910,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		for xType in self.MAC2INDIGO:
 			if "" in self.MAC2INDIGO[xType]:
 				del self.MAC2INDIGO[xType][""]
-			delXXX = {}
+			delXXX = dict()
 			for MAC in self.MAC2INDIGO[xType]:
 				if len(MAC) < 16:
 					delXXX[MAC] = True
@@ -5764,13 +5924,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				del self.MAC2INDIGO[xType][MAC]
 			# some cleanup it is now upTime xxx  not uptime xxx
 			for MAC in self.MAC2INDIGO[xType]:
-				delXXX={}
+				delXXX = dict()
 				for yy in self.MAC2INDIGO[xType][MAC]:
 					if yy.find("uptime") >-1:
 						delXXX[yy]=True
 				for yy in delXXX:
 					del self.MAC2INDIGO[xType][MAC][yy]
-		delXXX = {}
+		delXXX = dict()
 
 		for devId  in self.xTypeMac:
 			try:	 dev = indigo.devices[int(devId)]
@@ -5816,7 +5976,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 		for devId in delXXX:
 			del self.xTypeMac[devId]
-		delXXX = {}
+		delXXX = dict()
 
 		self.saveMACdata()
 
@@ -5861,8 +6021,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.getcontrollerDBForClients()
 
 		try:
-			self.trAPLog  = {}
-			self.trAPDict = {}
+			self.trAPLog  = dict()
+			self.trAPDict = dict()
 			if self.numberOfActive["AP"] > 0:
 				self.indiLOG.log(10,"..starting threads for {} APs,  (MSG-log and db-DICT)".format(self.numberOfActive["AP"]) )
 				for ll in range(_GlobalConst_numberOfAP):
@@ -5893,10 +6053,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.broadcastIP = self.ipNumbersOf["GW"]
 			if self.connectParams["enableListener"]["GWtail"]: 
 				waitBeforeStart +=addtoWait
-				self.trGWLog  = threading.Thread(name='getMessages-UGA-log', target=self.getMessages, args=(self.ipNumbersOf["GW"],0,"GWtail",waitBeforeStart,))
+				self.trGWLog  = threading.Thread(name='getMessages-UGA-log', target=self.getMessages, args=(self.ipNumbersOf["GW"],12,"GWtail",waitBeforeStart,))
 				self.trGWLog.start()
 			waitBeforeStart +=addtoWait
-			self.trGWDict = threading.Thread(name='getMessages-UGA-dict', target=self.getMessages, args=(self.ipNumbersOf["GW"],0,"GWdict",waitBeforeStart,))
+			self.trGWDict = threading.Thread(name='getMessages-UGA-dict', target=self.getMessages, args=(self.ipNumbersOf["GW"],12,"GWdict",waitBeforeStart,))
 			self.trGWDict.start()
 
 
@@ -5906,13 +6066,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.indiLOG.log(10,"..starting threads for UDM  (db-DICT)")
 			self.broadcastIP = self.ipNumbersOf["UD"]
 			waitBeforeStart +=addtoWait
-			self.trUDDict = threading.Thread(name='getMessages-UDM-dict', target=self.getMessages, args=(self.ipNumbersOf["GW"],0,"UDdict",waitBeforeStart,))
+			self.trUDDict = threading.Thread(name='getMessages-UDM-dict', target=self.getMessages, args=(self.ipNumbersOf["GW"],12,"UDdict",waitBeforeStart,))
 			self.trUDDict.start()
 			# 2.  this  runs every xx secs  http get data 
 			try:
 				self.trWebApiEventlog  = ""
 				if self.controllerWebEventReadON > 0:
-					waitBeforeStart +=addtoWait
+					waitBeforeStart += addtoWait
 					self.trWebApiEventlog = threading.Thread(name='controllerWebApilogForUDM', target=self.controllerWebApilogForUDM, args=(waitBeforeStart, ))
 					self.trWebApiEventlog.start()
 			except	Exception as e:
@@ -5923,8 +6083,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 		try:
-			self.trSWLog = {}
-			self.trSWDict = {}
+			self.trSWLog = dict()
+			self.trSWDict = dict()
 			if self.numberOfActive["SW"] > 0:
 				self.indiLOG.log(10,"..starting threads for {} SWs (db-DICT only)".format(self.numberOfActive["SW"]) )
 				for ll in range(_GlobalConst_numberOfSW):
@@ -5932,11 +6092,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						if self.isMiniSwitch[ll]: continue
 						if self.unifiControllerType.find("UDM") > -1 and ll == self.numberForUDM["SW"]: continue
 						ipn = self.ipNumbersOf["SW"][ll]
-						if self.decideMyLog("Logic"): self.indiLOG.log(10,"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
+						if self.decideMyLog("Logic"): self.indiLOG.log(20,"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
 						#					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self.getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
 	 					#					 self.trSWLog["{}".format(ll)].start()
 						waitBeforeStart += addtoWait
-						self.trSWDict["{}".format(ll)] = threading.Thread(name='getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, "SWdict",waitBeforeStart,))
+						self.trSWDict["{}".format(ll)] = threading.Thread(name='getMessages-SW-Dict', target=self.getMessages, args=(ipn, ll, "SWdict", waitBeforeStart,))
 						self.trSWDict["{}".format(ll)].start()
 
 		except	Exception as e:
@@ -6133,7 +6293,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.lastDayCheck				= -1
 		self.lastHourCheck				= datetime.datetime.now().hour
 		self.lastMinuteCheck			= datetime.datetime.now().minute
-		self.lastMinuteNewUnifiCheck	= int(datetime.datetime.now().minute)//self.checkForNewUnifiSystemDevicesEvery
 		self.pluginStartTime 			= time.time()
 		self.indiLOG.log(20,"initialized ... looping")
 		indigo.server.savePluginPrefs()	
@@ -6181,17 +6340,15 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def doTheLoop(self):
 
-		if self.checkforUnifiSystemDevicesState == "validate config" or \
-		  (self.checkforUnifiSystemDevicesState == "start" and (time.time() - self.pluginStartTime) > 30):
-			self.checkForNewUnifiSystemDevices()
-			if self.checkforUnifiSystemDevicesState == "reboot":
+		self.checkForNewUnifiSystemDevices()
+		if self.checkforUnifiSystemDevicesState == "reboot":
 				self.quitNOW ="new devices at startup / validate config"
-				self.checkforUnifiSystemDevicesState =""
+				self.checkforUnifiSystemDevicesState = ""
 				return "new Devices found"
 
-		if self.pendingCommand != []:
+		if self.pendingCommand != list():
 			if "saveCamerasStats"		 in self.pendingCommand: self.saveCameraEventsStatus = True;  self.saveCamerasStats(force = True)
-			self.pendingCommand =[]
+			self.pendingCommand = list()
 
 		if self.quitNOW != "": return "break"
 
@@ -6287,12 +6444,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def checkOnDelayedActions(self):
 		try:
-			if self.delayedAction == {}: return 
+			if self.delayedAction == dict(): return 
 			for devId in self.delayedAction:
 				for actionDict in self.delayedAction[devId]:
 					if actionDict["action"] == "updateState":
 						self.addToStatesUpdateList(devId,actionDict["state"], actionDict["value"] )
-			self.delayedAction = {}
+			self.delayedAction = dict()
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 		return 
@@ -6309,7 +6466,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					continue
 				self.setUpDownStateValue(indigo.devices[devId])
 
-			self.devNeedsUpdate = {}
+			self.devNeedsUpdate = dict()
 			self.saveupDownTimers()
 			self.setGroupStatus(init=True)
 
@@ -6333,7 +6490,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.upDownTimers = json.loads(f.read())
 			f.close()
 		except:
-			self.upDownTimers ={}
+			self.upDownTimers = dict()
 			try:
 				f.close()
 			except:
@@ -6343,8 +6500,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def checkOnChanges(self):
 		xType	= "UN"
 		try:
-			if self.upDownTimers =={}: return
-			deldev={}
+			if self.upDownTimers == dict(): return
+			deldev = dict()
 
 			for devid in self.upDownTimers:
 				try:
@@ -6833,7 +6990,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					folder			=self.folderNameSystem,
 					props			={ "SupportsOnState":True, 
 									"SupportsSensorValue": False, 
-									"SupportsOnState":True,
 									"AllowOnStateChange":True,
 									"AllowSensorValueChange":True,
 									"systemDev":True,
@@ -6918,7 +7074,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						folder			=self.folderNameSystem,
 						props			={ "SupportsOnState":True, 
 										"SupportsSensorValue": False, 
-										"SupportsOnState":True,
 										"AllowOnStateChange":True,
 										"AllowSensorValueChange":True,
 										"systemDev":True,
@@ -6963,8 +7118,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							if self.unifiCloudKeyIP == udev.states.get("ipNumber",""):
 								MAC = udev.states.get("MAC","")
 								self.addToStatesUpdateList(protectDev.id,"MAC", MAC)
-								break
 								refresh = True
+								break
 	
 					if self.protectIP != self.unifiCloudKeyIP:
 						disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, 	cpu_load, cpu_temp = self.getDiskspace(self.protectIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
@@ -7015,13 +7170,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	########################### #################
 	def checkIfControllerDBInfoActive(self, xType, MAC, props, lastUpTT, expT, dev):
 		try:
+
 			if self.useDBInfoForWhichDevices == "all" or (self.useDBInfoForWhichDevices == "perDevice" and "useDBInfoForDownCheck" in props and props["useDBInfoForDownCheck"] == "useDBInfo"):
 				if time.time() -  self.MAC2INDIGO[xType][MAC]["last_seen"] < max(99., expT):
 					if self.MAC2INDIGO[xType][MAC]["last_seen"]  > lastUpTT:
-						if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"overwriting lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},   new lastTT:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"] ))
+						if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"overwriting lastUP w info from controllerdb {} {:28s}  lastTT:{:11.0f}, new lastTT:{:11.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"] ))
 						lastUpTT = self.MAC2INDIGO[xType][MAC]["last_seen"]
-			if self.decideMyLog("DBinfo", MAC=MAC): 
-				self.indiLOG.log(10,"checking    lastUP w info from controllerdb {} {:28s}  lastTT:{:.0f},  lastTT-db:{:.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"] ))
+			if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"checking    lastUP w info from controllerdb {} {:28s}  lastTT:{:11.0f},  lastTT-db:{:11.0f}".format(MAC, dev.name,  time.time() - lastUpTT, time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"] ))
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -7176,7 +7331,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			cmd = "ps -ef | grep " +self.connectParams["expectCmdFile"][cType]+ "| grep " + ipNumber + " | grep "+self.expectPath+" | grep -v grep"
 			if self.decideMyLog("Expect"): self.indiLOG.log(10,"CONNtest  check if pgm is running {}".format(cmd) )
 			ret, err = self.readPopen(cmd)
-			if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(ret[0]))
+			if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(ret))
 			if len(ret) < 5: return False
 			lines = ret.split("\n")
 			for line in lines:
@@ -7226,7 +7381,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def addTypeToDataStats(self,ipNumber, apN, uType):
 		try:
 			if uType not in self.dataStats["tcpip"]:
-				self.dataStats["tcpip"][uType]={}
+				self.dataStats["tcpip"][uType] = dict()
 			if ipNumber not in self.dataStats["tcpip"][uType]:
 				self.dataStats["tcpip"][uType][ipNumber]={"inMessageCount":0,"inMessageBytes":0,"inErrorCount":0,"restarts":0,"inErrorTime":0,"startTime":time.time(),"APN":"{}".format(apN), "aliveTestCount":0}
 			if "inErrorTime" not in self.dataStats["tcpip"][uType][ipNumber]:
@@ -7262,8 +7417,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def readDataStats(self):
 		self.lastSaveDataStats	= time.time() - 60
-		self.waitTimes = {}
-		self.dataStats = {}
+		self.waitTimes = dict()
+		self.dataStats = dict()
 
 		try:
 			f = self.openEncoding(self.indigoPreferencesPluginDir+"waitTimes","r")
@@ -7289,7 +7444,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####------ camera  ---	-------START
 	def resetCamerasStats(self):
 		return
-		self.cameras={}
+		self.cameras = dict()
 		self.saveCameraEventsStatus = True
 		self.saveCameraEventsLastCheck = 0
 		self.saveCamerasStats()
@@ -7305,11 +7460,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		# check if we have deleted devices in cameras
 		if time.time() - self.saveCameraEventsLastCheck > 500 or force:
 
-			cameraMacList ={}
+			cameraMacList = dict()
 			for dev in indigo.devices.iter("props.isCamera"):
 				cameraMacList[dev.states["MAC"]] = dev.id
 
-			delList ={}
+			delList = dict()
 			for MAC in self.cameras:
 				if MAC not in cameraMacList:
 					delList[MAC]=True
@@ -7380,13 +7535,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.MACignorelist= json.loads(f.read())
 			f.close()
 		except:
-			self.MACignorelist ={}
+			self.MACignorelist = dict()
 		try:
 			f = self.openEncoding(self.indigoPreferencesPluginDir+"MACSpecialIgnorelist","r")
 			self.MACSpecialIgnorelist= json.loads(f.read())
 			f.close()
 		except:
-			self.MACSpecialIgnorelist ={}
+			self.MACSpecialIgnorelist = dict()
 		return
 	### ----------- save read MAC2INDIGO
 	####-----------------	 -----------   END
@@ -7409,7 +7564,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		except: pass
 	####-----------------	 ---------
 	def readSuspend(self):
-		self.suspendedUnifiSystemDevicesIP = {}
+		self.suspendedUnifiSystemDevicesIP = dict()
 		try:
 			f = self.openEncoding(self.indigoPreferencesPluginDir+"suspended", "r", showError=False)
 			self.suspendedUnifiSystemDevicesIP = json.loads(f.read())
@@ -7433,8 +7588,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			time.sleep(min(1,waitBeforeStart))
 			self.indiLOG.log(10,"ctlWebUDM: launching web log get for runs every {} secs".format(self.controllerWebEventReadON) )
 			nRecordsToRetriveDefault 	= 25
-			lastRecIds					= []
-			thisRecIds					= []
+			lastRecIds					= list()
+			thisRecIds					= list()
 			lastRecIdFound				= False
 			lastTimeStamp				= time.time() - 500
 			while self.pluginState != "stop":
@@ -7444,17 +7599,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if len(thisRecIds) > 0: 
 						nrec = int( float(nRecordsToRetriveDefault * self.controllerWebEventReadON) / 30.)
 					eventLogList 		= self.executeCMDOnController(dataSEND={"_sort":"+time", "_limit":min(500,max(10,nrec))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
-					#eventLogList 		= self.executeCMDOnController(dataSEND={}, pageString="/stat/event/", jsonAction="returnData", cmdType="get") 
-					thisRecIds			= []
+					#eventLogList 		= self.executeCMDOnController(dataSEND=dict(), pageString="/stat/event/", jsonAction="returnData", cmdType="get") 
+					thisRecIds			= list()
 					# test if we have overlap. if not read 3 times the data 
 					for logEntry in eventLogList:
 						thisRecIds.append(logEntry["_id"])
-						if lastRecIds !=[] and logEntry["_id"] in lastRecIds: 
+						if lastRecIds != list() and logEntry["_id"] in lastRecIds: 
 							lastRecIdFound = True
 
-					if not lastRecIdFound and lastRecIds !=[]:
+					if not lastRecIdFound and lastRecIds != list():
 						eventLogList 		= self.executeCMDOnController(dataSEND={"_sort":"+time", "_limit":min(500,max(10,nrec*3))}, pageString="/stat/event/", jsonAction="returnData", cmdType="post")
-						thisRecIds			= []
+						thisRecIds			= list()
 						for logEntry in eventLogList:
 							thisRecIds.append(logEntry["_id"])
 
@@ -7617,6 +7772,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.decideMyLog("DBinfo"): self.indiLOG.log(10,"getcontrollerDBForClients: \n{} ...".format("{}".format(dataDict)[0:500]) )
 
 			self.fillcontrollerDBForClients(dataDict)
+			self.manageLogfile(dataDict, "", "DBClientshttp")
+			
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1:
 				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -7629,15 +7786,41 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				return 
 
 			xType = "UN"
-			macsFound = []
+			macsFound = list()
+			macInfo = dict()
 			anyChange = 0 
 			secChange = 0 
 			nClients = 0.
+			#if self.decideMyLog("DBinfo"): self.indiLOG.log(10,"controlDB  mac                 now-previous  last-previous   lastSeen" )
 			for client in dataDict:
 				if len(client) == 0: 					continue
 				if "mac" not in client: 				continue
 				MAC = client["mac"]
 				if MAC not in self.MAC2INDIGO[xType]: 	continue
+				
+				# find switch and port # 
+				if MAC not in macInfo: 	macInfo[MAC] = {"SW_Port":""}
+				last_uplink_mac = client.get("last_uplink_mac","")
+				last_uplink_remote_port = client.get("last_uplink_remote_port","")
+				sw_mac = client.get("sw_mac","")
+				sw_port = client.get("sw_port","")
+				devIdOfSwitch = None 
+				port = ""
+				if sw_mac != "" and sw_mac in self.MAC2INDIGO["SW"]:
+					devIdOfSwitch = self.MAC2INDIGO["SW"][sw_mac]["devId"]
+					port = str(sw_port)
+				elif last_uplink_mac != "" and last_uplink_mac in self.MAC2INDIGO["SW"]:
+					devIdOfSwitch = self.MAC2INDIGO["SW"][last_uplink_mac]["devId"]
+					port = str(last_uplink_remote_port)
+
+				if devIdOfSwitch is not None:
+					try:
+						dev = indigo.devices[devIdOfSwitch]
+						swN = dev.states.get("switchNo","")
+						if swN !="":
+							macInfo[MAC]["SW_Port"] = swN+":"+port
+					except: pass
+
 				macsFound.append(MAC)
 				nClients +=1.
 				if "first_seen" in client:
@@ -7655,25 +7838,26 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.MAC2INDIGO[xType][MAC]["blocked"] = False
 
 
-				previousSeen = self.MAC2INDIGO[xType][MAC]["last_seen"]
+				self.MAC2INDIGO[xType][MAC]["previousSeen"] = self.MAC2INDIGO[xType][MAC]["last_seen"]
 				if  "last_seen" in client: 
 					lastSeen = float(client["last_seen"])
-					if previousSeen != lastSeen: 
+					if self.MAC2INDIGO[xType][MAC]["previousSeen"] != lastSeen: 
 						anyChange += 1.
-						secChange += lastSeen - previousSeen
+						secChange += lastSeen - self.MAC2INDIGO[xType][MAC]["previousSeen"]
 					self.MAC2INDIGO[xType][MAC]["last_seen"] = lastSeen
 				else:
 					self.MAC2INDIGO[xType][MAC]["last_seen"] = -1
-					lastSeen = -1
 
-				#if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"controlDB  {:15s}      client:{}".format(MAC, client) )
-				if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"controlDB  {:15s}      delta delta(now-previous):{:9.0f}, dt lastseen{:9.0f} lastSeen:{:9.0f}".format(MAC, lastSeen - previousSeen, time.time()-lastSeen, lastSeen) )
+				#if self.decideMyLog("DBinfo", MAC=MAC): self.indiLOG.log(10,"controlDB  {:15s}   {:12.0f} {:14.0f} {:9.0f}".format(MAC, time.time()-self.MAC2INDIGO[xType][MAC]["previousSeen"], self.MAC2INDIGO[xType][MAC]["last_seen"]  - self.MAC2INDIGO[xType][MAC]["previousSeen"],  self.MAC2INDIGO[xType][MAC]["last_seen"] ) )
 
 
+			if self.decideMyLog("DBinfo"): self.indiLOG.log(10,"controlDB  LU = Last Up;   LS=Last Seen;   PS=Previous Seen                                                                        {:11.0f}=Now ".format(time.time()) )
+			if self.decideMyLog("DBinfo"): self.indiLOG.log(10,"controlDB  MAC                ip#             Device Name                          Now-LU     Now-LS    Now-PS     LS-LU     LS-PS       LS[s]") 
 			for MAC in copy.deepcopy(self.MAC2INDIGO[xType]):
 				if MAC not in macsFound: 
 					if self.MAC2INDIGO[xType][MAC]["last_seen"] > 0:
 						self.MAC2INDIGO[xType][MAC]["last_seen"] = -1
+						self.MAC2INDIGO[xType][MAC]["previousSeen"] = -1
 					continue
 
 				try: 
@@ -7685,13 +7869,22 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					changed = False
 					dev = indigo.devices[self.MAC2INDIGO["UN"][MAC]["devId"]]
 					if self.decideMyLog("DBinfo", MAC=MAC): 
-							self.indiLOG.log(10,"controlDB  {:15s}  {:15s} {:32s};   delta lastUp:{:9.0f}, lastSeen-DB:{:9.0f}*{:9.0f}*{:9.0f}".format(
-							MAC, dev.states["ipNumber"], dev.name, 
-							time.time() - self.MAC2INDIGO[xType][MAC]["lastUp"],
-							self.MAC2INDIGO[xType][MAC]["last_seen"] - self.MAC2INDIGO[xType][MAC]["lastUp"],
-							time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"],
-							self.MAC2INDIGO[xType][MAC]["last_seen"]	
-						) )
+							try:
+								self.indiLOG.log(10,"controlDB  {:15s}  {:15s} {:32s}  {:9.0f}  {:9.0f} {:9.0f} {:9.0f} {:9.0f} {:11.0f}".format(
+								MAC, dev.states["ipNumber"], dev.name, 
+								time.time() - self.MAC2INDIGO[xType][MAC]["lastUp"],
+								time.time() - self.MAC2INDIGO[xType][MAC]["last_seen"],
+								time.time() - self.MAC2INDIGO[xType][MAC]["previousSeen"],
+								self.MAC2INDIGO[xType][MAC]["last_seen"] - self.MAC2INDIGO[xType][MAC]["lastUp"],
+								self.MAC2INDIGO[xType][MAC]["last_seen"]  - self.MAC2INDIGO[xType][MAC]["previousSeen"],
+								self.MAC2INDIGO[xType][MAC]["last_seen"]
+							) )
+							except	Exception as e:
+								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"error for mac:{}".format(mac), exc_info=True)
+
+					if MAC in macInfo and macInfo[MAC]["SW_Port"] != "" and dev.states.get("SW_Port","") != macInfo[MAC]["SW_Port"]:
+						changed = True
+						self.addToStatesUpdateList(dev.id,"SW_Port",  macInfo[MAC]["SW_Port"])
 
 					if "first_seen" in self.MAC2INDIGO["UN"][MAC]:
 						if "firstSeen" in dev.states and dev.states["firstSeen"] != self.MAC2INDIGO["UN"][MAC]["first_seen"]:
@@ -7909,7 +8102,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								self.sleep(25) 
 						self.indiLOG.log(10,"getMessages: {}    restart requested by menu ".format(self.restartRequest) )
 						goodDataReceivedTime = -1
-						self.restartRequest = {}
+						self.restartRequest = dict()
 
 			forcedRestart  = time.time() - lastOkRestart 
 			restartTimeout = time.time() - goodDataReceivedTime
@@ -7952,7 +8145,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				else: 
 					prompt = "not defined"
 
-				self.indiLOG.log(40,"getMessages: (1 - test connect)  error for {}, ip#: {}, prompt:'{}'; wrong ip/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, prompt) )
+				self.indiLOG.log(40,"getMessages: (1 - test connect)  error for {}, @ip#: {}, prompt:'{}'; wrong ip{}/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.retTextForPing(ipNumber), prompt) )
 			
 				self.msgListenerActive[uType] = 0
 				retCode = 2
@@ -7965,13 +8158,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.decideMyLog("Expect"):
 				try: 	pid = ListenProcessFileHandle.pid
 				except:	pid = "not defined"
-				self.indiLOG.log(10,"getMessages: ListenProcess started for uType: {};  ip: {}, prompt:'{}', pid:{}".format(uType, ipNumber, self.connectParams["promptOnServer"][ipNumber], pid) )
+				self.indiLOG.log(10,"getMessages: ListenProcess started for uType: {};  @{}, prompt:'{}', pid:{}".format(uType, ipNumber, self.connectParams["promptOnServer"][ipNumber], pid) )
 
 
 			if startError != "":
 				startErrorCount +=1
 				if startErrorCount%3== 0:
-					self.indiLOG.log(40,"getMessages: connect start connect error in listener {}, to  @ {}  ::::{}::::".format(uType, ipNumber, startError) )
+					self.indiLOG.log(40,"getMessages: connect start connect error in listener {},  @{}  ::::{}::::".format(uType, ipNumber, startError) )
 				retCode = 2
 				self.sleep(15)
 				return retCode, startErrorCount, ListenProcessFileHandle, goodDataReceivedTime, aliveReceivedTime, combinedLines, lastRestartCheck, lastOkRestart
@@ -7994,17 +8187,23 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def readFromUnifiDevice(self, goodDataReceivedTime, aliveReceivedTime, ListenProcessFileHandle, uType, ipNumber, msgSleep, lastLine, newDataStartTime):
 		try:
 			lfs = ""
+			newlinesFromServer = ""
 			try:
 				if ListenProcessFileHandle == "": 
-					self.indiLOG.log(20,"readFromUnifiDevice: read handle not defined for {}-{}, sleeping 15 secs ".format(uType, ipNumber))
+					self.indiLOG.log(20,"readFromUnifiDevice: read handle not defined for {} @{}, sleeping 15 secs ".format(uType, ipNumber))
 					newlinesFromServer		= ""
 					goodDataReceivedTime	= 1 # this forces a restart of the listener
 					msgSleep				= 15
 					self.sleep(10)
 					return goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime
 
-				newlinesFromServer = ""
-				lfs = os.read(ListenProcessFileHandle.stdout.fileno(),self.readBuffer).decode("utf8") 
+				try:
+					lfs = os.read(ListenProcessFileHandle.stdout.fileno(),self.readBuffer).decode("utf8") 
+				except	Exception as e:
+					if "{}".format(e).find("decode bytes") > -1:
+						self.indiLOG.log(30,"readFromUnifiDevice: incomplete (utf8) read for {}, @{}".format(uType,ipNumber))
+						return goodDataReceivedTime, aliveReceivedTime, newlinesFromServer, msgSleep, newDataStartTime
+
 				newlinesFromServer = "{}".format(lfs) 
 				if newlinesFromServer != "":
 					aliveReceivedTime = time.time()
@@ -8019,7 +8218,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 				if "{}".format(e).find("[Errno 35]") == -1:	 # "Errno 35" is the normal response if no data, if other error stop and restart
 					if "{}".format(e).find("None") == -1:
-						out = "os.read(ListenProcessFileHandle.stdout.fileno())  in Line {} has error={}\n ip:{}  type: {}".format(sys.exc_info()[2].tb_lineno, e, ipNumber,uType )
+						out = "readFromUnifiDevice: type: {}  @{}  has error:{}\n ".format(uType, ipNumber, str(e) )
 						try: out+= "fileNo: {}".format(ListenProcessFileHandle.stdout.fileno() )
 						except: pass
 						if "{}".format(e).find("[Errno 22]") > -1:  # "Errno 22" is  general read error "wrong parameter"
@@ -8027,7 +8226,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.indiLOG.log(30,out)
 						else:
 							self.indiLOG.log(40,out)
-							self.indiLOG.log(40,lfs)
+							self.indiLOG.log(20,lfs)
 					goodDataReceivedTime = 1 # this forces a restart of the listener
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -8186,10 +8385,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			userid, passwd = self.getUidPasswd(uType,ipNumber)
 			if userid =="": return
 
-			if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: with IP: {:<15};   uType: {};   UID/PWD: {}/{}".format(ipNumber, uType, userid, passwd) )
+			if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: with @{:<15};   uType: {};   UID/PWD: {}/{}".format(ipNumber, uType, userid, passwd) )
 
 			if ipNumber not in self.listenStart:
-				self.listenStart[ipNumber] = {}
+				self.listenStart[ipNumber] = dict()
 			self.listenStart[ipNumber][uType] = time.time()
 			if self.connectParams["commandOnServer"][uType].find("off") == 0: return "",""
 
@@ -8298,7 +8497,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			## check if we need to fix unknown host in .ssh/known_hosts
 			if len(err) > 0:
-				self.indiLOG.log(40,"testServerIf ssh connection to server failed, cmd: {}".format(cmd) )
+				self.indiLOG.log(40,"testServerIf ssh connection to server failed, cmd: {}{}".format(cmd, self.retTextForPing(ipNumber)) )
 				retx, ok = self.fixHostsFile(ret,ipNumber)
 				if not ok: 
 					self.indiLOG.log(40,"testServerIfOK failed, will retry ")
@@ -8516,8 +8715,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			lD = len(self.PROTECT)
 			# clean up device listed in PROTECT, but not in indigo, only check at beginning and every 5 minutes
 			if lD == 0 or time.time() - self.lastRefreshProtect > 300 or self.lastRefreshProtect == 0:
-				devList = {}
-				MAClist = {}
+				devList = dict()
+				MAClist = dict()
 				for dev in indigo.devices.iter("props.isProtectCamera"):
 					
 					cameraId = dev.states.get("id","-1")
@@ -8542,7 +8741,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 							self.executeUpdateStatesList()
 
-				delList = {}
+				delList = dict()
 				for cameraId in self.PROTECT:
 					if cameraId not in devList:
 						delList[cameraId] = 1
@@ -8557,7 +8756,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			for camera in systemInfoProtect["cameras"]:
 				try:
 					devName = "noNameFound"
-					states = {}
+					states = dict()
 					MAC 										= self.getpropReplaceNoneWith(camera, "mac", substituteIfMissing="00:00:00:00:00:00")
 					states["MAC"] 								= MAC[0:2]+":"+MAC[2:4]+":"+MAC[4:6]+":"+MAC[6:8]+":"+MAC[8:10]+":"+MAC[10:12]
 					states["id"] 								= self.getpropReplaceNoneWith(camera,"id", substituteIfMissing="0")
@@ -8625,7 +8824,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								folder			= self.folderNameIDCreated,
 								)
 							devId = dev.id
-							if self.decideMyLog("Protect"): self.indiLOG.log(10,"adding  {} to PROTEC list ip:{}".format( dev.name, states["ip"]))
+							if self.decideMyLog("Protect"): self.indiLOG.log(10,"adding  {} to PROTEC list @{}".format( dev.name, states["ip"]))
 							self.PROTECT[states["id"]] = {"events":{}, "devId":devId, "devName":dev.name, "MAC":states["MAC"] , "lastUpdate":time.time()}
 						except	Exception as e:
 							errtext = "{}".format(e)
@@ -8651,7 +8850,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 					if dev != "":
 						for state in states:
-							if self.decideMyLog("ProtDetails"): self.indiLOG.log(20,"checking dev {} state:{} := {}, in states?:{}".format(dev.name, state, states[state], state in dev.states ))
+							if self.decideMyLog("ProtDetails"): self.indiLOG.log(20,"checking dev {} state:{} : {}, in states?:{}".format(dev.name, state, states[state], state in dev.states ))
 							if state in dev.states and dev.states[state] != states[state]:
 								self.addToStatesUpdateList(devId, state, states[state])
 
@@ -8673,9 +8872,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			# cleanup old devices not used
 			if time.time() - self.lastRefreshProtect < 300:
-				delList = {}
+				delList = dict()
 				for cameraId in self.PROTECT:
-					delEvents = {}
+					delEvents = dict()
 					for eventID in self.PROTECT[cameraId]["events"]:
 						if ( time.time() - self.PROTECT[cameraId]["events"][eventID]["eventStart"] > 100 and 
 							  self.PROTECT[cameraId]["events"][eventID]["eventEnd"]  == 0 ): delEvents[eventID] = 1
@@ -8722,7 +8921,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		lastGetEvent = time.time()
 		lastId = ""
 		self.lastEvCheck = time.time()
-		lastEvent = {}
+		lastEvent = dict()
 		self.lastThumbnailTime = 0
 		while True:
 			try:
@@ -8737,7 +8936,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 				self.sleep(0.2)
 
-				if self.PROTECT == {}: 										continue # no camera defined
+				if self.PROTECT == dict(): 										continue # no camera defined
 				if time.time() - lastGetEvent < self.protecEventSleepTime: 	continue # now yet
 				lastGetEvent	= time.time()
 
@@ -8752,7 +8951,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if not self.checkIfEmptyEventCleanup(events): 
 					checkIds = self.loopThroughEventsAndFilterCameraEvents(events)
 				else:
-					checkIds = {}
+					checkIds = dict()
 
 				self.goThroughNewEventDataGetThumbNailsAndUpdateIndigoDevicesAndVariables(checkIds)
 
@@ -8773,8 +8972,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	def loopThroughEventsAndFilterCameraEvents(self, events):
 		try:
-			checkIds = {}
-			if events == []: return checkIds 
+			checkIds = dict()
+			if events == list(): return checkIds 
 			for event in events:
 				dev = ""
 				# first check if everything is here 
@@ -8803,7 +9002,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 				#### ignore repeat event info ### start
-				if self.PROTECT[cameraId]["events"] != {}:
+				if self.PROTECT[cameraId]["events"] != dict():
 					if newId in self.PROTECT[cameraId]["events"]:
 						double = True
 						for xx in event:
@@ -8835,7 +9034,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				smartDetect = ""
 
 				## for the time being ignore list of smart detect events. this is a list of events to follow in the next event listings, we willl deal with them then
-				if event["smartDetectEvents"] != []:
+				if event["smartDetectEvents"] != list():
 					if self.decideMyLog("ProtEvents"): self.indiLOG.log(10,"getProtectEvents: camID:{}, evId:{}; skipping type:{}; smart:{}".format(cameraId, newId, event["type"], event["smartDetectEvents"]))
 					continue
 
@@ -8845,7 +9044,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.PROTECT[cameraId]["events"][newId] =  {"eventStart":0, "eventEnd":0, "ringTime":0, "eventType":"", "thumbnailLastCopyTime": time.time() + 50, "thumbnailCopied": False, "status": "","rawEvent":copy.deepcopy(event)}
 					if dev == "":
 						dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
-					props = dev.pluginProps
 
 					if self.decideMyLog("ProtEvents"): self.indiLOG.log(10,"getProtectEvents: camID:{}, evId:{}; {}: new event; type:{}".format(cameraId, newId, self.PROTECT[cameraId]["devName"], event["type"]))
 					self.PROTECT[cameraId]["events"][newId]["eventStart"] 			= event["start"]/1000.
@@ -8868,7 +9066,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					checkIds[newId] = cameraId
 				
 
-				if event["smartDetectEvents"] !=[]:
+				if event["smartDetectEvents"] != list():
 					for evID in event["smartDetectEvents"]:
 						if evID in self.PROTECT[cameraId]["events"]:
 							checkIds[evID] = cameraId
@@ -8898,13 +9096,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def checkIfEmptyEventCleanup(self, events):
 		try:
-			if events != []: return False
+			if events != list(): return False
 			if time.time() - self.lastEvCheck < 10: return True
 			self.lastEvCheck = time.time()
 
 			# close old not updated status
 			for cameraId in self.PROTECT:
-				rmEvent ={}
+				rmEvent = dict()
 				if self.PROTECT[cameraId]["devId"] < 1: continue
 
 				for evId in self.PROTECT[cameraId]["events"]:
@@ -8943,7 +9141,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def goThroughNewEventDataGetThumbNailsAndUpdateIndigoDevicesAndVariables(self, checkIds):
 		try:
-			if time.time() - self.lastThumbnailTime < 2 and checkIds == {}: return
+			if time.time() - self.lastThumbnailTime < 2 and checkIds == dict(): return
 			self.lastThumbnailTime = time.time() 
 			debug = True
 			# have to wait until end of event to get the thumbnail
@@ -8967,7 +9165,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				dev 		= ""
 				eventJpeg	= ""
 				status		= protectEV["eventType"]
-				if protectEV["rawEvent"]["smartDetectTypes"] != []:
+				if protectEV["rawEvent"]["smartDetectTypes"] != list():
 					smartDetect = ",".join(protectEV["rawEvent"]["smartDetectTypes"]).strip(",")
 					if self.decideMyLog("ProtEvents"):  self.indiLOG.log(10,"getProtectEvents: camID:{}, evId:{}; smartDetect-{} --> {}".format(cameraId, evID, protectEV["rawEvent"]["smartDetectTypes"], smartDetect) )
 					status = smartDetect
@@ -9809,7 +10007,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						for dev in indigo.devices.iter("props."+isType):
 							if "MAC" not in dev.states: continue
 							if dev.states["MAC"] != MAC: continue
-							self.MAC2INDIGO[xType][MAC]={}
+							self.MAC2INDIGO[xType][MAC] = dict()
 							self.MAC2INDIGO[xType][MAC]["lastUp"] = time.time()
 							self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
 							new = False
@@ -10025,7 +10223,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							for dev in indigo.devices.iter("props."+isType):
 								if "MAC" not in dev.states:		 continue
 								if dev.states["MAC"] != MAC:	 continue
-								self.MAC2INDIGO[xType][MAC]={}
+								self.MAC2INDIGO[xType][MAC] = dict()
 								self.MAC2INDIGO[xType][MAC]["lastUp"] = time.time()
 								self.MAC2INDIGO[xType][MAC]["devId"] = dev.id
 								self.MAC2INDIGO[xType][MAC]["lastAPMessage"] = timeOfMSG
@@ -10207,6 +10405,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			#if self.decideMyLog("Special"): self.indiLOG.log(10,"updateIndigoWithDictData apDict[0:100]:{}, ipNumber:{}, apNumb:{}, uType:{}, unifiDeviceType:{}".format("{}".format(apDict)[0:100], ipNumber, apNumb, uType, unifiDeviceType ) )
 
 			if len(apDict) < 1: return
+			#self.indiLOG.log(20,"updateIndigoWithDictData ipNumber{}, apNumb{}, uType{}, unifiDeviceType:{}, apDict:{}, ".format( ipNumber, apNumb, uType, unifiDeviceType, str(apDict)[0:100],   ) )
 			self.manageLogfile(apDict, apNumb, unifiDeviceType)
 
 			apNumbSW = apNumb
@@ -10242,7 +10441,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			if unifiDeviceType == "SW" or doSW:
 				if(	"mac"		  in apDict and 
-				  	"port_table" in apDict and
+				  	"port_table"  in apDict and
 				 	"hostname"	  in apDict and
 				  	"ip"		  in apDict ):
 
@@ -10251,7 +10450,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					ipNDevice = apDict["ip"]
 
 					#################  update SWs themselves
-					self.doSWdictSELF(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber)
+					self.doSWdictSELF(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber, calledFrom="updateIndigoWithDictData")
 
 					#################  now update the devices on switch
 					self.doSWITCHdictClients(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber)
@@ -10280,7 +10479,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							GHz = "5"
 						else:
 							GHz = "2"
-						if "sta_table" in apDict["vap_table"][jj] and apDict["vap_table"][jj]["sta_table"] !=[]:
+						if "sta_table" in apDict["vap_table"][jj] and apDict["vap_table"][jj]["sta_table"] != list():
 							clientHostnames[GHz] = self.doWiFiCLIENTSdict(apDict["vap_table"][jj]["sta_table"], GHz, ipNDevice, apNumbAP, ipNumber)
 
 						#################  update APs themselves
@@ -10311,7 +10510,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	def checkInListSwitch(self):
 
 		xType = "UN"
-		ignore ={}
+		ignore = dict()
 		try:
 			for dev in indigo.devices.iter("props.isSwitch"):
 				nn  = int(dev.states["switchNo"])
@@ -10362,7 +10561,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try:
 			## now check if device is not in dict, if not ==> initiate status --> down
 			xType = "UN"
-			delMAC={}
+			delMAC = dict()
 			for MAC in self.MAC2INDIGO[xType]:
 				if self.MAC2INDIGO[xType][MAC]["inList"+suffixN]  == -1: continue	# do not test
 				if self.MAC2INDIGO[xType][MAC]["inList"+suffixN]  ==  1: continue	# is here
@@ -10383,7 +10582,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						self.indiLOG.log(40,"communication to indigo is interrupted")
 						return
 					if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-					self.indiLOG.log(40,"deleting device from internal lists -- MAC:"+ MAC+";  devId:{}".format(devId))
+					self.indiLOG.log(30,"deleting device from internal lists -- MAC:{}, devId:{}".format(MAC, devId))
 					delMAC[MAC]=1
 					continue
 
@@ -10439,7 +10638,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			portTable = apDict["port_table"]
 
-
 			UDMswitch = False
 			self.useIPForhttpCmd = ipNumber
 			if self.unifiControllerType.find("UDM") > -1 and swNumb == self.numberForUDM["SW"]:
@@ -10489,7 +10687,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				portN = "{}".format(port["port_idx"])
 				if "mac_table" not in port: continue
 				macTable =	port["mac_table"]
-				if macTable == []:	continue
+				if macTable == list():	continue
 				if "port_idx" in port:
 					portN = "{}".format(port["port_idx"])
 				else:
@@ -10505,6 +10703,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 				for switchDevices in macTable:
 					MAC = switchDevices["mac"]
+					doPrint = MAC == "xxxb8:27:eb:73:bb:b2"
+					if doPrint: self.indiLOG.log(20,f"swNumb:{swNumb} - {ipNDevice}  client {MAC}-- switchDevices:{switchDevices}")
+
+
 
 					if self.testIgnoreMAC(MAC, fromSystem="SW-Dict"): continue
 
@@ -10556,25 +10758,25 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								break
 
 					if not new:
-
+						poe = ""
 						self.MAC2INDIGO[xType][MAC]["inList"+suffixN] = 1
-						if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-SW-00   {:15s}  {}; {}; IP:{}; AGE:{}; newUp:{}; hostN:{}".format(self.useIPForhttpCmd, MAC, dev.name, ip, age, newUp, nameSW))
+						if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-SW-00   {:15s}  {}; {}; @{}; AGE:{}; newUp:{}; hostN:{}".format(self.useIPForhttpCmd, MAC, dev.name, ip, age, newUp, nameSW))
 
-						if not ( isUpLink or isDownLink ): # this is not for up or downlink 
-							poe = ""
-							if MACSW in self.MAC2INDIGO["SW"]:  # do we know the switch
-								if portN in self.MAC2INDIGO["SW"][MACSW]["ports"]: # is the port in the switch
-									if  "nClients" in self.MAC2INDIGO["SW"][MACSW]["ports"][portN] and  self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["nClients"] == 1: 
-										if "poe" in self.MAC2INDIGO["SW"][MACSW]["ports"][portN] and self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]  != "": # if empty dont add "-"
-											poe = "-"+self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]
-										if len(dev.states["AP"]) > 5: # fix if direct connect and poe is one can not have wifi for this MAC, must be ethernet, set wifi to "-"
-											self.addToStatesUpdateList(dev.id,"AP", "-")
-
-							newPort = swN+":"+portN+poe
-							#self.indiLOG.log(10,"portInfo   MACSW: "+MACSW +"   hostnameSW:"+hostnameSW+"  "+self.useIPForhttpCmd +" "+ MAC+"  portN:"+portN+" MACSW-poe:"+ self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]+"; nameSW:{}".format(nameSW)+"  poe:"+poe+"  newPort:"+newPort)
-
-							if dev.states["SW_Port"] != newPort:
-								self.addToStatesUpdateList(dev.id,"SW_Port", newPort)
+						if len(macTable) == 1: # only for directly connected devices, not upstream 
+							if not ( isUpLink or isDownLink ): # this is not for up or downlink 
+								if MACSW in self.MAC2INDIGO["SW"]:  # do we know the switch
+									if portN in self.MAC2INDIGO["SW"][MACSW]["ports"]: # is the port in the switch
+										if  "nClients" in self.MAC2INDIGO["SW"][MACSW]["ports"][portN] and  self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["nClients"] == 1: 
+											if "poe" in self.MAC2INDIGO["SW"][MACSW]["ports"][portN] and self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]  != "": # if empty dont add "-"
+												poe = "-"+self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]
+											if len(dev.states["AP"]) > 5: # fix if direct connect and poe is one can not have wifi for this MAC, must be ethernet, set wifi to "-"
+												self.addToStatesUpdateList(dev.id,"AP", "-")
+	
+								newPort = swN+":"+portN+poe
+								if doPrint: self.indiLOG.log(20,"portInfo   MACSW: "+MACSW +"   hostnameSW:"+hostnameSW+"  "+self.useIPForhttpCmd +" "+ MAC+"  portN:"+portN+" MACSW-poe:"+ self.MAC2INDIGO["SW"][MACSW]["ports"][portN]["poe"]+"; nameSW:{}".format(nameSW)+"  poe:"+poe+"  newPort:"+newPort)
+	
+								if dev.states["SW_Port"] != newPort:
+									self.addToStatesUpdateList(dev.id,"SW_Port", newPort)
 
 
 						props=dev.pluginProps
@@ -10598,7 +10800,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						oldUp	  = self.MAC2INDIGO[xType][MAC]["upTime" + suffixN]
 						self.MAC2INDIGO[xType][MAC]["upTime" + suffixN] = "{}".format(newUp)
 						if "useWhatForStatus" in props and props["useWhatForStatus"] in ["SWITCH","OptDhcpSwitch"]:
-							if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-SW-01    {:15s} {} {}; oldStatus:{}; IP:{}; AGE:{}; newUp:{}; oldUp:{} hostN:{}".format(self.useIPForhttpCmd, MAC, dev.name, oldStatus, ip, age, newUp, oldUp, nameSW))
+							if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-SW-01    {:15s} {} {}; oldStatus:{}; @{}; AGE:{}; newUp:{}; oldUp:{} hostN:{}".format(self.useIPForhttpCmd, MAC, dev.name, oldStatus, ip, age, newUp, oldUp, nameSW))
 							if oldUp ==	 newUp and oldStatus =="up":
 								if "useupTimeforStatusSWITCH" in props and props["useupTimeforStatusSWITCH"] :
 									if "usePingDOWN" in props and props["usePingDOWN"]	and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") == 0:
@@ -10745,7 +10947,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								break
 
 					if not new:
-							if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DHCP-1  {:15s}  {}; {}; ip:{}; age:{}; uptime:{}".format(ipNumber, MAC, dev.name,ip, age, uptime))
+							if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DHCP-1  {:15s}  {}; {}; @{}; age:{}; uptime:{}".format(ipNumber, MAC, dev.name,ip, age, uptime))
 
 							self.MAC2INDIGO[xType][MAC]["inList"+suffixN] = True
 
@@ -10854,11 +11056,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			### UDM does not have DHCP info use DPI info, cretae an artificial age # by adding rx tx packets
 			if self.unifiControllerType.find("UDM") > -1: key = "dpi_stats"
 			else:										   key = "dpi-stats"
-			if key not in gwDict or gwDict[key] == []: 
+			if key not in gwDict or gwDict[key] == list(): 
 				if False and self.decideMyLog("UDM"):  self.indiLOG.log(10,"DC-DPI   dpi-stats not in dict or empty " )
 				return 
-			dpi_table =[]
-			xx = {}
+			dpi_table = list()
+			xx = dict()
 			for dd in gwDict:
 				if len(dd) < 1: continue
 				if "ip" not in dd: 		
@@ -10908,7 +11110,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								break
 
 					if not new:
-							if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DPI-1  {} {}  {} ip:{} age:{} uptime:{}".format(ipNumber, MAC, dev.name, ip, age, uptime))
+							if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DPI-1  {} {}  {} @{} age:{} uptime:{}".format(ipNumber, MAC, dev.name, ip, age, uptime))
 
 							self.MAC2INDIGO[xType][MAC]["inList"+suffixN] = True
 
@@ -11183,7 +11385,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 							expTime = self.getexpT(props)
 							if self.decideMyLog("DictDetails", MAC=MAC) or self.decideMyLog("Logic") or self.debugDevs["AP"][int(apN)]:
-								self.indiLOG.log(10,"DC-WF-01   {:15s}  {}; {}; ip:{}; GHz:{}; txRate:{}; rxR:{}; new-oldUPtime:{}-{}; idletime:{}; signal:{}; hostN:{}; powerMgmt:{}; old/new assoc {}/{}; curr status:{}".format(ipNumber, MAC, dev.name, ip, GHz, txRate, rxRate,  newUpTime, oldUpTime, idletime, signal, nameCl, powerMgmt, oldAssociated.split("-")[0], newAssociated, dev.states["status"]))
+								self.indiLOG.log(10,"DC-WF-01   {:15s}  {}; {}; @{}; GHz:{}; txRate:{}; rxR:{}; new-oldUPtime:{}-{}; idletime:{}; signal:{}; hostN:{}; powerMgmt:{}; old/new assoc {}/{}; curr status:{}".format(ipNumber, MAC, dev.name, ip, GHz, txRate, rxRate,  newUpTime, oldUpTime, idletime, signal, nameCl, powerMgmt, oldAssociated.split("-")[0], newAssociated, dev.states["status"]))
 
 
 							# check what is used to determine up / down, make WiFi a priority
@@ -11460,7 +11662,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.addToStatesUpdateList(dev.id,"tx_power_" + GHz, tx_power)
 							dev = indigo.devices[dev.id]
 							self.setupStructures(xType, dev, MAC)
-							self.buttonConfirmGetAPDevInfoFromControllerCALLBACK(valuesDict={})
+							self.buttonConfirmGetAPDevInfoFromControllerCALLBACK(valuesDict=dict())
 							indigo.variable.updateValue("Unifi_New_Device", "{}/{}/{}".format(dev.name, MAC, ipNumber) )
 						except	Exception as e:
 								self.indiLOG.log(40,"", exc_info=True)
@@ -11499,7 +11701,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			#  get lan info ------
 			ipNDevice	= ""
 			MAClan		= ""
-			lan			= {}
+			lan			= dict()
 			model		= ""
 			cpuPercent	= ""
 			memPercent	= ""
@@ -11510,7 +11712,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			temperature_PHY 		= ""
 
 			publicIP	= ""
-			wan			= {}
+			wan			= dict()
 			MAC			= ""
 			gateways	= ""
 			wanUP		= False
@@ -11525,7 +11727,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			gateways	= "-"
 
 			publicIP2	= ""
-			wan2		= {}
+			wan2		= dict()
 			MACwan2		= ""
 			gateways2	= "-"
 			wan2UP		= False
@@ -11556,7 +11758,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if self.decideMyLog("UDM"): self.indiLOG.log(10,"doGw    UDM gateway no public IP number found: \"ip\" not in gwDict")
 					return 
 
-				nameList = {}
+				nameList = dict()
 				for table in gwDict["if_table"]:
 					if "name" in table: 
 						nameList[table["name"]] = ""
@@ -11576,7 +11778,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				#   wan2 = eth9
 				# udm has no second wan on the dedicated Unifi lte modem allows inetrnet backup 
 				#   not supported yet , only use wan not wan2
-				wan = {}
+				wan = dict()
 				for table in gwDict["if_table"]:
 					if self.unifiControllerType == "UDM":
 						if table["ip"] == publicIP:
@@ -11605,7 +11807,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							break
 
 
-				wan2 = {}
+				wan2 = dict()
 				if self.unifiControllerType != "UDM": # for UDM pro only
 					for table in gwDict["if_table"]:
 						if table["name"] == "eth9":
@@ -11621,7 +11823,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							break
 
 
-				lan = {}
+				lan = dict()
 				for table in gwDict["if_table"]:
 					if "ip" not in table: continue
 					if table["ip"] == ipNumber:
@@ -11631,13 +11833,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								wan["mac"] =  nameList[table["name"]]
 						break
 
-				if lan == {} or wan == {}: 
-					if self.decideMyLog("UDM"): self.indiLOG.log(10,"doGw    UDM gateway nameList:{};  ip:{}; wan:{} / lan:{};  not found in \"if_table\"".format(ipNumber, nameList, lan, wan) )
+				if lan == dict() or wan == dict(): 
+					if self.decideMyLog("UDM"): self.indiLOG.log(10,"doGw    UDM gateway nameList:{};  @{}; wan:{} / lan:{};  not found in \"if_table\"".format(ipNumber, nameList, lan, wan) )
 					return 
 
 				ipNDevice = ipNumber
 
-				if self.decideMyLog("UDM"): self.indiLOG.log(10,"doGw    UDM gateway ip:{}; nameList:{}\nwan:{}\nlan:{}".format(ipNumber, lan, wan, nameList) )
+				if self.decideMyLog("UDM"): self.indiLOG.log(10,"doGw    UDM gateway @{}; nameList:{}\nwan:{}\nlan:{}".format(ipNumber, lan, wan, nameList) )
 
 
 			else: # non UDM type 
@@ -11714,7 +11916,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			elif "ip" in wan2 and wan2["ip"] != "" and wan2UP:	publicIP2 = wan2["ip"].split("/")[0]
 
 
-			#if self.decideMyLog("Special"): self.indiLOG.log(10,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}, publicIP:{}, publicIP2:{}".format(wan,wan2,MAC,MACwan2,publicIP,publicIP2))
+			#if self.decideMyLog("Special"): self.indiLOG.log(10,"gw dict parameters wan:{}, wan2:{}, macwan:{}, macwan2:{}, public@{}, publicIP2:{}".format(wan,wan2,MAC,MACwan2,publicIP,publicIP2))
 
 			if "mac" in lan:				MAClan			= lan["mac"]
 			if "system-stats" in gwDict:
@@ -11738,7 +11940,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			for xx in ["temperatures"]:
 					if xx in gwDict:
 						if len(gwDict[xx]) > 0:
-							if type(gwDict[xx]) == type([]):
+							if type(gwDict[xx]) == type(list()):
 								try:
 									for yy in gwDict[xx]:
 										if "name" in yy: 
@@ -11802,7 +12004,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.setUpDownStateValue(dev)
 					dev = indigo.devices[dev.id]
 					indigo.variable.updateValue("Unifi_New_Device", "{}/{}/{}".format(dev.name, MAC, ipNDevice) )
-					if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-GW-1--- {}  ip:{}  {}  new device".format(MAC, ipNDevice, dev.name) )
+					if self.decideMyLog("Dict", MAC=MAC): self.indiLOG.log(10,"DC-GW-1--- {}  @{}  {}  new device".format(MAC, ipNDevice, dev.name) )
 					isNew = False #  fill the rest in next section
 				except	Exception as e:
 					if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -11859,7 +12061,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if dev.states["status"] 				!= "up":												self.setImageAndStatus(dev, "up",oldStatus=dev.states["status"], ts=time.time(), level=1, text1=dev.name.ljust(30) + " status up   GW DICT if_table", reason="gateway DICT", iType="STATUS-GW")
 
 
-				if self.decideMyLog("Dict", MAC=MAC) or self.decideMyLog("UDM"): self.indiLOG.log(10,"DC-GW-1--  {}     ip:{}    {}   new GW data".format(MAC,ipNDevice, dev.name))
+				if self.decideMyLog("Dict", MAC=MAC) or self.decideMyLog("UDM"): self.indiLOG.log(10,"DC-GW-1--  {}     @{}    {}   new GW data".format(MAC,ipNDevice, dev.name))
 
 				self.setStatusUpForSelfUnifiDev(MAC)
 
@@ -11917,10 +12119,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						model = ""
 
 					new = True
-					if int(channel) >= 36:
-						GHz = "5"
-					else:
-						GHz = "2"
+					try:
+						if int(channel) >= 36:
+							GHz = "5"
+						else:
+							GHz = "2"
+					except:
+						continue
 					if MAC in self.MAC2INDIGO[xType]:
 						try:
 							dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
@@ -12012,6 +12217,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def doMimiTypeSwitchesWithControllerData(self, apDict, apNumbSW, found):
 		try:
+				#self.indiLOG.log(20,"doMimiTypeSwitchesWithControllerData #{}, found:{}, mini?:{}".format(apNumbSW, found, self.isMiniSwitch[apNumbSW]))
 				if not self.isMiniSwitch[apNumbSW]: return 
 				
 				if(	"mac"			in apDict and 
@@ -12020,17 +12226,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				  	"ip"			in apDict and 
 					"model"			in apDict):
 
-					if apDict["model"].find("MINI") == -1: return
+					#if apDict["model"].find("MINI") == -1: return
 
 					MACSW = apDict["mac"]
 					hostname = apDict["name"].strip()
 					ipNDevice = apDict["ip"]
 					ipNumber = apDict["ip"]
 					apDict["model_display"] = hostname
-					#self.indiLOG.log(20,"doMimiTypeSwitchesWithControllerData #{}, host:{}, ip:{}, found:{}".format(apNumbSW, hostname, ipNDevice, found))
+					#self.indiLOG.log(20,"doMimiTypeSwitchesWithControllerData #{}, host:{}, @{}, found:{}".format(apNumbSW, hostname, ipNDevice, found))
 
 					#################  update SWs themselves
-					self.doSWdictSELF(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber)
+					self.doSWdictSELF(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber, calledFrom="doMimiTypeSwitchesWithControllerData")
 
 					#################  now update the clients on switch, no usefull information
 					#self.doSWITCHdictClients(apDict, apNumbSW, ipNDevice, MACSW, hostname, ipNumber)
@@ -12042,22 +12248,34 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	#### this does the unifswitch device itself
 	####-----------------	 ---------
-	def doSWdictSELF(self, theDict, apNumb, ipNDevice, MAC, hostname, ipNumber):
+	def doSWdictSELF(self, theDict, apNumb, ipNDevice, MAC, hostname, ipNumber, calledFrom=""):
 
 		self.setBlockAccess("doSWdictSELF")
-
 		if "model_display" in theDict:	model = (theDict["model_display"])
 		else:
 			self.indiLOG.log(30,"model_display not in dict doSWdictSELF")
 			model = ""
 
-
 		devName = "SW"
 		xType	= "SW"
 		isType	= "isSwitch"
 
+		doPrint = False# str(apNumb) == "8"
+
+		if "last_seen" in theDict: upT = theDict["last_seen"]
+		elif "time" in theDict: upT = theDict["time"]
+		else: upT = 0
+		if xType not in self.lastSeen:  self.lastSeen[xType] = {}
+		if apNumb not in self.lastSeen[xType]: self.lastSeen[xType][apNumb] = -1
+		if doPrint: self.indiLOG.log(30,f"apNumb:{apNumb:2}; calledFrom:{calledFrom[0:10]}, ipNumber:{ipNumber:20} _id:{theDict.get('_id''none')} ")
+		doPrint = False
+		if upT == self.lastSeen[xType][apNumb]: return 
+		self.lastSeen[xType][apNumb] = upT
+		
+
 		try:
 			if "uptime" not in theDict: return 
+			if doPrint: self.indiLOG.log(30,f"apNumb:{apNumb}; pass 1")
 
 			fanLevel	= ""
 			if "fan_level" in theDict:
@@ -12087,6 +12305,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			devType = "Device-SW-{}".format(nports)
 			new = True
 
+			
+
 			if MAC in self.MAC2INDIGO[xType]:
 				try:
 					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
@@ -12106,10 +12326,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.unifiControllerType.find("UDM") > -1 and apNumb == self.numberForUDM["SW"]:
 				if self.decideMyLog("UDM"):  self.indiLOG.log(10,"DC-SW-UDM  using UDM mode  for  {}; IP process:{}; #Dict{}".format(MAC, ipNumber, ipNDevice ) )
 
+			#if doPrint: self.indiLOG.log(30,f"apNumb:{apNumb}; pass 3,  new:{new}")
 
 
 			if not new:
-					if self.decideMyLog("DictDetails", MAC=MAC):  self.indiLOG.log(10,"DC-SW-S0   {}/{};   SW  hostname:{}; MAC:{}, uptime:{}".format(ipNumber, ipNDevice, hostname, MAC, theDict.get("uptime","--") ) )
+					if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(20,"DC-SW-S0   {}/{};   SW  hostname:{}; MAC:{}, uptime:{}".format(ipNumber, ipNDevice, hostname, MAC, theDict.get("uptime","--") ) )
 					self.MAC2INDIGO[xType][MAC]["ipNumber"] = ipNumber
 
 					self.deviceUp["SW"][ipNumber]	= time.time()
@@ -12119,15 +12340,18 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						if "upSince" in dev.states:
 							self.addToStatesUpdateList(dev.id,"upSince", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()-theDict["uptime"])) )
 
-					ports = {}
+					ports = dict()
 					if dev.states["switchNo"] != apNumb:
 						self.addToStatesUpdateList(dev.id,"switchNo", apNumb)
 
 					if "ports" not in self.MAC2INDIGO[xType][MAC]:
-						self.MAC2INDIGO[xType][MAC]["ports"]={}
+						self.MAC2INDIGO[xType][MAC]["ports"] = dict()
 					self.MAC2INDIGO[xType][MAC]["nPorts"] = len(portTable)
 
+					portN = 0
 					for port in portTable:
+						portN += 1
+						#if doPrint or self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(20,f"port:{port}" )
 
 						rxRate = "0"
 						txRate = "0"
@@ -12139,6 +12363,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						if f"{ID}" not in self.MAC2INDIGO[xType][MAC]["ports"]:
 							self.MAC2INDIGO[xType][MAC]["ports"]["{}".format(ID)] = {"rxLast": 0, "txLast": 0, "timeLast": 0,"poe":"","fullDuplex":"","link":"","nClients":0}
 						portsMAC = self.MAC2INDIGO[xType][MAC]["ports"][f"{ID}"]
+						
+						#if doPrint and ID == 1: self.indiLOG.log(20,f"ID:{ID};  portsMAC:{portsMAC}; " )
+
 						if portsMAC["timeLast"] != 0. and "tx_bytes" in port and "rx_bytes" in port:
 							try:
 								dt = max(5, time.time() - portsMAC["timeLast"]) * 1000
@@ -12147,18 +12374,19 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								rxLast = portsMAC.get("rxLast", 0)
 								if rxLast == "": rxLast = 0
 
-								tx_bytes = portsMAC.get("tx_bytes", 0)
+								tx_bytes = port.get("tx_bytes",0)
 								if tx_bytes == "": tx_bytes = 0
-								rx_bytes = portsMAC.get("rx_bytes", 0)
+								rx_bytes = port.get("rx_bytes", 0)
 								if rx_bytes == "": rx_bytes = 0
 
-								txRate = "{:.1f}".format( (tx_bytes - txLast) / dt + 0.5)
-								rxRate = "{:.1f}".format( (rx_bytes - rxLast) / dt + 0.5)
+								txRate = "{:.1f}".format( (tx_bytes - txLast) / dt )
+								rxRate = "{:.1f}".format( (rx_bytes - rxLast) / dt )
+								#if doPrint and ID == 1: self.indiLOG.log(20,f"ID:{ID};  txRate:{txRate}; tx_bytes:{tx_bytes};  txLast:{txLast} dt:{dt}" )
 
 							except	Exception as e:
 								if "{}".format(e).find("None") == -1: 
 									self.indiLOG.log(40,"", exc_info=True)
-									self.indiLOG.log(30,f" switch ip:{ipNDevice},  port:{port}, portsMAC:{portsMAC}")
+									self.indiLOG.log(30,f" switch @{ipNDevice},  port:{port}, portsMAC:{portsMAC}")
 								continue
 							try:
 								errors = "{}".format(port.get("tx_dropped",0) + port.get("tx_errors",0) + port.get("rx_errors",0) + port.get("rx_dropped",0) )
@@ -12183,41 +12411,74 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								SWP = "UL"
 								ppp += ";"+SWP
 
+							portsMAC["txLast"]	  = port.get("tx_bytes","")
+							portsMAC["rxLast"]	  = port.get("rx_bytes","")
+							portsMAC["timeLast"]  = time.time()
 
-							### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
-							if SWP == "" and "lldp_table"  in port and len(port["lldp_table"]) >0:
-								lldp_table = port["lldp_table"][0]
-								if "lldp_chassis_id" in lldp_table and "lldp_port_id" in lldp_table and "lldp_system_name" in lldp_table:
-									try:
-										LinkName = 			lldp_table["lldp_system_name"].lower()
-										macUPdowndevice = 	lldp_table["lldp_chassis_id"].lower()
-										portID = 			lldp_table["lldp_port_id"].lower()
+							#if doPrint and ID == 1: self.indiLOG.log(20,f"ID:{ID};  portsMAC:{portsMAC}; " )
 
-										if	SWP == "" and macUPdowndevice in self.MAC2INDIGO["GW"]:
-											ppp += ";GW"
-											SWP  = "GW"
 
-										if	SWP == "" and macUPdowndevice in self.MAC2INDIGO["AP"]:
-											ppp += ";AP"
-											SWP  = "AP"
 
-										if	SWP == "" and "gatew" in LinkName or "udm" in LinkName and LinkName.find("switch") ==-1:
-											ppp += ";GW"
-											SWP  = "GW"
+							if SWP == "":
+								if "lldp_table" in theDict and SWP == "":  # this is for mini switches 
+									for table in theDict["lldp_table"]:
+										#if doPrint: self.indiLOG.log(20,f"portN:{portN}: table:{table}; " )
+										if ID == table.get("local_port_idx", -1):
+											LinkName = 			table["local_port_name"].lower()
+											macUPdowndevice = 	table["chassis_id"].lower()
+											portID = 			table["port_id"].lower()
+											if portID.find("port") > -1: portID= portID.split(" ")[1]
+											
+											if	macUPdowndevice in self.MAC2INDIGO["GW"]:
+												ppp += ";GW"
+												SWP  = "GW"
+		
+											elif macUPdowndevice in self.MAC2INDIGO["AP"]:
+												ppp += ";AP"
+												SWP  = "AP"
+		
+											elif macUPdowndevice in self.MAC2INDIGO[xType]:
+												portNatSW = ",P:"+portID
+												SWP = "DL"
+												devIdOfSwitch = self.MAC2INDIGO["SW"][macUPdowndevice]["devId"]
+												ppp+= ";"+SWP+":{}".format(indigo.devices[devIdOfSwitch].states["switchNo"])+portNatSW
+										
+								### check if another unifi switch or gw is attached to THIS port , add SW:# or GW:0to the port string
+								elif "lldp_table"  in port and len(port["lldp_table"]) >0:
+									lldp_table = port["lldp_table"][0]
+									if "lldp_chassis_id" in lldp_table and "lldp_port_id" in lldp_table and "lldp_system_name" in lldp_table:
+										try:
+											LinkName = 			lldp_table["lldp_system_name"].lower()
+											macUPdowndevice = 	lldp_table["lldp_chassis_id"].lower()
+											portID = 			lldp_table["lldp_port_id"].lower()
+	
+											if	SWP == "" and macUPdowndevice in self.MAC2INDIGO["GW"]:
+												ppp += ";GW"
+												SWP  = "GW"
+	
+											if	SWP == "" and macUPdowndevice in self.MAC2INDIGO["AP"]:
+												ppp += ";AP"
+												SWP  = "AP"
+	
+											if	SWP == "" and "gatew" in LinkName or "udm" in LinkName and LinkName.find("switch") ==-1:
+												ppp += ";GW"
+												SWP  = "GW"
+	
+											if  SWP == "" and macUPdowndevice in self.MAC2INDIGO[xType]:
+												try:	portNatSW = ",P:"+portID.split("/")
+												except: portNatSW = ""
+												SWP = "DL"
+												devIdOfSwitch = self.MAC2INDIGO["SW"][macUPdowndevice]["devId"]
+												ppp+= ";"+SWP+":{}".format(indigo.devices[devIdOfSwitch].states["switchNo"])+portNatSW
+	
+											if  SWP == "" and "switch" in LinkName:
+												ppp += ";DL"
+												SWP = "DL"
+	
+										except	Exception as e:
+												if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-										if  SWP == "" and macUPdowndevice in self.MAC2INDIGO[xType]:
-											try:	portNatSW = ",P:"+portID.split("/")
-											except: portNatSW = ""
-											SWP = "DL"
-											devIdOfSwitch = self.MAC2INDIGO["SW"][macUPdowndevice]["devId"]
-											ppp+= ";"+SWP+":{}".format(indigo.devices[devIdOfSwitch].states["switchNo"])+portNatSW
-
-										if  SWP == "" and "switch" in LinkName:
-											ppp += ";DL"
-											SWP = "DL"
-
-									except	Exception as e:
-											if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+							#if doPrint: self.indiLOG.log(20,f"portN:{portN}: ppp:{ppp}; SWP:{SWP} " )
 
 							portsMAC["link"] = SWP
 
@@ -12232,17 +12493,19 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								ppp += "; "
 
 							poe = ""
-							if "poe_enable" in port:
-								if port["poe_enable"]:
-									if ("poe_good" in port and port["poe_good"])	:
-										poe="poe1"
-									elif ("poe_mode" in port and port["poe_mode"] == "passthrough") :
-										poe="poeP"
+							for testPOE in ["poe_enable","port_poe"]:
+								if testPOE in port:
+									if port[testPOE]:
+										if (testPOE in port and port[testPOE])	:
+											poe="poe1"
+										elif (testPOE in port and port[testPOE] == "passthrough") :
+											poe="poeP"
+										else:
+											poe="poe0"
 									else:
-										poe="poe0"
-								else:
-										poe="poeX"
-							portsMAC["poe"] = poe
+											poe="poeX"
+									break
+								portsMAC["poe"] = poe
 
 							if poe != "":
 								ppp += ";"+poe
@@ -12250,7 +12513,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								ppp += "; "
 
 							if "port_" + idS in dev.states:
-								if nDevices > 0:
+								if nDevices > -1:
 									ppp += ";" + fullDuplex + "-" + ("{}".format(port["speed"]))
 									ppp += "; err:" + errors
 									ppp += "; rx-tx[kb/s]:" + rxRate + "-" + txRate
@@ -12260,12 +12523,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								if ppp != dev.states["port_" + idS]:
 									self.addToStatesUpdateList(dev.id,"port_" + idS, ppp)
 
-
-
-
 						portsMAC["txLast"]	   = port.get("tx_bytes","")
 						portsMAC["rxLast"]	   = port.get("rx_bytes","")
 						portsMAC["timeLast"]  = time.time()
+
+
+
 
 					if model != dev.states["model"] and model !="":
 						self.addToStatesUpdateList(dev.id,"model", model)
@@ -12420,17 +12683,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try:
 			x = ""
 			if not self.enableFINGSCAN:
-				self.sendUpdateToFingscanList ={}
+				self.sendUpdateToFingscanList = dict()
 				return x
-			if self.sendUpdateToFingscanList =={} and not force:
+			if self.sendUpdateToFingscanList == dict()and not force:
 				return x
 			if self.countLoop < 10:
-				self.sendUpdateToFingscanList ={}
+				self.sendUpdateToFingscanList = dict()
 				return x  ## only after stable ops for 10 loops ~ 20 secs
 
 			plug = indigo.server.getPlugin("com.karlwachs.fingscan")
 			if not plug.isEnabled():
-				self.sendUpdateToFingscanList ={}
+				self.sendUpdateToFingscanList = dict()
 				return x
 
 			if not force:
@@ -12448,16 +12711,16 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									self.fingscanTryAgain = True
 
 			else:
-				devIds	  = []
-				devNames  = []
-				devValues = {}
+				devIds	  = list()
+				devNames  = list()
+				devValues = dict()
 				stringToPrint = "\n"
 				for dev in indigo.devices.iter(self.pluginId):
 					if dev.deviceTypeId == "client": continue
 					devIds.append("{}".format(dev.id))
 					stringToPrint += dev.name + "= " + dev.states["status"] + "\n"
 
-				if devIds != []:
+				if devIds != list():
 					for i in range(3):
 						if self.decideMyLog("Fing"): self.indiLOG.log(10,"FINGSC---   "+"updating fingscan try# {}".format(i + 1) + ";     with " + stringToPrint )
 						plug.executeAction("unifiUpdate", props={"deviceId": devIds})
@@ -12466,7 +12729,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		self.sendUpdateToFingscanList ={}
+		self.sendUpdateToFingscanList = dict()
 		return x
 
 	####----------------- if FINGSCAN is enabled send update signal	 ---------
@@ -12474,16 +12737,16 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try:
 			x = ""
 			if	self.enableBroadCastEvents =="0":
-				self.sendBroadCastEventsList = []
+				self.sendBroadCastEventsList = list()
 				return x
-			if self.sendBroadCastEventsList == []:
+			if self.sendBroadCastEventsList == list():
 				return x
 			if self.countLoop < 10:
-				self.sendBroadCastEventsList = []
+				self.sendBroadCastEventsList = list()
 				return x  ## only after stable ops for 10 loops ~ 20 secs
 
 			msg = copy.copy(self.sendBroadCastEventsList)
-			self.sendBroadCastEventsList = []
+			self.sendBroadCastEventsList = list()
 			if len(msg) >0:
 				msg ={"pluginId":self.pluginId,"data":msg}
 				try:
@@ -12609,6 +12872,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		return
 
 	####-----------------	 ---------
+	def retTextForPing(self, IPnumber):
+		res = self.checkPing(IPnumber)
+		if res == 0: return ""
+		else: return " >>> ping  to {} not sucessful <<<".format(IPnumber)
+
+	####-----------------	 ---------
 	def checkPing(self, IPnumber , waitForPing=100, countPings=1,nPings=1, waitAfterPing=0.5, calledFrom="",verbose=False):
 		try:
 			Wait = ""
@@ -12656,7 +12925,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if "{}".format(e).find("None") == -1: 
 					self.indiLOG.log(30,"", exc_info=True)
 					self.indiLOG.log(30,"sendWakewOnLan, type:{},  data:{}  broadcastIP type:{}, {}".format(type(data), data, type(self.broadcastIP), self.broadcastIP))
-			if self.decideMyLog("Ping"):  self.indiLOG.log(10,"{} sendWakewOnLan for {};    called from {};  bc ip: {}".format(calledFrom, MAC, calledFrom, self.broadcastIP))
+			if self.decideMyLog("Ping"):  self.indiLOG.log(10,"{} sendWakewOnLan for {};    called from {};  bc @{}".format(calledFrom, MAC, calledFrom, self.broadcastIP))
 		return
 
 	####-----------------	 ---------
@@ -12724,11 +12993,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			localCopy = copy.deepcopy(self.devStateChangeList)
 			if devId not in localCopy:
-				localCopy[devId] = {}
+				localCopy[devId] = dict()
 
 			if key in localCopy[devId]:
 				if value != localCopy[devId][key]:
-					localCopy[devId][key] = {}
+					localCopy[devId][key] = dict()
 
 			localCopy[devId][key] = value
 			self.devStateChangeList = copy.deepcopy(localCopy)
@@ -12751,9 +13020,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try:
 			if len(self.devStateChangeList) == 0: return
 			local = copy.deepcopy(self.devStateChangeList)
-			self.devStateChangeList ={}
-			changedOnly = {}
-			trigList=[]
+			self.devStateChangeList = dict()
+			changedOnly = dict()
+			trigList= list()
 			for devId in  local:
 				try: int(devId)
 				except: continue
@@ -12767,7 +13036,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.indiLOG.log(30,"executeUpdateStatesList dev {}; key:{}; value:{}, key not in dev.states !! contact author !!".format(dev.name, key, value ) )
 							continue
 						if "{}".format(value) != "{}".format(dev.states[key]):
-							if devId not in changedOnly: changedOnly[devId]=[]
+							if devId not in changedOnly: changedOnly[devId]= list()
 							changedOnly[devId].append({"key":key,"value":value})
 							if key == "status":
 								#if "MAC" in dev.states and self.decideMyLog("", MAC=dev.states["MAC"]): self.indiLOG.log(10,"executeUpdateStatesList(2) dev {} key:{}; value:{}".format(dev.name, key, value ) )
@@ -12796,7 +13065,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 
-					if devId in changedOnly and changedOnly[devId] !=[]:
+					if devId in changedOnly and changedOnly[devId] != list():
 						if self.decideMyLog("UpdateStates"):	self.indiLOG.log(10,"update device:{:30}  states:{}".format(dev.name, changedOnly[devId]))
 
 
@@ -12946,8 +13215,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				self.waitTimes["today"]["startDate"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 				self.waitTimes["today"]["startTime"] = time.time()
 				self.waitTimes["today"]["lastPrint"] = time.time()
-				self.waitTimes["today"]["WaitingPgm"] = {}
-				self.waitTimes["today"]["BlockingPgm"] = {}
+				self.waitTimes["today"]["WaitingPgm"] = dict()
+				self.waitTimes["today"]["BlockingPgm"] = dict()
 				self.waitTimes["today"]["QlenGT1"] = 0
 				self.waitTimes["today"]["QlenMax"] = 0
 
@@ -13092,9 +13361,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 # formatter = LevelFormatter(fmt='<default log format>', level_fmts={logging.INFO: '<format string for info>'})
 # handler.setFormatter(formatter)
 class LevelFormatter(logging.Formatter):
-	def __init__(self, fmt=None, datefmt=None, level_fmts={}, level_date={}):
-		self._level_formatters = {}
-		self._level_date_format = {}
+	def __init__(self, fmt=None, datefmt=None, level_fmts=None, level_date=None):
+		if level_fmts is None: level_fmts = dict()
+		if level_date is None: level_date = dict()
+	
+		self._level_formatters = dict()
+		self._level_date_format = dict()
 		for level, format in level_fmts.items():
 			# Could optionally support level names too
 			self._level_formatters[level] = logging.Formatter(fmt=format, datefmt=level_date[level])

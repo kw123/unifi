@@ -1,6 +1,28 @@
-changes in V2022.47.426@ 2025-05-04
+
+changes in V2022.48.2022.49.431@ 2026-03-21
 ==================  
-fixed line  8854, 'props' is not defined
+-  added update states for mini/flex switches through HTTP query to controller 
+-  fixed rx tx rates for port states  
+-  added power on off on switches through controller. 
+   The Flex and mini switches do not support ssh commands, hence there was noo support for that function before 
+   In config "".. use controler"  has to be set to "ON"
+   
+   
+changes in V2022.48.2022.48.426@ 2025-10-30
+==================  
+-  fixed controller type reset in config  
+-  fixed typo in config 
+
+
+
+changes in V2022.48.425@ 2025-06-12
+==================  
+-   auto configure "mini" switches. those switches do not support ssh
+        their info is retrieved from the controller
+-   reduced error logging (complete trace down to the last socket) to overview only)
+-   added print event log to preference directory as json (in menu/ print ..)
+-   added  option to power cycle a poe port using the console, before only through ssh to the switch, as mini switches do not allow ssh, this will cover them
+    but power off and power on does not work yet through the console, it is not a simple command, but a change config and then apply commands
 
 
 
