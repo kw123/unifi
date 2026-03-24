@@ -533,12 +533,12 @@
 
 
 	<Action id="powerCyclePort">
-		<Name>POWER  cycle a port on a UniFi switch using ssh to switch</Name>
+		<Name>POWER  cycle etc a port on a UniFi switch using ssh to switch</Name>
 		<CallbackMethod>buttonConfirmpowerCycleCALLBACKaction</CallbackMethod>        
 		<ConfigUI>
 			<Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
 				<Label>select which switch:</Label>
-				<List class="self" filter="" method="filterUnifiSwitch"  dynamicReload="false"/>
+				<List class="self" filter="nomini" method="filterUnifiSwitch"  dynamicReload="false"/>
 			</Field>
 			<Field    id="confirmSW" type="button" tooltip="" >
 				<Label>confirm SW</Label><Title>CONFIRM</Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
@@ -549,9 +549,11 @@
 			</Field>
 			<Field    id="onOffCycle" type="menu" tooltip="" >
 				<List>
-					<Option value="ON"         >ON</Option>
-					<Option value="OFF"        >OFF</Option>
-					<Option value="CYCLE"      >CYCLE</Option>
+					<Option value="ON"         >POE ON</Option>
+					<Option value="OFF"        >POE OFF</Option>
+					<Option value="CYCLE"      >CYCLE power</Option>
+					<Option value="up"	   	   >ENABLE port </Option>
+					<Option value="down"	   >DISABLE port</Option>
 				</List>
 				<Label>which action</Label>
 			</Field>
@@ -560,7 +562,7 @@
 
 
 	<Action id="powerCyclePortController">
-		<Name>POWER  cycle a port on a UniFi switch using controller</Name>
+		<Name>POWER  cycle etc a port on a UniFi switch using controller</Name>
 		<CallbackMethod>buttonConfirmPowercyclePortOnSwithConllerCALLBACKaction</CallbackMethod>        
 		<ConfigUI>
 			<Field     id="selectedUnifiSwitch" type="menu" defaultValue="system">
@@ -576,9 +578,11 @@
 			</Field>
 			<Field    id="onOffCycle" type="menu" tooltip="" >
 				<List>
-					<Option value="ON"         >ON</Option>
-					<Option value="OFF"        >OFF</Option>
-					<Option value="CYCLE"      >CYCLE</Option>
+					<Option value="ON"		   >POE ON </Option>
+					<Option value="OFF"		   >POE OFF</Option>
+					<Option value="CYCLE"	   >CYCLE power </Option>
+					<Option value="ENABLE"	   >ENABLE port - not stable</Option>
+					<Option value="DISABLE"	   >DISABLE port - not stable</Option>
 				</List>
 				<Label>which action</Label>
 			</Field>

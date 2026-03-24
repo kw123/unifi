@@ -53,7 +53,7 @@
 			<Field id="simpleSeparatorS" type="separator"/>
 
 			<Field	  id="confirm0" type="button" tooltip="" >
-				<Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmGetAPDevInfoFromControllerCALLBACK</CallbackMethod>
+				<Label>Get parameters from controller into indigo devices</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmGetDevInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field id="simpleSeparator0" type="separator"/>
 			<Field	id="Label1" type="label"> <Label>Print info for system devices:</Label> </Field>
@@ -1009,7 +1009,7 @@ it will make the plugin restart </Label>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="powerCyclePort">
-		<Name>POWER cycle a port on a UniFi switch..</Name>
+		<Name>POWER cycle etc a port on a UniFi switch..</Name>
 		<ConfigUI>
 
 			<Field	id="Label01" type="label"> 
@@ -1017,17 +1017,7 @@ it will make the plugin restart </Label>
 (1) through direct "ssh" session to a switch (not available for mini or flex switches)
 (2) through a comand to the controller </Label> 
 			</Field>
-			<Field	  id="onOffCycle" type="menu" tooltip="" >
-				<List>
-					<Option value="ON"		   >ON </Option>
-					<Option value="OFF"		   >OFF</Option>
-					<Option value="CYCLE"	   >CYCLE power </Option>
-					<Option value="up"	   	   >UP (ssh only)</Option>
-					<Option value="down"	   >DOWN (ssh only)e</Option>
-				</List>
-				<Label>which action</Label>
-			</Field>
-			<Field id="simpleSeparator0" type="separator"/>
+
 			<Field	   id="selectedUnifiSwitch" type="menu" defaultValue="system">
 				<Label>Select which switch:</Label>
 				<List class="self" filter="" method="filterUnifiSwitch"	 dynamicReload="false"/>
@@ -1035,21 +1025,52 @@ it will make the plugin restart </Label>
 			<Field	  id="confirmSW" type="button" tooltip="" >
 				<Label>confirm SW</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
 			</Field>
+			<Field	  id="consoleOnly" type="checkbox"  hidden = "true" ></Field>
+
+
 			<Field	   id="selectedUnifiSwitchPort" type="menu" defaultValue="1">
 				<Label>select which port(#1..xx):</Label>
 				<List class="self" filter="" method="filterUnifiSwitchPort"	 dynamicReload="yes"/>
 			</Field>
-			<Field	  id="confirmpowerCycle" type="button" tooltip="" >
-				<Label>Click to</Label><Title>EXECUTE through ssh </Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
+			<Field id="simpleSeparator0" type="separator"/>
+
+			<Field	  id="onOffConsole" type="menu" >
+				<List>
+					<Option value="ON"		   >POE ON </Option>
+					<Option value="OFF"		   >POE OFF</Option>
+					<Option value="CYCLE"	   >CYCLE power </Option>
+					<Option value="ENABLE"	   >ENABLE port - not stable</Option>
+					<Option value="DISABLE"	   >DISABLE port - not stable</Option>
+				</List>
+				<Label>which console action</Label>
 			</Field>
 
-
-			<Field	  id="confirmpowerCycleConsole" type="button" tooltip="" >
+			<Field	  id="confirmpowerCycleConsole" type="button" tooltip=""  >
 				<Label>Click to</Label><Title>EXECUTE through console </Title> <CallbackMethod>buttonConfirmPowercyclePortOnSwithConllerCALLBACK</CallbackMethod>
 			</Field>
 			<Field	id="Labelend" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 				<Label>off / on commands through the controller take > 10 secs</Label> 
 			</Field>
+			<Field id="simpleSeparator1" type="separator"/>
+
+
+			<Field	  id="onOffssh" type="menu" visibleBindingId="consoleOnly" visibleBindingValue="false">
+				<List>
+					<Option value="ON"		   >POE ON </Option>
+					<Option value="OFF"		   >POE OFF</Option>
+					<Option value="CYCLE"	   >CYCLE power </Option>
+					<Option value="up"	   	   >ENABLE port </Option>
+					<Option value="down"	   >DISABLE port</Option>
+				</List>
+				<Label>which ssh action</Label>
+			</Field>
+
+
+			<Field	  id="confirmpowerCycle" type="button" tooltip=""  visibleBindingId="consoleOnly" visibleBindingValue="false">
+				<Label>Click to</Label><Title>EXECUTE through ssh </Title> <CallbackMethod>buttonConfirmpowerCycleCALLBACK</CallbackMethod>
+			</Field>
+
+
 		</ConfigUI>
 	</MenuItem>
 	

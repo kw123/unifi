@@ -572,6 +572,7 @@ class Plugin(indigo.PluginBase):
 			self.enableSqlLogging								= self.pluginPrefs.get("enableSqlLogging",True)
 			self.pluginPrefs["createUnifiDevicesCounter"]		= int(self.pluginPrefs.get("createUnifiDevicesCounter",0))
 
+			self.deviceDictFromController 						= list()
 			self.lastupdateDevStateswRXTXbytes					= time.time() - 100
 			self.updateDescriptions								= self.pluginPrefs.get("updateDescriptions", True)
 			self.ignoreNeighborForFing							= self.pluginPrefs.get("ignoreNeighborForFing", True)
@@ -999,10 +1000,10 @@ class Plugin(indigo.PluginBase):
 
 
 ####-------------------------------------------------------------------------####
-	def writeJson(self, data, fName="default", sort = True, doFormat=False ):
+	def writeJson(self, data, fName="default", sort=True, doFormat=False ):
 		try:
 
-			if format:
+			if doFormat:
 				out = json.dumps(data, sort_keys=sort, indent=2)
 			else:
 				out = json.dumps(data, sort_keys=sort)
@@ -3133,14 +3134,21 @@ class Plugin(indigo.PluginBase):
 		xList = list()
 		for dev in indigo.devices.iter("props.isSwitch"):
 			swNo = int(dev.states["switchNo"])
-			if self.devsEnabled["SW"][swNo]:
-				xList.append(("{}".format(swNo)+"-SWtail-{}".format(dev.id), "{}".format(swNo)+"-"+self.ipNumbersOf["SW"][swNo]+"-"+dev.name))
+			if filter == "nomini" and self.isMiniSwitch[swNo]: continue
+			xList.append(("{}-SWtail-{}".format(swNo, dev.id), "{}".format(swNo)+"-"+self.ipNumbersOf["SW"][swNo]+"-"+dev.name))
 			#self.indiLOG.log(20,"filterUnifiSwitch  swNo:{}, name:{}".format(swNo, dev.name))
 		return xList
 
 	####-----------------	 ---------
 	def buttonConfirmSWCALLBACK(self, valuesDict=None, typeId="", targetId=""):
-		self.unifiSwitchSelectedID =  valuesDict["selectedUnifiSwitch"].split("-")[2]
+		test =  valuesDict["selectedUnifiSwitch"].split("-")
+		self.unifiSwitchSelectedID =  test[2]
+		
+		if self.isMiniSwitch[int(test[0])]: 
+			valuesDict["consoleOnly"] = True
+		else:
+			valuesDict["consoleOnly"] = False
+		
 		return valuesDict
 
 	####-----------------	 ---------
@@ -3205,7 +3213,11 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------	 ---------
 	def buttonConfirmpowerCycleCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		onOffCycle	= valuesDict["onOffCycle"]
+		if "onOffssh" in valuesDict:
+			onOffCycle	= valuesDict["onOffssh"]
+		else:
+			onOffCycle	= valuesDict["onOffCycle"]
+		
 		ip_type		=  valuesDict["selectedUnifiSwitch"].split("-")
 		ipNumber	= self.ipNumbersOf["SW"][int(ip_type[0])]
 		dtype		= ip_type[1]
@@ -3496,28 +3508,34 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 ######## block / unblock reconnec  end
 
 ######## reports for specific stations / devices
-	def buttonConfirmGetAPDevInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
+	def buttonConfirmGetDevInfoFromControllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		valuesDict["MSG"] = ""
+		
+		self.lastcheckForNewUnifiSystemDevices = 0
+		self.getcontrollerDBForClientsLast = 0
+		self.checkForNewUnifiSystemDevices()
+		self.getcontrollerDBForClients()
+
+		if len(self.deviceDictFromController) == 0 and self.unifiCloudKeyPort == "": 
+				self.indiLOG.log(10,"unifi-Report:  controller not setup, skipping other querries" )
+				return
+
 		for dev in indigo.devices.iter("props.isAP"):
 			MAC = dev.states["MAC"]
 			if "MAClan" in dev.states: 
 				props = dev.pluginProps
 				if "useWhichMAC" in props and props["useWhichMAC"] == "MAClan":
 					MAC = dev.states["MAClan"]
-			self.indiLOG.log(10,"unifi-Report getting _id for AP {}  /stat/device/{}".format(dev.name, MAC) )
-			jData = self.executeCMDOnController(dataSEND=dict(), pageString="/stat/device/"+MAC, jsonAction="returnData", cmdType="get")
 
-			if len(jData) == 0 and self.unifiCloudKeyPort == "": 
-				self.indiLOG.log(10,"unifi-Report:  controller not setup, skipping other querries" )
-				break
 
-			for dd in jData:
+			for dd in self.deviceDictFromController:
 				if "_id" not in dd:
 					self.indiLOG.log(10,"unifi-Report _id not in data")
 					continue
 				self.indiLOG.log(10,"unifi-Report  _id in data:{}".format(dd["_id"]) )
 				dev.updateStateOnServer("unifi_id", dd["_id"])
 				break
+				
 		self.addToMenuXML(valuesDict)
 		return valuesDict
 
@@ -3801,7 +3819,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			dataSEND = {"attrs": ["tx_bytes", "rx_bytes", "time"], "start": st, "end": en}
 			pageString = "/stat/report/5minutes.user"
 			data = self.executeCMDOnController(dataSEND=dataSEND, pageString=pageString, jsonAction="returnData", cmdType="post")
-			if self.decideMyLog("Special"): self.indiLOG.log(20,"updateDevStateswRXTXbytes: pageString{}; dataSEND: {}; data returned:{}".format(pageString, dataSEND, data))
+			if False and self.decideMyLog("Special"): self.indiLOG.log(20,"updateDevStateswRXTXbytes: pageString{}; dataSEND: {}; data returned:{}".format(pageString, dataSEND, data))
 
 			if len(data) == 0: return
 			MACbytes 	= dict()
@@ -3829,7 +3847,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					oneBad = True
 					continue
 
-			if oneBad and self.decideMyLog("Special"): 
+			if oneBad and False and self.decideMyLog("Special"): 
 				self.indiLOG.log(10,"updateDevStateswRXTXbytes,  data:{}".format(data))
 				self.indiLOG.log(10,"updateDevStateswRXTXbytes, maxDT:{}  MACBYTES:{}".format(maxDT/1000, MACbytes))
 
@@ -4394,10 +4412,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 ######## actions and menu [powercycle port on switches ]
 	####-----------------	 ---------
 	def buttonConfirmPowercyclePortOnSwithConllerCALLBACKaction(self, action1=None):
-		self.buttonConfirmPowercyclePortOnSwithConllerCALLBACK(action1.props)
+		valuesDict = action1.props
+		valuesDict["onOffConsole"] = valuesDict["onOffCycle"]
+		self.buttonConfirmPowercyclePortOnSwithConllerCALLBACK(valuesDict)
 
 	def buttonConfirmPowercyclePortOnSwithConllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		onOffCycle	= valuesDict["onOffCycle"]
+		portcmd	= valuesDict["onOffConsole"]
+
 		ip_type		= valuesDict["selectedUnifiSwitch"].split("-")
 		ipNumber	= self.ipNumbersOf["SW"][int(ip_type[0])]
 		portNo		= "{}".format(valuesDict.get("selectedUnifiSwitchPort",""))
@@ -4420,30 +4441,115 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			valuesDict["MSG"] = "no valid mac given:{}".format(mac)
 			return valuesDict
 
-		if onOffCycle == "CYCLE":
+		if portcmd == "CYCLE":
 			dataDict = {'cmd':'power-cycle','mac':mac, 'port_idx':portNo}
 			page = "/cmd/devmgr"
 			valuesDict["MSG"] = "Powercycle command send to:{}/{}  {};  page:{};  json:{}".format( devId, dev.name, ipNumber,  page,  dataDict)
 			ret = self.executeCMDOnController(dataSEND=dataDict, pageString=page, cmdType="post", cmdTypeForce=True, repeatIfFailed=False,  debugOverwrite=True)
+			self.indiLOG.log(20,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle page:{}, dataDict{};".format(page, dataDict ))
 			
 		else:
+			if portcmd   == "ON" : 		cmd = "poe_mode"; value = "auto"
+			elif portcmd == "OFF" : 	cmd = "poe_mode"; value = "off"
+			elif portcmd == "ENABLE": 	cmd = "forward";  value = "all"
+			elif portcmd == "DISABLE": 	cmd = "forward";  value = "disabled"
 			unifi_id = dev.states.get("unifi_id","")
-			cmd = "auto" if onOffCycle == "ON" else "off"
-			dataDict = {"port_overrides":[{"port_idx":portNo,"poe_mode":cmd}]} 
+			MAC = dev.states.get("MAC","")
+			overrides = list()
+			allNew = False
+			override = {"port_idx":portNo, cmd:value}
+			if len(self.deviceDictFromController) == 0: 
+				self.deviceDictFromController =	self.executeCMDOnController( pageString="/stat/device/", jsonAction="returnData", cmdType="get")
+				allNew = True
+			else:
+				unifiDevNew =	self.executeCMDOnController( pageString="/stat/device/"+MAC, jsonAction="returnData", cmdType="get")[0]
+			#self.indiLOG.log(30,"MAC:{}, unifiDevNew:{}".format(MAC, unifiDevNew))
+
+			if len(self.deviceDictFromController) == 0:
+				self.indiLOG.log(30,"you need to enable use controller in config ")
+				self.deviceDictFromController = [dict()]
+				return valuesDicts
+				
+			else:
+				idx = 0
+				found = False
+				for unifiDev in self.deviceDictFromController:
+					idx += 1
+					if unifiDev.get("_id","xxx") == unifi_id:
+						found = True
+						if allNew: unifiDevNew = unifiDev
+						break
+				if not found:	
+					self.indiLOG.log(30,"port id:{} not found".format(unifi_id))
+					return valuesDict
+				
+				found = False
+				if "port_overrides" in unifiDevNew:
+					overrides = unifiDevNew.get("port_overrides", list())
+					if overrides != list():
+						ovIdx = -1
+						for ov in overrides:
+							ovIdx += 1
+							self.indiLOG.log(30,"portNo:{}, idx:{},  ovIdx:{} =={}?; ov:{}<<".format(portNo,idx,  ovIdx, ov["port_idx"] == portNo, ov))
+							if ov["port_idx"] == portNo:
+								found = True
+								break
+							
+						if found:
+							if cmd in ["forward"]:
+								overrides[ovIdx] = override
+							else:
+								overrides[ovIdx][cmd] = value
+								try:
+									override = copy.deepcopy(overrides[ovIdx])
+								except	Exception as e:
+									if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+							self.indiLOG.log(30,"found portNo:{} cmd:{}, idx:{}, ovIdx:{}\noverride:{},\noverrides:{}<<".format(portNo, cmd, idx, ovIdx, override,  overrides))
+
+					if not found:
+						overrides.append(override)
+						
+			if overrides == list():
+				overrides = [override]
+
+			unifiDevNew["port_overrides"] = overrides
+			if "port_table" in unifiDevNew:
+				for port in unifiDevNew["port_table"]:
+					if port.get("port_idx",-1) == portNo: 
+						if cmd in ["poe_mode"]:
+							port["poe_mode"] = cmd
+							if cmd == "auto": 	port["port_poe"] = True
+							else:				port["port_poe"] = False
+							break
+						if cmd in["forward"]: 	
+							port["enable"] = value != "disabled"
+							break
+					
+			self.deviceDictFromController[idx] = copy.deepcopy(unifiDevNew)
+			dataDict = {"port_overrides":overrides} 
 			page = "/rest/device/"+unifi_id
 			valuesDict["MSG"] = "Powercycle command send  page:{};  json:{}".format(  page,  dataDict)
-			ret = self.executeCMDOnController(dataSEND=dataDict, pageString=page, cmdType="put", cmdTypeForce=True, repeatIfFailed=False, debugOverwrite=True)
+			ret = self.executeCMDOnController(dataSEND=dataDict, pageString=page, cmdType="put", cmdTypeForce=True, repeatIfFailed=False, debugOverwrite=False)
+			self.indiLOG.log(20,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK  cycle page:{}, dataDict{}\n\nret:{}".format(page, dataDict, ret ))
 
+			#self.checkForNewUnifiSystemDevicesCheckDevice(unifiDevNew, True, list())
+			self.lastcheckForNewUnifiSystemDevices  = time.time() - self.checkForNewUnifiSystemDevicesEvery + 10
 
-		#error return == {"meta":{"rc":"error","msg":"api.err.Invalid"},"data":[]}<<<"
-		try:
-			if "meta" in ret and "rc" in ret["meta"] and ret["meta"]["rc"].find("error") >-1:
-				self.indiLOG.log(30,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle page:{}, cmd{}; return  {}".format(page, dataDict, ))
-			else:
-				self.indiLOG.log(20,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle page:{}, cmd{};".format(page, dataDict ))
+			if self.decideMyLog("DictFile"): 
+				self.writeJson( self.deviceDictFromController, fName="{}dict-Controller.json".format(self.indigoPreferencesPluginDir), doFormat=True )
+			#self.indiLOG.log(30,"unifiDev {}".format(unifiDev["port_overrides"]))
 			
+
+		#error return:  == {"meta":{"rc":"error","msg":"api.err.Invalid"},"data":[]}<<<"
+		err = False
+		try:
+			if "meta" in ret and "rc" in ret["meta"] and ret["meta"]["rc"].find("error") > -1:
+				err = True
 		except:
-				self.indiLOG.log(30,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle cmd{} : return  {}".format(valuesDict["MSG"], ret ))
+			err = True
+			
+		if err or self.decideMyLog("Special"):
+			self.indiLOG.log(30,"buttonConfirmPowercyclePortOnSwithConllerCALLBACK port cycle cmd{} ..{}\n return:  {}".format(page, dataDict, ret ))
 		
 		return valuesDict
 
@@ -4542,7 +4648,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				return
 
 			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 2 {}".format(time.time() - self.pluginStartTime  ))
-			if time.time() - self.pluginStartTime < 30: return 
+			if time.time() - self.pluginStartTime < 20: return 
 
 
 			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 3 {}".format(self.checkForNewUnifiSystemDevicesEvery ))
@@ -4567,158 +4673,21 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			newDeviceFound = list()
 
-			deviceDict =		self.executeCMDOnController( pageString="/stat/device/", jsonAction="returnData", cmdType="get")
+			self.deviceDictFromController =		self.executeCMDOnController( pageString="/stat/device/", jsonAction="returnData", cmdType="get")
 			if self.decideMyLog("DictFile"): 
-				self.writeJson( deviceDict, fName="{}dict-Controller.json".format(self.indigoPreferencesPluginDir), sort=False, doFormat=True )
+				self.writeJson( self.deviceDictFromController, fName="{}dict-Controller.json".format(self.indigoPreferencesPluginDir), doFormat=True )
 
-			if deviceDict == list(): return
+			if self.deviceDictFromController == list(): return
 			#if self.decideMyLog("DictFile"):  self.indiLOG.log(20,"checkForNewUnifiSystemDevices 8 writen")
 
-			devType =""
-			counter = 0
-			for device in deviceDict:
-				counter +=1
-				ipNumber = ""
-				MAC		 = ""
-				if "type"   not in device: continue
-				uType	= device["type"]
-				uModel	= device.get("model","")
-				hasSSH 	= device.get("x_has_ssh_hostkey",False)
-
-				#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']}, uModel::{uModel}, {hasSSH}, {uType}")
-				found = False
-				name = "--"
-				dev = None
-
-				#### do not handle UDM type devices (yet)
-
-				if "mac" in device and "ip" in device or "lan_ip" in device:
-						try: ipNumber = device["ip"]
-						except: ipNumber = device["lan_ip"]
-						MAC		 = device["mac"]
-
-				if MAC == "" or ipNumber == "":
-					continue
-
-
-				for dev in indigo.devices.iter("props.isSwitch,props.isAP,props.isGateway"):
-					if "MAClan" in dev.states and dev.states["MAClan"] == MAC:
-						found = True
-						name = dev.name
-						if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
-							dev.updateStateOnServer("unifi_id", device.get["_ip"])
-						break
-					if "MAC" in dev.states and dev.states["MAC"] == MAC:
-						found = True
-						name = dev.name
-						if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
-							dev.updateStateOnServer("unifi_id", device["_id"])
-						break
-						
-				#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device.get('ip','')}  {device.get('_id','none')}, found:{found}")
-
-				if uType.find("udm") > -1:
-					continue
-
-
-				if uType == "ugw":
-					if "network_table" in device:
-						for nwt in device["network_table"]:
-							if "mac" in nwt and "ip"  in nwt and "name" in nwt and nwt["name"].lower() == "lan":
-								ipNumber = nwt["ip"]
-								MAC		 = nwt["mac"]
-								break
-
-
-				if uType.find("usw") > -1: # check for miniswitches, they can not be ssh-ed, only info is in controller db
-					for i in range(len(self.ipNumbersOf["SW"])):
-						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {i}; {device['ip']}, {ipNumber} {self.ipNumbersOf['SW'][i]}")
-						if ipNumber != self.ipNumbersOf["SW"][i]: 			continue
-						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 11?; {self.isMiniSwitch[i]}")
-						self.isMiniSwitch[i] = self.isMiniSwitch[i] or uModel.find("MINI") > -1	or not hasSSH
-						if not self.isMiniSwitch[i]: continue
-						if self.isMiniSwitch[i]: self.oneMiniswitchPresent = True
-						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 12")
-						if not self.isMiniSwitch[i]: 						continue 
-						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 13")
-						if not self.isValidIP(self.ipNumbersOf["SW"][i]): 	continue
-						self.doMimiTypeSwitchesWithControllerData(device, i, found)
-						#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']},  passed ")
-						break
-					if miniSwitchReason and found: continue
-
-				#self.indiLOG.log(20,"checkForNewUnifiSystemDevices   checking for mac:{}, ipNumber:{}, uType:{}, uModel:{}, hasSSH:{}, found:{}".format(MAC, ipNumber, uType, uModel, hasSSH, found))
-				if not found:
-					if uType.find("uap") >-1:
-						for i in range(len(self.ipNumbersOf["AP"])):
-							if	not self.isValidIP(self.ipNumbersOf["AP"][i]):
-								self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
-								newDeviceFound.append("uap: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["AP"][i]) )
-								self.ipNumbersOf["AP"][i]					= ipNumber
-								self.pluginPrefs["ip{}".format(i)]			= ipNumber
-								self.pluginPrefs["ipON{}".format(i)]		= True
-								self.checkforUnifiSystemDevicesState		= "reboot"
-								newDeviceFound.append("uap: {}".format(i)+", "+ipNumber)
-								break
-							else:
-								if self.ipNumbersOf["AP"][i]	 == ipNumber:
-									if not self.devsEnabled["AP"][i]: break # we know this one but it is disabled on purpose
-									newDeviceFound.append("uap: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["AP"][i] ) )
-									self.ipNumbersOf["AP"][i]				= ipNumber
-									#self.devsEnabled["AP"][i]						= True # will be enabled after restart
-									self.pluginPrefs["ipON{}".format(i)]	= True
-									self.checkforUnifiSystemDevicesState	= "reboot"
-									newDeviceFound.append("uap: {}".format(i)+", "+ipNumber)
-									break
-
-					elif uType.find("usw") >-1:
-						for i in range(len(self.ipNumbersOf["SW"])):
-							self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
-
-							if	not self.isValidIP(self.ipNumbersOf["SW"][i] ):
-								newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i], hasSSH ))
-								self.ipNumbersOf["SW"][i]					= ipNumber
-								self.pluginPrefs["ipSW{}".format(i)]		= ipNumber
-								self.pluginPrefs["ipSWON{}".format(i)]		= True
-								self.pluginPrefs["isMini{}".format(i)]		= self.isMiniSwitch[i] 
-								self.checkforUnifiSystemDevicesState		= "reboot"
-								break
-							else:
-								if self.ipNumbersOf["SW"][i] == ipNumber:
-									if not self.devsEnabled["SW"][i]: break # we know this one but it is disabled on purpose
-									newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i] , hasSSH  ))
-									self.ipNumbersOf["SW"][i]				= ipNumber
-									#self.devsEnabled["SW"][i]						= True # will be enabled after restart
-									self.pluginPrefs["ipSWON{}".format(i)]	= True
-									self.checkforUnifiSystemDevicesState	= "reboot"
-									self.pluginPrefs["isMini{}".format(i)]	= self.isMiniSwitch[i] 
-									break
-
-					elif uType.find("ugw") >-1:
-							#### "ip" in the dict is the ip number of the wan connection NOT the inernal IP for the gateway !!
-							#### using 2 other places instead to get the LAN IP
-							if	not self.isValidIP(self.ipNumbersOf["GW"]):
-								newDeviceFound.append("ugw: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["GW"]) )
-								self.ipNumbersOf["GW"]						= ipNumber
-								self.pluginPrefs["ipUGA"]					= ipNumber
-								self.pluginPrefs["ipUGAON"]					= True
-								self.checkforUnifiSystemDevicesState		= "reboot"
-							else:
-								if not self.devsEnabled["GW"]: break # we know this one but it is disabled on purpose
-								if self.ipNumbersOf["GW"] != ipNumber:
-									newDeviceFound.append("ugw: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["GW"]) )
-									self.ipNumbersOf["GW"]					= ipNumber
-									self.pluginPrefs["ipUGA"]				= ipNumber
-									self.pluginPrefs["ipUGAON"]			= True
-									self.checkforUnifiSystemDevicesState	= "reboot"
-								else:
-									newDeviceFound.append("ugw:	 , new {}     existing: {}".format(ipNumber, self.devsEnabled["GW"]) )
-									self.pluginPrefs["ipUGAON"]			= True
-									self.checkforUnifiSystemDevicesState	= "reboot"
-
+			newDeviceFound = []
+			for device in self.deviceDictFromController:
+				miniSwitchReason, newDeviceFound = self.checkForNewUnifiSystemDevicesCheckDevice(device, miniSwitchReason, newDeviceFound)
+	
+					
 			if self.checkforUnifiSystemDevicesState == "reboot":
 				try:
-					self.pluginPrefs["createUnifiDevicesCounter"] = int(self.pluginPrefs["createUnifiDevicesCounter"] ) +1
+					self.pluginPrefs["createUnifiDevicesCounter"] = int(self.pluginPrefs["createUnifiDevicesCounter"] ) + 1
 					if int(self.pluginPrefs["createUnifiDevicesCounter"] ) > 1: # allow only 1 unsucessful try, then wait 10 minutes
 						self.checkforUnifiSystemDevicesState		   = ""
 					else:
@@ -4728,13 +4697,158 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			try:	indigo.server.savePluginPrefs()
 			except: pass
 
-			if self.checkforUnifiSystemDevicesState =="":
+			if self.checkforUnifiSystemDevicesState == "":
 				self.pluginPrefs["createUnifiDevicesCounter"] = 0
 
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 		return
+
+	def checkForNewUnifiSystemDevicesCheckDevice(self, device, miniSwitchReason, newDeviceFound):
+		try:
+			ipNumber = ""
+			MAC		 = ""
+			if "type"   not in device: return miniSwitchReason, newDeviceFound
+			uType	= device["type"]
+			uModel	= device.get("model","")
+			hasSSH 	= device.get("x_has_ssh_hostkey",False)
+
+			#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']}, uModel::{uModel}, {hasSSH}, {uType}")
+			found = False
+			name = "--"
+			dev = None
+
+			#### do not handle UDM type devices (yet)
+
+			if "mac" in device and "ip" in device or "lan_ip" in device:
+					try: ipNumber = device["ip"]
+					except: ipNumber = device["lan_ip"]
+					MAC		 = device["mac"]
+
+			if MAC == "" or ipNumber == "":
+				return miniSwitchReason, newDeviceFound
+
+
+			for dev in indigo.devices.iter("props.isSwitch,props.isAP,props.isGateway"):
+				if "MAClan" in dev.states and dev.states["MAClan"] == MAC:
+					found = True
+					name = dev.name
+					if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
+						dev.updateStateOnServer("unifi_id", device.get["_ip"])
+					break
+				if "MAC" in dev.states and dev.states["MAC"] == MAC:
+					found = True
+					name = dev.name
+					if "unifi_id" in dev.states and device.get("_id","") != "" and dev.states["unifi_id"] != device["_id"]:
+						dev.updateStateOnServer("unifi_id", device["_id"])
+					break
+					
+			#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device.get('ip','')}  {device.get('_id','none')}, found:{found}")
+
+			if uType.find("udm") > -1:
+				return miniSwitchReason, newDeviceFound
+
+
+			if uType == "ugw":
+				if "network_table" in device:
+					for nwt in device["network_table"]:
+						if "mac" in nwt and "ip"  in nwt and "name" in nwt and nwt["name"].lower() == "lan":
+							ipNumber = nwt["ip"]
+							MAC		 = nwt["mac"]
+							break
+
+
+			if uType.find("usw") > -1: # check for miniswitches, they can not be ssh-ed, only info is in controller db
+				for i in range(len(self.ipNumbersOf["SW"])):
+					#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {i}; {device['ip']}, {ipNumber} {self.ipNumbersOf['SW'][i]}")
+					if ipNumber != self.ipNumbersOf["SW"][i]: 			continue
+					#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 11?; {self.isMiniSwitch[i]}")
+					self.isMiniSwitch[i] = self.isMiniSwitch[i] or uModel.find("MINI") > -1	or not hasSSH
+					if not self.isMiniSwitch[i]: continue
+					if self.isMiniSwitch[i]: self.oneMiniswitchPresent = True
+					#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 12")
+					if not self.isMiniSwitch[i]: 						continue 
+					#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices ,  pass 13")
+					if not self.isValidIP(self.ipNumbersOf["SW"][i]): 	continue
+					self.doMimiTypeSwitchesWithControllerData(device, i, found)
+					#self.indiLOG.log(20,f"checkForNewUnifiSystemDevices {device['ip']},  passed ")
+					break
+				if miniSwitchReason and found: return miniSwitchReason, newDeviceFound
+
+			#self.indiLOG.log(20,"checkForNewUnifiSystemDevices   checking for mac:{}, ipNumber:{}, uType:{}, uModel:{}, hasSSH:{}, found:{}".format(MAC, ipNumber, uType, uModel, hasSSH, found))
+			if not found:
+				if uType.find("uap") >-1:
+					for i in range(len(self.ipNumbersOf["AP"])):
+						if	not self.isValidIP(self.ipNumbersOf["AP"][i]):
+							self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
+							newDeviceFound.append("uap: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["AP"][i]) )
+							self.ipNumbersOf["AP"][i]					= ipNumber
+							self.pluginPrefs["ip{}".format(i)]			= ipNumber
+							self.pluginPrefs["ipON{}".format(i)]		= True
+							self.checkforUnifiSystemDevicesState		= "reboot"
+							newDeviceFound.append("uap: {}".format(i)+", "+ipNumber)
+							break
+						else:
+							if self.ipNumbersOf["AP"][i]	 == ipNumber:
+								if not self.devsEnabled["AP"][i]: break # we know this one but it is disabled on purpose
+								newDeviceFound.append("uap: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["AP"][i] ) )
+								self.ipNumbersOf["AP"][i]				= ipNumber
+								#self.devsEnabled["AP"][i]						= True # will be enabled after restart
+								self.pluginPrefs["ipON{}".format(i)]	= True
+								self.checkforUnifiSystemDevicesState	= "reboot"
+								newDeviceFound.append("uap: {}".format(i)+", "+ipNumber)
+								break
+
+				elif uType.find("usw") >-1:
+					for i in range(len(self.ipNumbersOf["SW"])):
+						self.isMiniSwitch[i] = uModel.find("MINI") > -1	or not hasSSH
+
+						if	not self.isValidIP(self.ipNumbersOf["SW"][i] ):
+							newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i], hasSSH ))
+							self.ipNumbersOf["SW"][i]					= ipNumber
+							self.pluginPrefs["ipSW{}".format(i)]		= ipNumber
+							self.pluginPrefs["ipSWON{}".format(i)]		= True
+							self.pluginPrefs["isMini{}".format(i)]		= self.isMiniSwitch[i] 
+							self.checkforUnifiSystemDevicesState		= "reboot"
+							break
+						else:
+							if self.ipNumbersOf["SW"][i] == ipNumber:
+								if not self.devsEnabled["SW"][i]: break # we know this one but it is disabled on purpose
+								newDeviceFound.append("usw: , new {}     existing: {}, isMiniSw?:{}, hasSSH:{}".format(ipNumber, self.ipNumbersOf["SW"][i], self.isMiniSwitch[i] , hasSSH  ))
+								self.ipNumbersOf["SW"][i]				= ipNumber
+								#self.devsEnabled["SW"][i]						= True # will be enabled after restart
+								self.pluginPrefs["ipSWON{}".format(i)]	= True
+								self.checkforUnifiSystemDevicesState	= "reboot"
+								self.pluginPrefs["isMini{}".format(i)]	= self.isMiniSwitch[i] 
+								break
+
+				elif uType.find("ugw") >-1:
+						#### "ip" in the dict is the ip number of the wan connection NOT the inernal IP for the gateway !!
+						#### using 2 other places instead to get the LAN IP
+						if	not self.isValidIP(self.ipNumbersOf["GW"]):
+							newDeviceFound.append("ugw: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["GW"]) )
+							self.ipNumbersOf["GW"]						= ipNumber
+							self.pluginPrefs["ipUGA"]					= ipNumber
+							self.pluginPrefs["ipUGAON"]					= True
+							self.checkforUnifiSystemDevicesState		= "reboot"
+						else:
+							if not self.devsEnabled["GW"]: return miniSwitchReason, newDeviceFound # we know this one but it is disabled on purpose
+							if self.ipNumbersOf["GW"] != ipNumber:
+								newDeviceFound.append("ugw: , new {}     existing: {}".format(ipNumber, self.ipNumbersOf["GW"]) )
+								self.ipNumbersOf["GW"]					= ipNumber
+								self.pluginPrefs["ipUGA"]				= ipNumber
+								self.pluginPrefs["ipUGAON"]				= True
+								self.checkforUnifiSystemDevicesState	= "reboot"
+							else:
+								newDeviceFound.append("ugw:	 , new {}     existing: {}".format(ipNumber, self.devsEnabled["GW"]) )
+								self.pluginPrefs["ipUGAON"]				= True
+								self.checkforUnifiSystemDevicesState	= "reboot"
+				
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+		return miniSwitchReason, newDeviceFound
 
 
 
@@ -5342,7 +5456,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									if len(respText) > 0:
 										if respText[0] not in ["{","["] or respText[-1] not in ["}","]"]: #is it json?
 											# its Not
-											maxText = min(ll, 10)
+											maxText = min(ll, 30)
 											self.indiLOG.log(10,"executeCMDOnController return for url:{} timeused:{:.3f},  nchar:{}, bad json:\n>>>{} .... {}<<<".format(url, timeused, ll, respText[:maxText], respText[-maxText:]))
 											continue	
 										try: dictRET	= json.loads(respText)
@@ -5821,8 +5935,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 		self.writeJson(dataVersion, fName=self.indigoPreferencesPluginDir + "dataVersion")
 
-
-		self.buttonConfirmGetAPDevInfoFromControllerCALLBACK({})
+		self.lastcheckForNewUnifiSystemDevices = 0
+		self.getcontrollerDBForClientsLast = 0
+		self.checkForNewUnifiSystemDevices()
+		self.getcontrollerDBForClients()
 
 
 ######## this for fixing the change from mac to MAC in states
@@ -7474,7 +7590,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.saveCameraEventsLastCheck = time.time()
 
 		# save cameras to disk
-		self.writeJson( self.cameras, fName=self.indigoPreferencesPluginDir+"CamerasStats",  sort=True, doFormat=True )
+		self.writeJson( self.cameras, fName=self.indigoPreferencesPluginDir+"CamerasStats",  doFormat=True )
 		self.saveCameraEventsStatus = False
 
 	####-----------------	 ---------
@@ -10571,7 +10687,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					aW	  = dev.states["AP"]
 					if wifiIPAP =="" or aW == wifiIPAP:
 						self.MAC2INDIGO[xType][MAC]["inList"+suffixN] = 0
-					if wifiIPAP !="" and aW != wifiIPAP:											 continue
+					if wifiIPAP !="" and aW != wifiIPAP:										 continue
 					if dev.states["status"] != "up":											 continue
 
 					props= dev.pluginProps
@@ -11662,7 +11778,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.addToStatesUpdateList(dev.id,"tx_power_" + GHz, tx_power)
 							dev = indigo.devices[dev.id]
 							self.setupStructures(xType, dev, MAC)
-							self.buttonConfirmGetAPDevInfoFromControllerCALLBACK(valuesDict=dict())
+							self.buttonConfirmGetDevInfoFromControllerCALLBACK(valuesDict=dict())
 							indigo.variable.updateValue("Unifi_New_Device", "{}/{}/{}".format(dev.name, MAC, ipNumber) )
 						except	Exception as e:
 								self.indiLOG.log(40,"", exc_info=True)
@@ -12496,7 +12612,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							for testPOE in ["poe_enable","port_poe"]:
 								if testPOE in port:
 									if port[testPOE]:
-										if (testPOE in port and port[testPOE])	:
+										if (testPOE in port and port[testPOE]):
 											poe="poe1"
 										elif (testPOE in port and port[testPOE] == "passthrough") :
 											poe="poeP"

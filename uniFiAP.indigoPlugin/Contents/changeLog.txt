@@ -1,3 +1,12 @@
+changes in V2022.48.2022.49.434@ 2026-03-24
+==================  
+- made some performance improvements for poe on off
+
+
+changes in V2022.48.2022.49.433@ 2026-03-21
+==================  
+-  added debug option for ret for power on off send to controller: set debug SPECIAL to true
+
 
 changes in V2022.48.2022.49.431@ 2026-03-21
 ==================  
