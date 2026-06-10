@@ -269,16 +269,35 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>GHz</TriggerLabel>
 					<ControlPageLabel>GHz</ControlPageLabel>
 				</State>
-
-				<State id="signalWiFi">
-					<ValueType>String</ValueType>
-					<TriggerLabel>signalWiFi</TriggerLabel>
-					<ControlPageLabel>signalWiFi</ControlPageLabel>
-				</State>
 				<State id="noiseWiFi">
 					<ValueType>String</ValueType>
 					<TriggerLabel>noiseWiFi</TriggerLabel>
 					<ControlPageLabel>noiseWiFi</ControlPageLabel>
+				</State>
+				<State id="signalWiFi">
+					<ValueType>String</ValueType>
+					<TriggerLabel>signalWiFi</TriggerLabel>
+					<ControlPageLabel>wifi signal (dBm)</ControlPageLabel>
+				</State>
+				<State id="stateWiFi">
+					<ValueType>String</ValueType>
+					<TriggerLabel>stateWiFi</TriggerLabel>
+					<ControlPageLabel>wifi state bits</ControlPageLabel>
+				</State>
+				<State id="signal2NoiseWiFi">
+					<ValueType>String</ValueType>
+					<TriggerLabel>signal2NoiseWiFi</TriggerLabel>
+					<ControlPageLabel>wifi signal to noise ratio (dB)</ControlPageLabel>
+				</State>
+				<State id="satisfactionWiFi">
+					<ValueType>String</ValueType>
+					<TriggerLabel>satisfactionWiFi</TriggerLabel>
+					<ControlPageLabel>wifi satisfaction score (0-100)</ControlPageLabel>
+				</State>
+				<State id="channelWiFi">
+					<ValueType>String</ValueType>
+					<TriggerLabel>channelWiFi</TriggerLabel>
+					<ControlPageLabel>wifi channel</ControlPageLabel>
 				</State>
 
 				<State id="AP">
@@ -296,13 +315,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<TriggerLabel>rx_tx_RateWiFi</TriggerLabel>
 					<ControlPageLabel>rx_tx_RateWiFi</ControlPageLabel>
 				</State>
-				  
-				<State id="stateWiFi">
-					<ValueType>String</ValueType>
-					<TriggerLabel>stateWiFi</TriggerLabel>
-					<ControlPageLabel>stateWiFi</ControlPageLabel>
-				</State>
-
 				<State id="SW_Port">
 					<ValueType>String</ValueType>
 					<TriggerLabel>SW_Port</TriggerLabel>
@@ -466,6 +478,54 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>lastRing</ControlPageLabel>
 			</State>
 
+			<State id="wifiSignalStrength">
+					<ValueType>string</ValueType>
+					<TriggerLabel>wifiSignalStrength</TriggerLabel>
+					<ControlPageLabel>wifi signal strength (dBm)</ControlPageLabel>
+			</State>
+
+			<State id="wifiSignalQuality">
+					<ValueType>string</ValueType>
+					<TriggerLabel>wifiSignalQuality</TriggerLabel>
+					<ControlPageLabel>wifi signal quality (%)</ControlPageLabel>
+			</State>
+
+			<State id="wifiLinkSpeed">
+					<ValueType>string</ValueType>
+					<TriggerLabel>wifiLinkSpeed</TriggerLabel>
+					<ControlPageLabel>wifi link speed (Mbps)</ControlPageLabel>
+			</State>
+
+			<State id="wifiChannel">
+					<ValueType>string</ValueType>
+					<TriggerLabel>wifiChannel</TriggerLabel>
+					<ControlPageLabel>wifi channel</ControlPageLabel>
+			</State>
+
+			<State id="lastSmartDetectType">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastSmartDetectType</TriggerLabel>
+					<ControlPageLabel>last smart detect object type</ControlPageLabel>
+			</State>
+
+			<State id="lastSmartDetectConfidence">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastSmartDetectConfidence</TriggerLabel>
+					<ControlPageLabel>last smart detect confidence (%)</ControlPageLabel>
+			</State>
+
+			<State id="lastSmartDetectZone">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastSmartDetectZone</TriggerLabel>
+					<ControlPageLabel>last smart detect zone(s)</ControlPageLabel>
+			</State>
+
+			<State id="lastSmartDetectAt">
+					<ValueType>string</ValueType>
+					<TriggerLabel>lastSmartDetectAt</TriggerLabel>
+					<ControlPageLabel>last smart detect date/time</ControlPageLabel>
+			</State>
+
 			<State id="firmwareVersion">
 					<ValueType>string</ValueType>
 					<TriggerLabel>firmwareVersion</TriggerLabel>
@@ -578,11 +638,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 					<ControlPageLabel>areSystemSoundsEnabled</ControlPageLabel>
 			</State>
 
-			<State id="modelKey">
-					<ValueType>string</ValueType>
-					<TriggerLabel>modelKey</TriggerLabel>
-					<ControlPageLabel>modelKey</ControlPageLabel>
-			</State>
 
 			<State id="motionRecordingMode">
 					<ValueType>string</ValueType>
@@ -5046,6 +5101,1109 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 
 			</States>
 	</Device>
+
+	<!-- ==================  SuperLink / Protect Sensors  ================== -->
+	<!-- lastStatusChange is auto-injected by executeUpdateStatesList whenever status changes -->
+
+	<Device type="sensor" id="superlink_gateway">
+		<Name>SuperLink Gateway</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectGateway"       type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="ipNumber">
+				<ValueType>string</ValueType>
+				<TriggerLabel>ipNumber</TriggerLabel><ControlPageLabel>ipNumber</ControlPageLabel>
+			</State>
+			<State id="networkMAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>networkMAC</TriggerLabel><ControlPageLabel>networkMAC (Ethernet / UniFi client)</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="numberOfSensors">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>numberOfSensors</TriggerLabel><ControlPageLabel>numberOfSensors</ControlPageLabel>
+			</State>
+			<State id="sensorList">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorList</TriggerLabel><ControlPageLabel>sensorList</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_allInOne">
+		<Name>Protect All-In-One Sensor (UP-Sense)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="temperature">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="temp_humidity">Temperature + Humidity</Option>
+					<Option value="temperature">Temperature only</Option>
+					<Option value="humidity">Humidity only</Option>
+					<Option value="motion">Motion detected / clear</Option>
+					<Option value="open">Open / Closed</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="temperature">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>temperature</TriggerLabel><ControlPageLabel>temperature</ControlPageLabel>
+			</State>
+			<State id="humidity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>humidity</TriggerLabel><ControlPageLabel>humidity</ControlPageLabel>
+			</State>
+			<State id="light">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>light</TriggerLabel><ControlPageLabel>ambient light level</ControlPageLabel>
+			</State>
+			<State id="motionDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionDetected</TriggerLabel><ControlPageLabel>motionDetected</ControlPageLabel>
+			</State>
+			<State id="motionDetectedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>motionDetectedAt</TriggerLabel><ControlPageLabel>motion detected at</ControlPageLabel>
+			</State>
+			<State id="motionDetectedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>motionDetectedAt_Last</TriggerLabel><ControlPageLabel>motion detected at (previous)</ControlPageLabel>
+			</State>
+			<State id="isOpened">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isOpened</TriggerLabel><ControlPageLabel>isOpened</ControlPageLabel>
+			</State>
+			<State id="motionEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionEnabled</TriggerLabel><ControlPageLabel>motion enabled</ControlPageLabel>
+			</State>
+			<State id="motionSensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivity</TriggerLabel><ControlPageLabel>motion sensitivity</ControlPageLabel>
+			</State>
+			<State id="motionSensitivityWhenArmed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivityWhenArmed</TriggerLabel><ControlPageLabel>motion sensitivity when armed</ControlPageLabel>
+			</State>
+			<State id="temperatureEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>temperatureEnabled</TriggerLabel><ControlPageLabel>temperature enabled</ControlPageLabel>
+			</State>
+			<State id="humidityEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>humidityEnabled</TriggerLabel><ControlPageLabel>humidity enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetectedEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetectedEnabled</TriggerLabel><ControlPageLabel>water leak detection enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetected</TriggerLabel><ControlPageLabel>waterDetected</ControlPageLabel>
+			</State>
+			<State id="waterDetectedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>waterDetectedAt</TriggerLabel><ControlPageLabel>water detected at</ControlPageLabel>
+			</State>
+			<State id="waterDetectedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>waterDetectedAt_Last</TriggerLabel><ControlPageLabel>water detected at (previous)</ControlPageLabel>
+			</State>
+			<State id="alarmTriggeredAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>alarmTriggeredAt</TriggerLabel><ControlPageLabel>alarmTriggeredAt</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_entry">
+		<Name>Protect Entry Sensor (USL-Entry)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Open / Closed</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="isOpened">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isOpened</TriggerLabel><ControlPageLabel>isOpened</ControlPageLabel>
+			</State>
+			<State id="alarmTriggeredAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>alarmTriggeredAt</TriggerLabel><ControlPageLabel>alarmTriggeredAt</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_motion">
+		<Name>Protect Motion Sensor (USL-Motion)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Motion / clear</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="motionEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionEnabled</TriggerLabel><ControlPageLabel>motion enabled</ControlPageLabel>
+			</State>
+			<State id="motionSensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivity</TriggerLabel><ControlPageLabel>motion sensitivity</ControlPageLabel>
+			</State>
+			<State id="motionSensitivityWhenArmed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivityWhenArmed</TriggerLabel><ControlPageLabel>motion sensitivity when armed</ControlPageLabel>
+			</State>
+			<State id="motionDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionDetected</TriggerLabel><ControlPageLabel>motionDetected</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_environmental">
+		<Name>Protect Environmental Sensor (USL-Environmental)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="temperature">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="temp_humidity">Temperature + Humidity</Option>
+					<Option value="temperature">Temperature only</Option>
+					<Option value="humidity">Humidity only</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="temperature">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>temperature</TriggerLabel><ControlPageLabel>temperature</ControlPageLabel>
+			</State>
+			<State id="humidity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>humidity</TriggerLabel><ControlPageLabel>humidity</ControlPageLabel>
+			</State>
+			<State id="temperatureEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>temperatureEnabled</TriggerLabel><ControlPageLabel>temperature enabled</ControlPageLabel>
+			</State>
+			<State id="humidityEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>humidityEnabled</TriggerLabel><ControlPageLabel>humidity enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetectedEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetectedEnabled</TriggerLabel><ControlPageLabel>water leak detection enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetectedInternalEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetectedInternalEnabled</TriggerLabel><ControlPageLabel>internal leak detection enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetectedExternalEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetectedExternalEnabled</TriggerLabel><ControlPageLabel>external leak detection enabled</ControlPageLabel>
+			</State>
+			<State id="waterDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>waterDetected</TriggerLabel><ControlPageLabel>waterDetected</ControlPageLabel>
+			</State>
+			<State id="waterDetectedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>waterDetectedAt</TriggerLabel><ControlPageLabel>water detected at</ControlPageLabel>
+			</State>
+			<State id="waterDetectedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>waterDetectedAt_Last</TriggerLabel><ControlPageLabel>water detected at (previous)</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_glassbreak">
+		<Name>Protect Glass Break Sensor (USL-Glassbreak)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Glass Break / ok</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="motionEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionEnabled</TriggerLabel><ControlPageLabel>motion enabled</ControlPageLabel>
+			</State>
+			<State id="motionSensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivity</TriggerLabel><ControlPageLabel>motion sensitivity</ControlPageLabel>
+			</State>
+			<State id="motionSensitivityWhenArmed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>motionSensitivityWhenArmed</TriggerLabel><ControlPageLabel>motion sensitivity when armed</ControlPageLabel>
+			</State>
+			<State id="glassBreakEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>glassBreakEnabled</TriggerLabel><ControlPageLabel>glass break enabled</ControlPageLabel>
+			</State>
+			<State id="glassBreakSensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>glassBreakSensitivity</TriggerLabel><ControlPageLabel>glass break sensitivity</ControlPageLabel>
+			</State>
+			<State id="glassBreakSensitivityWhenArmed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>glassBreakSensitivityWhenArmed</TriggerLabel><ControlPageLabel>glass break sensitivity when armed</ControlPageLabel>
+			</State>
+			<State id="glassBreakDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>glassBreakDetected</TriggerLabel><ControlPageLabel>glassBreakDetected</ControlPageLabel>
+			</State>
+			<State id="glassBreakAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>glassBreakAt</TriggerLabel><ControlPageLabel>glass break at</ControlPageLabel>
+			</State>
+			<State id="glassBreakAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>glassBreakAt_Last</TriggerLabel><ControlPageLabel>glass break at (previous)</ControlPageLabel>
+			</State>
+			<State id="alarmTriggeredAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>alarmTriggeredAt</TriggerLabel><ControlPageLabel>alarmTriggeredAt</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_keyfob">
+		<Name>Protect Remote Key Fob (USL-Fob)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Last button / action</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="buttonPressed">
+				<ValueType>string</ValueType>
+				<TriggerLabel>buttonPressed</TriggerLabel><ControlPageLabel>button pressed</ControlPageLabel>
+			</State>
+			<State id="lastAction">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastAction</TriggerLabel><ControlPageLabel>last action</ControlPageLabel>
+			</State>
+			<State id="lastActionAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastActionAt</TriggerLabel><ControlPageLabel>last action at</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_siren">
+		<Name>Protect Siren (USL-Siren)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Active / idle</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="sirenActive">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>sirenActive</TriggerLabel><ControlPageLabel>sirenActive</ControlPageLabel>
+			</State>
+			<State id="tamperDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>tamperDetected</TriggerLabel><ControlPageLabel>tamperDetected</ControlPageLabel>
+			</State>
+			<State id="powerSource">
+				<ValueType>string</ValueType>
+				<TriggerLabel>powerSource</TriggerLabel><ControlPageLabel>power source</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="relay" id="relay_protect">
+		<Name>Protect Relay (USL-Relay)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectRelay"         type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="childOutput2DevId"       type="textfield" defaultValue=""     hidden="yes"> </Field>
+			<Field id="enableOutput2"  type="checkbox" defaultValue="false">
+				<Label>Create Output 2 daughter device:</Label>
+			</Field>
+			<Field id="enableInput1"   type="checkbox" defaultValue="false">
+				<Label>Create Input 1 daughter device:</Label>
+			</Field>
+			<Field id="enableInput2"   type="checkbox" defaultValue="false">
+				<Label>Create Input 2 daughter device:</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="lastCommand">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastCommand</TriggerLabel><ControlPageLabel>last command</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="relay" id="relay_protect_output2">
+		<Name>Protect Relay Output 2 (USL-Relay)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectRelay2"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="parentRelayDevId"        type="textfield" defaultValue=""     hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+		</ConfigUI>
+		<States>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="lastCommand">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastCommand</TriggerLabel><ControlPageLabel>last command</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="relay_protect_input1">
+		<Name>Protect Relay Input 1 (USL-Relay)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectRelayInput1"   type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="parentRelayDevId"        type="textfield" defaultValue=""     hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+		</ConfigUI>
+		<States>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="onAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>onAt</TriggerLabel><ControlPageLabel>on at</ControlPageLabel>
+			</State>
+			<State id="onAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>onAt_Last</TriggerLabel><ControlPageLabel>on at (previous)</ControlPageLabel>
+			</State>
+			<State id="pressType">
+				<ValueType>string</ValueType>
+				<TriggerLabel>pressType</TriggerLabel><ControlPageLabel>press type</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="relay_protect_input2">
+		<Name>Protect Relay Input 2 (USL-Relay)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectRelayInput2"   type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="parentRelayDevId"        type="textfield" defaultValue=""     hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+		</ConfigUI>
+		<States>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="onAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>onAt</TriggerLabel><ControlPageLabel>on at</ControlPageLabel>
+			</State>
+			<State id="onAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>onAt_Last</TriggerLabel><ControlPageLabel>on at (previous)</ControlPageLabel>
+			</State>
+			<State id="pressType">
+				<ValueType>string</ValueType>
+				<TriggerLabel>pressType</TriggerLabel><ControlPageLabel>press type</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
 
 	<Device type="sensor" id="DHCP">
 		<Name>DHCP depreciated</Name>

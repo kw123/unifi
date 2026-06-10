@@ -710,7 +710,7 @@
         
 	<Action id="APledBlinkOFF">
 		<Name>LED  Blink one AP LED OFF</Name>
-		<CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACKaction</CallbackMethod> 
+		<CallbackMethod>buttonConfirmAPxledOFFControllerCALLBACKaction</CallbackMethod>
 		<ConfigUI>
 			<Field     id="selectedAPDevice" type="menu" defaultValue="0">
 				<Label>select Unifi-AP device:</Label>
@@ -719,6 +719,33 @@
 		</ConfigUI>
 	</Action>
 
+
+	<Action id="RELAYoutputProtect">
+		<Name>RELAY Protect set output 1 / 2</Name>
+		<CallbackMethod>buttonSendCommandToProtectRelayOutputCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="relayDeviceSelected" type="menu" defaultValue="">
+				<Label>select relay device:</Label>
+				<List class="self" filter="" method="filterRelayDevice" dynamicReload="false"/>
+			</Field>
+			<Field id="output1State" type="menu" defaultValue="-1">
+				<Label>Output 1:</Label>
+				<List>
+					<Option value="-1">do not change</Option>
+					<Option value="0">off</Option>
+					<Option value="1">ON</Option>
+				</List>
+			</Field>
+			<Field id="output2State" type="menu" defaultValue="-1">
+				<Label>Output 2:</Label>
+				<List>
+					<Option value="-1">do not change</Option>
+					<Option value="0">off</Option>
+					<Option value="1">ON</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+	</Action>
 
 
 </Actions>

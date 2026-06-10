@@ -1,61 +1,104 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # by Karl Wachs
+
+_NUMBER_CHARS = set("-1234567890.")
+_DIGITS = set("1234567890")
+
+_ONE_VALUES = {
+	"TRUE", "T", "ON", "HOME", "YES", "JA", "SI", "IGEN", "OUI", "UP", "OPEN", "CLEAR"
+}
+_ZERO_VALUES = {
+	"FALSE", "F", "OFF", "AWAY", "NO", "NON", "NEIN", "NEM", "DOWN", "CLOSED",
+	"FAULTED", "FAULT", "EXPIRED"
+}
+_NEGATIVE_PREFIXES = ("LEAV", "UNK", "LEFT")
+_POSITIVE_PREFIXES = ("ENABL", "ARRIV")
+
+
 def getNumber(val):
-	# test if a val contains a valid number, if not return ""
+	"""Get Number.
+
+	Inputs:
+	    val: Caller-supplied value used by this method.
+	Outputs:
+	    Returns a value to the caller.
+	"""
+	# test if a val contains a valid number, if not return "x"
 	# return the number if any meaningful number (with letters before and after return that number)
-	# u"a-123.5e" returns -123.5
+	# "a-123.5e" returns -123.5
 	# -1.3e5 returns -130000.0
 	# -1.3e-5 returns -0.000013
-	# u"1.3e-5" returns -0.000013
-	# u"1.3e-5x" returns "" ( - sign not first position  ..need to include)
-	# True, u"truE" u"on" "ON".. returns 1.0;  False u"faLse" u"off" returns 0.0
-	# u"1 2 3" returns ""
-	# u"1.2.3" returns ""
-	# u"12-5" returns ""
-		try:
-			return															 float(val)
-		except:
-			if type(val) is bool										   : return 1.0 if val else 0.0
-		if val ==""														   : return "x"
-		try:
-			xx = ''.join([c for c in val if c in '-1234567890.'])								# remove non numbers 
-			lenXX= len(xx)
-			if lenXX > 0:																		# found numbers..
-				if len( ''.join([c for c in xx if c in '.']) )           >1: return "x"			# remove strings that have 2 or more dots " 5.5 6.6"
-				if len( ''.join([c for c in xx if c in '-']) )           >1: return "x"			# remove strings that have 2 or more -    " 5-5 6-6"
-				if len( ''.join([c for c in xx if c in '1234567890']) ) ==0: return "x"			# remove strings that just no numbers, just . amd - eg "abc.xyz- hij"
-				if lenXX ==1											   : return float(xx)	# just one number
-				if xx.find("-") > 0										   : return "x"			# reject if "-" is not in first position
-				valList = list(val)																# make it a list
-				count = 0																		# count number of numbers
-				for i in range(len(val)-1):														# reject -0 1 2.3 4  not consecutive numbers:..
-					if (len(''.join([c for c in valList[i] if c in '-1234567890.'])) ==1 ):		# check if this character is a number, if yes:
-						count +=1																# 
-						if count >= lenXX									: break				# end of # of numbers, end of test: break, its a number
-						if (len(''.join([c for c in valList[i+1] if c in '-1234567890.'])) )== 0: return "x" #  next is not a number and not all numbers accounted for, so it is numberXnumber
-				return 														float(xx)			# must be a real number, everything else is excluded
-			else:																				# only text left,  no number in this string
-				ONE  = [ u"TRUE" , u"T", u"ON",  u"HOME", u"YES", u"JA" , u"SI",  u"IGEN", u"OUI", u"UP",  u"OPEN", u"CLEAR"   ]
-				ZERO = [ u"FALSE", u"F", u"OFF", u"AWAY", u"NO",  u"NON", u"NEIN", u"NEM",        u"DOWN", u"CLOSED", u"FAULTED", u"FAULT", u"EXPIRED"]
-				val = unicode(val).upper()
-				if val in ONE : return 1.0		# true/on   --> 1
-				if val in ZERO: return 0.0		# false/off --> 0
+	# "1.3e-5" returns -0.000013
+	# "1.3e-5x" returns "x" ( - sign not first position  ..need to include)
+	# True, "truE" "on" "ON".. returns 1.0;  False "faLse" "off" returns 0.0
+	# "1 2 3" returns "x"
+	# "1.2.3" returns "x"
+	# "12-5" returns "x"
+	try:
+		return float(val)
+	except (TypeError, ValueError):
+		if type(val) is bool:
+			return 1.0 if val else 0.0
 
-# SPECIAL CASES 
-				if (val.find(u"LEAV")    == 0 or  # leave 
-					  val.find(u"UNK")   == 0 or  
-					  val.find(u"LEFT")  == 0  
-										   ): return -1. 
+	if val == "":
+		return "x"
 
-				if( val.find(u"ENABL")   == 0 or   # ENABLE ENABLED 
-					  val.find(u"ARRIV") == 0 
-										   ): return 1.0		# 
+	try:
+		valText = str(val)
+	except Exception:
+		return "x"
 
-				if( val.find(u"STOP")    == 0  # stop stopped
-											): return 0.0		# 
+	firstNumberIndex = -1
+	lastNumberIndex = -1
+	numberParts = []
+	dotCount = 0
+	minusCount = 0
+	digitCount = 0
 
-				return "x"																		# all tests failed ... nothing there, return "
-		except:
-			return "x"																			# something failed eg unicode only ==> return ""
-		return "x"																				# should not happen just for safety
+	for index, char in enumerate(valText):
+		if char not in _NUMBER_CHARS:
+			continue
+		if firstNumberIndex == -1:
+			firstNumberIndex = index
+		lastNumberIndex = index
+		numberParts.append(char)
+		if char == ".":
+			dotCount += 1
+		elif char == "-":
+			minusCount += 1
+		elif char in _DIGITS:
+			digitCount += 1
+
+	lenNumber = len(numberParts)
+	if lenNumber:
+		if dotCount > 1:
+			return "x"
+		if minusCount > 1:
+			return "x"
+		if digitCount == 0:
+			return "x"
+		if lenNumber == 1:
+			return float(numberParts[0])
+
+		numberText = "".join(numberParts)
+		if numberText.find("-") > 0:
+			return "x"
+		if lastNumberIndex - firstNumberIndex + 1 != lenNumber:
+			return "x"
+		return float(numberText)
+
+	valText = valText.upper()
+	if valText in _ONE_VALUES:
+		return 1.0
+	if valText in _ZERO_VALUES:
+		return 0.0
+
+	if valText.startswith(_NEGATIVE_PREFIXES):
+		return -1.0
+	if valText.startswith(_POSITIVE_PREFIXES):
+		return 1.0
+	if valText.startswith("STOP"):
+		return 0.0
+
+	return "x"

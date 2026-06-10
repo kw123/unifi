@@ -20,8 +20,17 @@ class MAP2Vendor:
 	########################################
 	def __init__(self, pathToMACFiles = "", refreshFromIeeAfterDays = 10, myLogger = ""):
 
+		"""Initialize the object with the supplied plugin context and configuration.
+		
+		Inputs:
+		    pathToMACFiles: Caller-supplied value used by this method.
+		    refreshFromIeeAfterDays: Caller-supplied value used by this method.
+		    myLogger: Caller-supplied value used by this method.
+		Outputs:
+		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
+		"""
 		self.myLogger = myLogger
-		self.myLogger(10, u"MAP2Vendor initializing with python v:{}".format(sys.version_info[0]))
+		self.myLogger(10, "MAP2Vendor initializing with python v:{}".format(sys.version_info[0]))
 
 		self.minSizeOfFiles = {"mac2Vendor.json":700000, "oui":500000,"mam": 30000, "oui36":40000}
 
@@ -35,15 +44,15 @@ class MAP2Vendor:
 			self.filePath = pathToMACFiles
 			if self.filePath[-1]!="/": self.filePath+="/"
 			if not os.path.isdir(self.filePath):
-				self.myLogger(10, u"MAP2Vendor (i) making directory:" +self.filePath)
+				self.myLogger(10, "MAP2Vendor (i) making directory:" +self.filePath)
 				os.mkdir(self.filePath)
 		else:
 			self.filePath = self.MAChome+"indigo/mac2Vendor/"
 			if not os.path.isdir(self.MAChome+"indigo"):
-				self.myLogger(10, u"MAP2Vendor (ii) making directory:" +self.MAChome+"indigo")
+				self.myLogger(10, "MAP2Vendor (ii) making directory:" +self.MAChome+"indigo")
 				os.mkdir(self.MAChome+"indigo'")
 			if not os.path.isdir(self.filePath):
-				self.myLogger(10, u"MAP2Vendor (iii) making directory:" +self.filePath)
+				self.myLogger(10, "MAP2Vendor (iii) making directory:" +self.filePath)
 				os.mkdir(self.filePath)
 
 		self.refreshFromIeeAfterDays = refreshFromIeeAfterDays
@@ -64,13 +73,20 @@ class MAP2Vendor:
 	########################################
 	def getFiles(self):
 
+		"""Get Files.
+		
+		Inputs:
+		    None.
+		Outputs:
+		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
+		"""
 		if ( self.isFileCurrent("oui")   and 
 			 self.isFileCurrent("mam")   and
 			 self.isFileCurrent("oui36") ):
 			self.getFilesStatus = "finished"
 			return
 
-		self.myLogger(10,u"MAP2Vendor  downloading raw files, will take some minutes")
+		self.myLogger(10,"MAP2Vendor  downloading raw files, will take some minutes")
 		cmd  =  "rm "+self.filePath+"oui ;"
 		cmd +=  "rm "+self.filePath+"mam ;"
 		cmd +=  "rm "+self.filePath+"oui36"
@@ -86,6 +102,13 @@ class MAP2Vendor:
 
 	########################################
 	def isFileCurrent(self, fileName):
+		"""Return whether File Current.
+		
+		Inputs:
+		    fileName: Caller-supplied value used by this method.
+		Outputs:
+		    Returns a value to the caller.
+		"""
 		fn = self.filePath+fileName
 		if os.path.isfile(fn)  and os.path.getsize(fn) > self.minSizeOfFiles[fileName]:
 			if  time.time() - os.path.getmtime(fn) < self.refreshFromIeeAfterDays*24*60*60:
@@ -94,6 +117,13 @@ class MAP2Vendor:
 
 	########################################
 	def makeFinalTable(self):
+		"""Build Final Table.
+		
+		Inputs:
+		    None.
+		Outputs:
+		    Returns a value to the caller.
+		"""
 		try:
 
 			if self.isFileCurrent("mac2Vendor.json"):
@@ -103,7 +133,7 @@ class MAP2Vendor:
 					test = json.loads(f.read())
 					f.close()
 				except Exception as e:
-					self.myLogger(30, u"error reading file {} in prefs dir, errcode:{}".format("mac2Vendor.json", e))
+					self.myLogger(30, "error reading file {} in prefs dir, errcode:{}".format("mac2Vendor.json", e))
 	
 				if "6" in test:
 					if len(test["6"]) < 10000:
@@ -112,14 +142,14 @@ class MAP2Vendor:
 						return False
 
 				self.mac2VendorDict = test
-				self.myLogger(10,u"MAP2Vendor initializing  finished, read from mac2Vendor.json file")
+				self.myLogger(10,"MAP2Vendor initializing  finished, read from mac2Vendor.json file")
 				return True
 			
 			if not ( self.isFileCurrent("oui") or
 					 self.isFileCurrent("mam" )  or
 					 self.isFileCurrent("oui36") ):
 					if  self.getFilesStatus == "submitted"  :
-						self.myLogger(10, u"MAP2Vendor initializing still waiting for download")
+						self.myLogger(10, "MAP2Vendor initializing still waiting for download")
 					return False
 
 			self.getFilesStatus = "finished" 
@@ -136,12 +166,20 @@ class MAP2Vendor:
 
 			return True
 		except Exception as e:
-			self.myLogger(30,u"error reading file {}, errcode:{}".format("mac2Vendor.json", e))
+			self.myLogger(30,"error reading file {}, errcode:{}".format("mac2Vendor.json", e))
 		return True
 
 
 	########################################
 	def importFile(self, fn, size):
+		"""Handle import File.
+		
+		Inputs:
+		    fn: Caller-supplied value used by this method.
+		    size: Caller-supplied value used by this method.
+		Outputs:
+		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
+		"""
 		try:
 			f = self.openEncoding(self.filePath+fn,"r")
 			dat = f.readlines()
@@ -151,7 +189,7 @@ class MAP2Vendor:
 				if len(item) < 2: continue
 				self.mac2VendorDict[size][item[0]]=item[1].strip("\n")
 		except Exception as e:
-			self.myLogger(30, u"error reading file {}, errcode:{}".format(fn, e))
+			self.myLogger(30, "error reading file {}, errcode:{}".format(fn, e))
 			
 		return
 
@@ -159,6 +197,13 @@ class MAP2Vendor:
 
 	########################################
 	def getVendorOfMAC(self,MAC):
+			"""Get Vendor Of MAC.
+			
+			Inputs:
+			    MAC: Caller-supplied value used by this method.
+			Outputs:
+			    Returns a value to the caller.
+			"""
 			if "6" not in self.mac2VendorDict: 
 				return ""
 			if len(self.mac2VendorDict["6"]) < 1000:
@@ -178,6 +223,14 @@ class MAP2Vendor:
 ####-------------------------------------------------------------------------####
 	def openEncoding(self, ff, readOrWrite):
 
+		"""Open Encoding.
+		
+		Inputs:
+		    ff: Caller-supplied value used by this method.
+		    readOrWrite: Caller-supplied value used by this method.
+		Outputs:
+		    Returns a value to the caller.
+		"""
 		if sys.version_info[0]  > 2:
 			return open( ff, readOrWrite, encoding="utf-8")
 		else:

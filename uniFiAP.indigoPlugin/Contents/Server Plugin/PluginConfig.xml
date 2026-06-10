@@ -1,32 +1,58 @@
 <?xml version="1.0"?>
 <PluginConfig>
 
+	<!-- hidden flags computed in plugin.py setfilterunifiCloudKeyListOfSiteNames() (refreshCallbackMethod);
+	     they combine several conditions, visibleBindingId itself supports only one -->
+	<Field type="checkbox" id="showUidUDM"     defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showUidProtect" defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showCtrlActive"    defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showCtrlDB"        defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showCtrlEventFeed" defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showCtrlBackup"    defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showUdmActive"     defaultValue="false" hidden="true" />
+	<Field type="checkbox" id="showUgaActive"     defaultValue="false" hidden="true" />
+
 	<Field id="infolabel00" 					type="label" fontColor="orange"> 
-		<Label>Ubiquity  UniFi AP-Switch-Gateway plugin  Developed by Karl Wachs</Label>  
+		<Label>Ubiquity  UniFi AP-Switch-Gateway-Protect-Sensor plugin  Developed by Karl Wachs</Label>  
 	</Field>
-	<Field id="infoLabel1" 				type="label"> 
+	<Field id="infoON" 					type="checkbox" > 
+		<Label>Show Info section ........................................................:</Label>  
+	</Field>
+	
+	<Field id="infoLabel1" 				type="label" visibleBindingId="infoON" visibleBindingValue="true"> 
 		<Label>It gets data from the access points and switches as well as from the controller and 
-   the gateway and protect camera system
+   the gateway and the Protect system (cameras, sensors, relays)
 It can and likely has several userids and passwords for the different devices.
 - one for ssh connect to AP and switches (set in controller)
+   uses ssh connections to "listen" to logfiles and gets config dicts)
 - one for http connection to the controller 
    you need to create a "local" userid on the controller for the http access
-- one for http connection to the protect system 
+- one for http connection to the protect system + an API key for relay control
    (should be the same as the controller if they are on the same hardware)
 - one for ssh connection to the controller and or gateway, the userid is likely "root"
 
 It combines the different data sources to create
 - unifi (client) devices - one for each IP network member (also one for each switch, ap, ..)
+   with wifi signal info (signal, noise, signal-to-noise, satisfaction, channel) and blocked status
 - AP one "system device" for each;  the states contain  info about traffic etc
 - SW one "system device" for each;  the states contain  info about traffic, ports etc
 - GW; the states contain info about the network, internet etc
-- protect system; the dev states contain info about disk space, cpu, memory ...
-- protect cameras; one for each; the states contain info about the last events etc
+- protect system; the dev states contain info about disk space, cpu, memory ... (updated live via WebSocket)
+- protect cameras; one for each; states contain last events, smart detections (person/vehicle, confidence,
+   zone) and wifi stats for wireless cameras
+- protect sensors (UP-Sense, entry, motion, environmental, glassbreak, keyfob, siren); states contain
+   motion, contact, temperature, humidity, light, water leak (waterDetected + timestamps), battery, button press
+- protect relays (USL-Relay); 4 devices each: 2 outputs (controllable) + 2 dry-contact inputs (press events)
 
-(some of the larger sections can be turned off to make it easier to scroll through) </Label>  
+Real-time events arrive via two WebSockets:
+- Protect WS: sensor triggers, relay inputs, camera motion / smart detect - always on when Protect is enabled;
+   all events are also logged to EVENTS-protectWS.json in the prefs dir
+- controller WS (optional, see controller section): client connect/disconnect/roam, security alerts (IPS/IDS
+   logged as warnings), admin block/unblock; can optionally replace the ssh listeners for presence detection</Label>  
 	</Field>
 
 	<Field id="simpleSeparator22" 		type="separator"/>
+	
 	<Field id="MSG"        	type="textfield"   > 
 		<Label> msg from plugin:</Label>  
 	</Field>
@@ -34,11 +60,22 @@ It combines the different data sources to create
 	<Field id="infoLabel22" 			type="label" fontColor="green" > 
 		<Label>== General Parameters for Plugin </Label>  
 	</Field>
-	<Field id="generalON" 					type="checkbox"  fontColor="green"> 
+	
+	<Field id="generalON" 					type="checkbox" > 
 		<Label>Show General section........................................................:</Label>  
 	</Field>
 
+
 	<Field id="infoLabel24" 			type="label"> <Label>  </Label>  </Field>
+
+	<Field id="temperatureUnit"         type="menu"  visibleBindingId="generalON" visibleBindingValue="true"  >
+		<Label>Temperature unit for sensor display:</Label>
+		<List>
+			<Option value="C">ºC  (Celsius)</Option>
+			<Option value="F">ºF  (Fahrenheit)</Option>
+		</List>
+	</Field>
+
 
 	<Field id="updateDescriptions"  	type="checkbox" visibleBindingId="generalON" visibleBindingValue="true"  tooltip="if no: the field only gets set at creation time of device, if yes it is also updated with eg ip number changes etc">
 		<Label>update notes/description field (every time data received)</Label>
@@ -163,7 +200,7 @@ It combines the different data sources to create
 		<Label>== Names for Folders  groups etc </Label>  
 	</Field>
 
-	<Field id="namesON" 					type="checkbox"  fontColor="green"> 
+	<Field id="namesON" 					type="checkbox" > 
 		<Label>Show Names section........................................................:</Label>  
 	</Field>
 
@@ -219,79 +256,119 @@ Or trigger on any change in variable ..lastChange to check if anything device fr
 
 
 	<Field id="infoLabelUID" 				type="label" fontColor="green"> 
-		<Label>== user IDs for systems (leave empty if not used), no ' " GT LT | # in your passwords!! </Label> 
+		<Label>== user IDs for systems  </Label> 
+	</Field>
+
+	<Field id="uidON" 					type="checkbox" > 
+		<Label>Show user IDs section........................................................:</Label>  
 	</Field>
 
 
-	<Field id="unifiControllerType"  	type="menu"  > 
+	<Field id="unifiControllerType"  	type="menu" visibleBindingId="uidON" visibleBindingValue="true" > 
 		<Label>.. controller Type:</Label> 
 		<List>
 			<Option value="std"   	>cloud key, combined systems like UCG  / CGM max</Option>
-			<Option value="UDM"     >UDM 	</Option>
-			<Option value="UDMPro"  >UDM-pro </Option>
-			<Option value="hosted"  >hosted eg MAC, rPi, .. (will set port to 8443, site name to default)</Option>
+			<Option value="UDM"     >UDM, UCG, supports events etc  = all</Option>
+			<Option value="UDMPro"  >UDM w/o events  </Option>
+			<Option value="hosted"  >hosted eg MAC, rPi, .. (will set port to 8443, site name to default), might not support events</Option>
 			<Option value="off"   	>off</Option>
 		</List>
 	</Field>
 
-   <Field id="unifiControllerTypeLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+   <Field id="unifiControllerTypeLabel"  type="label" visibleBindingId="uidON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
 		<Label>selecting UDM(pro) will automatically: 
 1. activate (w. same IP#) SW#12, USG, AP#4 (for UDM not -PRO) 
 2. set controller info to ON or UDM</Label>  
 	</Field>
 
-	<Field id="infoLabelDifferentUIDs0" 		type="label"  > 
+	<Field id="infoLabelDifferentUIDs0" 		type="label" visibleBindingId="uidON" visibleBindingValue="true" > 
 		<Label>There can be several sets of UserIDs-password - They could all be the same, depending on YOUR setup</Label> 
 	</Field>
 
-	<Field id="infoLabelDifferentUIDs" 		type="label"   fontSize="small" fontColor="darkgrey"  > 
+	<Field id="infoLabelDifferentUIDs" 		type="label" visibleBindingId="uidON" visibleBindingValue="true" fontSize="small" fontColor="darkgrey"  > 
 		<Label>.           1. the UID-password  you use to login via web browser (http) to your UniFi controller
 .           2. the unix UID-password when you ssh in terminal to the WiFi-AP, Switch, Router
 .           3. the unix UID-passwd    when you ssh in terminal to the UDM pro 
 .           4. the protect UID-passwd    http login to protect camara system (set in the camera section) 
-
+leave empty if not used
+no ' " GT LT | # in your passwords!!
 </Label>  
 	</Field>
 
-	<Field id="unifiCONTROLLERUserID"      type="textfield"   >
-		<Label>1. ............................. http:  web UserID for CONTROLLER/UDM:</Label>
+	<Field id="unifiCONTROLLERUserID"      type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
+		<Label>1. ....................... http:  web UserID for CONTROLLER/UDM:</Label>
 	</Field>
 
-	<Field id="unifiCONTROLLERPassWd"   	type="textfield"   >
+	<Field id="unifiCONTROLLERPassWd"   	type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
 		<Label>...  password:</Label>
 	</Field>
 
-   <Field id="unifiControllerTypeLabel2"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
+   <Field id="unifiControllerTypeLabel2"  type="label" visibleBindingId="uidON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
 		<Label>for UniFi controller v 6.x  MAC OS 10.14 or greater is neeed. MAC OS 10.13 and lower do not support the proper ssl/tsl security required by unifi controller v 6.x software
 Leave userid and password blank if you want to disable querying the controller</Label>  
 	</Field>
 
-	<Field id="useStrictToLogin"       	type="checkbox"   > 
+	<Field id="useStrictToLogin"       	type="checkbox" visibleBindingId="uidON" visibleBindingValue="true" > 
 		<Label>... Use strict:true </Label>
 	 </Field>
 
-	<Field id="infoLabelstrict" 			type="label" 		 alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
+	<Field id="infoLabelstrict" 			type="label" visibleBindingId="uidON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"  > 
 		<Label>Option for login to CONTROLLER webpage. This option might be needed for UDM non pro depending on config/setup/version</Label>  
 	</Field>
-
-	<Field id="unifiUserID"   			type="textfield"   >
-		<Label>2. .............................. ssh unix UserID of AP,SW,GW - not UDM:</Label>
+	
+	<Field id="emptyLabelctl" 		type="label"   fontSize="small"  visibleBindingId="uidON" visibleBindingValue="true"  > 
+		<Label></Label>  
 	</Field>
 
-	<Field id="unifiPassWdz"   			type="textfield"  >
+
+	<Field id="unifiUserID"   			type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
+		<Label>2. ........................ ssh unix UserID of AP,SW,GW - not UDM:</Label>
+	</Field>
+
+	<Field id="unifiPassWdz"   			type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
 		<Label>..  password:</Label>
 	</Field>
 
-	<Field id="unifiUserIDUDM"   		type="textfield" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro"  >
-		<Label>3. ............................................................. ssh unix UDM UserID:</Label>
+	<Field id="emptyLabeluf" 		type="label"   fontSize="small"   visibleBindingId="uidON" visibleBindingValue="true" > 
+		<Label></Label>  
 	</Field>
 
-	<Field id="unifiPassWdUDM"   		type="textfield" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro" >
+
+	<Field id="unifiUserIDUDM"   		type="textfield" visibleBindingId="showUidUDM" visibleBindingValue="true"  >
+		<Label>3. ....................................................... ssh unix UDM UserID:</Label>
+	</Field>
+
+	<Field id="unifiPassWdUDM"   		type="textfield" visibleBindingId="showUidUDM" visibleBindingValue="true" >
 		<Label>..  password :</Label>
 	</Field>
 
-	<Field id="hostFileCheck"  		type="menu"    > 
-		<Label>.. disable strict host checking (ignore know_hosts file for ssh) :</Label> 
+	<Field id="emptyLabeludm" 		type="label"   fontSize="small"  visibleBindingId="uidON" visibleBindingValue="true"  > 
+		<Label></Label>  
+	</Field>
+
+
+	<Field id="protectUserId" type="textfield"  visibleBindingId="showUidProtect" visibleBindingValue="true">
+		<Label>4. ..................................................... http: Protect UserID:</Label>
+	</Field>
+
+	<Field id="protectPassword" type="textfield"  visibleBindingId="showUidProtect" visibleBindingValue="true">
+		<Label>..  password :</Label>
+	</Field>
+
+	<Field id="protectApiKey" type="textfield"  visibleBindingId="showUidProtect" visibleBindingValue="true">
+		<Label>..  Protect API key (for relay output control etc)</Label>
+	</Field>
+   <Field id="protectApiKeyLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="showUidProtect" visibleBindingValue="true" > 
+		<Label>Get key on protect web page: settings / Integrations / Create New API Key</Label>  
+	</Field>
+
+	<Field id="emptyLabelpro" 		type="label"   fontSize="small"  visibleBindingId="uidON" visibleBindingValue="true"  > 
+		<Label></Label>  
+	</Field>
+
+
+	<Field id="hostFileCheck"  		type="menu" visibleBindingId="uidON" visibleBindingValue="true" >
+		<Label>Disable strict host checking (ignore know_hosts file for ssh) :</Label> 
 		<List>
 			<Option value="ignore"  >disable / ignore</Option>
 			<Option value="no"      >use </Option>
@@ -306,17 +383,21 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>== Controller info (for web / http controller commands):  </Label>  
 	</Field>
 
- 	<Field id="unifiCloudKeyMode"  		type="menu" visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro,std,hosted"  > 
+	<Field id="ctrlON" 					type="checkbox" > 
+		<Label>Show Controller info section........................................................:</Label>  
+	</Field>
+
+ 	<Field id="unifiCloudKeyMode"  		type="menu" visibleBindingId="showCtrlActive" visibleBindingValue="true"  > 
 		<Label>.. use controler info:</Label> 
 		<List>
 			<Option value="ONreportsOnly"  >only manual reports</Option>
 			<Option value="ON"             >ON  = all functions</Option>
-			<Option value="UDM"            >UDM mode for WiFi, no reports (included in ON)</Option>
+			<Option value="UDM"            >Is also WiFi AP, not all functions (wifi included in ON)</Option>
 			<Option value="off"            >off </Option>
 		</List>
 	</Field>
 
- 	<Field id="checkForNewUnifiSystemDevicesEvery"  		type="menu"  visibleBindingId="unifiControllerType" visibleBindingValue="UDM,UDMPro,std,hosted" > 
+ 	<Field id="checkForNewUnifiSystemDevicesEvery"  		type="menu"  visibleBindingId="showCtrlActive" visibleBindingValue="true" > 
 		<Label>.. check for new unifi system devices every:</Label> 
 		<List>
 			<Option value="0"  >off</Option>
@@ -334,7 +415,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		</List>
 	</Field>
 
-	<Field id="useDBInfoForWhichDevices"   		type="menu"  visibleBindingId="unifiCloudKeyMode" visibleBindingValue="ON" tooltip="uses an https get /stat/alluser to get info of last_seen">
+	<Field id="useDBInfoForWhichDevices"   		type="menu"  visibleBindingId="showCtrlDB" visibleBindingValue="true" tooltip="uses an https get /stat/alluser to get info of last_seen">
 		<Label>Use unifi controler db info for Up -> Down:</Label>
 		<List>
 			<Option value="all"   		>ALL unifi client devices, ignores individual dev settings</Option>
@@ -343,7 +424,7 @@ Leave userid and password blank if you want to disable querying the controller</
  		</List>
 	</Field>
 
-	<Field id="infoLabeluseDBInfoForWhichDevices" type="label"  alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
+	<Field id="infoLabeluseDBInfoForWhichDevices" type="label" visibleBindingId="showCtrlDB" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> > 
 	<Label>When enabled plugin will check the controller db info for last_seen time if other info suggest up->down to confirm  or supspend up->down for "expirationtime" seconds 
 This might be usefull if the individual AP gives sometimes faulty down info.
 This info is slow for down -> up info, might take several minutes before a devices shows up in the controller
@@ -354,64 +435,78 @@ device settings
 	 </Field>
 
  
-	<Field id="unifiCloudKeyIP"       	type="textfield"  visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="unifiCloudKeyIP"       	type="textfield"  visibleBindingId="showCtrlActive" visibleBindingValue="true"> 
 		<Label>..ipNumber of controller</Label>  
 	</Field>
 
    <Field id="refreshCallbackMethod"       	type="textfield"  hidden="yes"> 
 	</Field>
 
-	<Field id="unifiCloudKeySiteName" 	type="textfield" 	    visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="unifiCloudKeySiteName" 	type="textfield" 	    visibleBindingId="showCtrlActive" visibleBindingValue="true"> 
 		<Label>..site ID (not name) in eg http... (8)443/manage/site/&gt;default&lt;/, leave empty for default:</Label>  
 	</Field>
 
-   <Field id="unifiCloudKeySiteNameLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="unifiCloudKeySiteNameLabel"  type="label" visibleBindingId="showCtrlActive" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>in most cases do not touch this, it will auto adapt</Label>  
 	</Field>
 
-	<Field id="overWriteControllerPort" 	type="textfield" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="overWriteControllerPort" 	type="textfield" 	visibleBindingId="showCtrlActive" visibleBindingValue="true"> 
 		<Label>.. controller port #, leave empty for auto detect</Label>  
 	</Field>
-   <Field id="overWriteControllerPortLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="overWriteControllerPortLabel"  type="label" visibleBindingId="showCtrlActive" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>use this option only if port # is not 8443 or 443 or if you have another system that uses one of these ports</Label>  
 	</Field>
-	<Field id="unifControllerCheckPortNumber" 	type="menu" 	visibleBindingId="unifiControllerType" visibleBindingValue="std,UDM,UDMPro,hosted"> 
+	<Field id="unifControllerCheckPortNumber" 	type="menu" 	visibleBindingId="showCtrlActive" visibleBindingValue="true"> 
 		<Label>..  check controller port Number</Label>  
 		<List>
 			<Option value="1"  >check if port is ok</Option>
 			<Option value="0"  >do not check if port number is ok</Option>
 		</List>
 	</Field>
-   <Field id="unifControllerCheckPortNumberLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="unifControllerCheckPortNumberLabel"  type="label" visibleBindingId="showCtrlActive" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>set to off and port to 443 if controller v &gt;= 6.5.55 and you have connection problems</Label>  
 	</Field>
 
- 
+	<Field id="controllerEventTrackingON" type="checkbox" defaultValue="false" visibleBindingId="showCtrlActive" visibleBindingValue="true">
+		<Label>Enable controller event tracking via WebSocket:</Label>
+	</Field>
+	<Field id="controllerEventTrackingONLabel" type="label" visibleBindingId="showCtrlActive" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+		<Label>Connects to the UniFi controller WebSocket and listens for network events (client connect/disconnect/roam, security alerts, etc.). Required for the "Print controller events" menu and live event monitor. Buffers the last 500 events in memory. Has no effect on AP presence detection unless the option below is also enabled.</Label>
+	</Field>
 
-	<Field id="unifiControllerBackupON" 	type="checkbox"  > 
+	<Field id="controllerWSFeedAPMessages" type="checkbox" defaultValue="false" visibleBindingId="showCtrlEventFeed" visibleBindingValue="true">
+		<Label>Use controller WS events for client presence detection (instead of all WiFi Ap  SSH log listener):</Label>
+	</Field>
+	<Field id="controllerWSFeedAPMessagesLabel" type="label" visibleBindingId="showCtrlEventFeed" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+		<Label>WARNING: adds ~10 second delay to presence detection compared to the SSH log listener - it saves one listener process for each AP. Enable this if a 10 secs delay not a problem or if direct SSH access to APs is unavailable (e.g. cloud-key only, restricted UDM). When ON, the SSH tail listener for APs is not started and controller WS events feed client tracking instead. Changing this setting restarts the plugin.</Label>
+	</Field>
+
+
+
+	<Field id="unifiControllerBackupON" 	type="checkbox" visibleBindingId="ctrlON" visibleBindingValue="true" > 
   	<Label>Backup of controller files - once a day ...............................:</Label>  
 	</Field>
 
-	<Field id="ControllerBackupPath" 	type="textfield"  	  visibleBindingId="unifiControllerBackupON" visibleBindingValue="true"  >
+	<Field id="ControllerBackupPath" 	type="textfield"  	  visibleBindingId="showCtrlBackup" visibleBindingValue="true"  >
 		<Label>..Path to backup files on controller:</Label>
 	</Field>
-   <Field id="ControllerBackupPathLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+   <Field id="ControllerBackupPathLabel"  type="label" visibleBindingId="showCtrlBackup" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>it will add ~20Mbyte to the backup dir every day, it will NOT delete old backup files</Label>  
 	</Field>
 
-	<Field id="infoLabelbackup1"  			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="infoLabelbackup1"  			type="textfield"  readonly="yes" visibleBindingId="showCtrlBackup" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 		<Label>- for UDM use:</Label>  
 	</Field>
 
-	<Field id="infoLabelbackup2"  			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+	<Field id="infoLabelbackup2"  			type="textfield"  readonly="yes" visibleBindingId="showCtrlBackup" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
 		<Label>- for cloudKey use:</Label>  
 	</Field>
 
-	<Field id="infoLabelbackup2a"  			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+	<Field id="infoLabelbackup2a"  			type="textfield"  readonly="yes" visibleBindingId="showCtrlBackup" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
 		<Label> ...    or:</Label>  
 	</Field>
 
-	<Field id="infoLabelbackup3" 			type="textfield"  readonly="yes" visibleBindingId="unifiControllerBackupON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
+	<Field id="infoLabelbackup3" 			type="textfield"  readonly="yes" visibleBindingId="showCtrlBackup" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey" > 
 		<Label>- destination of backupfiles(fixed):</Label>  
 	</Field>
 
@@ -423,22 +518,24 @@ device settings
 
 
 
-
 	<Field id="infoLabeludm01" type="label" fontColor="green"> <Label>== UDM config section :... </Label>  </Field>
 
+	<Field id="udmON" 					type="checkbox" > 
+		<Label>Show UDM section........................................................:</Label>  
+	</Field>
 
-	<Field id="ipUDMON" 					type="checkbox"      > <Label>UDM active:...............................................................</Label>  </Field>
+	<Field id="ipUDMON" 					type="checkbox" visibleBindingId="udmON" visibleBindingValue="true"     > <Label>UDM active:...............................................................</Label>  </Field>
 
-	<Field id="udmHelp"   				type="label"   visibleBindingId="ipUDMON" visibleBindingValue="true" > 
+	<Field id="udmHelp"   				type="label"   visibleBindingId="showUdmActive" visibleBindingValue="true" > 
 		<Label>This will automatically activate switch#12, AP#4 and Controller at the same IP number as the UDM, enabling of AP4,SW12.. is not needed</Label>  
 	</Field>
 
-	<Field id="ipUDM"   					type="textfield"  visibleBindingId="ipUDMON" visibleBindingValue="true"> 
+	<Field id="ipUDM"   					type="textfield"  visibleBindingId="showUdmActive" visibleBindingValue="true"> 
 		<Label>- ipNumber of your UDM:</Label>  
 	</Field>
 
 
-	<Field id="debUD"  					type="checkbox"  	visibleBindingId="ipUDMON" 	visibleBindingValue="true"> 
+	<Field id="debUD"  					type="checkbox"  	visibleBindingId="showUdmActive" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
@@ -454,7 +551,7 @@ device settings
 
 	<Field id="infoLabelap01" type="label" fontColor="green"> <Label>== Wifi Access points :... </Label>  </Field>
 
-	<Field id="apON" 					type="checkbox"  fontColor="green"> 
+	<Field id="apON" 					type="checkbox" > 
 		<Label>Show AP section........................................................:</Label>  
 	</Field>
 
@@ -555,24 +652,28 @@ device settings
 
 	<Field id="infoLabelgw01" type="label" fontColor="green"> <Label>== Gateway:... </Label>  </Field>
 
-	<Field id="ipUGAON" type="checkbox" fontColor="green"> 
+	<Field id="gwON" 					type="checkbox" > 
+		<Label>Show Gateway section........................................................:</Label>  
+	</Field>
+
+	<Field id="ipUGAON" type="checkbox" visibleBindingId="gwON" visibleBindingValue="true"> 
 		<Label>Gateway (GW/router) active:..................................................</Label>  
 	</Field>
 
-	<Field id="GWtailEnable"  type="checkbox"  	visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+	<Field id="GWtailEnable"  type="checkbox"  	visibleBindingId="showUgaActive" 	visibleBindingValue="true"> 
 		<Label>run message listener process on Gateway</Label>  
 	</Field>
 
-	<Field id="GWEnableLabel" type="label" 							visibleBindingId="ipUGAON"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
+	<Field id="GWEnableLabel" type="label" 							visibleBindingId="showUgaActive"	visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey"> 
 	<Label>Use gateway listeners(/var/log/messages and Database dump) for DHCP-client info. The USG (newer versions) does not show any relevant info in the message logfile, then you will see a lot of listener restart message for GWtail. 
 Then disable listener process
 </Label>  </Field>
 
-	<Field id="ipUGA"   type="textfield" visibleBindingId="ipUGAON" visibleBindingValue="true"> 
+	<Field id="ipUGA"   type="textfield" visibleBindingId="showUgaActive" visibleBindingValue="true"> 
 		<Label>- ipNumber of your GW:</Label>  
 	</Field>
 
-	<Field id="debGW"  type="checkbox"  visibleBindingId="ipUGAON" 	visibleBindingValue="true"> 
+	<Field id="debGW"  type="checkbox"  visibleBindingId="showUgaActive" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
 
@@ -589,7 +690,7 @@ Then disable listener process
 	<Field id="infoLabelsw01" type="label" fontColor="green"> <Label>== Switches :... </Label>  </Field>
 
 
-	<Field id="swON" type="checkbox" fontColor="green"> <Label>Show Switch section:..................................................</Label>  </Field>
+	<Field id="swON" type="checkbox"> <Label>Show Switch section:..................................................</Label>  </Field>
 
 	<Field id="count_APDL_inPortCount"   				type="menu" tooltip="" visibleBindingId="swON" visibleBindingValue="true">
 		<Label>Count AP and Downlink clients in total clients count in Switch:</Label>
@@ -686,9 +787,9 @@ Then disable listener process
 
 
 
-	<Field id="infoLabelcam01" type="label" fontColor="green"> <Label>== Cameras:... </Label>  </Field>
-	<Field id="CAMON" 					type="checkbox"  fontColor="green"> 
-		<Label>Show Camera section........................................................:</Label>  
+	<Field id="infoLabelcam01" type="label" fontColor="green"> <Label>== Protect:... </Label>  </Field>
+	<Field id="CAMON" 					type="checkbox" >
+		<Label>Show Protect section........................................................:</Label>
 	</Field>
 
 	<Field id="cameraSystem" type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
@@ -698,34 +799,32 @@ Then disable listener process
 			<Option value="protect" >Unifi Protect</Option>
 			</List>
 	</Field>
-
-
-	<Field id="protectUserId" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>protect userid (http)...                                   :</Label>  
+	
+	<Field id="infoLabelProtectSeparate" type="label" visibleBindingId="CAMON" visibleBindingValue="true" alignText="right" fontSize="small" fontColor="darkgrey">
+		<Label>The Protect system and the UniFi network controller can be on the same hardware (e.g. UDMpro, CloudKey Gen2+)
+or on separate hardware (e.g. a dedicated CloudKey running only Protect).
+If separate: enter the Protect IP above and the controller IP in the Controller section below.
+If combined: both IPs must be the same.</Label>
 	</Field>
 
-	<Field id="protectPassword" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>protect password (http)...                                   :</Label>  
+	<Field id="protectIP" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true">
+		<Label>IP address of Protect system (CloudKey, UDMpro, etc.)              :</Label>
 	</Field>
 
-	<Field id="protectIP" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>ip number of protect recorder...                                   :</Label>  
-	</Field>
-
-	<Field id="protectPORT" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>... port Number                                   :</Label>  
+	<Field id="protectPORT" type="textfield"  visibleBindingId="CAMON" visibleBindingValue="true">
+		<Label>... port Number (default 443)                     :</Label>
 	</Field>
 
 	<Field id="createNameNone" type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>create camera devices with name eq None...                                                            :</Label>  
+		<Label>create Protect devices with name eq None...                                                          :</Label>  
 			<List>
 			<Option value="no"  >no</Option>
 			<Option value="yes" >yes</Option>
 			</List>
 	</Field>
 
-	<Field id="protecEventSleepTime"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>..query system for new events every:</Label>  
+	<Field id="protecEventSleepTime"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true">
+		<Label>.. cameras: query for new camera events every:</Label>
 			<List>
 			<Option value="200" >0.2 seconds</Option>
 			<Option value="500" >0.5 seconds</Option>
@@ -736,8 +835,8 @@ Then disable listener process
 			</List>
 	</Field>
 
-	<Field id="refreshProtectCameras"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>..get camera update (dev states) every:</Label>  
+	<Field id="refreshProtectCameras"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true">
+		<Label>.. cameras: refresh camera device states every:</Label>
 			<List>
 			<Option value="10"   >10 seconds</Option>
 			<Option value="20"   >20 seconds</Option>
@@ -748,34 +847,43 @@ Then disable listener process
 			</List>
 	</Field>
 
-	<Field id="copyProtectsnapshots"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true"> 
-		<Label>..copy thumbnails to the indigo server:</Label>  
+	<Field id="copyProtectsnapshots"   type="menu"  visibleBindingId="CAMON" visibleBindingValue="true">
+		<Label>.. cameras: copy event thumbnails to the Indigo server:</Label>
 			<List>
-			<Option value="on"   >on for all devices</Option>
-			<Option value="off"   >off for all devices</Option>
-			<Option value="selectedByDevice"   >set in each device</Option>
+			<Option value="on"   >on for all cameras</Option>
+			<Option value="off"   >off for all cameras</Option>
+			<Option value="selectedByDevice"   >set per camera device</Option>
 			</List>
 	</Field>
 
-	<Field id="infoLabelProtectd" type="label"  visibleBindingId="CAMON" visibleBindingValue="true" alignText="left" fontSize="small" fontColor="darkgrey"> 
-		<Label>To setup: select the querry every time parametes etc
-Currently the protect system must be on the same hardware as the controller eg cloudkey 2, UMDpro.
-Once started the plugin will query(http) protect and will get all cameras installed and create the appropritate indigo devices
-It then will query(http) the protect system for new events every x secs
-The events can be of type Motion/Person/Vehicle/Ring. One physical ring can create several events
-eg motion+person+ring in differnt sequences depending on how a person approaches the doorbell
-Then for each event the variables
+	<Field id="infoLabelProtectd" type="label"  visibleBindingId="CAMON" visibleBindingValue="true" alignText="left" fontSize="small" fontColor="darkgrey">
+		<Label>To setup: enter API key, credentials and IP above, then select the query intervals below.
+The Protect system must be reachable from the Indigo server (same network).
+Once started the plugin queries Protect (http) and creates one Indigo device per camera, sensor and relay found.
+
+-- Cameras --
+Events are polled every x seconds. Event types: Motion / Person / Vehicle / Ring.
+One doorbell approach can produce several events (motion + person + ring) in sequence.
+For each camera event the following Indigo variables are updated:
 - Unifi_Camera_with_Event
 - Unifi_Camera_Event_PathToThumbnail
 - Unifi_Camera_Event_DateOfThumbNail
 - Unifi_Camera_Event_Date
-are updated as they come in. The event date is the first variable tio be updated, some of the other images can take several seconds to be produced.
-You can trigger on any of these variables or on the device states: lastRing or eventStart. eventEnd is set when the event is over. In most cases the thumbnail should be ready.
+The event date updates first; thumbnails can take a few seconds to appear.
+Trigger on these variables or on device states: lastRing, eventStart, eventEnd.
 
-In menu / CAMERA - protect Info ...
-you can print camera info to the logfile and  get a snap shot and set several parameetrs on the caameras
-in actions you can setup most of the config as as well as get snapshots
-</Label> 
+-- Sensors (UP-Sense, AI-360, glass break, entry, keyfob, siren etc) --
+States include motion, open/close, temperature, humidity, leak, tamper, alarm, battery and signal quality.
+Real-time updates arrive via WebSocket. Timestamps for each event are stored as ...At and ...At_Last states.
+
+-- Relays (Access Hub etc) --
+One parent device per relay plus child devices for each output and input.
+Output and input states update via WebSocket (sensorButtonPressed events).
+
+In menu / PROTECT - Info and Settings, actions, print info..
+you can print all Protect device info to the log, get snapshots and send commands to cameras.
+In Actions you can configure camera settings and get snapshots.
+</Label>
 	</Field>
 
 
@@ -795,40 +903,38 @@ in actions you can setup most of the config as as well as get snapshots
 
 
 	<Field id="infoLabel226" type="label" fontColor="green"> <Label>== Debug:... </Label>  </Field>
-	<Field id="debugOn" 					type="checkbox"  fontColor="green"> 
+	<Field id="debugOn" 					type="checkbox" > 
 		<Label>Show DEBUG section........................................................:</Label>  
 	</Field>
 
-	<Field    id="showLoginTest"       type="checkbox"         > <Label> show logging test at startup:</Label>  </Field>
-	<Field id="debugLogic"         type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (1) Logic:</Label>												</Field>
+	<Field id="showLoginTest"      type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (0) show logging test at startup:</Label> 							</Field>
+	<Field id="debugLogic"         type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (1) Logic:</Label>											</Field>
 	<Field id="debugLog"           type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (2) logMessages:</Label>										</Field>
 	<Field id="debugLogDetails"    type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (3) ...  Details:</Label>										</Field>
-	<Field id="debugDict"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4) Dict Messages:</Label>										</Field>
+	<Field id="debugDict"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4) Dict Messages:</Label>									</Field>
 	<Field id="debugDictDetails"   type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (5) ...  Details:</Label>										</Field>
 	<Field id="debugConnectionCMD" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (6) http connection to unifi devices  show commands:</Label>	</Field>
 	<Field id="debugConnectionRET" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (6.1) http connection to unifi devices  show result:</Label>	</Field>
-	<Field id="debugExpect"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (7) Expect command...:</Label>									</Field>
+	<Field id="debugExpect"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (7) Expect command...:</Label>								</Field>
 	<Field id="debugExpectRET"     type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (7.1) Expect command return strings:</Label>					</Field>
 	<Field id="debugFing"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (9) Fing:</Label>												</Field>
-	<Field id="debugBC"            type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (10) BroadCast:</Label>											</Field>
-	<Field id="debugPing"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (11) Ping WOL:</Label>											</Field>
+	<Field id="debugBC"            type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (10) BroadCast:</Label>										</Field>
+	<Field id="debugPing"          type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (11) Ping WOL:</Label>										</Field>
 	<Field id="debugUDM"           type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (12) UDM:</Label>												</Field>
 	<Field id="debugIgnoreMAC"     type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (13) ignore MAC:</Label>										</Field>
 	<Field id="debugDBinfo"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (14) controller db http get client info:</Label>				</Field>
-	<Field id="debugProtect"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15) Protect camera ... :</Label>								</Field>
-	<Field id="debugProtDetails"   type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15.1) Protect camera ...  details:</Label>						</Field>
-	<Field id="debugProtEvents"    type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15.2) Protect camera ...  events:</Label>						</Field>
+	<Field id="debugProtect"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15) Protect system ... :</Label>								</Field>
+	<Field id="debugProtDetails"   type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15.1) Protect system ...  details:</Label>					</Field>
+	<Field id="debugProtEvents"    type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15.2) Protect system ...  events:</Label>					</Field>
+	<Field id="debugProtWS"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (15.3) Protect WebSocket - print ALL raw WS messages:</Label>	</Field>
 	<Field id="debugDictFile"      type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (16) dump dict msgs to prefs dir:</Label>						</Field>
-	<Field id="debugUpdateStates"  type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (17) log all state updates:</Label>								</Field>
-	<Field id="debugSpecial"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (19) Special debug for development:</Label>						</Field>
-	<Field id="debugall"           type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (20) all of the above = everything:</Label>						</Field>
-
-
-	<Field id="infoLabel227" type="label" visibleBindingId="debugOn" visibleBindingValue="true"> <Label>.                     for DETAILED time tracking set indigo variable "enableTimeTracking_UniFi"</Label>  </Field>
-
-	<Field id="do_cProfile" type="textfield"   readonly="yes"   visibleBindingId="debugOn" visibleBindingValue="true"  > 
-		<Label>... enable or stop or  print intermediate results use on/off/print:</Label>  
+	<Field id="debugUpdateStates"  type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (17) log all state updates:</Label>							</Field>
+	<Field id="debugControllerEventAppendToFile" type="checkbox" defaultValue="false" visibleBindingId="debugOn" visibleBindingValue="true">
+		<Label>... (18) append controller WebSocket events to controllerevents.json in preferences folder</Label>
 	</Field>
+	<Field id="debugSpecial"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (90) Special debug for development:</Label>						</Field>
+	<Field id="debugall"           type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (99) all of the above = everything:</Label>						</Field>
+
 
 	<Field id="simpleSeparator230" type="separator"  />
 
@@ -841,7 +947,7 @@ in actions you can setup most of the config as as well as get snapshots
 
 
 	<Field id="infolabelExperts0" type="label" fontColor="green"> <Label>=== EXPERTs only ...</Label>  </Field>
-	<Field id="expertOn" 					type="checkbox"  fontColor="green"> 
+	<Field id="expertOn" 					type="checkbox" > 
 		<Label>Show EXPERT section........................................................:</Label>  
 	</Field>
 
@@ -946,6 +1052,5 @@ In general max value for best performance.
 Small read buffer will do several reads when data is &gt; buffer size, 
 When the mac has less ram, a smaller values might be needed to avoid read errors (error 22)</Label>  
 	</Field>
-
 
 </PluginConfig>

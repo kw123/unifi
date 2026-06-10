@@ -1,3 +1,31 @@
+changes in V2026.50.436 @ 2026-06-10
+==================  
+- controller event tracking via WebSocket (optional): client connect/disconnect/roam, security alerts (IPS/IDS logged as warnings), admin block/unblock with instant 'blocked' state update
+- optional: controller WS events can replace the SSH log listeners for client presence detection (~10s slower, for setups without AP ssh access); changing the option restarts the plugin
+- protect WS events are always logged to EVENTS-protectWS.json (option removed); controller events optional to EVENTS-controllerWS.json; files auto-trim at 50MB (drop oldest half)
+- water leak: fixed detection (protect sends leakDetectedAt timestamp, not booleans); new states waterDetectedAt / waterDetectedAt_Last; allInOne with leak detection enabled behaves as a water sensor (on=wet, display dry/LEAK!)
+- environmental sensor: per-probe enabled states waterDetectedInternalEnabled / waterDetectedExternalEnabled; removed leakEnabled (use waterDetectedEnabled)
+- renamed sensorButtonPressed -> sensorButtonPressedAt, added sensorButtonPressedAt_Last
+- new UniFi client states: signalWiFi/stateWiFi (restored), signal2NoiseWiFi, satisfactionWiFi, channelWiFi
+- new camera states: wifiSignalStrength/Quality/LinkSpeed/Channel, lastSmartDetectType/Confidence/Zone/At
+- protect system device: cpu/memory/disk update live from NVR WebSocket
+- allInOne sensor: new ambient light state
+- removed modelKey state from all devices; relay daughter devices: only parent carries status
+- sensor displayStatus now shown as onOffState ui value for all protect sensor types
+- plugin config: sections collapse on open; new show-section toggles for user IDs, controller info, UDM, gateway (Hue-style hidden flag pattern for multi-condition visibility); protect credentials moved to user IDs section
+- fixed device history failures (null btSignal values written to integer states)
+- removed cProfile; periodCheck refactored into per-device-type methods
+- prefs-dir file names normalized (EVENTS-xxx, WS-xxx, PROTECT-xxx)
+
+changes in V2022.48.2022.49.435@ 2026-05-12
+==================  
+- added check to catch:
+  File "plugin.py", line 1653, in validatePrefsConfigUi
+    self.checkForNewUnifiSystemDevicesEvery = int(valuesDict.get("checkForNewUnifiSystemDevicesEvery",self.checkForNewUnifiSystemDevicesEvery ))
+                                              ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+
+
 changes in V2022.48.2022.49.434@ 2026-03-24
 ==================  
 - made some performance improvements for poe on off

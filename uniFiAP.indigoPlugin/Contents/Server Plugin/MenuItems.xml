@@ -144,7 +144,7 @@
 			</Field>
 			<Field id="simpleSeparator63" type="separator"/>
 
-			<Field	id="Label7" type="label"> <Label>Print Events  (limited by retention set in controller):</Label> </Field>
+			<Field	id="Label7c" type="label"> <Label>Print Controller Events  (limited by retention set in controller):</Label> </Field>
 			<Field	   id="PrintEventInfoMaxEvents" type="menu" defaultValue="10">
 				<Label>Maximum Number of events:</Label>
 				<List>
@@ -163,11 +163,51 @@
 				</List>
 			</Field>
 			<Field	  id="PrintEventInfoLoginEvents" type="checkbox"  defaultValue="false"	> <Label>.. print LOGIN events:</Label>	 </Field>
-			
-			<Field	  id="confirm7" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintEventInfoFromControllerCALLBACK</CallbackMethod>
+			<Field	  id="confirm7c" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT Controller Events</Title> <CallbackMethod>buttonConfirmPrintEventInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
-			<Field id="simpleSeparator7" type="separator"/>
+			<Field id="simpleSeparator7c" type="separator"/>
+
+			<Field id="Label7cLive" type="label"> <Label>Monitor live Controller Events for N seconds:</Label> </Field>
+			<Field id="PrintEventInfoLiveSeconds" type="menu" defaultValue="30">
+				<Label>Duration (seconds):</Label>
+				<List>
+					<Option value="10">10</Option>
+					<Option value="30">30</Option>
+					<Option value="60">60</Option>
+					<Option value="120">120</Option>
+					<Option value="300">300</Option>
+				</List>
+			</Field>
+			<Field id="PrintEventInfoLiveLoginEvents" type="checkbox" defaultValue="false"> <Label>.. include LOGIN events:</Label> </Field>
+			<Field id="confirm7cLive" type="button">
+				<Label>Click to </Label><Title>MONITOR Live Controller Events</Title>
+				<CallbackMethod>buttonConfirmLiveControllerEventMonitorCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparator7cLive" type="separator"/>
+
+			<Field	id="Label7p" type="label"> <Label>Print Protect Events (last 24 hours):</Label> </Field>
+			<Field	   id="PrintProtectEventInfoMaxEvents" type="menu" defaultValue="10">
+				<Label>Maximum Number of events:</Label>
+				<List>
+					<Option value="1"		 >1</Option>
+					<Option value="2"		 >2</Option>
+					<Option value="5"		 >5</Option>
+					<Option value="10"		 >10</Option>
+					<Option value="20"		 >20</Option>
+					<Option value="100"		 >100</Option>
+					<Option value="200"		 >200</Option>
+					<Option value="500"		 >500</Option>
+					<Option value="1000"	 >1000</Option>
+					<Option value="2000"	 >2000</Option>
+					<Option value="5000"	 >5000</Option>
+					<Option value="999999999">all</Option>
+				</List>
+			</Field>
+			<Field	  id="confirm7p" type="button" tooltip="" >
+				<Label>Click to </Label><Title>PRINT Protect Events</Title> <CallbackMethod>buttonConfirmPrintEventInfoFromProtectCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparator7p" type="separator"/>
 
 
 			<Field	id="LabelprintStats" type="label"> <Label>Stats WAN - WiFi:</Label> </Field>
@@ -509,7 +549,7 @@ it will make the plugin restart </Label>
 	<MenuItem id="dCameras"> <Name>-------------Cameras ----------</Name><CallbackMethod>inpDummy</CallbackMethod></MenuItem>
 
 	<MenuItem id="CameraActionsProtect">
-		<Name>CAMERA - protect Info and Settings, actions, print info..</Name>
+		<Name>PROTECT - Info and Settings, actions, print info..</Name>
 		<ConfigUI>
 
 			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras (rec/LED/IR/Mic/speaker on/off ...)</Label></Field>
@@ -519,6 +559,9 @@ it will make the plugin restart </Label>
 
 			<Field	  id="confirmProtect" type="button" tooltip="" >
 				<Label>Print Protect Device info</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmPrintProtectDeviceInfoCALLBACK</CallbackMethod>
+			</Field>
+			<Field	  id="confirmPrintRelaysSensors" type="button" tooltip="" >
+				<Label>Print Relay + Sensor dicts to properties dir</Label><Title>EXECUTE </Title> <CallbackMethod>buttonConfirmPrintRelaySensorDictsCALLBACK</CallbackMethod>
 			</Field>
 			<Field	  id="printsep" type="Label" > <Label>.  =======================================================  .</Label>	 </Field>
 
@@ -836,10 +879,10 @@ it will make the plugin restart </Label>
 
 
 	<MenuItem id="CameraActionsProtectTest">
-		<Name>CAMERA - protect send test commands..</Name>
+		<Name>PROTECT cameras - send test commands..</Name>
 		<ConfigUI>
 
-			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras </Label></Field>
+			<Field id="sendcmdtoCameraProtect" type="label" fontSize="large"> <Label>Send commands to cameras</Label></Field>
 
 			<Field	  id="MSG" type="textfield"	defaultValue="msg from plugin will show here"  > <Label>ret code from plugin:</Label>  </Field>
 			<Field id="simpleSeparatormsg" type="separator"/>
