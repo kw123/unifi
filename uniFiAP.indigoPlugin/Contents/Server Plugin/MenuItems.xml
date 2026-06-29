@@ -1264,6 +1264,122 @@ it will make the plugin restart </Label>
 	</MenuItem>
 
 
+	<MenuItem id="clearGlassBreak">
+		<Name>CLEAR glass break detection..</Name>
+		<ConfigUI>
+			<Field id="Label01" type="label">
+				<Label>Protect reports a glass break but never sends a clear, so the sensor stays tripped.
+Select a glass break sensor and clear its detection state.</Label>
+			</Field>
+			<Field id="simpleSeparator0" type="separator"/>
+			<Field id="glassbreakDeviceSelected" type="menu" defaultValue="">
+				<Label>select glass break sensor:</Label>
+				<List class="self" filter="" method="filterGlassbreakDevice" dynamicReload="false"/>
+			</Field>
+			<Field id="confirm0" type="button" tooltip="">
+				<Label>Click to clear the selected sensor</Label><Title>CLEAR </Title> <CallbackMethod>buttonClearGlassBreakCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="MSG" type="textfield" defaultValue="" readonly="true"> <Label>message from plugin:</Label></Field>
+		</ConfigUI>
+	</MenuItem>
+
+
+
+
+	<MenuItem id="speakerPlaySound">
+		<Name>Speaker sound, volume, updates, ..</Name>
+		<ConfigUI>
+			<Field id="Label01" type="label">
+				<Label>Update speaker Files, Set Volume or Play a stored sound on a Protect AI speaker</Label>
+			</Field>
+			<Field id="simpleSeparatorUpdate" type="separator"/>
+			
+			<Field id="updateSpeakerSounds" type="button" >
+				<Label>Update speaker sounds from Protect server</Label>
+				<Title>Update</Title> 
+				<CallbackMethod>menuUpdateSpeakerSoundsCALLBACK</CallbackMethod>
+			</Field>
+
+			
+			<Field id="simpleSeparatorSelect" type="separator"/>
+
+			<Field id="speakerDeviceSelected" type="menu" defaultValue="">
+				<Label>select speaker:</Label>
+				<List class="self" filter="" method="filterSpeakerDevice" dynamicReload="true"/>
+			</Field>
+
+			<Field id="confirmSpeaker" type="button" tooltip="">
+				<Label>... confirm Speaker </Label><Title>Confirm Speaker</Title> <CallbackMethod>buttonConfirmSpeakerSelectedCALLBACK</CallbackMethod>
+			</Field>
+
+			<Field id="speakerConfirmedId" type="textfield" defaultValue="" hidden="true"></Field>
+			<Field id="simpleSeparatorVolume" type="separator"  />
+			<Field id="volume" type="menu" defaultValue="50">
+				<Label>speaker Volume (%):</Label>
+				<List>
+					<Option value="0">0</Option>
+					<Option value="10">10</Option>
+					<Option value="20">20</Option>
+					<Option value="30">30</Option>
+					<Option value="40">40</Option>
+					<Option value="50">50</Option>
+					<Option value="60">60</Option>
+					<Option value="70">70</Option>
+					<Option value="80">80</Option>
+					<Option value="90">90</Option>
+					<Option value="100">100</Option>
+				</List>
+			</Field>
+			<Field id="confirmVol" type="button" tooltip="">
+				<Label>Click to send volume settings to controller</Label><Title>SEND </Title> <CallbackMethod>buttonSpeakerSetVolumeCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparatorMic" type="separator"  />
+			<Field id="volumeMic" type="menu" defaultValue="50">
+				<Label>Mic Volume (%):</Label>
+				<List>
+					<Option value="0">0</Option>
+					<Option value="10">10</Option>
+					<Option value="20">20</Option>
+					<Option value="30">30</Option>
+					<Option value="40">40</Option>
+					<Option value="50">50</Option>
+					<Option value="60">60</Option>
+					<Option value="70">70</Option>
+					<Option value="80">80</Option>
+					<Option value="90">90</Option>
+					<Option value="100">100</Option>
+				</List>
+			</Field>
+			<Field id="confirmMute" type="button" tooltip="">
+				<Label>Click to set mic volume command to controller</Label><Title>SEND </Title> <CallbackMethod>buttonSpeakerSetMicCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="simpleSeparatorPlay" type="separator"  />
+	
+			<Field id="audioFile" type="menu" defaultValue="">
+				<Label>sound to play:</Label>
+				<List class="self" method="filterSpeakerSoundsForSelectedSpeaker" dynamicReload="true"/>
+			</Field>
+			<Field id="infoSound" type="label" fontSize="small" fontColor="darkgrey">
+				<Label>Select the speaker, click LOAD SOUNDS, then pick the sound. Sounds are defined per speaker in the speaker device's edit dialog; leave blank to use the speaker's default.</Label>
+			</Field>
+			<Field id="repeatTimes" type="textfield" defaultValue="1">
+				<Label>repeat times:</Label>
+			</Field>
+			<Field id="repeatDelay" type="textfield" defaultValue="4">
+				<Label>seconds between repeats (longer than the sound length):</Label>
+			</Field>
+			<Field id="confirm0" type="button" tooltip="">
+				<Label>Click to play the selected sound</Label><Title>PLAY </Title> <CallbackMethod>buttonSpeakerPlaySoundCALLBACK</CallbackMethod>
+			</Field>
+
+
+		<Field id="MSG" type="textfield" defaultValue="" readonly="true"> <Label>message from plugin:</Label></Field>
+
+
+		</ConfigUI>
+	</MenuItem>
+
+
 
 
 </MenuItems>

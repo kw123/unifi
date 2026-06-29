@@ -748,4 +748,108 @@
 	</Action>
 
 
+	<Action id="GLASSBREAKclearProtect">
+		<Name>GLASS BREAK clear detection</Name>
+		<CallbackMethod>buttonClearGlassBreakCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="glassbreakDeviceSelected" type="menu" defaultValue="">
+				<Label>select glass break sensor:</Label>
+				<List class="self" filter="" method="filterGlassbreakDevice" dynamicReload="false"/>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+
+	<Action id="SPEAKERplaySoundProtect">
+		<Name>SPEAKER play sound</Name>
+		<CallbackMethod>buttonSpeakerPlaySoundCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="speakerDeviceSelected" type="menu" defaultValue="">
+				<Label>select speaker:</Label>
+				<List class="self" filter="" method="filterSpeakerDevice" dynamicReload="true"/>
+			</Field>
+			<Field id="confirmSpeaker" type="button" tooltip="">
+				<Label>... confirm Speaker </Label><Title>Confirm Speaker</Title> <CallbackMethod>buttonConfirmSpeakerSelectedCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="speakerConfirmedId" type="textfield" defaultValue="" hidden="true"></Field>
+			<Field id="audioFile" type="menu" defaultValue="">
+				<Label>sound to play:</Label>
+				<List class="self" method="filterSpeakerSoundsForSelectedSpeaker" dynamicReload="true"/>
+			</Field>
+			<Field id="infoSound" type="label" fontSize="small" fontColor="darkgrey">
+				<Label>Select the speaker, click CONFIRM SPEAKER, then pick the sound. Sounds are defined per speaker in the speaker device's edit dialog; leave blank to use the speaker's default.</Label>
+			</Field>
+			<Field id="repeatTimes" type="textfield" defaultValue="1">
+				<Label>repeat times:</Label>
+			</Field>
+			<Field id="repeatDelay" type="textfield" defaultValue="4">
+				<Label>seconds between repeats (longer than the sound length):</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+	<Action id="SPEAKERsetVolumeProtect">
+		<Name>SPEAKER set volume</Name>
+		<CallbackMethod>buttonSpeakersetVolumeCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="speakerDeviceSelected" type="menu" defaultValue="">
+				<Label>select speaker:</Label>
+				<List class="self" filter="" method="filterSpeakerDevice" dynamicReload="true"/>
+			</Field>
+			<Field id="confirmSpeaker" type="button" tooltip="">
+				<Label>... confirm Speaker </Label><Title>Confirm Speaker</Title> <CallbackMethod>buttonConfirmSpeakerSelectedCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="speakerConfirmedId" type="textfield" defaultValue="" hidden="true"></Field>
+			<Field id="volume" type="menu" defaultValue="50">
+				<Label>speaker Volume (%):</Label>
+				<List>
+					<Option value="0">0</Option>
+					<Option value="10">10</Option>
+					<Option value="20">20</Option>
+					<Option value="30">30</Option>
+					<Option value="40">40</Option>
+					<Option value="50">50</Option>
+					<Option value="60">60</Option>
+					<Option value="70">70</Option>
+					<Option value="80">80</Option>
+					<Option value="90">90</Option>
+					<Option value="100">100</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="SPEAKERsetMicProtect">
+		<Name>SPEAKER set Mic volume</Name>
+		<CallbackMethod>buttonSpeakersetMicCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="speakerDeviceSelected" type="menu" defaultValue="">
+				<Label>select speaker:</Label>
+				<List class="self" filter="" method="filterSpeakerDevice" dynamicReload="true"/>
+			</Field>
+			<Field id="confirmSpeaker" type="button" tooltip="">
+				<Label>... confirm Speaker </Label><Title>Confirm Speaker</Title> <CallbackMethod>buttonConfirmSpeakerSelectedCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="speakerConfirmedId" type="textfield" defaultValue="" hidden="true"></Field>
+			<Field id="volumeMic" type="menu" defaultValue="50">
+				<Label>Mic volume:</Label>
+				<List>
+				<List>
+					<Option value="0">0</Option>
+					<Option value="10">10</Option>
+					<Option value="20">20</Option>
+					<Option value="30">30</Option>
+					<Option value="40">40</Option>
+					<Option value="50">50</Option>
+					<Option value="60">60</Option>
+					<Option value="70">70</Option>
+					<Option value="80">80</Option>
+					<Option value="90">90</Option>
+					<Option value="100">100</Option>
+				</List>
+				</List>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+
 </Actions>

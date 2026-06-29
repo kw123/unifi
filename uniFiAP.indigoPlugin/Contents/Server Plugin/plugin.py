@@ -288,7 +288,7 @@ _GlobalConst_numberOfSW	 = 13
 
 _GlobalConst_numberOfGroups = 8
 _GlobalConst_groupList		= ["Group{}".format(i) for i in range(_GlobalConst_numberOfGroups)]
-_GlobalConst_dTypes			= ["UniFi","gateway","DHCP","SWITCH","Device-AP","Device-SW-4","Device-SW-5","Device-SW-6","Device-SW-7","Device-SW-8","Device-SW-10","Device-SW-11","Device-SW-12","Device-SW-14","Device-SW-16","Device-SW-18","Device-SW-26","Device-SW-52","neighbor","superlink_gateway","sensor_protect_allInOne","relay_protect","relay_protect_output2","relay_protect_input1","relay_protect_input2","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_entry","sensor_protect_motion","sensor_protect_keyfob","sensor_protect_siren"]
+_GlobalConst_dTypes			= ["UniFi","gateway","DHCP","SWITCH","Device-AP","Device-SW-4","Device-SW-5","Device-SW-6","Device-SW-7","Device-SW-8","Device-SW-10","Device-SW-11","Device-SW-12","Device-SW-14","Device-SW-16","Device-SW-18","Device-SW-26","Device-SW-52","neighbor","superlink_gateway","sensor_protect_allInOne","relay_protect","relay_protect_output2","relay_protect_input","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_entry","sensor_protect_motion","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","speaker_protect"]
 _debugAreas = []
 for xx in kDefaultPluginPrefs:
 	if xx.find("debug") == 0:
@@ -578,6 +578,7 @@ class Plugin(indigo.PluginBase):
 			##indigo.server.log(" connectParams:{}".format(self.connectParams))
 			self.stop 											= list()
 			self.PROTECT 										= dict()
+			self.SUPPRESS_LOG									= dict()
 			self.PROTECT_SENSORS 								= dict()
 			self.PROTECT_RELAYS 								= dict()
 			self.protectSensorThread							= {"thread":"", "status":""}
@@ -942,8 +943,8 @@ class Plugin(indigo.PluginBase):
 		try:
 			for dev in indigo.devices.iter(self.pluginId):
 				if "displayStatus" not in dev.states: continue
-				if dev.deviceTypeId in ("relay_protect", "relay_protect_output2", "relay_protect_input1", "relay_protect_input2"): continue
-				if dev.deviceTypeId in ("sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","superlink_gateway"): continue
+				if dev.deviceTypeId in ("relay_protect", "relay_protect_output2", "relay_protect_input"): continue
+				if dev.deviceTypeId in ("sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","speaker_protect","superlink_gateway"): continue
 
 				if "MAC" in dev.states and dev.deviceTypeId == "UniFi" and self.testIgnoreMAC(dev.states["MAC"], fromSystem="checkDisp"):
 					if dev.states["displayStatus"].find("ignored") ==-1:
@@ -1238,7 +1239,7 @@ class Plugin(indigo.PluginBase):
 					del self.PROTECT_RELAYS[relayId]
 					if self.decideMyLog("Logic"): self.indiLOG.log(10,"deviceDeleted: removed {} from PROTECT_RELAYS".format(dev.name))
 					break
-				for dKey in ("devId2","devIdInput1","devIdInput2"):
+				for dKey in ("devId2","devIdInput"):
 					if data.get(dKey) == devId:
 						del self.PROTECT_RELAYS[relayId][dKey]
 						if self.decideMyLog("Logic"): self.indiLOG.log(10,"deviceDeleted: removed {} ({}) from PROTECT_RELAYS".format(dev.name, dKey))
@@ -1544,33 +1545,18 @@ class Plugin(indigo.PluginBase):
 					else:
 						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-			if props.get("enableInput1", False) and not self.PROTECT_RELAYS[relayId].get("devIdInput1"):
-				devNameI1 = baseName + "_input1"
+			if props.get("enableInputs", False) and not self.PROTECT_RELAYS[relayId].get("devIdInput"):
+				devNameI = baseName + "_inputs"
 				try:
-					devI1 = indigo.device.create(
-						protocol=indigo.kProtocol.Plugin, address=MAC, name=devNameI1, description="",
-						pluginId=self.pluginId, deviceTypeId="relay_protect_input1",
-						props={"isProtectRelayInput1":True, "parentRelayDevId":"{}".format(devId)},
+					devI = indigo.device.create(
+						protocol=indigo.kProtocol.Plugin, address=MAC, name=devNameI, description="",
+						pluginId=self.pluginId, deviceTypeId="relay_protect_input",
+						props={"isProtectRelayInput":True, "parentRelayDevId":"{}".format(devId), "displayChannel":"1"},
 						folder=self.folderNameIDCreated)
-					self.PROTECT_RELAYS[relayId]["devIdInput1"] = devI1.id
+					self.PROTECT_RELAYS[relayId]["devIdInput"] = devI.id
 				except Exception as e:
 					if "NameNotUniqueError" in "{}".format(e):
-						self.PROTECT_RELAYS[relayId]["devIdInput1"] = indigo.devices[devNameI1].id
-					else:
-						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-
-			if props.get("enableInput2", False) and not self.PROTECT_RELAYS[relayId].get("devIdInput2"):
-				devNameI2 = baseName + "_input2"
-				try:
-					devI2 = indigo.device.create(
-						protocol=indigo.kProtocol.Plugin, address=MAC, name=devNameI2, description="",
-						pluginId=self.pluginId, deviceTypeId="relay_protect_input2",
-						props={"isProtectRelayInput2":True, "parentRelayDevId":"{}".format(devId)},
-						folder=self.folderNameIDCreated)
-					self.PROTECT_RELAYS[relayId]["devIdInput2"] = devI2.id
-				except Exception as e:
-					if "NameNotUniqueError" in "{}".format(e):
-						self.PROTECT_RELAYS[relayId]["devIdInput2"] = indigo.devices[devNameI2].id
+						self.PROTECT_RELAYS[relayId]["devIdInput"] = indigo.devices[devNameI].id
 					else:
 						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 		except Exception as e:
@@ -6990,7 +6976,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 	####-----------------	 ---------
-	def _executeCMDOnController(self, dataSEND=None, pageString="", jsonAction="returnData", startText="", cmdType="put", cmdTypeForce = False, repeatIfFailed=True, raw=False, protect=False, ignore40x=False, debugOverwrite=False, useTimeout=0):
+	def _executeCMDOnController(self, dataSEND=None, pageString="", jsonAction="returnData", startText="", cmdType="put", cmdTypeForce = False, repeatIfFailed=True, raw=False, protect=False, ignore40x=False, debugOverwrite=False, useTimeout=0, emptyBody=False, protectRawPath=""):
 		"""Execute CMDOn Controller.
 		
 		Inputs:
@@ -7227,8 +7213,20 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 					## prep and then get data
 					headers = {"Accept": "application/json", "Content-Type": "application/json"}
+					if emptyBody:
+						# bodyless POST (e.g. glass-break/clear): the web UI sends NO Content-Type — sending
+						# Content-Type: application/json with an empty body makes the endpoint hang
+						headers.pop("Content-Type", None)
 					if self.csrfToken[controllerOrProtectSelected] != "":
 						headers['X-CSRF-Token'] = self.csrfToken[controllerOrProtectSelected]
+					if protect and cmdType in ("post", "put", "patch", "delete"):
+						# UniFi OS enforces same-origin on state-changing protect requests (responses carry
+						# Vary: Origin); GETs pass without it but POSTs hang. Match the web UI's Origin/Referer.
+						_origin = "https://" + self.useIPForhttpCmd
+						if "{}".format(self.usePortforhttpCmd) not in ("443", ""):
+							_origin += ":" + "{}".format(self.usePortforhttpCmd)
+						headers['Origin']  = _origin
+						headers['Referer'] = _origin + "/"
 
 
 					cookies_dict = requests.utils.dict_from_cookiejar(self.unifiSession[controllerOrProtectSelected].cookies)
@@ -7238,7 +7236,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						cookies = {"unifises": cookies_dict.get('unifises'), "csrf_token": cookies_dict.get('csrf_token')}
 
 					if self.decideMyLog("ConnectionCMD") or debugOverwrite:	self.indiLOG.log(10,"Connection: unifiControllerOS:{}, unifiSession>>>{}<<<".format(self.unifiControllerOS[controllerOrProtectSelected], str(self.unifiSession[controllerOrProtectSelected])) )
-
 
 					# is set by controller and only used by controller
 					if (self.unifiCloudKeySiteName == "" or self.unifiCloudKeySiteNameGetNew) and not protect:
@@ -7252,12 +7249,15 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN fixed after {} tries".format(self.failedControllerLoginCount ) )
 					self.failedControllerLoginCount = 0
 				
-					if protect:
+					if protect and protectRawPath:
+						# absolute UniFi-OS path (e.g. /api/v2/alarms/protect/test) — not under /proxy/protect/
+						url = "https://"+self.useIPForhttpCmd+":"+self.usePortforhttpCmd+protectRawPath
+					elif protect:
 						url = "https://"+self.useIPForhttpCmd+":"+self.usePortforhttpCmd+"/proxy/protect/"+pageString
 					else:
 						url = "https://"+self.useIPForhttpCmd+":"+self.usePortforhttpCmd+self.unifiApiWebPage[controllerOrProtectSelected]+"/"+self.unifiCloudKeySiteName+"/"+pageString
 
-					if self.decideMyLog("ConnectionCMD") or debugOverwrite:	self.indiLOG.log(10,"Connection: requests:{};\nheader:{};\ndataSENDstr:{};\ncookies:{};\ncmdType:{}".format(url, headers, dataSENDstr, cookies,cmdType) )
+					if self.decideMyLog("ConnectionCMD") or debugOverwrite:	self.indiLOG.log(10,"\nConnection: \nrequests:{};\nheader:{};\ndataSENDstr:{};\ncookies:{};\ncmdType:{}\n".format(url, headers, dataSENDstr, cookies, cmdType) )
 					if startText !="":						self.indiLOG.log(10,"Connection: requests: startText{},".format(startText) )
 
 					## get data 
@@ -7275,9 +7275,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					try: # for any unknown error check around the whole thing
 
 							try: # here we actuaally get the data 
-								if	 cmdType == "put":	resp = self.unifiSession[controllerOrProtectSelected].put(url,  	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
-								elif cmdType == "post":	resp = self.unifiSession[controllerOrProtectSelected].post(url, 	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
-								elif cmdType == "patch":resp = self.unifiSession[controllerOrProtectSelected].patch(url,	json=dataSEND,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
+								# emptyBody=True sends NO request body (matches the Protect web UI for action endpoints
+								# like glass-break/clear, which send Content-Length: 0); else send dataSEND as JSON
+								_bodyJson = None if emptyBody else dataSEND
+								if	 cmdType == "put":	resp = self.unifiSession[controllerOrProtectSelected].put(url,  	json=_bodyJson,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
+								elif cmdType == "post":	resp = self.unifiSession[controllerOrProtectSelected].post(url, 	json=_bodyJson,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
+								elif cmdType == "patch":resp = self.unifiSession[controllerOrProtectSelected].patch(url,	json=_bodyJson,		cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
 								elif cmdType == "get":	
 									if dataSENDstr == "":
 														resp =	self.unifiSession[controllerOrProtectSelected].get(url,						cookies=cookies, headers=headers, allow_redirects=False, verify=False, timeout=useTimeout, stream=setStream)
@@ -7351,8 +7354,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 											continue
 									else:
 										dictRET = ""
-										if self.decideMyLog("ConnectionRET") or debugOverwrite:	
+										if self.decideMyLog("ConnectionRET") or debugOverwrite:
 											self.indiLOG.log(10,"executeCMDOnController retCode: no data returned")
+										# write/action endpoints reply 200 or 204 with no body — that IS success, not a retry
+										# (retrying would re-fire the side effect, e.g. replay a speaker sound)
+										if protect and retCode in (requests.codes.ok, requests.codes.no_content) and (emptyBody or protectRawPath or cmdType in ("post","put","patch","delete")):
+											return {"ok": True, "retCode": retCode}
 										continue
 
 								resp.close()
@@ -7890,6 +7897,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if protectId and protectId not in self.PROTECT_SENSORS:
 						self.PROTECT_SENSORS[protectId] = {"devId": dev.id, "devName": dev.name, "MAC": dev.states.get("MAC",""), "lastUpdate": 0}
 				except Exception: pass
+			for dev in indigo.devices.iter("props.isProtectSpeaker"):
+				try:
+					protectId = dev.states.get("id","")
+					if protectId and protectId not in self.PROTECT_SENSORS:
+						self.PROTECT_SENSORS[protectId] = {"devId": dev.id, "devName": dev.name, "MAC": dev.states.get("MAC",""), "lastUpdate": 0}
+				except Exception: pass
 			for dev in indigo.devices.iter("props.isProtectRelay"):
 				try:
 					protectId = dev.states.get("id","")
@@ -7903,17 +7916,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if parentRelayId and parentRelayId in self.PROTECT_RELAYS:
 						self.PROTECT_RELAYS[parentRelayId]["devId2"] = dev.id
 				except Exception: pass
-			for dev in indigo.devices.iter("props.isProtectRelayInput1"):
+			for dev in indigo.devices.iter("props.isProtectRelayInput"):
 				try:
 					parentRelayId = dev.states.get("parentRelayId","") or dev.pluginProps.get("parentRelayProtectId","")
 					if parentRelayId and parentRelayId in self.PROTECT_RELAYS:
-						self.PROTECT_RELAYS[parentRelayId]["devIdInput1"] = dev.id
-				except Exception: pass
-			for dev in indigo.devices.iter("props.isProtectRelayInput2"):
-				try:
-					parentRelayId = dev.states.get("parentRelayId","") or dev.pluginProps.get("parentRelayProtectId","")
-					if parentRelayId and parentRelayId in self.PROTECT_RELAYS:
-						self.PROTECT_RELAYS[parentRelayId]["devIdInput2"] = dev.id
+						self.PROTECT_RELAYS[parentRelayId]["devIdInput"] = dev.id
 				except Exception: pass
 			#self.indiLOG.log(20,"_prefillProtectDictsFromDevices: PROTECT_SENSORS:{} PROTECT_RELAYS:{}".format(len(self.PROTECT_SENSORS), len(self.PROTECT_RELAYS)))
 		except Exception as e:
@@ -7966,9 +7973,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				self.indiLOG.log(10,"{} has no status".format(dev.name))
 				continue
 			else:
-				if dev.deviceTypeId not in ("relay_protect","relay_protect_output2","relay_protect_input1","relay_protect_input2",
+				if dev.deviceTypeId not in ("relay_protect","relay_protect_output2","relay_protect_input",
 						"sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion","sensor_protect_environmental",
-						"sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren"):
+						"sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality"):
 					if "onOffState" in dev.states and  ( (dev.states["status"] in ["up","rec","ON"]) != dev.states["onOffState"] ):
 								dev.updateStateOnServer("onOffState", value= dev.states["status"] in ["up","rec","ON"], uiValue=dev.states["displayStatus"])
 
@@ -8023,15 +8030,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if dev.deviceTypeId == "relay_protect_output2":
 				self.setupStructures("RP2", dev, MAC)
 
-			if dev.deviceTypeId == "relay_protect_input1":
-				self.setupStructures("RI1", dev, MAC)
-
-			if dev.deviceTypeId == "relay_protect_input2":
-				self.setupStructures("RI2", dev, MAC)
+			if dev.deviceTypeId == "relay_protect_input":
+				self.setupStructures("RI", dev, MAC)
 
 			if ("isProtectCamera" not in props and "isProtectRelay2" not in props and "isProtectRelay" not in props
 					and "isProtectSensor" not in props and "isProtectGateway" not in props
-					and "isProtectRelayInput1" not in props and "isProtectRelayInput2" not in props
+					and "isProtectRelayInput" not in props and "isProtectSpeaker" not in props
 					and "isSystemDev" not in props):
 				self.setImageAndStatus(dev, dev.states["status"], force=True)
 
@@ -8562,6 +8566,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									indigo.devices[devId].updateStateOnServer(actionDict["state"], actionDict["value"])
 								except Exception as e:
 									if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+							elif actionDict["action"] == "relayInputOff":
+								# auto-off pulse for the combined inputs device: clear the channel + refresh display
+								try:
+									self._setRelayInputChannel(devId, actionDict.get("channel", 1), False)
+								except Exception as e:
+									if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 						if _keep:
 							_remaining[devId] = _keep
 					self.delayedAction = _remaining
@@ -8775,7 +8785,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				try:
 					if dev.deviceTypeId == "camera_protect": continue
 					if dev.deviceTypeId == "camera": continue
-					if dev.deviceTypeId in ("superlink_gateway","sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","relay_protect_output2","relay_protect_input1","relay_protect_input2"): continue
+					if dev.deviceTypeId in ("superlink_gateway","sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","speaker_protect","relay_protect_output2","relay_protect_input"): continue
 					if "MAC" not in dev.states: continue
 
 					props = dev.pluginProps
@@ -8803,10 +8813,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							self.setupStructures("RP", dev, MAC)
 						if dev.deviceTypeId == "relay_protect_output2":
 							self.setupStructures("RP2", dev, MAC)
-						if dev.deviceTypeId == "relay_protect_input1":
-							self.setupStructures("RI1", dev, MAC)
-						if dev.deviceTypeId == "relay_protect_input2":
-							self.setupStructures("RI2", dev, MAC)
+						if dev.deviceTypeId == "relay_protect_input":
+							self.setupStructures("RI", dev, MAC)
 					xType	= self.xTypeMac[devid]["xType"]
 
 					expT= self._getexpT(props)
@@ -8834,7 +8842,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					elif dev.deviceTypeId == "system_protect":
 						changed = self._periodCheckSystemProtect(dev, expT, lastUpTT, changed)
 
-					elif dev.deviceTypeId in ("relay_protect", "relay_protect_output2", "relay_protect_input1", "relay_protect_input2"):
+					elif dev.deviceTypeId in ("relay_protect", "relay_protect_output2", "relay_protect_input"):
 						pass  # status managed by WebSocket via _applyProtectRelayPayload
 
 					else:
@@ -10955,8 +10963,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				
 			if self._debugThisDevices(uType, apN):
 				self.indiLOG.log(10,"checkAndPrepDict:  {}/{} , raw data:{} 0:200".format(uType, ipNumber,  dictDatadictData[0:200]))
-
-			
+		
 			
 			partialRead = False
 			try:
@@ -10985,7 +10992,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					return goodDataReceivedTime, combinedLines, lastMSG
 				dictData = raw[ff:jsonEnd]
 				# this is where we try to load the dict, if error see exception handling
-				theDict= json.loads(dictData)
+				theDict = self.loads_resilient(dictData, max_drops=20)
 				if	  unifiDeviceType == "AP":
 					self.deviceUp["AP"][ipNumber]	= time.time()
 				elif  unifiDeviceType == "SW":
@@ -11034,7 +11041,93 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			combinedLines = ""
 		return goodDataReceivedTime, combinedLines, lastMSG
 
-
+	
+	### 
+	####-----------------	 ---------
+	def loads_resilient(self, text, max_drops=20, logger=None):
+		"""
+		Parse JSON, surviving localized corruption (e.g. sync byte-drops).
+		On a parse error, the single enclosing {...} element is removed and
+		parsing is retried. Returns (obj, dropped_count).
+		Raises json.JSONDecodeError if it still can't parse after max_drops.
+		"""
+		drops = 0
+		while True:
+			try:
+				return json.loads(text), drops
+			except json.JSONDecodeError as e:
+				if drops >= max_drops:
+					raise
+				span = self.enclosing_object_span(text, e.pos)
+				if span is None:
+					raise  # error isn't inside a {...} we can drop
+				start, end = span
+				removed = text[start:end + 1]
+				text = self.cut_with_separator(text, start, end)
+				drops += 1
+				self.indiLOG.log(30, "Dropped corrupt JSON element @%d: %s%s"   % (e.pos, removed[:80],  "..." if len(removed) > 80 else ""))
+	
+	
+	### 
+	####-----------------	 ---------
+	def enclosing_object_span(self, s, pos):
+		"""
+		Forward-scan with string/escape awareness, tracking the innermost '{'
+		that encloses `pos`. The corruption keeps braces balanced, so the
+		matching '}' is found reliably. Returns (start, end) inclusive or None.
+		"""
+		stack = []          # indices of open braces/brackets
+		in_str = False
+		esc = False
+		i = 0
+		n = len(s)
+		while i < n:
+			c = s[i]
+			if in_str:
+				if esc:
+					esc = False
+				elif c == '\\':
+					esc = True
+				elif c == '"':
+					in_str = False
+			else:
+				if c == '"':
+					in_str = True
+				elif c == '{' or c == '[':
+					stack.append(i)
+				elif c == '}' or c == ']':
+					openi = stack.pop() if stack else None
+					# just closed something; if it enclosed pos and is an
+					# object, this is the smallest fully-seen enclosing object
+					if openi is not None and openi <= pos <= i and s[openi] == '{':
+						return (openi, i)
+			i += 1
+		return None
+	
+	
+	### 
+	####-----------------	 ---------
+	def cut_with_separator(self, s, start, end):
+		try:
+			"""Remove s[start:end+1] plus one adjacent comma so the array/object
+			stays well-formed (handles trailing- and leading-comma cases)."""
+			left = start - 1
+			while left >= 0 and s[left] in " \t\r\n":
+				left -= 1
+			right = end + 1
+			while right < len(s) and s[right] in " \t\r\n":
+				right += 1
+			if left >= 0 and s[left] == ',':
+				return s[:left] + s[end + 1:]          # eat preceding comma
+			if right < len(s) and s[right] == ',':
+				return s[:start] + s[right + 1:]       # eat following comma
+			return s[:start] + s[end + 1:]             # only element in container
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return ""	
+		
+		
+		
 	### start the expect command to get the logfile
 	####-----------------	 ---------
 	def startConnect(self, ipNumber, uType):
@@ -11681,6 +11774,25 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				"USL-KEY-FOB":          "sensor_protect_keyfob",
 				"USL-SIREN":            "sensor_protect_siren",
 				"USL-ALARM":            "sensor_protect_siren",
+				# smoke / CO alarm sensor
+				"UFP-SMOKE":            "sensor_protect_smoke_co",
+				"UP-SMOKE":             "sensor_protect_smoke_co",
+				"UP-SMOKE-CO":          "sensor_protect_smoke_co",
+				"USL-SMOKE":            "sensor_protect_smoke_co",
+				"USL-SMOKE-CO":         "sensor_protect_smoke_co",
+				"USL-CO":               "sensor_protect_smoke_co",
+				"SMOKE":                "sensor_protect_smoke_co",
+				"SMOKE-CO":             "sensor_protect_smoke_co",
+				"CO-ALARM":             "sensor_protect_smoke_co",
+				# vape / air quality sensor (UP-AirQuality)
+				"UP-AIRQUALITY":        "sensor_protect_airquality",
+				"UP-AIRQUALITY-EU":     "sensor_protect_airquality",
+				"UP-AIRQUALITY-US":     "sensor_protect_airquality",
+				"UAP-AIRQUALITY":       "sensor_protect_airquality",
+				"USL-AIRQUALITY":       "sensor_protect_airquality",
+				"AIRQUALITY":           "sensor_protect_airquality",
+				"AIR-QUALITY":          "sensor_protect_airquality",
+				"VAPE":                 "sensor_protect_airquality",
 			}
 			# Exact type strings for actual USL Gateway/Hub hardware only.
 			# Do NOT use startswith("USL") — that matches all USL sensor accessories too.
@@ -11692,6 +11804,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.PROTECT_SENSORS_RAW = sensorsRaw   # keep last raw bootstrap sensor objects for the print-dicts menu
 			if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: sensors count:{}, types:{}".format(len(sensorsRaw), [self.getpropReplaceNoneWith(s,"type",substituteIfMissing="") for s in sensorsRaw]))
 			for sensor in sensorsRaw:
+				#if time.time() - self.pluginStartTime < 60: self.indiLOG.log(10,"getProtectSensorsIntoIndigo: sensor :{} ".format(json.dumps(sensor, sort_keys=True, indent=2)))
 				try:
 					sensorId     = self.getpropReplaceNoneWith(sensor, "id",  substituteIfMissing="0")
 					sensorType   = self.getpropReplaceNoneWith(sensor, "type", substituteIfMissing="")
@@ -11705,7 +11818,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if deviceTypeId is None:
 						# Substring fallback for USL sensor types not in the exact map
 						st = sensorType.upper()
-						if   any(k in st for k in ("ENTRY","DOOR","WINDOW","CONTACT")):   deviceTypeId = "sensor_protect_entry"
+						if   any(k in st for k in ("AIRQUAL","AIR-QUAL","AIR QUAL","VAPE")): deviceTypeId = "sensor_protect_airquality"
+						elif any(k in st for k in ("SMOKE","CMONX")):                      deviceTypeId = "sensor_protect_smoke_co"
+						elif any(k in st for k in ("ENTRY","DOOR","WINDOW","CONTACT")):   deviceTypeId = "sensor_protect_entry"
 						elif any(k in st for k in ("PIR","MOTION")):                       deviceTypeId = "sensor_protect_motion"
 						elif any(k in st for k in ("GLASS","BREAK","GB")):                 deviceTypeId = "sensor_protect_glassbreak"
 						elif any(k in st for k in ("TEMP","HUMID","ENVIR")):               deviceTypeId = "sensor_protect_environmental"
@@ -11714,13 +11829,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						else:
 							self.indiLOG.log(20,"getProtectSensorsIntoIndigo: unknown sensor type '{}' name '{}' - using allInOne".format(sensorType, sensor.get("name","")))
 							deviceTypeId = "sensor_protect_allInOne"
-
 					states = {}
 					mac = self.getpropReplaceNoneWith(sensor, "mac", substituteIfMissing="000000000000")
 					states["MAC"]              = mac[0:2]+":"+mac[2:4]+":"+mac[4:6]+":"+mac[6:8]+":"+mac[8:10]+":"+mac[10:12]
 					states["id"]               = sensorId
 					states["name"]             = self.getpropReplaceNoneWith(sensor, "name",            substituteIfMissing="noname")
 					states["type"]             = sensorType
+					if "wirelessConnectionState" in sensor:
+						states["bridgeId"]     = self.getpropReplaceNoneWith(sensor["wirelessConnectionState"], "bridge",            substituteIfMissing="")
 					states["firmwareVersion"]  = self.getpropReplaceNoneWith(sensor, "firmwareVersion", substituteIfMissing="")
 					states["isConnected"]      = self.getpropReplaceNoneWith(sensor, "isConnected",     substituteIfMissing=False)
 					states["isAdopted"]        = self.getpropReplaceNoneWith(sensor, "isAdopted",       substituteIfMissing=False)
@@ -11819,6 +11935,48 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						ts = self.getpropReplaceNoneWith(sensor, "alarmTriggeredAt", substituteIfMissing=0)
 						states["alarmTriggeredAt"] = datetime.datetime.fromtimestamp(ts/1000.).strftime("%Y-%m-%d %H:%M:%S") if ts else ""
 					except: states["alarmTriggeredAt"] = ""
+
+					# ---- smoke / CO alarm sensor (smokeStatus block) ----
+					if deviceTypeId == "sensor_protect_smoke_co":
+						_sm = sensor.get("smokeStatus") or {}
+						states["smokeAlarm"]       = bool(_sm.get("smokeAlarm", False))
+						states["coAlarm"]          = bool(_sm.get("coAlarm", False))
+						states["smokeValue"]       = _sm.get("smokeValue", 0) or 0
+						states["coValue"]          = _sm.get("coValue", 0) or 0
+						states["alarmEnabled"]     = bool(_sm.get("enabled", False))
+						states["batteryLow"]       = bool(_sm.get("batteryLow", False))
+						states["endOfLife"]        = bool(_sm.get("endOfLife", False))
+						states["smokeSensorFault"] = bool(_sm.get("smokeSensorFault", False))
+						states["coSensorFault"]    = bool(_sm.get("coSensorFault", False))
+
+					# ---- vape / air quality sensor (UP-AirQuality, airQuality block) ----
+					if deviceTypeId == "sensor_protect_airquality":
+						_aq = sensor.get("airQuality") or {}
+						def _aqv(k):
+							v = _aq.get(k)
+							if isinstance(v, dict): v = v.get("value")
+							return v
+						states["aqi"]       = _aqv("aqi")
+						states["vapeIndex"] = _aqv("vape")
+						states["co2"]       = _aqv("co2")
+						states["voc"]       = _aqv("voc")
+						states["nox"]       = _aqv("nox")
+						states["tvoc"]      = _aqv("tvoc")
+						states["pm1p0"]     = _aqv("pm1p0")
+						states["pm2p5"]     = _aqv("pm2p5")
+						states["pm4p0"]     = _aqv("pm4p0")
+						states["pm10p0"]    = _aqv("pm10p0")
+						# temperature/humidity may come from stats (set above) or the airQuality block
+						if states.get("temperature") is None: states["temperature"] = _aqv("temperature")
+						if states.get("humidity")    is None: states["humidity"]    = _aqv("humidity")
+						_aqs   = sensor.get("airQualitySettings") or {}
+						_vapeS = _aqs.get("vapeSettings") or _aqs.get("vapeSensitivitySettings") or {}
+						states["vapeEnabled"] = bool(_vapeS.get("isEnabled", False))
+						# vape detected: the vape reading's status field encodes severity (neutral/good = clear)
+						_vstat = ""
+						if isinstance(_aq.get("vape"), dict): _vstat = ("{}".format(_aq["vape"].get("status") or "")).lower()
+						states["vapeDetected"] = _vstat not in ("", "neutral", "unknown", "good", "ok", "safe")
+
 					_ds = self._buildSensorDisplayStatus(states["isConnected"], deviceTypeId, states)
 					if _ds is not None: states["displayStatus"] = _ds
 
@@ -11834,7 +11992,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 					# default displayWhatValue stored in props so it's available from creation
-					_dispDefault = "temperature" if deviceTypeId in ("sensor_protect_environmental","sensor_protect_allInOne") else "sensor_value"
+					if   deviceTypeId in ("sensor_protect_environmental","sensor_protect_allInOne"): _dispDefault = "temperature"
+					elif deviceTypeId == "sensor_protect_airquality":                              _dispDefault = "aqi"
+					else:                                                                          _dispDefault = "sensor_value"
 					isNew = sensorId not in self.PROTECT_SENSORS
 					if isNew:
 						try:
@@ -11847,7 +12007,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								pluginId     = self.pluginId,
 								deviceTypeId = deviceTypeId,
 								props        = {"isProtectSensor":True,
-												"SupportsBatteryLevel":True,
+												"SupportsBatteryLevel": deviceTypeId != "sensor_protect_airquality",
 												"SupportsOnState":True, "SupportsSensorValue":False,
 												"SupportsStatusRequest":False, "AllowOnStateChange":False, "AllowSensorValueChange":False,
 												"displayWhatValue": _dispDefault},
@@ -11874,6 +12034,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						# rebuild displayStatus using the device's stored preference (pluginProps)
 						_ds = self._buildSensorDisplayStatus(states["isConnected"], deviceTypeId, states, dev.pluginProps)
 						if _ds is not None: states["displayStatus"] = _ds
+						if False and deviceTypeId == "sensor_protect_airquality":
+							self.indiLOG.log(20,"getProtectSensorsIntoIndigo: displayStatus:{}, vapeDetected:{},  sensor:{}".format(states["displayStatus"] , states.get("vapeDetected","-"), json.dumps(sensor,sort_keys=True,indent=2)))
 						for state in states:
 							if state not in dev.states: continue
 							val = states[state]
@@ -11902,6 +12064,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							triggered = states.get("sirenActive", False)
 							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ACTIVE" if triggered else "idle"))
 							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+						elif deviceTypeId == "sensor_protect_smoke_co":
+							triggered = bool(states.get("smokeAlarm", False) or states.get("coAlarm", False))
+							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ALARM" if triggered else "ok"))
+							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+						elif deviceTypeId == "sensor_protect_airquality":
+							triggered = bool(states.get("vapeDetected", False))
+							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or "CONNECTED")
+							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
 						elif deviceTypeId in ("sensor_protect_environmental", "sensor_protect_allInOne"):
 							_disp = states.get("displayStatus", "") or "CONNECTED"
 							if deviceTypeId == "sensor_protect_allInOne" and states.get("waterDetectedEnabled"):
@@ -11926,11 +12096,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: relays count:{}".format(len(relaysRaw)))
 			for relay in relaysRaw:
 				try:
+					#if time.time() - self.pluginStartTime < 60: self.indiLOG.log(10,"getProtectSensorsIntoIndigo: relay :{} ".format(json.dumps(relay, sort_keys=True, indent=2)))
 					relayId = self.getpropReplaceNoneWith(relay, "id", substituteIfMissing="0")
 					states  = {}
 					mac = self.getpropReplaceNoneWith(relay, "mac", substituteIfMissing="000000000000")
 					states["MAC"]             = mac[0:2]+":"+mac[2:4]+":"+mac[4:6]+":"+mac[6:8]+":"+mac[8:10]+":"+mac[10:12]
 					states["id"]              = relayId
+					if "wirelessConnectionState" in relay:
+						states["bridgeId"]    = self.getpropReplaceNoneWith(relay["wirelessConnectionState"], "bridge",            substituteIfMissing="")
 					states["name"]            = self.getpropReplaceNoneWith(relay, "name",            substituteIfMissing="noname")
 					states["type"]            = self.getpropReplaceNoneWith(relay, "type",            substituteIfMissing="")
 					states["firmwareVersion"] = self.getpropReplaceNoneWith(relay, "firmwareVersion", substituteIfMissing="")
@@ -12027,61 +12200,33 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							except Exception as e:
 								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-					# create daughter device for input 1 if enabled and missing
-					devIdInput1 = self.PROTECT_RELAYS[relayId].get("devIdInput1")
-					if parentProps.get("enableInput1", False) and not devIdInput1:
-						devNameI1 = baseName + "_input1"
+					# create single daughter device holding BOTH input channels, if enabled and missing
+					devIdInput = self.PROTECT_RELAYS[relayId].get("devIdInput")
+					if parentProps.get("enableInputs", False) and not devIdInput:
+						devNameI = baseName + "_inputs"
 						try:
-							devI1 = indigo.device.create(
+							devI = indigo.device.create(
 								protocol     = indigo.kProtocol.Plugin,
 								address      = states["MAC"],
-								name         = devNameI1,
+								name         = devNameI,
 								description  = "",
 								pluginId     = self.pluginId,
-								deviceTypeId = "relay_protect_input1",
-								props        = {"isProtectRelayInput1":True, "parentRelayDevId":"{}".format(devId)},
+								deviceTypeId = "relay_protect_input",
+								props        = {"isProtectRelayInput":True, "parentRelayDevId":"{}".format(devId), "displayChannel":"1"},
 								folder       = self.folderNameIDCreated,
 							)
-							devIdInput1 = devI1.id
-							if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: created relay input1 device: {}".format(devNameI1))
+							devIdInput = devI.id
+							if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: created relay inputs device: {}".format(devNameI))
 						except Exception as e:
 							errtext = "{}".format(e)
 							if "NameNotUniqueError" in errtext:
-								devI1       = indigo.devices[devNameI1]
-								devIdInput1 = devI1.id
+								devI       = indigo.devices[devNameI]
+								devIdInput = devI.id
 							else:
-								self.indiLOG.log(30,"getProtectSensorsIntoIndigo: input1 create error: {}".format(errtext), exc_info=True)
-								devIdInput1 = None
-						if devIdInput1:
-							self.PROTECT_RELAYS[relayId]["devIdInput1"] = devIdInput1
-
-					# create daughter device for input 2 if enabled and missing
-					devIdInput2 = self.PROTECT_RELAYS[relayId].get("devIdInput2")
-					if parentProps.get("enableInput2", False) and not devIdInput2:
-						devNameI2 = baseName + "_input2"
-						try:
-							devI2 = indigo.device.create(
-								protocol     = indigo.kProtocol.Plugin,
-								address      = states["MAC"],
-								name         = devNameI2,
-								description  = "",
-								pluginId     = self.pluginId,
-								deviceTypeId = "relay_protect_input2",
-								props        = {"isProtectRelayInput2":True, "parentRelayDevId":"{}".format(devId)},
-								folder       = self.folderNameIDCreated,
-							)
-							devIdInput2 = devI2.id
-							if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: created relay input2 device: {}".format(devNameI2))
-						except Exception as e:
-							errtext = "{}".format(e)
-							if "NameNotUniqueError" in errtext:
-								devI2       = indigo.devices[devNameI2]
-								devIdInput2 = devI2.id
-							else:
-								self.indiLOG.log(30,"getProtectSensorsIntoIndigo: input2 create error: {}".format(errtext), exc_info=True)
-								devIdInput2 = None
-						if devIdInput2:
-							self.PROTECT_RELAYS[relayId]["devIdInput2"] = devIdInput2
+								self.indiLOG.log(30,"getProtectSensorsIntoIndigo: inputs create error: {}".format(errtext), exc_info=True)
+								devIdInput = None
+						if devIdInput:
+							self.PROTECT_RELAYS[relayId]["devIdInput"] = devIdInput
 
 					self.PROTECT_RELAYS[relayId]["lastUpdate"] = time.time()
 					# update parent: skip output/input raw states, just sync metadata + onOffState
@@ -12108,27 +12253,19 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						except Exception as e:
 							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
-					# update input1 daughter: sync metadata + onOffState from input1State
-					devIdInput1 = self.PROTECT_RELAYS[relayId].get("devIdInput1")
-					if devIdInput1:
+					# update combined inputs daughter: both channels + display from the selected channel
+					devIdInput = self.PROTECT_RELAYS[relayId].get("devIdInput")
+					if devIdInput:
 						try:
-							devI1 = indigo.devices[devIdInput1]
+							devI = indigo.devices[devIdInput]
 							for stateI in ["MAC", "created"]:
-								if stateI in states and stateI in devI1.states and devI1.states[stateI] != states[stateI]:
-									self.addToStatesUpdateList(devIdInput1, stateI, states[stateI])
-							devI1.updateStateOnServer("onOffState", self._relayInputStateIsOn(states.get("input1State","")))
-						except Exception as e:
-							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-
-					# update input2 daughter: sync metadata + onOffState from input2State
-					devIdInput2 = self.PROTECT_RELAYS[relayId].get("devIdInput2")
-					if devIdInput2:
-						try:
-							devI2 = indigo.devices[devIdInput2]
-							for stateI in ["MAC", "created"]:
-								if stateI in states and stateI in devI2.states and devI2.states[stateI] != states[stateI]:
-									self.addToStatesUpdateList(devIdInput2, stateI, states[stateI])
-							devI2.updateStateOnServer("onOffState", self._relayInputStateIsOn(states.get("input2State","")))
+								if stateI in states and stateI in devI.states and devI.states[stateI] != states[stateI]:
+									self.addToStatesUpdateList(devIdInput, stateI, states[stateI])
+							_in1 = self._relayInputStateIsOn(states.get("input1State",""))
+							_in2 = self._relayInputStateIsOn(states.get("input2State",""))
+							if devI.states.get("input1State") != _in1: self.addToStatesUpdateList(devIdInput, "input1State", _in1)
+							if devI.states.get("input2State") != _in2: self.addToStatesUpdateList(devIdInput, "input2State", _in2)
+							self._refreshRelayInputDisplay(devI, in1=_in1, in2=_in2)
 						except Exception as e:
 							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
@@ -12236,6 +12373,95 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						for state in states:
 							if state in dev.states and states[state] is not None and dev.states[state] != states[state]:
 								self.addToStatesUpdateList(devId, state, states[state])
+					except Exception as e:
+						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+				except Exception as e:
+					if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+			# ---- speakers (UniFi AI Horn Speaker) ----
+			speakersRaw = systemInfoProtect.get("speakers", [])
+			if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: speakers count:{}".format(len(speakersRaw)))
+			for speaker in speakersRaw:
+				try:
+					speakerId = self.getpropReplaceNoneWith(speaker, "id", substituteIfMissing="0")
+					states    = {}
+					mac = self.getpropReplaceNoneWith(speaker, "mac", substituteIfMissing="000000000000")
+					states["MAC"]             = mac[0:2]+":"+mac[2:4]+":"+mac[4:6]+":"+mac[6:8]+":"+mac[8:10]+":"+mac[10:12]
+					states["id"]              = speakerId
+					states["name"]            = self.getpropReplaceNoneWith(speaker, "name",            substituteIfMissing="noname")
+					states["type"]            = self.getpropReplaceNoneWith(speaker, "type",            substituteIfMissing="")
+					states["firmwareVersion"] = self.getpropReplaceNoneWith(speaker, "firmwareVersion", substituteIfMissing="")
+					# the speaker has no isConnected field — it reports a "state" string ("CONNECTED"/...)
+					_spkState = "{}".format(self.getpropReplaceNoneWith(speaker, "state", substituteIfMissing="") or "")
+					_isConn   = self.getpropReplaceNoneWith(speaker, "isConnected", substituteIfMissing=None)
+					if _isConn is None: _isConn = _spkState.upper() == "CONNECTED"
+					states["isConnected"]     = bool(_isConn)
+					states["isAdopted"]       = self.getpropReplaceNoneWith(speaker, "isAdopted",       substituteIfMissing=False)
+					states["status"]          = "CONNECTED" if states["isConnected"] else "DISCONNECTED"
+					try:    states["lastSeen"]       = datetime.datetime.fromtimestamp(self.getpropReplaceNoneWith(speaker,"lastSeen",      substituteIfMissing=0)/1000.).strftime("%Y-%m-%d %H:%M:%S")
+					except: states["lastSeen"]       = ""
+					try:    states["connectedSince"] = datetime.datetime.fromtimestamp(self.getpropReplaceNoneWith(speaker,"connectedSince",substituteIfMissing=0)/1000.).strftime("%Y-%m-%d %H:%M:%S")
+					except: states["connectedSince"] = ""
+					_spkS = speaker.get("speakerSettings") or {}
+					states["volume"]      = self._getFirstProtectValue(speaker, ("volume",), None)
+					if states["volume"] is None: states["volume"] = _spkS.get("volume")
+					states["micVolume"]    = self._getFirstProtectValue(speaker, ("micVolume",), None)
+					states["isMicEnabled"] = bool(self._getFirstProtectValue(speaker, ("isMicEnabled",), False))
+					# "speakerState" is a dict {status, mode, files, ...}; store its status string.
+					# idle status is "idle" — anything else (playing/streaming/...) counts as streaming.
+					_spsRaw   = speaker.get("speakerState")
+					_spStatus = _spsRaw.get("status","") if isinstance(_spsRaw, dict) else ("{}".format(_spsRaw) if _spsRaw else "")
+					states["speakerState"] = _spStatus
+					states["isStreaming"]  = bool(_spStatus) and _spStatus.lower() not in ("idle","ready","stopped","off","")
+					if   not states["isConnected"]:    states["displayStatus"] = "DISCONNECTED"
+					elif states["isStreaming"]:        states["displayStatus"] = "playing"
+					elif states["volume"] is not None:
+						try:    states["displayStatus"] = "vol {}%".format(int(states["volume"]))
+						except: states["displayStatus"] = "idle"
+					else:                              states["displayStatus"] = "idle"
+					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+					if speakerId not in self.PROTECT_SENSORS:
+						try:
+							devName = "Speaker_Protect_" + (states.get("name","") or mac) + "_" + mac
+							dev = indigo.device.create(
+								protocol     = indigo.kProtocol.Plugin,
+								address      = states["MAC"],
+								name         = devName,
+								description  = "",
+								pluginId     = self.pluginId,
+								deviceTypeId = "speaker_protect",
+								props        = {"isProtectSpeaker":True,
+												"SupportsOnState":True, "SupportsSensorValue":False,
+												"SupportsStatusRequest":False, "AllowOnStateChange":False, "AllowSensorValueChange":False,
+												"displayWhatValue":"sensor_value"},
+								folder       = self.folderNameIDCreated,
+							)
+							devId = dev.id
+							self.PROTECT_SENSORS[speakerId] = {"devId":devId, "devName":dev.name, "MAC":states["MAC"], "lastUpdate":time.time()}
+							if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: created speaker device: {}".format(devName))
+						except Exception as e:
+							errtext = "{}".format(e)
+							if "NameNotUniqueError" in errtext:
+								dev   = indigo.devices[devName]
+								devId = dev.id
+								self.PROTECT_SENSORS[speakerId] = {"devId":devId, "devName":dev.name, "MAC":states["MAC"], "lastUpdate":time.time()}
+							else:
+								if errtext.find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+								continue
+					else:
+						devId = self.PROTECT_SENSORS[speakerId]["devId"]
+
+					self.PROTECT_SENSORS[speakerId]["lastUpdate"] = time.time()
+					try:
+						dev = indigo.devices[devId]
+						for state in states:
+							if state in dev.states and states[state] is not None and dev.states[state] != states[state]:
+								self.addToStatesUpdateList(devId, state, states[state])
+						_disp = states.get("displayStatus","")
+						dev.updateStateOnServer("onOffState", bool(states.get("isStreaming", False)), uiValue=_disp or ("CONNECTED" if states.get("isConnected") else "DISCONNECTED"))
+						dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn if states.get("isConnected") else indigo.kStateImageSel.SensorOff)
 					except Exception as e:
 						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
@@ -12574,7 +12800,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if not isinstance(j, dict): return
 			msg_type = j.get("meta", {}).get("message", "")
 			if self.decideMyLog("ConnectionRET"):
-				self.indiLOG.log(10,"Controller WS [{}]: {}".format(msg_type, data[:200]))
+				self.indiLOG.log(20,"Controller WS [{}]: {}".format(msg_type, data))
 			# only buffer real event messages — device:sync / speed-test:update etc. are noise
 			if msg_type != "events": return
 			events = j.get("data", [])
@@ -12718,14 +12944,21 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			changed = False
 			if   modelKey == "sensor" and ws_id in self.PROTECT_SENSORS:
 				self._applyProtectSensorPayload(self.PROTECT_SENSORS[ws_id]["devId"], payload);  changed = True
-			elif modelKey == "sensor" and ws_id not in self.PROTECT_SENSORS:
-				self.indiLOG.log(20,"WS sensor id:{} not in PROTECT_SENSORS keys:{} payload:{}".format(ws_id, list(self.PROTECT_SENSORS.keys()), payload))
+			elif modelKey == "sensor" and ws_id not in self.PROTECT_SENSORS and (ws_id not in self.SUPPRESS_LOG or time.time() - self.SUPPRESS_LOG[ws_id] > 300):
+				self.indiLOG.log(20,"WS sensor id:{} not in PROTECT_SENSORS; new?  payload:{}".format(ws_id, json.dumps(payload,sort_keys=True,indent=2)))
+				self.SUPPRESS_LOG[ws_id] = time.time() 
+				self.lastRefreshProtect  = 0 # force creation of new sensor device 
 			elif modelKey == "relay"  and ws_id in self.PROTECT_RELAYS:
 				self._applyProtectRelayPayload(self.PROTECT_RELAYS[ws_id]["devId"],   payload);  changed = True
 			elif modelKey == "bridge" and ws_id in self.PROTECT_SENSORS:
 				self._applyProtectGatewayPayload(self.PROTECT_SENSORS[ws_id]["devId"], payload); changed = True
 			elif modelKey == "bridge":
 				pass  # bridge heartbeat for an ID not yet in PROTECT_SENSORS — harmless, ignore silently
+
+			elif modelKey == "speaker" and ws_id in self.PROTECT_SENSORS:
+				self._applyProtectSpeakerPayload(self.PROTECT_SENSORS[ws_id]["devId"], payload); changed = True
+			elif modelKey == "speaker":
+				pass  # speaker delta for an ID not yet in PROTECT_SENSORS — harmless, ignore silently
 
 			elif modelKey == "event" and isinstance(payload, dict) and payload.get("type") == "sensorButtonPressed":
 				# Can be relay input press OR sensor button press
@@ -12743,19 +12976,22 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self._fetchAndUpdateRelayInput(_device_id, _inputNum, None, pressType=_pressType)
 					changed = True
 					if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed relay:{} input:{} pressType:{}".format(_device_id, _inputNum, _pressType))
-				elif _device_id and _device_id in self.PROTECT_SENSORS:
-					# sensor button press (allInOne / environmental / glassbreak)
-					_devId = self.PROTECT_SENSORS[_device_id]["devId"]
-					_dev   = indigo.devices.get(_devId)
+				else:
+					# sensor button press (allInOne / environmental / glassbreak / motion / entry)
+					# or a relay's OWN function button press (in PROTECT_RELAYS, no input1/input2)
+					if   _device_id in self.PROTECT_SENSORS: _devId = self.PROTECT_SENSORS[_device_id]["devId"]
+					elif _device_id in self.PROTECT_RELAYS:  _devId = self.PROTECT_RELAYS[_device_id]["devId"]
+					else:                                    _devId = None
+					_dev = indigo.devices.get(_devId) if _devId else None
 					if _dev and "sensorButtonPressedAt" in _dev.states:
 						_dtStr = time.strftime("%Y-%m-%d %H:%M:%S")
 						_prevB = _dev.states.get("sensorButtonPressedAt","")
 						if _prevB and _prevB != _dtStr: _dev.updateStateOnServer("sensorButtonPressedAt_Last", _prevB)
 						_dev.updateStateOnServer("sensorButtonPressedAt", _dtStr)
 						changed = True
-						if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed sensor:{} pressType:{} at {}".format(_device_id, _pressType, _dtStr))
-				else:
-					self.indiLOG.log(20,"WS sensorButtonPressed id:{} btn:{} not found in PROTECT_RELAYS or PROTECT_SENSORS".format(_device_id, _btn))
+						if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed dev:{} pressType:{} at {}".format(_device_id, _pressType, _dtStr))
+					else:
+						self.indiLOG.log(20,"WS sensorButtonPressed id:{} btn:{} not found in PROTECT_RELAYS or PROTECT_SENSORS".format(_device_id, _btn))
 
 			elif modelKey == "event" and isinstance(payload, dict) and payload.get("type") in ("sensor","ring","glassBreak","glass_break","sensorMotion","sensorWaterLeak","leak"):
 				# Protect (newer firmware) sends sensor detections as modelKey=event with type=sensor or similar.
@@ -12940,6 +13176,41 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		if deviceTypeId == "sensor_protect_keyfob":
 			btn = g("buttonPressed") or g("lastAction") or ""
 			return "btn:{}".format(btn) if btn else "ready"
+		if deviceTypeId == "sensor_protect_smoke_co":
+			if g("smokeAlarm") and g("coAlarm"): return "SMOKE + CO!"
+			if g("smokeAlarm"): return "SMOKE!"
+			if g("coAlarm"):    return "CO!"
+			return "ok"
+		if deviceTypeId == "sensor_protect_airquality":
+			if g("vapeDetected"): return "VAPE!"
+			if dispWhat == "vape":
+				v = g("vapeIndex")
+				try: return "vape {}".format(int(float(v))) if v != "" and v is not None else "ok"
+				except: return "ok"
+			if dispWhat == "co2":
+				c = g("co2")
+				try: return "{} ppm".format(int(float(c))) if c != "" and c is not None else "CONNECTED"
+				except: return "CONNECTED"
+			if dispWhat == "temp_humidity":
+				unit   = self.pluginPrefs.get("temperatureUnit", "C")
+				unit_s = "ºC" if unit == "C" else "ºF"
+				parts = []
+				try:
+					t = g("temperature")
+					if t != "" and t is not None:
+						tv = float(t)
+						if unit == "F": tv = tv * 9.0/5.0 + 32.0
+						parts.append("{:.1f}{}".format(tv, unit_s))
+				except: pass
+				try:
+					h = g("humidity")
+					if h != "" and h is not None: parts.append("{}%".format(int(float(h))))
+				except: pass
+				return " ".join(parts) if parts else "CONNECTED"
+			# default: AQI
+			a = g("aqi")
+			try: return "AQI {}".format(int(float(a))) if a != "" and a is not None else "CONNECTED"
+			except: return "CONNECTED"
 		if deviceTypeId in ("sensor_protect_environmental", "sensor_protect_allInOne"):
 			unit   = self.pluginPrefs.get("temperatureUnit", "C")
 			unit_s = "ºC" if unit == "C" else "ºF"
@@ -13205,6 +13476,48 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			# glassbreak: isMotionDetected IS the glass break trigger — sync into glassBreakDetected
 			if dev.deviceTypeId == "sensor_protect_glassbreak" and "motionDetected" in mergedVals:
 				mergedVals["glassBreakDetected"] = mergedVals["motionDetected"]
+			# ---- smoke / CO alarm (smokeStatus delta) ----
+			if dev.deviceTypeId == "sensor_protect_smoke_co" and isinstance(payload.get("smokeStatus"), dict):
+				_sm  = payload["smokeStatus"]
+				_now = time.strftime("%Y-%m-%d %H:%M:%S")
+				for _k, _src in (("smokeAlarm","smokeAlarm"),("coAlarm","coAlarm"),("smokeValue","smokeValue"),
+					("coValue","coValue"),("alarmEnabled","enabled"),("batteryLow","batteryLow"),
+					("endOfLife","endOfLife"),("smokeSensorFault","smokeSensorFault"),("coSensorFault","coSensorFault")):
+					if _src not in _sm: continue
+					_v = _sm[_src]
+					mergedVals[_k] = _v
+					if _k in dev.states and dev.states.get(_k) != _v:
+						self.addToStatesUpdateList(devId, _k, _v)
+						# stamp alarm onset (False -> True), keep previous timestamp in _Last
+						if _v and _k in ("smokeAlarm","coAlarm") and (_k+"At") in dev.states:
+							_prevA = dev.states.get(_k+"At","")
+							if _prevA and (_k+"At_Last") in dev.states: self.addToStatesUpdateList(devId, _k+"At_Last", _prevA)
+							self.addToStatesUpdateList(devId, _k+"At", _now)
+			# ---- vape / air quality (airQuality delta) ----
+			if dev.deviceTypeId == "sensor_protect_airquality" and isinstance(payload.get("airQuality"), dict):
+				_aq = payload["airQuality"]
+				def _aqv2(k):
+					v = _aq.get(k)
+					if isinstance(v, dict): v = v.get("value")
+					return v
+				for _k, _src in (("aqi","aqi"),("vapeIndex","vape"),("co2","co2"),("voc","voc"),("nox","nox"),
+					("tvoc","tvoc"),("pm1p0","pm1p0"),("pm2p5","pm2p5"),("pm4p0","pm4p0"),("pm10p0","pm10p0"),
+					("temperature","temperature"),("humidity","humidity")):
+					_v = _aqv2(_src)
+					if _v is None: continue
+					mergedVals[_k] = _v
+					if _k in dev.states and "{}".format(dev.states.get(_k,"")) != "{}".format(_v):
+						self.addToStatesUpdateList(devId, _k, _v)
+				_vstat = ""
+				if isinstance(_aq.get("vape"), dict): _vstat = ("{}".format(_aq["vape"].get("status") or "")).lower()
+				_vd = _vstat not in 		("", "neutral", "unknown", "good", "ok", "safe")
+				mergedVals["vapeDetected"] = _vd
+				if "vapeDetected" in dev.states and dev.states.get("vapeDetected") != _vd:
+					self.addToStatesUpdateList(devId, "vapeDetected", _vd)
+					if _vd and "vapeDetectedAt" in dev.states:
+						_prevV = dev.states.get("vapeDetectedAt","")
+						if _prevV and "vapeDetectedAt_Last" in dev.states: self.addToStatesUpdateList(devId, "vapeDetectedAt_Last", _prevV)
+						self.addToStatesUpdateList(devId, "vapeDetectedAt", time.strftime("%Y-%m-%d %H:%M:%S"))
 			newDisplay = self._buildSensorDisplayStatus(isConnNow, dev.deviceTypeId, mergedVals, dev.pluginProps)
 			if newDisplay is not None and dev.states.get("displayStatus","") != newDisplay:
 				self.addToStatesUpdateList(devId,"displayStatus",newDisplay)
@@ -13231,6 +13544,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				triggered = mergedVals.get("sirenActive", False)
 				dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ACTIVE" if triggered else "idle"))
 				dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+			elif typeId == "sensor_protect_smoke_co":
+				triggered = bool(mergedVals.get("smokeAlarm", False) or mergedVals.get("coAlarm", False))
+				dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ALARM" if triggered else "ok"))
+				dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+			elif typeId == "sensor_protect_airquality":
+				triggered = bool(mergedVals.get("vapeDetected", False))
+				dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or "CONNECTED")
+				dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
 			elif typeId in ("sensor_protect_environmental", "sensor_protect_allInOne"):
 				_disp = newDisplay or dev.states.get("displayStatus", "") or "CONNECTED"
 				dev.updateStateOnServer("onOffState", True, uiValue=_disp)
@@ -13249,34 +13570,76 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		return str(stateStr).upper() in ("ON", "OPEN", "ACTIVE", "TRIGGERED")
 
 	####-----------------	 ---------
-	def _fetchAndUpdateRelayInput(self, relayId, inputNum, newState=None, pressType=""):
-		"""Set or toggle onOffState of a relay input Indigo device and update timestamps.
-		newState=True/False sets explicitly; newState=None toggles current state.
-		pressType: 'press', 'longPress', 'doublePress' or '' — stored as device state.
-		After setting state, schedules a delayed off (~3 s) so the state self-resets."""
+	def _relayInputDisplayChannel(self, dev):
+		"""Which input channel (1 or 2) the combined inputs device shows in its status."""
+		try: return 2 if "{}".format(dev.pluginProps.get("displayChannel","1")).find("2") > -1 else 1
+		except: return 1
+
+	####-----------------	 ---------
+	def _refreshRelayInputDisplay(self, dev, in1=None, in2=None):
+		"""Recompute the combined inputs device's onOffState/displayStatus from the selected channel.
+		in1/in2 override the committed states (use when a new value is only queued, not committed yet)."""
 		try:
-			devIdKey = "devIdInput{}".format(inputNum)
-			devIdI   = self.PROTECT_RELAYS[relayId].get(devIdKey)
+			if in1 is None: in1 = bool(dev.states.get("input1State", False))
+			if in2 is None: in2 = bool(dev.states.get("input2State", False))
+			ch   = self._relayInputDisplayChannel(dev)
+			on   = bool(in2 if ch == 2 else in1)
+			disp = "in{}:{}".format(ch, "ON" if on else "off")
+			if dev.states.get("displayStatus","") != disp:
+				self.addToStatesUpdateList(dev.id, "displayStatus", disp)
+			dev.updateStateOnServer("onOffState", on, uiValue=disp)
+			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if on else indigo.kStateImageSel.SensorOn)
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+
+	####-----------------	 ---------
+	def _setRelayInputChannel(self, devId, channel, isOn, pressType="", stampPress=False):
+		"""Set one input channel's state on the combined inputs device; optionally stamp a button
+		press (input{n}At/_Last, input{n}PressType, sensorButtonPressedAt), then refresh the display."""
+		try:
+			dev = indigo.devices[int(devId)]
+		except:
+			return
+		try:
+			ch = 2 if "{}".format(channel).find("2") > -1 else 1
+			sK = "input{}State".format(ch)
+			if sK in dev.states and dev.states.get(sK) != isOn:
+				dev.updateStateOnServer(sK, isOn)
+			if stampPress and isOn:
+				_now = datetime.datetime.now().strftime(_defaultDateStampFormat)
+				atK  = "input{}At".format(ch)
+				if atK in dev.states:
+					_prev = dev.states.get(atK, "")
+					if _prev and (atK + "_Last") in dev.states: dev.updateStateOnServer(atK + "_Last", _prev)
+					dev.updateStateOnServer(atK, _now)
+				if pressType and "input{}PressType".format(ch) in dev.states:
+					dev.updateStateOnServer("input{}PressType".format(ch), pressType)
+				if "sensorButtonPressedAt" in dev.states:
+					_prevB = dev.states.get("sensorButtonPressedAt", "")
+					if _prevB and _prevB != _now and "sensorButtonPressedAt_Last" in dev.states:
+						dev.updateStateOnServer("sensorButtonPressedAt_Last", _prevB)
+					dev.updateStateOnServer("sensorButtonPressedAt", _now)
+			self._refreshRelayInputDisplay(dev, in1=(isOn if ch == 1 else None), in2=(isOn if ch == 2 else None))
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+
+	####-----------------	 ---------
+	def _fetchAndUpdateRelayInput(self, relayId, inputNum, newState=None, pressType=""):
+		"""A relay input was pressed (sensorButtonPressed event). Set that channel ON on the single
+		combined inputs device, stamp the press, refresh the shown channel, then schedule an auto-off
+		~3 s later so Indigo triggers see a clean on->off pulse. newState=None means a momentary press."""
+		try:
+			devIdI = self.PROTECT_RELAYS[relayId].get("devIdInput")
 			if not devIdI:
 				self.indiLOG.log(20, "Protect relay input: no Indigo device for relay {} input{}".format(relayId, inputNum))
 				return
-			devI     = indigo.devices[devIdI]
-			if newState is None:
-				newState = not devI.onState   # toggle
-			_now     = datetime.datetime.now().strftime(_defaultDateStampFormat)
-			devI.updateStateOnServer("onOffState", newState)
-			if pressType and "pressType" in devI.states:
-				devI.updateStateOnServer("pressType", pressType)
-			_prev = devI.states.get("onAt", "")
-			if _prev and "onAt_Last" in devI.states:
-				devI.updateStateOnServer("onAt_Last", _prev)
-			devI.updateStateOnServer("onAt", _now)
-			self.indiLOG.log(20, "Protect relay input{} {} → {} [{}]".format(inputNum, devI.name, "on" if newState else "off", pressType or "–"))
+			ch = 2 if "{}".format(inputNum).find("2") > -1 else 1
+			on = True if newState is None else bool(newState)
+			self._setRelayInputChannel(devIdI, ch, on, pressType=pressType, stampPress=True)
+			self.indiLOG.log(20, "Protect relay input{} {} [{}]".format(ch, "on" if on else "off", pressType or "–"))
 			# schedule auto-off ~3 s later so Indigo triggers see a clean on→off pulse
 			with self.delayedActionLock:
-				if devIdI not in self.delayedAction:
-					self.delayedAction[devIdI] = []
-				self.delayedAction[devIdI].append({"action": "updateState", "state": "onOffState", "value": False, "fireAt": time.time() + 3.0})
+				self.delayedAction.setdefault(devIdI, []).append({"action": "relayInputOff", "channel": ch, "fireAt": time.time() + 3.0})
 		except Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
 
@@ -13315,20 +13678,27 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			inputs = payload.get("inputs")
 			if inputs:
-				for inp in inputs:
-					idx = inp.get("index", 0)
-					val = inp.get("state","")
-					isOn = self._relayInputStateIsOn(val)
-					inputDaughterKey = "devIdInput{}".format(idx + 1)
-					inputDaughterDevId = None
-					for relayId in self.PROTECT_RELAYS:
-						if self.PROTECT_RELAYS[relayId].get("devId") == devId:
-							inputDaughterDevId = self.PROTECT_RELAYS[relayId].get(inputDaughterKey)
-							break
-					if inputDaughterDevId:
-						try:
-							indigo.devices[inputDaughterDevId].updateStateOnServer("onOffState", isOn)
-						except: pass
+				devIdInput = None
+				for relayId in self.PROTECT_RELAYS:
+					if self.PROTECT_RELAYS[relayId].get("devId") == devId:
+						devIdInput = self.PROTECT_RELAYS[relayId].get("devIdInput")
+						break
+				if devIdInput:
+					for inp in inputs:
+						idx  = inp.get("index", 0)
+						isOn = self._relayInputStateIsOn(inp.get("state",""))
+						# steady on/off from the relay delta — set the channel, no press-stamp/auto-off
+						self._setRelayInputChannel(devIdInput, idx + 1, isOn)
+
+			# functionButtonPressedAt arrives on relay updates as ms timestamp (physical function button)
+			if "sensorButtonPressedAt" in dev.states:
+				_fbpa = payload.get("functionButtonPressedAt") or (payload.get("wirelessConnectionState") or {}).get("functionButtonPressedAt")
+				if _fbpa:
+					_dtStr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(_fbpa / 1000.0))
+					if dev.states.get("sensorButtonPressedAt") != _dtStr:
+						_prevB = dev.states.get("sensorButtonPressedAt","")
+						if _prevB: self.addToStatesUpdateList(devId, "sensorButtonPressedAt_Last", _prevB)
+						self.addToStatesUpdateList(devId, "sensorButtonPressedAt", _dtStr)
 
 			# bluetoothConnectionState / wirelessConnectionState.signalState
 			_bt = payload.get("bluetoothConnectionState")
@@ -13385,6 +13755,402 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			try:    xList.append([data["devId2"], indigo.devices[data["devId2"]].name + " (output 2)"])
 			except: pass
 		return xList
+
+	####-----------------	 ---------
+	def filterGlassbreakDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
+		"""List the Protect glass break sensor devices for an action / menu device picker."""
+		xList = list()
+		for dev in indigo.devices.iter("props.isProtectSensor"):
+			if dev.deviceTypeId == "sensor_protect_glassbreak":
+				xList.append([dev.id, dev.name])
+		return sorted(xList, key=lambda x: x[1])
+
+	####-----------------	 ---------
+	def _clearGlassBreak(self, devId):
+		"""Launch a glass break clear on a background thread and return immediately.
+		Protect's clear endpoint (POST api/sensors/<id>/glass-break/clear) pushes a LoRa downlink
+		via the SuperLink gateway and the NVR holds the HTTP response until it completes — ~35s
+		measured — far longer than a menu/action callback should block. The worker does the POST
+		and reflects the result. Returns True if the clear was started (device valid)."""
+		try:
+			dev = indigo.devices[int(devId)]
+		except:
+			self.indiLOG.log(30, "clearGlassBreak: device {} not found".format(devId))
+			return False
+		if dev.deviceTypeId != "sensor_protect_glassbreak":
+			self.indiLOG.log(30, "clearGlassBreak: {} is not a glass break sensor".format(dev.name))
+			return False
+		self.indiLOG.log(20, "Protect glass break {}: clear requested — sending (LoRa downlink can take ~30s)".format(dev.name))
+		threading.Thread(target=self._clearGlassBreakWorker, args=(dev.id,), name="clearGlassBreak", daemon=True).start()
+		return True
+
+	####-----------------	 ---------
+	def _clearGlassBreakWorker(self, devId):
+		"""Background worker: POST the clear (can take ~35s on a LoRa sensor) and reflect the result."""
+		try:
+			dev = indigo.devices[int(devId)]
+		except:
+			return
+		try:
+			# emptyBody=True: send Content-Length 0 like the web UI (a JSON {} body makes this route hang).
+			# useTimeout=60: the NVR holds the response until the LoRa downlink completes (~35s observed).
+			# repeatIfFailed=False: one attempt — no retry storm on the slow endpoint.
+			data = self.setupProtectcmd(dev.id, {}, cmdType="post", api="api/sensors", endpoint="glass-break/clear", emptyBody=True, repeatIfFailed=False, useTimeout=60)
+			# success = a truthy dict from the protect path (the cleared sensor object); timeout returns "" / []
+			_ok = isinstance(data, dict) and "{}".format(data).find("error") == -1
+			if not _ok:
+				self.indiLOG.log(30, "Protect glass break {}: clear failed (no/!ok response): {}".format(dev.name, data))
+				return
+			# reflect the cleared state locally so the device updates immediately
+			if dev.states.get("glassBreakDetected", False):
+				dev.updateStateOnServer("glassBreakDetected", False)
+			_merged = dict(dev.states)
+			_merged["glassBreakDetected"] = False
+			_merged["motionDetected"]     = False
+			_disp = self._buildSensorDisplayStatus(dev.states.get("isConnected", True), dev.deviceTypeId, _merged, dev.pluginProps)
+			if _disp is not None and dev.states.get("displayStatus","") != _disp:
+				dev.updateStateOnServer("displayStatus", _disp)
+			dev.updateStateOnServer("onOffState", False, uiValue=_disp or "ok")
+			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+			self.indiLOG.log(20, "Protect glass break {}: cleared".format(dev.name))
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+
+	####-----------------	 ---------
+	def buttonClearGlassBreakCALLBACKaction(self, action1=None):
+		"""Action callback: clear the glass break sensor selected in the action's ConfigUI."""
+		return self._clearGlassBreak(action1.props.get("glassbreakDeviceSelected",""))
+
+	####-----------------	 ---------
+	def buttonClearGlassBreakCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		"""Menu callback: clear the glass break sensor selected in the menu's ConfigUI."""
+		try:
+			valuesDict["MSG"] = ""
+			sel = valuesDict.get("glassbreakDeviceSelected","")
+			if not sel:
+				valuesDict["MSG"] = "select a glass break sensor first"
+				return valuesDict
+			ok = self._clearGlassBreak(sel)
+			valuesDict["MSG"] = "clearing in background (~30s) — see log / device" if ok else "could not start — see log"
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return valuesDict
+
+
+
+	####-----------------	 ---------
+	def buttonSpeakersetVolumeCALLBACKaction(self, action1=None):
+		"""Action callback: 
+				call the menue item 
+		"""
+		valuesDict = action1.props
+		return self.buttonSpeakerSetVolumeCALLBACK(valuesDict)
+
+	####-----------------	 ---------
+	def buttonSpeakerSetVolumeCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		"""Menu callback: 
+			set volume of speaker 
+		"""
+		debug = False
+		try:
+			valuesDict["MSG"] = "ok"
+			devId = valuesDict.get("speakerDeviceSelected","")
+			if not devId:
+				valuesDict["MSG"] = "select a speaker first"
+				return valuesDict
+			dev = indigo.devices[int(devId)]
+			idOfSpeaker = dev.states.get("id","")
+		except:
+			self.indiLOG.log(30, "buttonSpeakerSetVolumeCALLBACK: device >{}< not found".format(devId))
+			valuesDict["MSG"] = "error see log"
+			return valuesDict
+		if dev.deviceTypeId != "speaker_protect":
+			self.indiLOG.log(30, "buttonSpeakerSetVolumeCALLBACK: {} is not a speaker".format(dev.name))
+			valuesDict["MSG"] = "error see log"
+			return valuesDict
+		try:
+			vol = valuesDict.get("volume","") 
+			try:    vol = int(vol)
+			except: vol = 50
+			vol = max(0, min(100, vol))
+			payload = {"volume": vol}
+			protectRawPath=f"/proxy/protect/api/speakers/{idOfSpeaker}"
+			data = self._executeCMDOnController(dataSEND=payload, jsonAction="protect", protect=True, cmdType="patch", protectRawPath=protectRawPath, debugOverwrite=False, repeatIfFailed=False)
+			retC  = isinstance(data, dict) and "{}".format(data).find("error") == -1
+
+			if not retC:
+				self.indiLOG.log(30, "buttonSpeakerSetVolumeCALLBACK set volume failed  {} \npath: {}, json:{}, ret:{}".format(dev.name, protectRawPath, payload, data))
+				valuesDict["MSG"] =  "error - see log"
+				return valuesDict
+			if debug: self.indiLOG.log(20, "buttonSpeakerSetVolumeCALLBACK {}/: set volume {}".format(dev.name, vol))
+			valuesDict["MSG"] = "volume sent" if retC else "error— see log"
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return valuesDict
+
+
+	####-----------------	 ---------
+	def buttonSpeakersetMicCALLBACKaction(self, action1=None):
+		"""Action callback: 
+				call the menue item 
+		"""
+		valuesDict = action1.props
+		return self.buttonSpeakerSetMicCALLBACK(valuesDict, isMenu=False)
+
+	####-----------------	 ---------
+	def buttonSpeakerSetMicCALLBACK(self, valuesDict=None, typeId="", devId="", isMenu=True):
+		"""Menu callback: 
+			set speaker mic volume 
+		"""
+		debug = isMenu
+		try:
+			valuesDict["MSG"] = "ok"
+			devId = valuesDict.get("speakerDeviceSelected","")
+			if not devId:
+				valuesDict["MSG"] = "select a speaker first"
+				return valuesDict
+			dev = indigo.devices[int(devId)]
+			idOfSpeaker = dev.states.get("id","")
+		except:
+			self.indiLOG.log(30, "buttonSpeakerSetMikeCALLBACK: device >{}< not found".format(devId))
+			valuesDict["MSG"] = "error see log"
+			return valuesDict
+		if dev.deviceTypeId != "speaker_protect":
+			self.indiLOG.log(30, "buttonSpeakerSetMikeCALLBACK: {} is not a speaker".format(dev.name))
+			valuesDict["MSG"] = "error see log"
+			return valuesDict
+		try:
+			vol = valuesDict.get("volumeMic","") 
+			try:    vol = int(vol)
+			except: vol = 50
+			vol = max(0, min(100, vol))
+			payload = {"micVolume": vol}
+			protectRawPath=f"/proxy/protect/api/speakers/{idOfSpeaker}"
+			data = self._executeCMDOnController(dataSEND=payload, jsonAction="protect", protect=True, cmdType="patch", protectRawPath=protectRawPath, debugOverwrite=False, repeatIfFailed=False)
+			retC  = isinstance(data, dict) and "{}".format(data).find("error") == -1
+
+			if not retC:
+				self.indiLOG.log(30, "buttonSpeakerSetMikeCALLBACK set volume failed  {} \npath: {}, json:{}, ret:{}".format(dev.name, protectRawPath, payload, data))
+				valuesDict["MSG"] =  "error - see log"
+				return valuesDict
+			if debug: self.indiLOG.log(20, "buttonSpeakerSetMikeCALLBACK {}/: set volume {}".format(dev.name, vol))
+			valuesDict["MSG"] = "volume sent" if retC else "error— see log"
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return valuesDict
+
+
+
+
+	####-----------------	 ---------
+	def filterSpeakerDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
+		"""List the Protect AI speaker devices for an action device picker."""
+		xList = list()
+		for dev in indigo.devices.iter("props.isProtectSpeaker"):
+			if dev.deviceTypeId == "speaker_protect":
+				xList.append([dev.id, dev.name])
+		return sorted(xList, key=lambda x: x[1])
+
+	####-----------------	 ---------
+	def _playSpeakerSound(self, devId, audioFile, repeatTimes=1, repeatDelay=4.0):
+		"""Play a stored audio file on a Protect speaker, on demand, via the Alarm Manager
+		test endpoint: POST /api/v2/alarms/protect/test (returns 204). The action's "sources"
+		is the speaker MAC (no separators); triggers_data/scope are only there to satisfy the
+		test payload and don't affect what plays.
+
+		The endpoint plays the sound once and ignores its repeatTimes field, so to repeat we
+		send the POST repeatTimes times ourselves. When repeatTimes>1 the extra sends run on a
+		background thread, each spaced repeatDelay seconds apart so they don't overlap."""
+		try:
+			dev = indigo.devices[int(devId)]
+		except:
+			self.indiLOG.log(30, "speakerPlaySound: device {} not found".format(devId))
+			return False
+		if dev.deviceTypeId != "speaker_protect":
+			self.indiLOG.log(30, "speakerPlaySound: {} is not a speaker".format(dev.name))
+			return False
+		if not audioFile:
+			self.indiLOG.log(30, "speakerPlaySound: no audioFile id given")
+			return False
+		try:
+			mac = "{}".format(dev.states.get("MAC","")).replace(":","").replace("-","").upper()
+			try:    rt = int(repeatTimes)
+			except: rt = 1
+			rt = max(1, rt)
+			try:    rd = float(repeatDelay)
+			except: rd = 4.0
+			rd = max(0.5, rd)
+			payload = {
+				"triggers_data": [[{"id":"protect:sensors.openStatusChanged"},{"id":"protect:sensors.closeStatusChanged"}]],
+				"actions_data":  [[{"data":{"audioFile":audioFile, "repeatTimes":"1", "sources":[mac]}, "id":"protect:sound.audioFile"}]],
+				"scope":         {"mode":"include", "data":{}},
+				"title":         "Indigo play sound",
+			}
+
+			def _send():
+				data = self._executeCMDOnController(dataSEND=payload, jsonAction="protect", protect=True, cmdType="post",
+													protectRawPath="/api/v2/alarms/protect/test", repeatIfFailed=False)
+				return isinstance(data, dict) and "{}".format(data).find("error") == -1
+
+			# first send is synchronous so the caller gets a real pass/fail
+			if not _send():
+				self.indiLOG.log(30, "speaker {}: play sound failed".format(dev.name))
+				return False
+			self.indiLOG.log(20, "speaker {}: played sound {} (1/{})".format(dev.name, audioFile, rt))
+
+			if rt > 1:
+				def _repeatWorker():
+					for n in range(2, rt + 1):
+						time.sleep(rd)
+						ok = _send()
+						self.indiLOG.log(20 if ok else 30, "speaker {}: played sound {} ({}/{}){}".format(
+							dev.name, audioFile, n, rt, "" if ok else " — failed"))
+				threading.Thread(name="speaker-repeat-{}".format(dev.id), target=_repeatWorker, daemon=True).start()
+			return True
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+			return False
+
+	####-----------------	 ---------
+	def buttonSpeakerPlaySoundCALLBACKaction(self, action1=None):
+		"""Action callback: play the speaker's configured sound on the selected speaker.
+		The sound id is defined per speaker in the speaker device's edit dialog."""
+		p = action1.props
+		sel = p.get("speakerDeviceSelected","")
+		af  = "{}".format(p.get("audioFile","") or "").strip()
+		if af in ("", "0"): af = self._speakerConfiguredSound(sel)   # "0" = placeholder, use device default
+		return self._playSpeakerSound(sel, af, repeatTimes=p.get("repeatTimes","1"), repeatDelay=p.get("repeatDelay","4"))
+
+	####-----------------	 ---------
+	def _speakerConfiguredSound(self, devId):
+		"""Return the audioFile id selected in a speaker device's edit dialog;
+		falls back to the first configured slot / built-in default."""
+		try:
+			props = indigo.devices[int(devId)].pluginProps
+			af = "{}".format(props.get("audioFile","") or "").strip()
+			if af: return af
+			sounds = self._speakerSoundsFromProps(props)
+			return sounds[0][0] if sounds else ""
+		except:
+			return self._speakerDefaultSounds[0][0]
+
+	####-----------------	 ---------
+	# built-in default sounds — used when a speaker device has no slots configured yet
+	_speakerDefaultSounds = [
+		["67f5ac7200785e03e40003f0", "Default"],
+		["67f5ac7200f95e03e40003f2", "Express-Line"],
+		["67f5ac7201f65e03e40003f4", "Sundrops"],
+		["67f5ac72021b5e03e40003f6", "Traditional"],
+	]
+
+	def _speakerSoundsFromProps(self, props):
+		"""Return [[id,name],...] from the 10 name/id slots in a speaker's props dict;
+		falls back to the built-in defaults when no slot has an id."""
+		xList = list()
+		for i in range(1, 11):
+			_id   = "{}".format(props.get("soundId{}".format(i), "") or "").strip()
+			if not _id: continue
+			_name = "{}".format(props.get("soundName{}".format(i), "") or "").strip() or _id
+			xList.append([_id, _name])
+		return xList or list(self._speakerDefaultSounds)
+
+	####-----------------	 ---------
+	def _getProtectRingtones(self):
+		"""GET the Protect Alarm-Manager audio-file list (the built-in ringtones plus any
+		MP3s uploaded in Protect -> Settings -> Audio Files). Returns [[id, label], ...].
+		NOTE: custom uploads must be MONO mp3 (44.1 kHz, small) or Protect silently drops them."""
+		out = []
+		try:
+			data = self.setupProtectcmd(0, {}, cmdType="get",
+						api="api/automationManager/external/data/actions", endpoint="chime-ringtones")
+			if isinstance(data, list):
+				for o in data:
+					try:
+						sid  = "{}".format(o.get("value","") or (o.get("metadata",{}) or {}).get("id","") or "").strip()
+						name = "{}".format(o.get("label","") or sid).strip()
+						if sid: out.append([sid, name])
+					except: continue
+			else:
+				self.indiLOG.log(30, "getProtectRingtones: unexpected response: {}".format(str(data)[:140]))
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return out
+
+	####-----------------	 ---------
+	def menuUpdateSpeakerSoundsCALLBACK(self, valuesDict=None, typeId="", devId=0):
+		"""Menu item: fetch the current audio files from the Protect server and write them into
+		the sound slots of every speaker_protect device. This replaces hand-editing the name/id
+		slots in the device dialog - run it after adding/removing files in Protect Audio Files."""
+		nSlots = 100
+		try:
+			rings = self._getProtectRingtones()
+			if not rings:
+				self.indiLOG.log(30, "updateSpeakerSounds: no audio files returned from Protect (is Protect enabled and reachable?)")
+				return
+			if len(rings) > nSlots:
+				self.indiLOG.log(30, "updateSpeakerSounds: Protect has {} audio files but only {} slots exist - using the first {}: {}".format(
+									len(rings), nSlots, nSlots,  ", ".join(n for _, n in rings)))
+			nDev = 0
+			for dev in indigo.devices.iter(self.pluginId):
+				if dev.deviceTypeId != "speaker_protect": continue
+				props = dict(dev.pluginProps)
+				for i in range(1, nSlots+1):
+					props["soundName{}".format(i)] = ""
+					props["soundId{}".format(i)]   = ""
+				for i, (sid, name) in enumerate(rings[:nSlots], start=1):
+					props["soundId{}".format(i)]   = sid
+					props["soundName{}".format(i)] = name
+				dev.replacePluginPropsOnServer(props)
+				nDev += 1
+			self.indiLOG.log(20, "updateSpeakerSounds: updated {} speaker device(s) with {} audio file(s) from Protect:\n{}".format(
+								nDev, len(rings[:nSlots]), ", ".join(n for _, n in rings[:nSlots])))
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return
+
+	####-----------------	 ---------
+	def filterSpeakerSounds(self, filter="", valuesDict=None, typeId="", targetId=""):
+		"""Build the 'sound to play' dropdown from the 10 name/id slots in the speaker device
+		(now auto-filled from Protect via the 'Update speaker sounds' menu item; falls back to
+		the built-in defaults)."""
+		return self._speakerSoundsFromProps(valuesDict or {})
+
+	####-----------------	 ---------
+	def buttonConfirmSpeakerSelectedCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		"""Confirm the selected speaker: copy the picked device id into the hidden
+		'speakerConfirmedId' field. That change makes Indigo rebuild the dynamic
+		'sound to play' list (filterSpeakerSoundsForSelectedSpeaker reads that field)."""
+		valuesDict = valuesDict or {}
+		valuesDict["speakerConfirmedId"] = valuesDict.get("speakerDeviceSelected","")
+		return valuesDict
+
+	####-----------------	 ---------
+	def filterSpeakerSoundsForSelectedSpeaker(self, filter="", valuesDict=None, typeId="", targetId=""):
+		"""Build the sound dropdown for the play-sound action/menu from the slots configured
+		on the confirmed speaker (set by the LOAD SOUNDS button into 'speakerConfirmedId')."""
+		valuesDict = valuesDict or {}
+		sel = valuesDict.get("speakerConfirmedId","") or valuesDict.get("speakerDeviceSelected","")
+		if not sel: return [[0,"select speaker and load sound first"]]
+		try:    props = indigo.devices[int(sel)].pluginProps
+		except: return [[0,"select speaker and load sound first"]]
+		return self._speakerSoundsFromProps(props)
+
+	####-----------------	 ---------
+	def buttonSpeakerPlaySoundCALLBACK(self, valuesDict=None, typeId="", devId=""):
+		"""Menu callback: play the selected stored sound on the selected speaker."""
+		try:
+			valuesDict["MSG"] = ""
+			sel = valuesDict.get("speakerDeviceSelected","")
+			if not sel:
+				valuesDict["MSG"] = "select a speaker first"
+				return valuesDict
+			af = "{}".format(valuesDict.get("audioFile","") or "").strip()
+			if af in ("", "0"): af = self._speakerConfiguredSound(sel)   # "0" = placeholder, use device default
+			ok = self._playSpeakerSound(sel, af, repeatTimes=valuesDict.get("repeatTimes","1"))
+			valuesDict["MSG"] = "sound sent" if ok else "could not play — see log"
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40, "", exc_info=True)
+		return valuesDict
 
 	####-----------------	 ---------
 	####-----------------	 ---------
@@ -13464,6 +14230,62 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		except Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 		return valuesDict
+
+	####-----------------	 ---------
+	def _applyProtectSpeakerPayload(self, devId, payload):
+		"""Apply a WebSocket delta to a Protect AI Horn Speaker Indigo device."""
+		try:
+			dev = indigo.devices[devId]
+			if self.decideMyLog("ProtWS"): self.indiLOG.log(20,"_applyProtectSpeakerPayload dev:{} payload:{}".format(dev.name, payload))
+			# connection: speaker has no isConnected field — it reports "state" ("CONNECTED"/...)
+			isConn = payload.get("isConnected")
+			if isConn is None and "state" in payload:
+				isConn = "{}".format(payload.get("state") or "").upper() == "CONNECTED"
+			if isConn is not None:
+				status = "CONNECTED" if isConn else "DISCONNECTED"
+				if dev.states.get("status")      != status:  self.addToStatesUpdateList(devId,"status",status)
+				if dev.states.get("isConnected") != isConn:  self.addToStatesUpdateList(devId,"isConnected",isConn)
+			# volume (top-level or under speakerSettings)
+			_vol = self._getFirstProtectValue(payload, ("volume",), None)
+			if _vol is None and isinstance(payload.get("speakerSettings"), dict):
+				_vol = payload["speakerSettings"].get("volume")
+			if _vol is not None and "{}".format(dev.states.get("volume","")) != "{}".format(_vol):
+				self.addToStatesUpdateList(devId, "volume", _vol)
+			# mic
+			_mvol = self._getFirstProtectValue(payload, ("micVolume",), None)
+			if _mvol is not None and "{}".format(dev.states.get("micVolume","")) != "{}".format(_mvol):
+				self.addToStatesUpdateList(devId, "micVolume", _mvol)
+			if "isMicEnabled" in payload:
+				_men = bool(payload.get("isMicEnabled"))
+				if dev.states.get("isMicEnabled") != _men: self.addToStatesUpdateList(devId, "isMicEnabled", _men)
+			# playback status from speakerState (a dict {status, mode, ...})
+			_str = None
+			if "speakerState" in payload:
+				_spsRaw = payload.get("speakerState")
+				_sps    = _spsRaw.get("status","") if isinstance(_spsRaw, dict) else ("{}".format(_spsRaw) if _spsRaw else "")
+				if dev.states.get("speakerState") != _sps: self.addToStatesUpdateList(devId, "speakerState", _sps)
+				_str = bool(_sps) and _sps.lower() not in ("idle","ready","stopped","off","")
+				if dev.states.get("isStreaming") != _str: self.addToStatesUpdateList(devId, "isStreaming", _str)
+			# firmware
+			_fw = payload.get("firmwareVersion")
+			if _fw is not None and dev.states.get("firmwareVersion") != _fw:
+				self.addToStatesUpdateList(devId, "firmwareVersion", _fw)
+			# rebuild display + onOffState/icon
+			_conn = isConn if isConn is not None else dev.states.get("isConnected", True)
+			_strm = bool(dev.states.get("isStreaming", False)) if _str is None else _str
+			_volNow = dev.states.get("volume", "") if _vol is None else _vol
+			if   not _conn:    _disp = "DISCONNECTED"
+			elif _strm:        _disp = "playing"
+			elif _volNow not in ("", None):
+				try:    _disp = "vol {}%".format(int(_volNow))
+				except: _disp = "idle"
+			else:              _disp = "idle"
+			if dev.states.get("displayStatus","") != _disp:
+				self.addToStatesUpdateList(devId, "displayStatus", _disp)
+			dev.updateStateOnServer("onOffState", _strm, uiValue=_disp)
+			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn if _conn else indigo.kStateImageSel.SensorOff)
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 	####-----------------	 ---------
 	def _applyProtectGatewayPayload(self, devId, payload):
@@ -14693,7 +15515,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 	####-----------------	 ---------
-	def setupProtectcmd(self, devId, payload, cmdType="patch", api="cameras", endpoint="", debugOverwrite=False, repeatIfFailed=True, raw=False, ignore40x=False):
+	def setupProtectcmd(self, devId, payload, cmdType="patch", api="cameras", endpoint="", debugOverwrite=False, repeatIfFailed=True, raw=False, ignore40x=False, emptyBody=False, useTimeout=0):
 
 		"""Set up Protectcmd.
 		
@@ -14721,7 +15543,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				pageString = "{}/{}".format(api, endpoint)
 				if self.decideMyLog("Protect") or debugOverwrite: self.indiLOG.log(10,"setupProtectcmd   page:>{}< payload:>{}<, method:>{}<".format( pageString, payload, cmdType ))
 					
-			data = self._executeCMDOnController(dataSEND=payload, pageString=pageString, jsonAction="protect", protect=True, cmdType=cmdType, raw=raw, debugOverwrite=debugOverwrite, repeatIfFailed=repeatIfFailed, ignore40x=ignore40x)
+			data = self._executeCMDOnController(dataSEND=payload, pageString=pageString, jsonAction="protect", protect=True, cmdType=cmdType, raw=raw, debugOverwrite=debugOverwrite, repeatIfFailed=repeatIfFailed, ignore40x=ignore40x, emptyBody=emptyBody, useTimeout=useTimeout)
 
 			errorpos =  str(data).find("error") 
 			if errorpos > -1 and errorpos < 10:
@@ -18242,7 +19064,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		elif status == "" :
 			dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
 		_isSensorDev = dev.deviceTypeId in ("sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion",
-			"sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","relay_protect","superlink_gateway")
+			"sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","relay_protect","superlink_gateway")
 		if force or status == "":
 			if not _isSensorDev:
 				dev.updateStateOnServer("displayStatus",self.padDisplay(status)+datetime.datetime.now().strftime("%m-%d %H:%M:%S"))
@@ -18334,8 +19156,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								# Protect sensors manage their own displayStatus (sensor value, not connection text)
 								# — only write the padded status string for non-sensor device types
 								_isSensorDev = dev.deviceTypeId in ("sensor_protect_allInOne","sensor_protect_entry","sensor_protect_motion",
-									"sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","relay_protect","superlink_gateway")
-								_isRelayDev  = dev.deviceTypeId in ("relay_protect","relay_protect_output2","relay_protect_input1","relay_protect_input2")
+									"sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","relay_protect","superlink_gateway")
+								_isRelayDev  = dev.deviceTypeId in ("relay_protect","relay_protect_output2","relay_protect_input")
 								# env/allInOne set their own onOffState uiValue (temperature/humidity) — skip generic path
 								_isEnvSensor = dev.deviceTypeId in ("sensor_protect_environmental","sensor_protect_allInOne")
 								if not _isSensorDev:

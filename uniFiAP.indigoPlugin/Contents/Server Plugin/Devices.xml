@@ -5233,6 +5233,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
+			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
 				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
@@ -5397,6 +5401,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
+			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
 				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
@@ -5449,6 +5457,14 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>Integer</ValueType>
 				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
 			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -5492,6 +5508,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			<State id="type">
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
 			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
@@ -5553,6 +5573,14 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>Integer</ValueType>
 				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
 			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -5598,6 +5626,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			<State id="type">
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
 			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
@@ -5735,6 +5767,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
+			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
 				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
@@ -5870,6 +5906,10 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			<State id="type">
 				<ValueType>string</ValueType>
 				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
 			</State>
 			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
@@ -6029,25 +6069,23 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 		</States>
 	</Device>
 
-	<Device type="relay" id="relay_protect">
-		<Name>Protect Relay (USL-Relay)</Name>
-		<UiDisplayStateId>onOffState</UiDisplayStateId>
+	<Device type="sensor" id="sensor_protect_smoke_co">
+		<Name>Protect Smoke / CO Alarm</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
 		<ConfigUI>
-			<Field id="isProtectRelay"         type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
 			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
 			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
 			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
-			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
 			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
-			<Field id="childOutput2DevId"       type="textfield" defaultValue=""     hidden="yes"> </Field>
-			<Field id="enableOutput2"  type="checkbox" defaultValue="false">
-				<Label>Create Output 2 daughter device:</Label>
-			</Field>
-			<Field id="enableInput1"   type="checkbox" defaultValue="false">
-				<Label>Create Input 1 daughter device:</Label>
-			</Field>
-			<Field id="enableInput2"   type="checkbox" defaultValue="false">
-				<Label>Create Input 2 daughter device:</Label>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="true" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Smoke / CO / ok</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -6087,6 +6125,298 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 				<ValueType>string</ValueType>
 				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
 			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="smokeAlarm">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>smokeAlarm</TriggerLabel><ControlPageLabel>smoke alarm</ControlPageLabel>
+			</State>
+			<State id="coAlarm">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>coAlarm</TriggerLabel><ControlPageLabel>CO alarm</ControlPageLabel>
+			</State>
+			<State id="smokeValue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>smokeValue</TriggerLabel><ControlPageLabel>smoke value</ControlPageLabel>
+			</State>
+			<State id="coValue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>coValue</TriggerLabel><ControlPageLabel>CO value</ControlPageLabel>
+			</State>
+			<State id="alarmEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>alarmEnabled</TriggerLabel><ControlPageLabel>alarm enabled</ControlPageLabel>
+			</State>
+			<State id="batteryLow">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>batteryLow</TriggerLabel><ControlPageLabel>battery low</ControlPageLabel>
+			</State>
+			<State id="endOfLife">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>endOfLife</TriggerLabel><ControlPageLabel>end of life</ControlPageLabel>
+			</State>
+			<State id="smokeSensorFault">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>smokeSensorFault</TriggerLabel><ControlPageLabel>smoke sensor fault</ControlPageLabel>
+			</State>
+			<State id="coSensorFault">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>coSensorFault</TriggerLabel><ControlPageLabel>CO sensor fault</ControlPageLabel>
+			</State>
+			<State id="tamperDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>tamperDetected</TriggerLabel><ControlPageLabel>tamperDetected</ControlPageLabel>
+			</State>
+			<State id="smokeAlarmAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>smokeAlarmAt</TriggerLabel><ControlPageLabel>smoke alarm at</ControlPageLabel>
+			</State>
+			<State id="smokeAlarmAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>smokeAlarmAt_Last</TriggerLabel><ControlPageLabel>smoke alarm at (previous)</ControlPageLabel>
+			</State>
+			<State id="coAlarmAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>coAlarmAt</TriggerLabel><ControlPageLabel>CO alarm at</ControlPageLabel>
+			</State>
+			<State id="coAlarmAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>coAlarmAt_Last</TriggerLabel><ControlPageLabel>CO alarm at (previous)</ControlPageLabel>
+			</State>
+			<State id="alarmTriggeredAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>alarmTriggeredAt</TriggerLabel><ControlPageLabel>alarmTriggeredAt</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="btSignalQuality">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalQuality</TriggerLabel><ControlPageLabel>bluetooth signal quality</ControlPageLabel>
+			</State>
+			<State id="btSignalStrength">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalStrength</TriggerLabel><ControlPageLabel>bluetooth signal strength (dBm)</ControlPageLabel>
+			</State>
+			<State id="btSignalNoiseRatio">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="sensor" id="sensor_protect_airquality">
+		<Name>Protect Vape / Air Quality (UP-AirQuality)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectSensor"        type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsBatteryLevel"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="aqi">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="aqi">Air Quality Index</Option>
+					<Option value="vape">Vape detected / index</Option>
+					<Option value="co2">CO2 (ppm)</Option>
+					<Option value="temp_humidity">Temperature + Humidity</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="aqi">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>aqi</TriggerLabel><ControlPageLabel>air quality index</ControlPageLabel>
+			</State>
+			<State id="vapeIndex">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>vapeIndex</TriggerLabel><ControlPageLabel>vape index</ControlPageLabel>
+			</State>
+			<State id="vapeDetected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>vapeDetected</TriggerLabel><ControlPageLabel>vape detected</ControlPageLabel>
+			</State>
+			<State id="co2">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>co2</TriggerLabel><ControlPageLabel>CO2 (ppm)</ControlPageLabel>
+			</State>
+			<State id="voc">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>voc</TriggerLabel><ControlPageLabel>VOC index</ControlPageLabel>
+			</State>
+			<State id="nox">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>nox</TriggerLabel><ControlPageLabel>NOx index</ControlPageLabel>
+			</State>
+			<State id="tvoc">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>tvoc</TriggerLabel><ControlPageLabel>TVOC</ControlPageLabel>
+			</State>
+			<State id="pm1p0">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pm1p0</TriggerLabel><ControlPageLabel>PM1.0</ControlPageLabel>
+			</State>
+			<State id="pm2p5">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pm2p5</TriggerLabel><ControlPageLabel>PM2.5</ControlPageLabel>
+			</State>
+			<State id="pm4p0">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pm4p0</TriggerLabel><ControlPageLabel>PM4.0</ControlPageLabel>
+			</State>
+			<State id="pm10p0">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>pm10p0</TriggerLabel><ControlPageLabel>PM10</ControlPageLabel>
+			</State>
+			<State id="temperature">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>temperature</TriggerLabel><ControlPageLabel>temperature</ControlPageLabel>
+			</State>
+			<State id="humidity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>humidity</TriggerLabel><ControlPageLabel>humidity</ControlPageLabel>
+			</State>
+			<State id="vapeEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>vapeEnabled</TriggerLabel><ControlPageLabel>vape detection enabled</ControlPageLabel>
+			</State>
+			<State id="vapeDetectedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>vapeDetectedAt</TriggerLabel><ControlPageLabel>vape detected at</ControlPageLabel>
+			</State>
+			<State id="vapeDetectedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>vapeDetectedAt_Last</TriggerLabel><ControlPageLabel>vape detected at (previous)</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
+			</State>
+			<State id="created">
+				<ValueType>string</ValueType>
+				<TriggerLabel>created</TriggerLabel><ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<Device type="relay" id="relay_protect">
+		<Name>Protect Relay (USL-Relay)</Name>
+		<UiDisplayStateId>onOffState</UiDisplayStateId>
+		<ConfigUI>
+			<Field id="isProtectRelay"         type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="childOutput2DevId"       type="textfield" defaultValue=""     hidden="yes"> </Field>
+			<Field id="enableOutput2"  type="checkbox" defaultValue="false">
+				<Label>Create Output 2 daughter device:</Label>
+			</Field>
+			<Field id="enableInputs"   type="checkbox" defaultValue="false">
+				<Label>Create Inputs daughter device (both input channels in one device):</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
+			<State id="MAC">
+				<ValueType>string</ValueType>
+				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
+			</State>
+			<State id="id">
+				<ValueType>string</ValueType>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>string</ValueType>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="bridgeId">
+				<ValueType>string</ValueType>
+				<TriggerLabel>bridgeId</TriggerLabel><ControlPageLabel>bridgeId</ControlPageLabel>
+			</State>
+			<State id="firmwareVersion">
+				<ValueType>string</ValueType>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
 			<State id="lastCommand">
 				<ValueType>string</ValueType>
 				<TriggerLabel>lastCommand</TriggerLabel><ControlPageLabel>last command</ControlPageLabel>
@@ -6106,6 +6436,14 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			<State id="btSignalNoiseRatio">
 				<ValueType>Integer</ValueType>
 				<TriggerLabel>btSignalNoiseRatio</TriggerLabel><ControlPageLabel>bluetooth signal/noise ratio</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -6138,31 +6476,70 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 		</States>
 	</Device>
 
-	<Device type="sensor" id="relay_protect_input1">
-		<Name>Protect Relay Input 1 (USL-Relay)</Name>
-		<UiDisplayStateId>onOffState</UiDisplayStateId>
+	<Device type="sensor" id="relay_protect_input">
+		<Name>Protect Relay Inputs (USL-Relay)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
 		<ConfigUI>
-			<Field id="isProtectRelayInput1"   type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="isProtectRelayInput"    type="checkbox" defaultValue="true"  hidden="yes"> </Field>
 			<Field id="parentRelayDevId"        type="textfield" defaultValue=""     hidden="yes"> </Field>
 			<Field id="SupportsOnState"         type="checkbox" defaultValue="false" hidden="true"></Field>
 			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="displayChannel" type="menu" defaultValue="1">
+				<Label>Channel shown in status (onOffState / display):</Label>
+				<List>
+					<Option value="1">Input 1</Option>
+					<Option value="2">Input 2</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="MAC">
 				<ValueType>string</ValueType>
 				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
 			</State>
-			<State id="onAt">
-				<ValueType>string</ValueType>
-				<TriggerLabel>onAt</TriggerLabel><ControlPageLabel>on at</ControlPageLabel>
+			<State id="input1State">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>input1State</TriggerLabel><ControlPageLabel>input 1 on/off</ControlPageLabel>
 			</State>
-			<State id="onAt_Last">
+			<State id="input1At">
 				<ValueType>string</ValueType>
-				<TriggerLabel>onAt_Last</TriggerLabel><ControlPageLabel>on at (previous)</ControlPageLabel>
+				<TriggerLabel>input1At</TriggerLabel><ControlPageLabel>input 1 on at</ControlPageLabel>
 			</State>
-			<State id="pressType">
+			<State id="input1At_Last">
 				<ValueType>string</ValueType>
-				<TriggerLabel>pressType</TriggerLabel><ControlPageLabel>press type</ControlPageLabel>
+				<TriggerLabel>input1At_Last</TriggerLabel><ControlPageLabel>input 1 on at (previous)</ControlPageLabel>
+			</State>
+			<State id="input1PressType">
+				<ValueType>string</ValueType>
+				<TriggerLabel>input1PressType</TriggerLabel><ControlPageLabel>input 1 press type</ControlPageLabel>
+			</State>
+			<State id="input2State">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>input2State</TriggerLabel><ControlPageLabel>input 2 on/off</ControlPageLabel>
+			</State>
+			<State id="input2At">
+				<ValueType>string</ValueType>
+				<TriggerLabel>input2At</TriggerLabel><ControlPageLabel>input 2 on at</ControlPageLabel>
+			</State>
+			<State id="input2At_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>input2At_Last</TriggerLabel><ControlPageLabel>input 2 on at (previous)</ControlPageLabel>
+			</State>
+			<State id="input2PressType">
+				<ValueType>string</ValueType>
+				<TriggerLabel>input2PressType</TriggerLabel><ControlPageLabel>input 2 press type</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt</TriggerLabel><ControlPageLabel>sensor button pressed at</ControlPageLabel>
+			</State>
+			<State id="sensorButtonPressedAt_Last">
+				<ValueType>string</ValueType>
+				<TriggerLabel>sensorButtonPressedAt_Last</TriggerLabel><ControlPageLabel>sensor button pressed at (previous)</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
 			</State>
 			<State id="created">
 				<ValueType>string</ValueType>
@@ -6171,31 +6548,100 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 		</States>
 	</Device>
 
-	<Device type="sensor" id="relay_protect_input2">
-		<Name>Protect Relay Input 2 (USL-Relay)</Name>
-		<UiDisplayStateId>onOffState</UiDisplayStateId>
+
+	<Device type="sensor" id="speaker_protect">
+		<Name>Protect AI Horn Speaker (UP-AI-Horn-Speaker)</Name>
+		<UiDisplayStateId>displayStatus</UiDisplayStateId>
 		<ConfigUI>
-			<Field id="isProtectRelayInput2"   type="checkbox" defaultValue="true"  hidden="yes"> </Field>
-			<Field id="parentRelayDevId"        type="textfield" defaultValue=""     hidden="yes"> </Field>
-			<Field id="SupportsOnState"         type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="isProtectSpeaker"       type="checkbox" defaultValue="true"  hidden="yes"> </Field>
+			<Field id="SupportsOnState"         type="checkbox" defaultValue="true"  hidden="true"></Field>
+			<Field id="SupportsSensorValue"     type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="SupportsStatusRequest"   type="checkbox" defaultValue="false" hidden="true"></Field>
 			<Field id="AllowOnStateChange"      type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="AllowSensorValueChange"  type="checkbox" defaultValue="false" hidden="true"></Field>
+			<Field id="displayWhatValue" type="menu" defaultValue="sensor_value">
+				<Label>What to show in device display:</Label>
+				<List>
+					<Option value="sensor_value">Playing / volume / idle</Option>
+					<Option value="connection">Connected / Disconnected</Option>
+				</List>
+			</Field>
+			<Field id="audioFile" type="menu" defaultValue="67f5ac7200785e03e40003f0">
+				<Label>sound to play (PLAY sound action / menu):</Label>
+				<List class="self" method="filterSpeakerSounds" dynamicReload="true"/>
+			</Field>
+			<Field id="soundLabel" type="label" fontSize="small" fontColor="darkgrey">
+				<Label>The sound list is loaded automatically from the Protect server. After adding or removing files in Protect (Settings - Audio Files), run:  Plugins - uniFiAP - "Update speaker sounds from Protect server".  Custom uploads must be MONO mp3 (44.1 kHz, small) or Protect silently drops them.</Label>
+			</Field>
 		</ConfigUI>
 		<States>
+			<State id="status">
+				<ValueType>string</ValueType>
+				<TriggerLabel>status</TriggerLabel><ControlPageLabel>status</ControlPageLabel>
+			</State>
+			<State id="name">
+				<ValueType>string</ValueType>
+				<TriggerLabel>name</TriggerLabel><ControlPageLabel>name</ControlPageLabel>
+			</State>
 			<State id="MAC">
 				<ValueType>string</ValueType>
 				<TriggerLabel>MAC</TriggerLabel><ControlPageLabel>MAC</ControlPageLabel>
 			</State>
-			<State id="onAt">
+			<State id="id">
 				<ValueType>string</ValueType>
-				<TriggerLabel>onAt</TriggerLabel><ControlPageLabel>on at</ControlPageLabel>
+				<TriggerLabel>id</TriggerLabel><ControlPageLabel>id</ControlPageLabel>
 			</State>
-			<State id="onAt_Last">
+			<State id="type">
 				<ValueType>string</ValueType>
-				<TriggerLabel>onAt_Last</TriggerLabel><ControlPageLabel>on at (previous)</ControlPageLabel>
+				<TriggerLabel>type</TriggerLabel><ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="pressType">
+			<State id="firmwareVersion">
 				<ValueType>string</ValueType>
-				<TriggerLabel>pressType</TriggerLabel><ControlPageLabel>press type</ControlPageLabel>
+				<TriggerLabel>firmwareVersion</TriggerLabel><ControlPageLabel>firmwareVersion</ControlPageLabel>
+			</State>
+			<State id="isConnected">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isConnected</TriggerLabel><ControlPageLabel>isConnected</ControlPageLabel>
+			</State>
+			<State id="isAdopted">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isAdopted</TriggerLabel><ControlPageLabel>isAdopted</ControlPageLabel>
+			</State>
+			<State id="lastSeen">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastSeen</TriggerLabel><ControlPageLabel>lastSeen</ControlPageLabel>
+			</State>
+			<State id="connectedSince">
+				<ValueType>string</ValueType>
+				<TriggerLabel>connectedSince</TriggerLabel><ControlPageLabel>connectedSince</ControlPageLabel>
+			</State>
+			<State id="volume">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>volume</TriggerLabel><ControlPageLabel>volume</ControlPageLabel>
+			</State>
+			<State id="micVolume">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>micVolume</TriggerLabel><ControlPageLabel>mic volume</ControlPageLabel>
+			</State>
+			<State id="isMicEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isMicEnabled</TriggerLabel><ControlPageLabel>mic enabled</ControlPageLabel>
+			</State>
+			<State id="speakerState">
+				<ValueType>string</ValueType>
+				<TriggerLabel>speakerState</TriggerLabel><ControlPageLabel>speaker state</ControlPageLabel>
+			</State>
+			<State id="isStreaming">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>isStreaming</TriggerLabel><ControlPageLabel>is playing / streaming</ControlPageLabel>
+			</State>
+			<State id="lastStatusChange">
+				<ValueType>string</ValueType>
+				<TriggerLabel>lastStatusChange</TriggerLabel><ControlPageLabel>lastStatusChange</ControlPageLabel>
+			</State>
+			<State id="displayStatus">
+				<ValueType>string</ValueType>
+				<TriggerLabel>displayStatus</TriggerLabel><ControlPageLabel>displayStatus</ControlPageLabel>
 			</State>
 			<State id="created">
 				<ValueType>string</ValueType>
@@ -6203,7 +6649,6 @@ If in config enabled for all or off, this setting is ignored, this setting is on
 			</State>
 		</States>
 	</Device>
-
 
 	<Device type="sensor" id="DHCP">
 		<Name>DHCP depreciated</Name>

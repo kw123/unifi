@@ -1,5 +1,24 @@
+changes in V2026.51.440 @ 2026-07-01
+==================
+- added support for set speaker volume and mic volume in menu and actions
+- added support for remote 4 button
+
+changes in V2026.50.440 @ 2026-06-16
+==================
+- added sensorButtonPressedAt / sensorButtonPressedAt_Last states to motion, entry and relay devices (like the other sensors); relay's own function button now updates them too
+- glass break: new action "GLASS BREAK clear detection" and menu item "CLEAR glass break detection.." — calls Protect's server-side clear endpoint (POST api/sensors/<id>/glass-break/clear), then clears glassBreakDetected/display (Protect reports the break but never sends an automatic clear); runs on a background thread with a 60s timeout (the LoRa downlink clear takes ~35s server-side)
+- protect commands: state-changing requests (POST/PUT/PATCH/DELETE) now send Origin/Referer headers and empty-body POSTs omit Content-Type to match the web UI; added per-call useTimeout (UniFi OS enforces same-origin on writes — without these the request hangs)
+- new device type "Protect Smoke / CO Alarm" (sensor_protect_smoke_co): smokeAlarm, coAlarm, smokeValue, coValue, alarmEnabled, batteryLow, endOfLife, sensor-fault and tamper states + smoke/CO alarm-onset timestamps; onOffState/display trip on smoke or CO
+- new device type "Protect Vape / Air Quality" (sensor_protect_airquality, UP-AirQuality): aqi, vapeIndex, vapeDetected, co2, voc, nox, tvoc, pm1/2.5/4/10, temperature, humidity, vapeEnabled + vape-detected timestamps; PoE (no battery); display selectable AQI / vape / CO2 / temp+humidity
+- new sensors auto-map by model type (UP-AirQuality / smoke-CO variants) with substring fallbacks; both update live via WebSocket (smokeStatus / airQuality deltas)
+- relay inputs: the two input daughter devices are combined into ONE "Protect Relay Inputs" device holding both channels (input1State/input2State + per-channel on-at/press-type + sensorButtonPressedAt); a ConfigUI setting selects which channel drives onOffState/display. (Outputs still use separate devices.)
+- new device type "Protect AI Horn Speaker" (speaker_protect, type "AI Speaker"): volume, micVolume, isMicEnabled, speakerState + isStreaming, connection (derived from the device "state" field); created from the bootstrap speakers[] array and updated live via WebSocket (modelKey=speaker)
+- new action "SPEAKER play test sound" and menu item "PLAY speaker test sound.." — POST api/speakers/<id>/test-sound {"volume":N} (plays the speaker's built-in test tone; volume blank = device's current volume)
+- new action "SPEAKER play sound" and menu item "PLAY speaker sound.." — play a stored sound (Default/Express-Line/Sundrops/Traditional, or a custom audioFile id) on demand via the Alarm Manager test endpoint (POST /api/v2/alarms/protect/test); supports a UniFi-OS absolute path and 204 responses in the HTTP helper
+- protect writes returning 200 with no body are now treated as success (no retry) — prevents re-firing side effects like replaying a sound
+
 changes in V2026.50.436 @ 2026-06-10
-==================  
+==================
 - controller event tracking via WebSocket (optional): client connect/disconnect/roam, security alerts (IPS/IDS logged as warnings), admin block/unblock with instant 'blocked' state update
 - optional: controller WS events can replace the SSH log listeners for client presence detection (~10s slower, for setups without AP ssh access); changing the option restarts the plugin
 - protect WS events are always logged to EVENTS-protectWS.json (option removed); controller events optional to EVENTS-controllerWS.json; files auto-trim at 50MB (drop oldest half)
