@@ -748,6 +748,38 @@
 	</Action>
 
 
+	<Action id="LIGHTonoffProtect">
+		<Name>FLOODLIGHT Protect set light ON / off</Name>
+		<CallbackMethod>buttonSetProtectLightCALLBACKaction</CallbackMethod>
+		<ConfigUI>
+			<Field id="lightDeviceSelected" type="menu" defaultValue="">
+				<Label>select floodlight device:</Label>
+				<List class="self" filter="" method="filterLightDevice" dynamicReload="false"/>
+			</Field>
+			<Field id="lightState" type="menu" defaultValue="1">
+				<Label>light:</Label>
+				<List>
+					<Option value="-1">do not change</Option>
+					<Option value="0">off</Option>
+					<Option value="1">ON</Option>
+				</List>
+			</Field>
+			<Field id="ledLevel" type="menu" defaultValue="">
+				<Label>brightness (LED level):</Label>
+				<List>
+					<Option value="">do not change</Option>
+					<Option value="1">1 (dimmest)</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6 (brightest)</Option>
+				</List>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+
 	<Action id="GLASSBREAKclearProtect">
 		<Name>GLASS BREAK clear detection</Name>
 		<CallbackMethod>buttonClearGlassBreakCALLBACKaction</CallbackMethod>

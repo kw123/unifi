@@ -3,7 +3,7 @@
 Integrates a UniFi network installation with the [Indigo](https://www.indigodomo.com) home-automation platform. Monitors UniFi access points, switches, gateways, cameras, and UniFi Protect sensors/relays; exposes device states as Indigo sensor/relay devices; and provides actions for controlling ports, cameras, clients, and relay outputs.
 
 Plugin ID: `com.karlwachs.uniFiAP`  
-Version: 2026.50.436  
+Version: 2026.54.443  
 Indigo Server API: 3.0
 
 ---
@@ -31,6 +31,8 @@ Indigo Server API: 3.0
 - **Controller System** — overall controller health and version info
 - **Protect System** — UniFi Protect NVR/application status and version; CPU temperature/load, memory, and disk usage update live from the Protect WebSocket (no SSH poll needed)
 
+> **Note:** every device type in this plugin is created automatically by the plugin itself — none of them can be added manually via Indigo's "New Device" dialog. Switches and APs, in particular, can either be created automatically by enabling **Auto-detect** in the plugin configuration's Switch/AP sections (the plugin reads the controller's device list and creates matching devices itself), or — when auto-detect is off — by entering the switch/AP IP addresses in the plugin configuration's per-slot fields, after which the plugin creates and matches the device the next time it reads the controller. See [Plugin Configuration](#plugin-configuration) below.
+
 ### Cameras
 
 - **Camera (Protect)** — camera connected via UniFi Protect; reports connection state, recording mode, firmware, and Protect-specific stats. WiFi cameras additionally report `wifiSignalStrength` (dBm), `wifiSignalQuality` (%), `wifiLinkSpeed` (Mbps), and `wifiChannel`. Smart detections fill `lastSmartDetectType` (person/vehicle/…), `lastSmartDetectConfidence` (%), `lastSmartDetectZone`, and `lastSmartDetectAt`
@@ -38,31 +40,36 @@ Indigo Server API: 3.0
 
 ### UniFi Protect Sensors (USL family)
 
-Each sensor device reports `status`, `isConnected`, `isAdopted`, `MAC`, `firmwareVersion`, `lastSeen`, `created`, and sensor-specific states. The device-state column in Indigo shows the `displayStatus` text (e.g. 21.5ºC, GLASS BREAK!, OPEN):
+Each sensor device reports `status`, `isConnected`, `isAdopted`, `MAC`, `firmwareVersion`, `lastSeen`, `created`, and sensor-specific states. The device-state column in Indigo shows the `displayStatus` text with a change-stamped timestamp, e.g. `21.5ºC  26-07-03 11:42:00`, `GLASS BREAK!  26-07-03 …`, `open  26-07-03 …` — the trailing date-time updates only when the state actually changes, not on every poll:
 
 - **All-In-One Sensor (UP-Sense)** — motion, contact, temperature, humidity, ambient light (`light` state), battery, `sensorButtonPressedAt` / `sensorButtonPressedAt_Last` (datetime of last/previous function-button press). Water leak: `waterDetected`, `waterDetectedAt`, `waterDetectedAt_Last`, `waterDetectedEnabled`. When leak detection is enabled (exclusive mode on this sensor) the device behaves like a water sensor: onOffState on = wet, display shows dry/LEAK!
 - **Entry Sensor (USL-Entry)** — door/window contact open/closed state, battery
 - **Motion Sensor (USL-Motion)** — motion detected state, battery
 - **Environmental Sensor (USL-Environmental)** — temperature, humidity, battery, `sensorButtonPressedAt`. Water leak: `waterDetected` + timestamps (combined — Protect does not report which probe fired) and per-probe enable flags `waterDetectedInternalEnabled` (built-in contacts) / `waterDetectedExternalEnabled` (wired probe)
 - **Glass Break Sensor (USL-Glassbreak)** — glass break detection (`glassBreakAt` / `glassBreakAt_Last`), battery, `sensorButtonPressedAt`
-- **Remote Key Fob (USL-Fob)** — button press events, battery
+- **Remote Key Fob (USL-Fob)** — button press events (`buttonPressed` always as "number/name", e.g. `2/night`; display selectable as names or numbers, Auto follows the Protect "Button Labels" setting), battery
+- **Smoke / CO Alarm (sensor_protect_smoke_co)** — `smokeAlarm`, `coAlarm`, `smokeValue`, `coValue`, `alarmEnabled`, `batteryLow`, `endOfLife`, sensor-fault and tamper states + alarm-onset timestamps; onOffState/display trip on smoke or CO (`SMOKE+CO!` / `SMOKE!` / `CO!` / `ok`). Future CO-only models (UP-CO / USL-CO variants) map onto this same type
+- **Vape / Air Quality (UP-AirQuality)** — `aqi`, `vapeIndex`/`vapeDetected`, `co2`, `voc`/`nox`/`tvoc`, `pm1`/`pm2.5`/`pm4`/`pm10`, temperature, humidity; PoE powered; display selectable (AQI / vape / CO2 / temp+humidity)
 
 ### Protect Relay (USL-Relay)
 
-The relay creates four Indigo devices:
+The relay creates three Indigo devices:
 
 - **Protect Relay (relay_protect)** — parent device for output 1; states include `onOffState`, `lastCommand`, `status`, `isConnected`, `MAC`, `id`, `firmwareVersion`, `btSignal`, `lastSeen`, `created`
 - **Protect Relay Output 2 (relay_protect_output2)** — independent on/off control for output 2; states include `onOffState`, `lastCommand`, `MAC`, `created` (only the parent device carries `status`)
-- **Protect Relay Input 1 (relay_protect_input1)** — dry-contact input 1; states include `onOffState`, `pressType`, `onAt`, `onAt_Last`, `MAC`, `created`
-- **Protect Relay Input 2 (relay_protect_input2)** — dry-contact input 2; same states as input 1
+- **Protect Relay Inputs (relay_protect_input)** — ONE combined device for both dry-contact inputs: `input1State`/`input2State`, per-channel `input1At`/`input2At` (+ `_Last`) and `input1PressType`/`input2PressType`, plus `sensorButtonPressedAt`. A device setting selects which channel drives `onOffState`/display (shown as e.g. `in1:ON  26-07-03 …`)
 
 #### Relay Input Behaviour
 
-Input events are delivered exclusively via the UniFi Protect WebSocket (`sensorButtonPressed`). Each press sets `onOffState` to `true`, records the press type (`press`, `longPress`, or `doublePress`) in the `pressType` state, and stores a timestamp in `onAt`. The state automatically resets to `false` after ~3 seconds, creating a clean on→off pulse suitable for Indigo triggers. The `pressType` state can be used to differentiate trigger conditions.
+Input events are delivered exclusively via the UniFi Protect WebSocket (`sensorButtonPressed`). Each press sets the channel's `input{n}State` to `true`, records the press type (`press`, `longPress`, or `doublePress`) in `input{n}PressType`, and stores a timestamp in `input{n}At` (previous press in `input{n}At_Last`). The state automatically resets to `false` after ~3 seconds, creating a clean on→off pulse suitable for Indigo triggers.
 
 #### Relay Output Behaviour
 
-Outputs are controlled via the UniFi Protect Integration API (`/proxy/protect/integration/v1/relays`). On success, `onOffState` is updated and `lastCommand` is set to e.g. `on sent 2026-06-08 17:42:11`. The timestamp is captured immediately before the API call so it reflects when the command was sent, not when the response arrived.
+Outputs are controlled via the UniFi Protect Integration API (`/proxy/protect/integration/v1/relays`). On success, `onOffState` is updated and `lastCommand` is set to e.g. `on sent 2026-07-03 17:42:11`. The timestamp is captured immediately before the API call so it reflects when the command was sent, not when the response arrived.
+
+### FloodLight (UP FloodLight)
+
+- **Protect FloodLight (light_protect)** — Indigo **dimmer** device: the six LED levels map proportionally onto the percent scale (level×100/6 → 17/33/50/67/83/100 %, 0 = off; any percent set rounds to the nearest level, Brighten/Dim steps one level). `onOffState`/`brightnessLevel` follow the physical light (`isLightOn`, including motion-triggered activations); Turn On/Off/Set Brightness control the light via the internal Protect API (`lightOnSettings.isLedForceOn` / `lightDeviceSettings.ledLevel`; off releases it back to its configured mode). States: `motionDetected` (live PIR — usable as an Indigo motion trigger even when the light mode is off), `lastMotionAt`/`_Last`, `isDark`, `ledLevel` (1–6), `lightMode` (off/motion/always), `pirSensitivity`/`pirDuration`/`luxSensitivity`, `isLightForceOn`, plus connection/firmware/ip/lastSeen. Also controllable via the "FLOODLIGHT Protect set light ON / off" action and menu item
 
 ### Siren
 
@@ -72,16 +79,43 @@ Outputs are controlled via the UniFi Protect Integration API (`/proxy/protect/in
 
 ## Plugin Configuration
 
-Open the plugin's configuration dialog from Indigo's Plugins menu. Key settings:
+Open the plugin's configuration dialog from Indigo's Plugins menu.
+
+### Quick Setup
+
+The fastest way to configure the plugin: open the **QUICK SETUP** section at the top of the dialog, pick what your controller device has built in from one menu —
+
+- controller hosted on Mac/rPi (no Protect, no events)
+- CloudKey (controller only, no built-in switch/AP)
+- controller w. built-in switch / w. built-in switch + AP
+- UDM-Pro / UCG (built-in gateway + switch) / UDM (gateway + switch + AP)
+
+— enter the few required parameters (controller IP, web login, SSH login, UDM unix login, and optionally Protect IP/login/API key with *with cameras* / *with sensors* checkboxes), then press **execute**. This fills in all the regular configuration sections below; nothing is saved until you press SAVE, so everything can be reviewed and adjusted first. Notes:
+
+- The menu describes **only the controller box itself**. External switches/APs are found by auto-detect and are never changed by the wizard; the controller's own built-in switch/AP use the reserved slots SW#13/AP#20, filled automatically
+- The wizard resets on every dialog open and prefills its fields from the current settings, so nothing has to be retyped; the result line shows how many parameters actually changed (details in the Indigo log)
+- *with cameras* / *with sensors* map to the prefs `protectCreateCameras` / `protectCreateSensors` (both default on) which gate the creation of **new** Protect camera resp. sensor/relay/speaker/SuperLink devices — existing devices keep updating either way
+
+### Key settings
 
 - **Controller address and credentials** — IP/hostname, username, password for the UniFi Network controller
+- **Switch / AP auto-detect** — optional, off by default, found in the Switch and AP sections respectively. When on, the plugin reads the controller's device list and automatically creates and fills in the matching Indigo switch/AP devices, instead of requiring the IP to be entered manually in a slot below. When off, switches/APs must be added by entering their IP in a free slot in the Switch/AP section (the device itself is still created automatically the next time the controller is read — manual creation via Indigo's "New Device" dialog is not available for these types). Either way, already-configured devices keep being matched and updated automatically. A small number of switch/AP slots are reserved internally for UDM-integrated controllers and are never used by auto-detect or available for manual entry
 - **Protect API key** — X-API-KEY for the UniFi Protect Integration API (required for relay control)
 - **Poll intervals** — how often to refresh AP, switch, gateway, camera, and sensor states
 - **WebSocket** — the plugin maintains a persistent WebSocket connection to UniFi Protect for real-time sensor and relay-input events
 - **Controller event tracking** — opens a second WebSocket to the Network controller's event stream (client connect/disconnect/roam, security alerts, admin actions). Buffers the last 500 events, enables the live monitor and print-events menu. Can be toggled at runtime without a plugin restart
 - **Use controller WS events for client presence detection** — optional (visible only when event tracking is on): feeds controller WiFi events into client presence tracking instead of the SSH log listener. WARNING: adds roughly 10 seconds of latency vs the SSH listener; only useful when direct SSH access to the APs is unavailable. Changing this setting restarts the plugin
-- **Debug areas** — individual checkboxes to enable verbose logging per subsystem (AP, Switch, Gateway, Protect, WebSocket, etc.). One of them appends raw controller WebSocket events to `EVENTS-controllerWS.json` in the prefs dir; Protect WebSocket events are always logged to `EVENTS-protectWS.json` (no option — active whenever Protect is enabled). The files start with `[` and every line ends with `,` — append `]` to get valid JSON. At 50 MB the oldest half is dropped automatically
+- **Debug areas** — individual checkboxes to enable verbose logging per subsystem (AP, Switch, Gateway, Protect, WebSocket, etc.). Two of them append raw controller resp. Protect WebSocket events to `EVENTS-controllerWS.json` / `EVENTS-protectWS.json` in the prefs dir (both off by default). The files start with `[` and every line ends with `,` — append `]` to get valid JSON. At 50 MB the oldest half is dropped automatically. Per-device debug logging (and, for switches, the mini-switch/no-SSH override) is configured on the individual switch/AP device's own Edit Device dialog, not here — see below
 - **SSH settings** — credentials and port for switch port power-cycle actions that use SSH
+
+---
+
+### Switch / AP per-device settings
+
+Each switch and AP device's own Edit Device dialog (not the plugin configuration) has two settings:
+
+- **log debug msg from this device** — enables verbose logging for just this one device
+- **Mini-switch (no SSH) override** *(switches only)* — `Auto` (default) follows the controller's own report of whether the switch supports SSH; `Force: Mini-switch (no SSH)` and `Force: Regular switch (SSH-capable)` override that detection for this device. The dialog also shows a read-only label with the currently auto-detected status, so it's easy to tell what `Auto` is currently resolving to before overriding it. Mini/flex switches that don't support SSH get their port and client data from the controller's own API instead of an SSH session; this is normally detected automatically and the override is rarely needed
 
 ---
 
@@ -158,7 +192,7 @@ Available under Plugins → uniFiAP:
 
 - **`lastSeen`** — updated every poll cycle from the controller; reflects the controller's own last-seen timestamp, not the plugin's
 - **`isConnected`** — USL-Relay uses Bluetooth; Protect may return `null` for this field. The plugin treats `null` as `true` (connected) since adoption implies connectivity for Bluetooth devices
-- **`onAt` / `onAt_Last`** — relay inputs record the timestamp of the most recent press in `onAt` and the previous one in `onAt_Last`
+- **`input{n}At` / `input{n}At_Last`** — the relay inputs device records the timestamp of the most recent press per channel, and the previous one in `_Last`
 - **`lastCommand`** — relay output devices only; format `"on sent YYYY-MM-DD HH:MM:SS"` or `"off sent …"`
 
 ### WiFi Client Signal States (UniFi devices)

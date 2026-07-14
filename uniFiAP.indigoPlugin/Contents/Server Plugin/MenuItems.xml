@@ -1286,6 +1286,45 @@ Select a glass break sensor and clear its detection state.</Label>
 
 
 
+	<MenuItem id="setProtectLight">
+		<Name>FLOODLIGHT set light ON / off..</Name>
+		<ConfigUI>
+			<Field id="Label01" type="label">
+				<Label>Force a Protect FloodLight ON or back to off (its configured mode takes over again after off)</Label>
+			</Field>
+			<Field id="simpleSeparatorL0" type="separator"/>
+			<Field id="lightDeviceSelected" type="menu" defaultValue="">
+				<Label>select floodlight device:</Label>
+				<List class="self" filter="" method="filterLightDevice" dynamicReload="false"/>
+			</Field>
+			<Field id="lightState" type="menu" defaultValue="1">
+				<Label>light:</Label>
+				<List>
+					<Option value="-1">do not change</Option>
+					<Option value="0">off</Option>
+					<Option value="1">ON</Option>
+				</List>
+			</Field>
+			<Field id="ledLevel" type="menu" defaultValue="">
+				<Label>brightness (LED level):</Label>
+				<List>
+					<Option value="">do not change</Option>
+					<Option value="1">1 (dimmest)</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6 (brightest)</Option>
+				</List>
+			</Field>
+			<Field id="confirmL0" type="button" tooltip="">
+				<Label>Click to execute</Label><Title>EXECUTE</Title> <CallbackMethod>buttonSetProtectLightCALLBACK</CallbackMethod>
+			</Field>
+			<Field id="MSG" type="textfield" defaultValue="" readonly="true"> <Label>message from plugin:</Label></Field>
+		</ConfigUI>
+	</MenuItem>
+
+
 	<MenuItem id="speakerPlaySound">
 		<Name>Speaker sound, volume, updates, ..</Name>
 		<ConfigUI>
