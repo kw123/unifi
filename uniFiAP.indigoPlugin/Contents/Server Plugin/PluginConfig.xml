@@ -61,7 +61,7 @@ Real-time events arrive via two WebSockets:
 Nothing is saved until you press SAVE, so you can review/adjust the sections first.</Label>
 	</Field>
 
-	<Field id="quickProfile" type="menu" defaultValue="none" visibleBindingId="quickON" visibleBindingValue="true">
+	<Field id="quickProfile" type="menu" visibleBindingId="quickON" visibleBindingValue="true">
 		<Label>My controller device (only what is built INTO it):</Label>
 		<List>
 			<Option value="none"    >- select -</Option>
@@ -98,19 +98,19 @@ Nothing is saved until you press SAVE, so you can review/adjust the sections fir
 		<Label>UDM unix password:</Label>
 	</Field>
 
-	<Field id="quickProtectON" type="checkbox" defaultValue="false" visibleBindingId="quickProfile" visibleBindingValue="cloudkey,sw,swap,gwsw,gwswap">
+	<Field id="quickProtectON" type="checkbox" visibleBindingId="quickProfile" visibleBindingValue="cloudkey,sw,swap,gwsw,gwswap">
 		<Label>Protect enabled:</Label>
 	</Field>
-	<Field id="quickProtectSameIP" type="checkbox" defaultValue="true" visibleBindingId="quickProtectON" visibleBindingValue="true">
+	<Field id="quickProtectSameIP" type="checkbox" visibleBindingId="quickProtectON" visibleBindingValue="true">
 		<Label>- Protect runs on the same machine as the controller:</Label>
 	</Field>
 	<Field id="quickProtectIP" type="textfield" visibleBindingId="quickProtectSameIP" visibleBindingValue="false">
 		<Label>- Protect IP number:</Label>
 	</Field>
-	<Field id="quickProtectCameras" type="checkbox" defaultValue="true" visibleBindingId="quickProtectON" visibleBindingValue="true">
+	<Field id="quickProtectCameras" type="checkbox" visibleBindingId="quickProtectON" visibleBindingValue="true">
 		<Label>- with cameras:</Label>
 	</Field>
-	<Field id="quickProtectSensors" type="checkbox" defaultValue="false" visibleBindingId="quickProtectON" visibleBindingValue="true">
+	<Field id="quickProtectSensors" type="checkbox" visibleBindingId="quickProtectON" visibleBindingValue="true">
 		<Label>- with sensors / relays / speakers:</Label>
 	</Field>
 	<Field id="quickProtectUID" type="textfield" visibleBindingId="quickProtectON" visibleBindingValue="true">
@@ -167,22 +167,7 @@ and a UDM's built-in AP uses AP slot #20 (both filled automatically). Nothing is
 
 	<Field id="expirationTime"   		type="menu" visibleBindingId="generalON" visibleBindingValue="true"  tooltip="this is the general parameter can be overwritten for each device individually">
 		<Label>UP to DOWN if no message after:</Label>
-		<List>
-			<Option value="10"   >10 seconds (for testing only)</Option>
-			<Option value="20"   >20 seconds (for testing only)</Option>
-			<Option value="30"   >30 seconds (for testing only)</Option>
-			<Option value="40"   >40 seconds (for testing only)</Option>
-			<Option value="60"   >60 seconds</Option>
-			<Option value="90"   >90 seconds</Option>
-			<Option value="120"  >2 minutes default</Option>
-			<Option value="180"  >3 minutes</Option>
-			<Option value="300"  >5 minutes</Option>
-			<Option value="360"  >6 minutes</Option>
-			<Option value="420"  >7 minutes</Option>
-			<Option value="480"  >8 minutes</Option>
-			<Option value="540"  >9 minutes</Option>
-			<Option value="600"  >10 minutes</Option>
- 		</List>
+		<List class="self" filter="common" method="menuTimeSlots" dynamicReload="false"/>
 	</Field>
 
 	<Field id="fixExpirationTime" 		type="checkbox"    visibleBindingId="generalON" visibleBindingValue="true"  
@@ -246,7 +231,7 @@ and a UDM's built-in AP uses AP slot #20 (both filled automatically). Nothing is
 	<Label>timeout for http requests:</Label> 
 	</Field>
 
-	<Field id="displayPadTarget"              	type="menu" defaultValue="80"  visibleBindingId="generalON" visibleBindingValue="true"  tooltip="pixel width reserved for the status word before the date-time in the State column (needs PyObjC/AppKit). Bigger moves the date column to the right"  >
+	<Field id="displayPadTarget"              	type="menu"  visibleBindingId="generalON" visibleBindingValue="true"  tooltip="pixel width reserved for the status word before the date-time in the State column (needs PyObjC/AppKit). Bigger moves the date column to the right"  >
 	<Label>State column: width of status part in pixels:</Label>
 		<List>
 			<Option value="50">50 (smaller)</Option>
@@ -402,7 +387,7 @@ Leave userid and password blank if you want to disable querying the controller</
 		<Label>2. ........................ ssh unix UserID of AP,SW,GW - not UDM:</Label>
 	</Field>
 
-	<Field id="unifiPassWdz"   			type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
+	<Field id="unifiPassWd"   			type="textfield" visibleBindingId="uidON" visibleBindingValue="true" >
 		<Label>..  password:</Label>
 	</Field>
 
@@ -437,6 +422,13 @@ Leave userid and password blank if you want to disable querying the controller</
 	</Field>
    <Field id="protectApiKeyLabel"  type="label"   alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="uidON" visibleBindingValue="true" > 
 		<Label>Get key on protect web page: settings / Integrations / Create New API Key</Label>  
+	</Field>
+
+	<Field id="passwordsEncrypted" type="checkbox" defaultValue="true" visibleBindingId="uidON" visibleBindingValue="true">
+		<Label>store the passwords / API key encrypted in the plugin prefs:</Label>
+	</Field>
+	<Field id="passwordsEncryptedLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="uidON" visibleBindingValue="true">
+		<Label>The passwords above are written to the plugin prefs file as "enc1:.." instead of plain text. The key is derived from this Mac, so a copy of the prefs file is useless on another machine - after moving indigo to a new Mac the passwords have to be entered again. Passwords from an older version (plain text) are encrypted at the first start; untick to store them as plain text again.</Label>
 	</Field>
 
 	<Field id="emptyLabelpro" 		type="label"   fontSize="small"  visibleBindingId="uidON" visibleBindingValue="true"  > 
@@ -542,14 +534,14 @@ device settings
 		<Label>set to off and port to 443 if controller v &gt;= 6.5.55 and you have connection problems</Label>  
 	</Field>
 
-	<Field id="controllerEventTrackingON" type="checkbox" defaultValue="false" visibleBindingId="ctrlON" visibleBindingValue="true">
+	<Field id="controllerEventTrackingON" type="checkbox" visibleBindingId="ctrlON" visibleBindingValue="true">
 		<Label>Enable controller event tracking via WebSocket:</Label>
 	</Field>
 	<Field id="controllerEventTrackingONLabel" type="label" visibleBindingId="ctrlON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
 		<Label>Connects to the UniFi controller WebSocket and listens for network events (client connect/disconnect/roam, security alerts, etc.). Required for the "Print controller events" menu and live event monitor. Buffers the last 500 events in memory. Has no effect on AP presence detection unless the option below is also enabled.</Label>
 	</Field>
 
-	<Field id="controllerWSFeedAPMessages" type="checkbox" defaultValue="false" visibleBindingId="ctrlON" visibleBindingValue="true">
+	<Field id="controllerWSFeedAPMessages" type="checkbox" visibleBindingId="ctrlON" visibleBindingValue="true">
 		<Label>Use controller WS events for client presence detection (instead of all WiFi Ap  SSH log listener):</Label>
 	</Field>
 	<Field id="controllerWSFeedAPMessagesLabel" type="label" visibleBindingId="ctrlON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
@@ -630,7 +622,7 @@ device settings
 		<Label>Show AP section........................................................:</Label>  
 	</Field>
 
-	<Field id="apAutoDetect" type="checkbox" defaultValue="false" visibleBindingId="apON" 	 visibleBindingValue="true">
+	<Field id="apAutoDetect" type="checkbox" visibleBindingId="apON" 	 visibleBindingValue="true">
 		<Label>Auto-detect APs from controller (create/match devices automatically):</Label>
 	</Field>
 	<Field id="apAutoDetectLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="apON" 	 visibleBindingValue="true">
@@ -741,6 +733,57 @@ Then disable listener process
 	<Field id="debGW"  type="checkbox"  visibleBindingId="gwON" 	visibleBindingValue="true"> 
 		<Label>- log debug msg from this dev</Label>  
 	</Field>
+	<Field id="wanLinkSepGW" type="separator" visibleBindingId="gwON" visibleBindingValue="true"/>
+
+	<Field id="wanLinkWatchON" type="checkbox" visibleBindingId="gwON" visibleBindingValue="true"
+			tooltip="watches the negotiated ethernet speed of the gateway WAN (uplink) port, read from the controller port_table - no ssh needed. Some modems renegotiate at 100 Mbit after a link flap and stay there until the port is reset">
+		<Label>- watch WAN port link speed (states wanLinkSpeed / wanLinkStatus):</Label>
+	</Field>
+
+	<Field id="wanLinkWatchLabel" type="label" visibleBindingId="wanLinkWatchON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+	<Label>The uplink port is found automatically (the port_table entry with is_uplink), so no interface name has to be entered.
+A warning is logged when the negotiated speed drops below the expected value.</Label>
+	</Field>
+
+	<Field id="wanLinkMinSpeed" type="menu" visibleBindingId="wanLinkWatchON" visibleBindingValue="true"
+			tooltip="expected minimum negotiated speed. auto = the maximum the port itself can do, taken from its media type (eg 2.5GE -> 2500)">
+		<Label>-- expected minimum WAN link speed:</Label>
+		<List>
+			<Option value="auto" >auto: whatever the port itself can do</Option>
+			<Option value="100"  >100 Mbit</Option>
+			<Option value="1000" >1000 Mbit (default)</Option>
+			<Option value="2500" >2500 Mbit</Option>
+			<Option value="5000" >5000 Mbit</Option>
+			<Option value="10000">10000 Mbit</Option>
+		</List>
+	</Field>
+
+	<Field id="wanLinkMinSpeedLabel" type="label" visibleBindingId="wanLinkWatchON" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+	<Label>Pick the speed your ISP link actually runs at, not what the port could do. On a 2.5GE WAN port feeding a 1 Gbit modem, "auto" would compare against 2500 and report a permanent false alarm.</Label>
+	</Field>
+
+	<Field id="wanLinkAutoFix" type="checkbox" visibleBindingId="wanLinkWatchON" visibleBindingValue="true"
+			tooltip="when the link is degraded, ssh to the gateway and renegotiate the port (ethtool -r, falling back to ip link down/up). Needs the ssh unix userid/password of the GW in the userID section. This DROPS the internet connection for a few seconds">
+		<Label>-- renegotiate the port automatically when degraded:</Label>
+	</Field>
+
+	<Field id="wanLinkAutoFixLabel" type="label" visibleBindingId="wanLinkAutoFix" visibleBindingValue="true" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+	<Label>CAREFUL: this resets the WAN port over ssh (ethtool -r, else ip link down/up) and interrupts the internet connection for a few seconds. Without this option a degraded link is only reported in the device states and the log.</Label>
+	</Field>
+
+	<Field id="wanLinkFixEvery" type="menu" visibleBindingId="wanLinkAutoFix" visibleBindingValue="true"
+			tooltip="minimum time between two automatic renegotiation attempts, so a port that stays degraded is not reset in a loop">
+		<Label>-- try again at the earliest after:</Label>
+		<List>
+			<Option value="300"  >5 minutes</Option>
+			<Option value="600"  >10 minutes</Option>
+			<Option value="900"  >15 minutes (default)</Option>
+			<Option value="1800" >30 minutes</Option>
+			<Option value="3600" >1 hour</Option>
+			<Option value="21600">6 hours</Option>
+			<Option value="86400">24 hours</Option>
+		</List>
+	</Field>
 
 	<Field id="simpleSeparatoripswON" type="separator"/>
 
@@ -776,7 +819,7 @@ Then disable listener process
 	<Label>The plugin supports 2 methods to set POE on/off/cycle. CLI is the older way. Some of the new switches only support unix swctrl command. With a recent software version also older switches support swctrl command.
 </Label>  </Field>
 
-	<Field id="swAutoDetect" type="checkbox" defaultValue="false"  visibleBindingId="swON"     visibleBindingValue="true">
+	<Field id="swAutoDetect" type="checkbox"  visibleBindingId="swON"     visibleBindingValue="true">
 		<Label>Auto-detect switches from controller (create/match devices automatically):</Label>
 	</Field>
 	<Field id="swAutoDetectLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey"  visibleBindingId="swON"     visibleBindingValue="true">
@@ -980,6 +1023,7 @@ In Actions you can configure camera settings and get snapshots.
 	<Field id="debugConnectionCMD" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4.1) http connection to controller/protect - show commands:</Label> </Field>
 	<Field id="debugConnectionRET" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4.2) http connection to controller/protect - show results:</Label> </Field>
 	<Field id="debugDBinfo"        type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4.3) log consumption of controller http dict info:</Label> </Field>
+	<Field id="debugWanLink"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (4.4) gateway WAN port link speed watch:</Label> </Field>
 
 	<Field id="debugGrp5" type="label" fontSize="small" fontColor="darkgrey" visibleBindingId="debugOn" visibleBindingValue="true"> <Label>-- (5) PROTECT ------------------------------------------------------</Label> </Field>
 	<Field id="debugProtect"       type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (5.1) Protect system:</Label> </Field>
@@ -989,10 +1033,10 @@ In Actions you can configure camera settings and get snapshots.
 
 	<Field id="debugGrp6" type="label" fontSize="small" fontColor="darkgrey" visibleBindingId="debugOn" visibleBindingValue="true"> <Label>-- (6) WRITE FILES to prefs dir (each names its file) ---------------</Label> </Field>
 	<Field id="debugProtectDict"   type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (6.1) protect.json (full Protect bootstrap):</Label> </Field>
-	<Field id="debugProtectEventAppendToFile" type="checkbox" defaultValue="false" visibleBindingId="debugOn" visibleBindingValue="true">
+	<Field id="debugProtectEventAppendToFile" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true">
 	                                                                                                       <Label>... (6.2) EVENTS-protectWS.json (append raw Protect WS events):</Label> </Field>
 	<Field id="debugDictFile"      type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true" > <Label>... (6.3) dict-xx.json (controller + unifi ssh dicts):</Label> </Field>
-	<Field id="debugControllerEventAppendToFile" type="checkbox" defaultValue="false" visibleBindingId="debugOn" visibleBindingValue="true">
+	<Field id="debugControllerEventAppendToFile" type="checkbox" visibleBindingId="debugOn" visibleBindingValue="true">
 	                                                                                                       <Label>... (6.4) EVENTS-controllerWS.json (append controller WS events):</Label> </Field>
 
 	<Field id="debugGrp9" type="label" fontSize="small" fontColor="darkgrey" visibleBindingId="debugOn" visibleBindingValue="true"> <Label>-- (9) DEVELOPMENT --------------------------------------------------</Label> </Field>
@@ -1130,4 +1174,9 @@ When the mac has less ram, a smaller values might be needed to avoid read errors
 		</List>
 	</Field>
 
+	<Field id="sepSqlNoStats" type="separator"/>
+	<Field id="sqlNoStatsDefault" type="checkbox" defaultValue="false">
+		<Label>do not write statistics states into the SQL logger:</Label>
+		<Description>min / max / ave, today, yesterday, day-x, this / last week, month, year, switchpoints. default for all devices, each device edit can change it</Description>
+	</Field>
 </PluginConfig>

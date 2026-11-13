@@ -1,5 +1,20 @@
 <Actions>
 
+	<Action id="GWrenegotiateWANLink">
+		<Name>GATEWAY renegotiate WAN port link</Name>
+		<CallbackMethod>renegotiateWANLinkACTION</CallbackMethod>
+		<ConfigUI>
+			<Field id="wanLinkActionLabel" type="label" fontColor="red">
+			<Label>Resets / renegotiates the gateway WAN (uplink) port over ssh: ethtool -r, falling back to ip link down + up.
+
+The internet connection is interrupted for a few seconds.
+
+Use this when the WAN port has negotiated a lower speed than it should - see the gateway device states wanLinkSpeed / wanLinkSpeedMax / wanLinkStatus. The port is detected automatically, but "watch WAN port link speed" has to be enabled in the plugin config (Gateway section) so the plugin knows which port it is.</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+
 
 
 
@@ -508,7 +523,7 @@
 
 	<Action id="CAMERAPTZProtect">
 		<Name>CAMERAS pan tilt zoom to preset position command</Name>
-		<CallbackMethod>buttonSendCommandToProtectPTZALLBACKaction</CallbackMethod>        
+		<CallbackMethod>buttonSendCommandToProtectPTZCALLBACKaction</CallbackMethod>        
 		<ConfigUI>
 			<Field id="cameraDeviceSelected" type="menu" defaultValue="" >
 				<Label>select camera device:</Label>

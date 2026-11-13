@@ -2,18 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>PluginVersion</key>
-	<string>2026.54.443</string>
-	<key>ServerApiVersion</key>
-	<string>3.0</string>
-	<key>IwsApiVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>uniFiAP</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.karlwachs.uniFiAP</string>
-	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,5 +13,13 @@
 			<string>http://forums.indigodomo.com/viewforum.php?f=164</string>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>IwsApiVersion</key>
+	<string>1.0.0</string>
+	<key>PluginVersion</key>
+	<string>2026.57.446</string>
+	<key>ServerApiVersion</key>
+	<string>3.0</string>
 </dict>
 </plist>

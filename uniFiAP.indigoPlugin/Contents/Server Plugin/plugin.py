@@ -18,6 +18,7 @@ except:
 import subprocess
 import fcntl
 import os 
+import statsSqlIgnore	# option: statistics states into the SQL logger or not
 import sys
 import pwd
 import time
@@ -35,7 +36,6 @@ except:
 	from Queue import PriorityQueue
 	queueOrQueue = "Queue"
 
-import random
 import socket
 import ssl
 import zlib
@@ -45,8 +45,15 @@ import threading
 import logging
 import copy
 import requests
-import inspect
+import pwCrypt
 from checkIndigoPluginName import checkIndigoPluginName
+from deviceTables import (K_PROTECT_COMMON_STATES, K_PROTECT_LAYERS, K_PROTECT_TYPE_STATES,
+                          K_PROTECT_USES_COMMON, K_PROTECT_HAS_DISPLAYSTATUS, K_PROTECT_DYNAMIC_TYPES,
+                          K_UNIFI_COMMON, K_UNIFI_SWITCH_BASE, K_UNIFI_SWITCH_TEMP, K_UNIFI_SWITCH_FAN, K_UNIFI_SWITCH_VLAN,
+                          _GROUP_FIELDS_XML, _DEBUG_FIELD_XML,
+                          K_UNIFI_PORT_CODE, K_UNIFI_SWITCH_TYPES, K_UNIFI_TYPE_STATES, K_UNIFI_DYNAMIC_TYPES,
+                          K_MINMAX_TRACKED, K_MINMAX_ALLKEYS, K_MINMAX_SUFFIXES, K_CHANGES_SUFFIXES, _minMaxConfigFieldsXml,
+                          deviceProps)
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -100,17 +107,48 @@ except Exception:
 	def _setupTextMeasurement(targetPx=80.0): pass
 	
 	
-_ignoreModelKeys = ("camera","nvr","viewer","liveview","doorbell","chime","display","viewport","linkstation","globalCamera","schedule","recording","user","group","deviceGroup","cameraGroup","location","locationGroup","activeSessionStat","smartDetectObject","automation")
+# The complete protect WS modelKey vocabulary, from the uiprotect ModelType enum (uilibs/uiprotect,
+# src/uiprotect/data/types.py - the maintained reverse-engineered list), checked 2026-10-28:
+#   camera, cloudIdentity, event, group, light, liveview, nvr, user, userLocation, viewer, bridge,
+#   sensor, schedule, chime, aiport, deviceGroup, recordingSchedule, ulpUser, ringtone, keyring,
+#   siren, relay, fob, speaker, linkstation, aiprocessor      ("unknown" is uiprotect's own sentinel,
+#   not a wire value; "doorlock" existed in the older pyunifiprotect and is gone from the current list)
+# HANDLED below: sensor, fob, relay, light, bridge, speaker, event, camera, nvr, smartDetectObject
+# NOT handled and NOT ignored, ie still good for a "WS UNHANDLED" line if they ever show up:
+#   cloudIdentity, userLocation, aiport, recordingSchedule, ringtone, keyring, siren, aiprocessor
+# The keys below that are NOT in that enum (doorbell, display, viewport, globalCamera, recording,
+# cameraGroup, location, locationGroup, activeSessionStat, automation, smartDetectObject) were all
+# seen in real WS traffic - the enum is not exhaustive, so new keys keep turning up here.
+_ignoreModelKeys = ("camera","nvr","viewer","liveview","doorbell","chime","display","viewport","linkstation","globalCamera","schedule","recording","user","group","deviceGroup","cameraGroup","location","locationGroup","activeSessionStat","smartDetectObject","automation","ulpUser")
 
 
 ######### set new  pluginconfig defaults
 # this needs to be updated for each new property added to pluginProps. 
 # indigo ignores the defaults of new properties after first load of the plugin 
+# system device states that jitter on every read: only written when they moved by more than this fraction,
+# or by at least the fixed step for the states in kSmallChangeSteps
+kSmallChangeStates   = ("memory_free", "memory_used", "cpu_temp", "cpu_load")
+kSmallChangeFraction = 0.10
+kSmallChangeSteps    = {"cpu_temp": 3., "cpu_load": 5.}
+
+# the boolean Protect sensors: which state carries the trigger, and the word pair for its onOffState.
+# "on" is the word for a triggered sensor, "off" for an idle one. This is the single place that knows
+# them: _sensorTriggered / _sensorOnOff / _sensorOnOffUi and the "onoff_invert" display option all read
+# it, so adding a sensor type here is enough - no per-device code anywhere else.
+kSensorOnOff = {
+	"sensor_protect_entry":      {"key": "isOpened",                  "on": "open",        "off": "closed"},
+	"sensor_protect_motion":     {"key": "motionDetected",            "on": "MOTION",      "off": "clear"},
+	"sensor_protect_glassbreak": {"key": "glassBreakDetected",        "on": "GLASS BREAK", "off": "ok"},
+	"sensor_protect_siren":      {"key": "sirenActive",               "on": "ACTIVE",      "off": "idle"},
+	"sensor_protect_smoke_co":   {"key": ("smokeAlarm", "coAlarm"),   "on": "ALARM",       "off": "ok"},
+	"sensor_protect_airquality": {"key": "vapeDetected",              "on": "VAPE!",       "off": "ok"},
+}
+
 kDefaultPluginPrefs = {
 	"MSG":										"please enter values",
 	"temperatureUnit":							"C",
 	"updateDescriptions":						True,
-	"expirationTime":							"120",
+	"expirationTime":							"90",
 	"fixExpirationTime":						True,
 	"expTimeMultiplier":						"2",
 	"launchWaitSeconds":						"1.13",
@@ -143,9 +181,9 @@ kDefaultPluginPrefs = {
 	"unifiControllerType":						"UDM",
 	"unifiCloudKeyMode":						"ONreportsOnly",
 	"useDBInfoForWhichDevices":					"all",
-	"unifiCloudKeyIP":							"192.168.1.x",
+	"unifiCloudKeyIP":							"",
 	"refreshCallbackMethod":					"no",
-	"unifiCloudKeySiteName":					"",
+	"unifiCloudKeySiteName":					"default",
 	"overWriteControllerPort":					"443",
 	"unifControllerCheckPortNumber"				"0"
 	"unifiControllerBackupON":					True,
@@ -155,7 +193,7 @@ kDefaultPluginPrefs = {
 	"infoLabelbackup2a":						"/data/autobackup",
 	"infoLabelbackup3":							"/Preferences/Plugins/com.karlwachs.uniFiAP/backup",
 	"ipUDMON":									False,
-	"ipUDM":									"192.168.1.x",
+	"ipUDM":									"",
 	"debUD":									False,
 	"apON":										True,
 	"uidON":									False,
@@ -222,9 +260,12 @@ kDefaultPluginPrefs = {
 	"ipON19":									False,
 	"ip19":										"192.168.1.x",
 	"debAP19":									False,
+	"ipON20":									False,
+	"ip20":										"192.168.1.x",
+	"debAP20":									False,
 	"ipUGAON":									False,
 	"GWtailEnable":								False,
-	"ipUGA":									"192.168.1.1",
+	"ipUGA":									"",
 	"debGW":									False,
 	"count_APDL_inPortCount":					"1",
 	"swAutoDetect":								False,
@@ -268,10 +309,13 @@ kDefaultPluginPrefs = {
 	"ipSWON12":									False,
 	"ipSW12":									"192.168.1.x",
 	"debSW12":									False,
+	"ipSWON13":									False,
+	"ipSW13":									"192.168.1.x",
+	"debSW13":									False,
 	"cameraSystem":								"off",
 	"protectCreateCameras":						True,
 	"protectCreateSensors":						True,
-	"protectIP":								"192.168.1.xx",
+	"protectIP":								"",
 	"portCommandversion":						"",
 	"protecEventSleepTime":						2000,
 	"refreshProtectCameras":					60,
@@ -291,6 +335,7 @@ kDefaultPluginPrefs = {
 	"debugUDM":									False,
 	"debugIgnoreMAC":							False,
 	"debugDBinfo":								False,
+	"debugWanLink":								False,
 	"debugProtect":								False,
 	"debugProtDetails":							False,
 	"debugProtEvents":							False,
@@ -304,7 +349,7 @@ kDefaultPluginPrefs = {
 	"debugProtectEventAppendToFile":			False,
 	"controllerWSFeedAPMessages":				False,
 	"debugall":									False,
-	"showLoginTest":							True,
+	"showLoginTest":							False,
 
 	"rebootUnifiDeviceOnError":					True,
 	"restartListenerEvery":						"999999999",
@@ -315,7 +360,61 @@ kDefaultPluginPrefs = {
 	"checkForNewUnifiSystemDevicesEvery":		"10",
 	"readBuffer":								"16384", 
 	"createNameNone":							"yes",
-	"protectWSWatchdogTimeout":					"30"
+	"protectWSWatchdogTimeout":					"30",
+	# --- WAN ethernet link watch (gateway uplink port negotiated speed) ---
+	"wanLinkWatchON":							False,
+	"wanLinkMinSpeed":							"1000",
+	"wanLinkAutoFix":							False,
+	"wanLinkFixEvery":							"900",
+	# --- config dialog section on/off toggles (visibility only, never read by the code) ---
+	"generalON":								False,
+	"expertOn":									False,
+	"infoON":									False,
+	"namesON":									False,
+	"CAMON":									False,
+	"swON":										False,
+	"quickON":									False,
+	# NOTE: "debugOn" is deliberately NOT listed here: every key starting with "debug" is turned
+	#       into a _debugAreas entry above, and "debugOn" is only the section toggle, not an area
+	# --- settings that had no entry here ---
+	"protectApiKey":							"",
+	"passwordsEncrypted":						True,
+	"protectPORT":								"443",
+	"unifControllerCheckPortNumber":			"0",
+	"controllerEventTrackingON":				False,
+	# --- quick setup wizard, all refilled from the current settings on every dialog open ---
+	"quickProfile":								"none",
+	"quickMSG":									"",
+	"quickCtrlIP":								"",
+	"quickWebUID":								"",
+	"quickWebPWD":								"",
+	"quickSshUID":								"",
+	"quickSshPWD":								"",
+	"quickUdmUID":								"",
+	"quickUdmPWD":								"",
+	"quickApiKey":								"",
+	"quickProtectON":							False,
+	"quickProtectSameIP":						True,
+	"quickProtectIP":							"",
+	"quickProtectCameras":						True,
+	"quickProtectSensors":						False,
+	"quickProtectUID":							"",
+	# --- internal / runtime keys stored in pluginPrefs, read via getPref() ---
+	"loopSleep":								8,
+	"timeoutDICT":								"15",
+	"restartIfNoMessageSeconds":				130,
+	"refreshProtectSensors":					2.0,
+	"cameraEventWidth":							"720",
+	"imageSourceForEvent":						"noImage",
+	"imageSourceForSnapShot":					"unoImage",
+	"controllerWebEventReadON":					"-1",
+	"createEntryInUnifiDevLogActive":			False,
+	"createUnifiDevicesCounter":				0,
+	"udmSlotMigratedV2":						False,
+	"unifiCloudKeyListOfSiteNames":				"[]",
+	"connectParams":							"{}",
+	"menuXML":									"{}",
+	"quickProtectPWD":							""
 }
 """
 good web pages for unifi API
@@ -332,14 +431,12 @@ _GlobalConst_numberOfAP	 = 21
 _GlobalConst_numberOfSW	 = 14
 
 _GlobalConst_numberOfGroups = 8
-_GlobalConst_groupList		= ["Group{}".format(i) for i in range(_GlobalConst_numberOfGroups)]
-_GlobalConst_dTypes			= ["UniFi","gateway","DHCP","SWITCH","Device-AP","Device-SW-4","Device-SW-5","Device-SW-6","Device-SW-7","Device-SW-8","Device-SW-10","Device-SW-11","Device-SW-12","Device-SW-14","Device-SW-16","Device-SW-18","Device-SW-26","Device-SW-52","neighbor","superlink_gateway","sensor_protect_allInOne","relay_protect","relay_protect_output2","relay_protect_input","sensor_protect_environmental","sensor_protect_glassbreak","sensor_protect_entry","sensor_protect_motion","sensor_protect_keyfob","sensor_protect_siren","sensor_protect_smoke_co","sensor_protect_airquality","speaker_protect"]
 _debugAreas = []
 for xx in kDefaultPluginPrefs:
 	if xx.find("debug") == 0:
 		_debugAreas.append(xx[5:])
 		
-_numberOfPortsInSwitch		= [4, 5, 7, 8, 10, 11, 12, 16, 18, 26, 52]
+_numberOfPortsInSwitch		= [4, 5, 7, 8, 10, 11, 12, 16, 18, 20, 22, 24, 26, 28, 30, 48, 50, 52, 54]
 ################################################################################
 # noinspection PyUnresolvedReferences,PySimplifyBooleanCheck,PySimplifyBooleanCheck
 class Plugin(indigo.PluginBase):
@@ -360,6 +457,8 @@ class Plugin(indigo.PluginBase):
 	
 		self.pluginShortName 			= "UniFi"
 		self.quitNOW					= ""
+		self.wanLinkLastFix				= {}	# gateway ip -> time of the last renegotiation attempt
+		self.wanLinkLastWarn			= {}	# gateway ip -> time of the last 'degraded' warning
 		self.delayedAction				= dict()
 		self.delayedActionLock			= threading.Lock()
 		self.delayedActionStop			= threading.Event()
@@ -388,7 +487,7 @@ class Plugin(indigo.PluginBase):
 		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
 		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
-		self.showLoginTest 				= pluginPrefs.get('showLoginTest',False)
+		self.showLoginTest 				= pluginPrefs.get("showLoginTest", kDefaultPluginPrefs["showLoginTest"])
 
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
 						logging.DEBUG:       "%(asctime)s %(msg)s",
@@ -410,6 +509,8 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.setLevel(logging.THREADDEBUG)
 
 		self.indigo_log_handler.setLevel(logging.INFO)
+		self._unifiQuiet = {"until":0., "suppressed":0, "downSince":{}}
+		self.indigo_log_handler.addFilter(UnifiQuietFilter(self))
 
 		self.indiLOG.log(20,"initializing  ...")
 		self.indiLOG.log(20,"path To files:          =================")
@@ -589,11 +690,18 @@ class Plugin(indigo.PluginBase):
 			self.OKControllerOS = ["std","unifi_os"]
 
 
+			# the passwords in the prefs are encrypted: set the crypto up and decrypt them into self.pwPlain
+			# before anything reads them (connectParams right below carries a copy of them too)
+			self.pw					= pwCrypt.PwCrypt(self.pluginId)
+			self.passwordsEncrypted	= True
+			self.pwPlain			= dict()
+			self.loadPasswords()
+
 			self.connectParams = copy.copy(self.connectParamsDefault)
 			useDefault = ["endDictToken", "startDictToken", "commandOnServer", "expectCmdFile", "expectRestart"]
 
 			try: 	
-					xx = json.loads(self.pluginPrefs.get("connectParams","{}"))
+					xx = self.decryptConnectParams(json.loads(self.getPref("connectParams")))
 					if xx != dict():
 						self.connectParams = copy.deepcopy(xx)
 					for item1 in self.connectParamsDefault:
@@ -611,11 +719,26 @@ class Plugin(indigo.PluginBase):
 			except:	
 				pass
 
-			if self.connectParams["UserID"]["unixDevs"] == "": 		self.connectParams["UserID"]["unixDevs"] = self.pluginPrefs.get("unifiUserID","")
-			if self.connectParams["UserID"]["unixUD"]   == "": 		self.connectParams["UserID"]["unixUD"]   = self.pluginPrefs.get("unifiUserIDUDM","")
+			if self.connectParams["UserID"]["unixDevs"] == "": 		self.connectParams["UserID"]["unixDevs"] = self.getPref("unifiUserID")
+			if self.connectParams["UserID"]["unixUD"]   == "": 		self.connectParams["UserID"]["unixUD"]   = self.getPref("unifiUserIDUDM")
 
-			if self.connectParams["PassWd"]["unixDevs"] == "": 		self.connectParams["PassWd"]["unixDevs"] = self.pluginPrefs.get("unifiPassWd","")
-			if self.connectParams["PassWd"]["unixUD"]   == "": 		self.connectParams["PassWd"]["unixUD"]   = self.pluginPrefs.get("unifiPassWdUDM","")
+			# one time migration: the ssh password field used to be misspelled "unifiPassWdz" in PluginConfig.xml,
+			# so what the user typed was saved under that key, while "unifiPassWd" only ever held a machine
+			# copy seeded from connectParams at dialog open. The misspelled key is therefore the authoritative,
+			# user entered value: it wins, and the cached copy in connectParams must follow, since the
+			# "fill only if empty" below would otherwise keep using the stale cached password
+			if self.pluginPrefs.get("unifiPassWdz","") != "":
+				_pwdz = self.pluginPrefs["unifiPassWdz"]
+				_pwdz = self.decryptPrefValue(_pwdz)
+				if _pwdz != self.pwPlain.get("unifiPassWd",""):
+					self.pwPlain["unifiPassWd"]     = _pwdz
+					self.pluginPrefs["unifiPassWd"] = self.encryptPrefValue(_pwdz)
+					self.indiLOG.log(20,"ssh password migrated from the old (misspelled) setting unifiPassWdz to unifiPassWd")
+				self.connectParams["PassWd"]["unixDevs"] = _pwdz
+				del self.pluginPrefs["unifiPassWdz"]
+
+			if self.connectParams["PassWd"]["unixDevs"] == "": 		self.connectParams["PassWd"]["unixDevs"] = self.pwPlain.get("unifiPassWd","")
+			if self.connectParams["PassWd"]["unixUD"]   == "": 		self.connectParams["PassWd"]["unixUD"]   = self.pwPlain.get("unifiPassWdUDM","")
 
 			if self.connectParams["UserID"]["protCTRL"] == "-": 	self.connectParams["UserID"]["protCTRL"]  = self.connectParams["UserID"]["webCTRL"] 
 			if self.connectParams["PassWd"]["protCTRL"] == "-": 	self.connectParams["PassWd"]["protCTRL"]  = self.connectParams["PassWd"]["webCTRL"] 
@@ -624,83 +747,94 @@ class Plugin(indigo.PluginBase):
 			self.stop 											= list()
 			self.PROTECT 										= dict()
 			self.SUPPRESS_LOG									= dict()
+			self.SUPPRESS_LOG_N									= dict()	# logEvery() throttle state
 			self.PROTECT_SENSORS 								= dict()
 			self.PROTECT_RELAYS 								= dict()
 			self.protectSensorThread							= {"thread":"", "status":""}
 			self.controllerWSThread								= {"thread":"", "status":""}
 			self.controllerEventBuffer							= []   # rolling buffer of last 500 controller events
 			self.controllerEventBufferMax						= 500
-			try:	self.refreshProtectSensors					= float(self.pluginPrefs.get("refreshProtectSensors", 2.0))
+			try:	self.refreshProtectSensors					= float(self.getPref("refreshProtectSensors"))
 			except:	self.refreshProtectSensors					= 2.0
 			if self.refreshProtectSensors < 0.5: self.refreshProtectSensors = 0.5
 			self.lastCameraEvent								= ""
 			self.failedControllerLoginCount 					= 0
 			self.failedControllerLoginCountMax					= 30
-			try:	self.checkForNewUnifiSystemDevicesEvery		= int(self.pluginPrefs.get("checkForNewUnifiSystemDevicesEvery","10"))
+			self.controllerLoginCooldown						= dict()	# controller/protect -> do not try to login before this time
+			self.controllerLoginCooldownMax						= 300.		# max secs to wait after a http 429 (too many requests)
+			try:	self.checkForNewUnifiSystemDevicesEvery		= int(self.getPref("checkForNewUnifiSystemDevicesEvery"))
 			except:	self.checkForNewUnifiSystemDevicesEvery		= int(kDefaultPluginPrefs["checkForNewUnifiSystemDevicesEvery"])
-			self.launchWaitSeconds								= float(self.pluginPrefs.get("launchWaitSeconds","1.13"))
+			self.launchWaitSeconds								= float(self.getPref("launchWaitSeconds"))
 			self.lastcheckForNewUnifiSystemDevices				= time.time() - 20
 			self.lastSeen										= {}
-			self.changedImagePath								= self._completePath(self.pluginPrefs.get("changedImagePath", 	self.MAChome))
-			self.copyProtectsnapshots							= self.pluginPrefs.get("copyProtectsnapshots","on")
-			self.controllerEventTrackingON						= self.pluginPrefs.get("controllerEventTrackingON", False)
-			self.controllerWSFeedAPMessages						= self.pluginPrefs.get("controllerWSFeedAPMessages", False)
-			self.refreshProtectCameras							= float(self.pluginPrefs.get("refreshProtectCameras",180.))
-			self.protecEventSleepTime 							= float(self.pluginPrefs.get("protecEventSleepTime",4.))/1000.
+			self.changedImagePath								= self._completePath(self.getPref("changedImagePath"))
+			self.copyProtectsnapshots							= self.getPref("copyProtectsnapshots")
+			self.controllerEventTrackingON						= self.getPref("controllerEventTrackingON")
+			self.controllerWSFeedAPMessages						= self.getPref("controllerWSFeedAPMessages")
+			self.refreshProtectCameras							= float(self.getPref("refreshProtectCameras"))
+			self.protecEventSleepTime 							= float(self.getPref("protecEventSleepTime"))/1000.
 			if self.protecEventSleepTime < 0.1:
 				self.protecEventSleepTime *=1000
 				self.pluginPrefs["protecEventSleepTime"] = int(self.protecEventSleepTime)
 
-			self.menuXML										= json.loads(self.pluginPrefs.get("menuXML", "{}"))
+			self.menuXML										= json.loads(self.getPref("menuXML"))
 			self.pluginPrefs["menuXML"]							= json.dumps(self.menuXML)
 			self.restartRequest									= dict()
 			self.lastMessageReceivedInListener					= dict()
 			self.waitForMAC2vendor 								= False
-			self.enableMACtoVENDORlookup						= int(self.pluginPrefs.get("enableMACtoVENDORlookup","21"))
+			self.enableMACtoVENDORlookup						= int(self.getPref("enableMACtoVENDORlookup"))
 			if self.enableMACtoVENDORlookup != "0":
 				self.M2V 										= MAC2Vendor.MAP2Vendor(pathToMACFiles=self.indigoPreferencesPluginDir+"mac2Vendor/", refreshFromIeeAfterDays = self.enableMACtoVENDORlookup, myLogger = self.indiLOG.log)
 				self.waitForMAC2vendor 							= self.M2V.makeFinalTable()
 
 
-			self.enableSqlLogging								= self.pluginPrefs.get("enableSqlLogging",True)
-			self.pluginPrefs["createUnifiDevicesCounter"]		= int(self.pluginPrefs.get("createUnifiDevicesCounter",0))
+			self.enableSqlLogging								= self.getPref("enableSqlLogging")
+			self.pluginPrefs["createUnifiDevicesCounter"]		= int(self.getPref("createUnifiDevicesCounter"))
 
 			self.deviceDictFromController 						= list()
 			self.lastupdateDevStateswRXTXbytes					= time.time() - 100
-			self.updateDescriptions								= self.pluginPrefs.get("updateDescriptions", True)
-			self.ignoreNewNeighbors								= self.pluginPrefs.get("ignoreNewNeighbors", False)
-			self.ignoreNewClients								= self.pluginPrefs.get("ignoreNewClients", False)
-			self.count_APDL_inPortCount							= self.pluginPrefs.get("count_APDL_inPortCount", "1")
-			self.swAutoDetect									= self.pluginPrefs.get("swAutoDetect", False)
-			self.apAutoDetect									= self.pluginPrefs.get("apAutoDetect", False)
-			self.enableBroadCastEvents							= self.pluginPrefs.get("enableBroadCastEvents", "0")
+			self.updateDescriptions								= self.getPref("updateDescriptions")
+			self.ignoreNewNeighbors								= self.getPref("ignoreNewNeighbors")
+			self.ignoreNewClients								= self.getPref("ignoreNewClients")
+			self.count_APDL_inPortCount							= self.getPref("count_APDL_inPortCount")
+			self.swAutoDetect									= self.getPref("swAutoDetect")
+			self.apAutoDetect									= self.getPref("apAutoDetect")
+			self.enableBroadCastEvents							= self.getPref("enableBroadCastEvents")
 			self.sendBroadCastEventsList						= list()
-			self.unifiCloudKeyListOfSiteNames					= json.loads(self.pluginPrefs.get("unifiCloudKeyListOfSiteNames", "[]"))
-			self.unifiCloudKeyIP								= self.pluginPrefs.get("unifiCloudKeyIP", "")
-			self.protectIP										= self.pluginPrefs.get("protectIP", "")
-			self.protectApiKey									= self.pluginPrefs.get("protectApiKey", "")
+			self.unifiCloudKeyListOfSiteNames					= json.loads(self.getPref("unifiCloudKeyListOfSiteNames"))
+			self.unifiCloudKeyIP								= self.getPref("unifiCloudKeyIP")
+			self.protectIP										= self.getPref("protectIP")
+			self.protectApiKey									= self.pwPlain.get("protectApiKey","")
 			try:
-				if self.pluginPrefs.get("refreshCallbackMethod",""): self.pluginPrefs["refreshCallbackMethod"] = ""   # dynamic refresh removed
+				if self.getPref("refreshCallbackMethod"): self.pluginPrefs["refreshCallbackMethod"] = ""   # dynamic refresh removed
 			except: pass
-			_setupTextMeasurement(self.pluginPrefs.get("displayPadTarget", "80"))
-			if _textWidthPx is None:
-				self.indiLOG.log(20,"padDisplay: AppKit/PyObjC NOT available in this plugin host -> using the fixed per-word table; displayPadTarget has no effect")
-			else:
-				self.indiLOG.log(20,"padDisplay: AppKit measurement ACTIVE - target={:.0f}px, space={:.2f}px, dateRef={:.1f}px  (e.g. 'up'->{} spaces)".format(_padTargetPx, _spaceWidthPx, _dateRefPx, max(1,int(round((_padTargetPx+_dateRefPx-_textWidthPx("up")-_textWidthPx("26-07-05 12:34:56"))/_spaceWidthPx)))))
-			self.protectCreateCameras							= self.pluginPrefs.get("protectCreateCameras", True)
-			self.protectCreateSensors							= self.pluginPrefs.get("protectCreateSensors", True)
+			_setupTextMeasurement(self.getPref("displayPadTarget"))
+			if self.getPref("showLoginTest"):
+				if _textWidthPx is None:
+					self.indiLOG.log(20,"padDisplay: AppKit/PyObjC NOT available in this plugin host -> using the fixed per-word table; displayPadTarget has no effect")
+				else:
+					self.indiLOG.log(20,"padDisplay: AppKit measurement ACTIVE - target={:.0f}px, space={:.2f}px, dateRef={:.1f}px  (e.g. 'up'->{} spaces)".format(_padTargetPx, _spaceWidthPx, _dateRefPx, max(1,int(round((_padTargetPx+_dateRefPx-_textWidthPx("up")-_textWidthPx("26-07-05 12:34:56"))/_spaceWidthPx)))))
+			self.protectCreateCameras							= self.getPref("protectCreateCameras")
+			self.protectCreateSensors							= self.getPref("protectCreateSensors")
 
 			if not self.isValidIP(self.protectIP):
 				self.protectIP = self.unifiCloudKeyIP
 				self.pluginPrefs["protectIP"] = self.protectIP 
 
-			self.overWriteControllerPort						= self.pluginPrefs.get("overWriteControllerPort", "443")
-			self.protectPORT									= self.pluginPrefs.get("protectPORT", "443")
+			self.overWriteControllerPort						= self.getPref("overWriteControllerPort")
+
+			# --- WAN ethernet link watch (negotiated speed of the gateway uplink port) ---
+			self.wanLinkWatchON					= self.getPref("wanLinkWatchON")
+			self.wanLinkMinSpeed				= "{}".format(self.getPref("wanLinkMinSpeed"))
+			self.wanLinkAutoFix					= self.getPref("wanLinkAutoFix")
+			try:	self.wanLinkFixEvery			= float(self.getPref("wanLinkFixEvery"))
+			except:	self.wanLinkFixEvery			= 900.
+			self.protectPORT									= self.getPref("protectPORT")
 
 			self.csrfToken 										= {"controller":"","protect":""}
 			self.numberForUDM									= {"AP":20,"SW":13}
 
-			self.rebootUnifiDeviceOnError						= self.pluginPrefs.get("rebootUnifiDeviceOnError", True)
+			self.rebootUnifiDeviceOnError						= self.getPref("rebootUnifiDeviceOnError")
 
 
 			self.refreshCallbackMethodAlreadySet 				= "no" 
@@ -708,15 +842,15 @@ class Plugin(indigo.PluginBase):
 			self.unifiControllerOS 								= {"controller":"", "protect":""}
 			self.unifiApiWebPage								= {"controller":"", "protect":""}
 			self.unifiApiLoginPath								= {"controller":"", "protect":""}
-			self.unifControllerCheckPortNumber					= self.pluginPrefs.get("unifControllerCheckPortNumber", "0") 
+			self.unifControllerCheckPortNumber					= self.getPref("unifControllerCheckPortNumber") 
 			self.lastPortNumber									= ""
 			self.unifiCloudKeyPort								= ""
-			self.unifiControllerType							= self.pluginPrefs.get("unifiControllerType", "std")
-			self.unifiCloudKeyMode								= self.pluginPrefs.get("unifiCloudKeyMode", "ON")
-			self.unifiCloudKeySiteName							= self.pluginPrefs.get("unifiCloudKeySiteName", "default")
-			self.requestTimeout									= max(1., float(self.pluginPrefs.get("requestTimeout", 10.)))
+			self.unifiControllerType							= self.getPref("unifiControllerType")
+			self.unifiCloudKeyMode								= self.getPref("unifiCloudKeyMode")
+			self.unifiCloudKeySiteName							= self.getPref("unifiCloudKeySiteName")
+			self.requestTimeout									= max(1., float(self.getPref("requestTimeout")))
 			self.unifiCloudKeySiteNameGetNew 					= False
-			self.unifiCloudKeyMode								= self.pluginPrefs.get("unifiCloudKeyMode", "ONreportsOnly")
+			self.unifiCloudKeyMode								= self.getPref("unifiCloudKeyMode")
 
 
 
@@ -732,29 +866,29 @@ class Plugin(indigo.PluginBase):
 					self.pluginPrefs["unifiCloudKeyMode"] 		= "ON"
 
 			try:
-				self.controllerWebEventReadON 					= int(self.pluginPrefs.get("controllerWebEventReadON","-1"))
+				self.controllerWebEventReadON 					= int(self.getPref("controllerWebEventReadON"))
 			except:
 				self.controllerWebEventReadON  					= -1
 			if self.unifiControllerType == "UDMpro": 
 				self.controllerWebEventReadON  					= -1
 
-			self.unifiControllerBackupON						= self.pluginPrefs.get("unifiControllerBackupON", False)
-			self.ControllerBackupPath							= self.pluginPrefs.get("ControllerBackupPath", "")
+			self.unifiControllerBackupON						= self.getPref("unifiControllerBackupON")
+			self.ControllerBackupPath							= self.getPref("ControllerBackupPath")
 
-			try: self.readBuffer								= int(self.pluginPrefs.get("readBuffer", "16384"))
+			try: self.readBuffer								= int(self.getPref("readBuffer"))
 			except: self.readBuffer								= 16384
-			self.maxConsumedTimeQueueForWarning					= float(self.pluginPrefs.get("maxConsumedTimeQueueForWarning", "5"))
-			self.maxConsumedTimeForWarning						= float(self.pluginPrefs.get("maxConsumedTimeForWarning", "3"))
+			self.maxConsumedTimeQueueForWarning					= float(self.getPref("maxConsumedTimeQueueForWarning"))
+			self.maxConsumedTimeForWarning						= float(self.getPref("maxConsumedTimeForWarning"))
 
 
 			self.lastCheckForCAMERA								= 0
 			self.saveCameraEventsLastCheck						= 0
-			self.cameraEventWidth								= int(self.pluginPrefs.get("cameraEventWidth", "720"))
-			self.imageSourceForEvent							= self.pluginPrefs.get("imageSourceForEvent", "noImage")
-			self.imageSourceForSnapShot							= self.pluginPrefs.get("imageSourceForSnapShot", "unoImage")
+			self.cameraEventWidth								= int(self.getPref("cameraEventWidth"))
+			self.imageSourceForEvent							= self.getPref("imageSourceForEvent")
+			self.imageSourceForSnapShot							= self.getPref("imageSourceForSnapShot")
 
 			self.listenStart									= dict()
-			self.useStrictToLogin								= self.pluginPrefs.get("useStrictToLogin", False)
+			self.useStrictToLogin								= self.getPref("useStrictToLogin")
 			self.unifiSession									= {"controller":"","protect":""}
 			self.controllerOrProtect							= "controller"
 
@@ -762,19 +896,19 @@ class Plugin(indigo.PluginBase):
 
 			self.expectPath 									= "/usr/bin/expect"
 
-			self.restartIfNoMessageSeconds						= 130 #int(self.pluginPrefs.get("restartIfNoMessageSeconds", 130))
-			self.expirationTime									= int(self.pluginPrefs.get("expirationTime", 120) )
-			self.expTimeMultiplier								= float(self.pluginPrefs.get("expTimeMultiplier", 2))
+			self.restartIfNoMessageSeconds						= 130 #int(self.getPref("restartIfNoMessageSeconds"))
+			self.expirationTime									= int(self.getPref("expirationTime") )
+			self.expTimeMultiplier								= float(self.getPref("expTimeMultiplier"))
 
 	
-			self.loopSleep										= 5     # float(self.pluginPrefs.get("loopSleep", 8))
+			self.loopSleep										= 5     # float(self.getPref("loopSleep"))
 			self.timeoutDICT									= "15"
-			#self.timeoutDICT									= "{}".format(int(self.pluginPrefs.get("timeoutDICT", "15")))
-			self.folderNameCreated								= self.pluginPrefs.get("folderNameCreated",   "UNIFI_created")
-			self.folderNameNeighbors							= self.pluginPrefs.get("folderNameNeighbors", "UNIFI_neighbors")
-			self.folderNameVariables							= self.pluginPrefs.get("folderNameVariables", "UNIFI")
-			self.folderNameSystem								= self.pluginPrefs.get("folderNameSystem",	  "UNIFI_system")
-			self.fixExpirationTime								= self.pluginPrefs.get("fixExpirationTime",	True)
+			#self.timeoutDICT									= "{}".format(int(self.getPref("timeoutDICT")))
+			self.folderNameCreated								= self.getPref("folderNameCreated")
+			self.folderNameNeighbors							= self.getPref("folderNameNeighbors")
+			self.folderNameVariables							= self.getPref("folderNameVariables")
+			self.folderNameSystem								= self.getPref("folderNameSystem")
+			self.fixExpirationTime								= self.getPref("fixExpirationTime")
 			self.MACignorelist									= dict()
 			self.MACSpecialIgnorelist							= dict()
 			self.HANDOVER										= dict()
@@ -782,13 +916,13 @@ class Plugin(indigo.PluginBase):
 			self.pendingCommand									= list()
 			self.groupNames										= list()
 			for groupNo in range(_GlobalConst_numberOfGroups):
-				self.groupNames.append(self.pluginPrefs.get("Group{}".format(groupNo), "Group".format(groupNo)))
+				self.groupNames.append(self.pluginPrefs.get("Group{}".format(groupNo), "Group{}".format(groupNo)))
 
 			self.groupStatusList								= [{"members":{},"allHome":False,"allAway":False,"oneHome":False,"oneAway":False,"nHome":0,"nAway":0} for i in range(_GlobalConst_numberOfGroups )]
 			self.groupStatusListALL								= {"nHome":0,"nAway":0,"anyChange":False}
 
 
-			self.createEntryInUnifiDevLogActive					= True #self.pluginPrefs.get("createEntryInUnifiDevLogActive",	False)
+			self.createEntryInUnifiDevLogActive					= True #self.getPref("createEntryInUnifiDevLogActive")
 			self.lastcreateEntryInUnifiDevLog 					= time.time()
 
 			self.devsEnabled									= dict()
@@ -816,6 +950,7 @@ class Plugin(indigo.PluginBase):
 			self.devNeedsUpdate									= dict()
 
 			self.MACloglist										= dict()
+			self.debugDevMACs									= set()
 
 			self.readDictEverySeconds							= dict()
 			self.readDictEverySeconds["AP"]						= 65
@@ -832,16 +967,16 @@ class Plugin(indigo.PluginBase):
 			self.deviceUp["UD"]									= dict()
 			self.version			 							= self._getParamsFromFile(self.indigoPreferencesPluginDir+"dataVersion", default=0)
 
-			self.restartListenerEvery							= float(self.pluginPrefs.get("restartListenerEvery", "999999999"))
+			self.restartListenerEvery							= float(self.getPref("restartListenerEvery"))
 
 
 			##### one-time migration: UDM reserved slot moved from AP-4/SW-12 (old) to AP-20/SW-13 (new tail slots)
 			##### old scheme had a fixed reservation in the middle of the AP range, which became a problem as more
 			##### AP slots were added after AP-4 was already taken. Moving it to the tail avoids that going forward.
 			_oldUdmApSlot, _oldUdmSwSlot		= 4, 12
-			if not self.pluginPrefs.get("udmSlotMigratedV2", False):
-				_ipUDM							= self.pluginPrefs.get("ipUDM", "")
-				_udmWasActive					= self.isValidIP(_ipUDM) and self.pluginPrefs.get("ipUDMON", False)
+			if not self.getPref("udmSlotMigratedV2"):
+				_ipUDM							= self.getPref("ipUDM")
+				_udmWasActive					= self.isValidIP(_ipUDM) and self.getPref("ipUDMON")
 				if _udmWasActive:
 					# only migrate if the old slot actually holds the UDM's own IP (i.e. it was auto-populated by the
 					# old reservation logic, not a real standalone AP-4/SW-12 device a user separately configured)
@@ -894,9 +1029,9 @@ class Plugin(indigo.PluginBase):
 					self.numberOfActive["SW"] 							+= 1
 
 			#####  check UGA parameters
-			ip0 														= self.pluginPrefs.get("ipUGA",  "")
-			ac															= self.pluginPrefs.get("ipUGAON",False)
-			self.debugDevs["GW"] 										= [self.pluginPrefs.get("debGW",False)]
+			ip0 														= self.getPref("ipUGA")
+			ac															= self.getPref("ipUGAON")
+			self.debugDevs["GW"] 										= [self.getPref("debGW")]
 
 
 			if self.isValidIP(ip0) and ac:
@@ -909,18 +1044,18 @@ class Plugin(indigo.PluginBase):
 
 
 			#####  check DB parameters
-			ip0 														= self.pluginPrefs.get("unifiCloudKeyIP",  "")
-			ac															= self.pluginPrefs.get("unifiCloudKeyMode","ON")
-			self.useDBInfoForWhichDevices								= self.pluginPrefs.get("useDBInfoForWhichDevices","all")
+			ip0 														= self.getPref("unifiCloudKeyIP")
+			ac															= self.getPref("unifiCloudKeyMode")
+			self.useDBInfoForWhichDevices								= self.getPref("useDBInfoForWhichDevices")
 			if self.isValidIP(self.unifiCloudKeyIP) and (ac.find("ON") > -1 or ac.find("UDM") or self.useDBInfoForWhichDevices in ["all","perDevice"]):
 				self.devsEnabled["DB"] = True
 			else:
 				self.devsEnabled["DB"]	= False
 
 			#####  check UDM parameters
-			ip0 														= self.pluginPrefs.get("ipUDM",  "")
-			ac															= self.pluginPrefs.get("ipUDMON",False)
-			self.debugDevs["UD"] 										= [self.pluginPrefs.get("debUD",False)]
+			ip0 														= self.getPref("ipUDM")
+			ac															= self.getPref("ipUDMON")
+			self.debugDevs["UD"] 										= [self.getPref("debUD")]
 			self.ipNumbersOf["UD"] 										= ip0
 			self.deviceUp["UD"]											= time.time()
 
@@ -941,7 +1076,7 @@ class Plugin(indigo.PluginBase):
 
 
 			#####  check video parameters
-			self.protectSystem										= self.pluginPrefs.get("cameraSystem", "off")
+			self.protectSystem										= self.getPref("cameraSystem")
 
 			self.cameras							 				= dict()
 			self.unifiVIDEONumerOfEvents 							= 0
@@ -966,6 +1101,7 @@ class Plugin(indigo.PluginBase):
 			self.readMACdata()
 			self._checkDisplayStatus()
 			self._getMACloglist()
+			self._rebuildDebugDevMACs()
 
 			self.pluginStartTime 								= time.time()+150
 
@@ -987,6 +1123,23 @@ class Plugin(indigo.PluginBase):
 
 	
 	####-----------------	 ---------
+	def _rebuildDebugDevMACs(self):
+		"""Collect the MACs (normalized: no colons, upper-case) of every device whose per-device 'debugDev'
+		checkbox is set, so decideMyLog(area, MAC=...) turns on per-device debug logging for them across ALL
+		device types. Rebuilt at startup and whenever a device dialog is saved."""
+		macs = set()
+		try:
+			for dev in indigo.devices.iter(self.pluginId):
+				try:
+					if dev.pluginProps.get("debugDev", False):
+						_m = "{}".format(dev.states.get("MAC","")).replace(":","").upper()
+						if _m: macs.add(_m)
+				except: pass
+		except: pass
+		self.debugDevMACs = macs
+		if macs: self.indiLOG.log(20,"per-device debug (debugDev) active for {} device(s)".format(len(macs)))
+
+	####-----------------	 ---------
 	def _getMACloglist(self):
 		"""Get MACloglist.
 		
@@ -1000,6 +1153,19 @@ class Plugin(indigo.PluginBase):
 			if self.MACloglist != dict():
 				self.indiLOG.log(10,"start track-logging for MAC#s {}".format(self.MACloglist) )
 		except	Exception as e:
+				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+		# change history + time-weight accumulators for the min/max/average / change/trend states
+		try:
+			self.averagesCounts = dict()
+			self.changedValues = self._getParamsFromFile(self.indigoPreferencesPluginDir+"changedValues.json", default=dict())
+			for devIdS in copy.copy(self.changedValues):
+				try:
+					if int(devIdS) not in indigo.devices: del self.changedValues[devIdS]
+				except: del self.changedValues[devIdS]
+		except	Exception as e:
+				self.averagesCounts = dict()
+				self.changedValues = dict()
 				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 		return
@@ -1056,7 +1222,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			for d in _debugAreas:
 				if theDict.get("debug"+d, False): self.debugLevel.append(d)
-			self.showLoginTest = self.pluginPrefs.get("showLoginTest", True)
+			self.showLoginTest = self.getPref("showLoginTest")
 			if writeToLog: self.indiLOG.log(20,"debug areas: {} ".format(self.debugLevel))
 			out = ""
 			for utype in self.debugDevs:
@@ -1196,7 +1362,14 @@ class Plugin(indigo.PluginBase):
 ####-------------------------------------------------------------------------####
 	def createDeviceAndLog(self, **kwargs):
 		"""Wrapper around indigo.device.create: creates the device and logs one info line - EVERY new Indigo
-		device the plugin creates shows up in the log regardless of debug settings."""
+		device the plugin creates shows up in the log regardless of debug settings. Also injects the
+		capability + marker props from the deviceTables tables so a new device has correct props at birth
+		(setdefault: an explicit per-call prop always wins)."""
+		_caps = deviceProps(kwargs.get("deviceTypeId", ""))
+		if _caps:
+			_props = dict(kwargs.get("props") or {})
+			for _k, _v in _caps.items(): _props.setdefault(_k, _v)
+			kwargs["props"] = _props
 		dev = indigo.device.create(**kwargs)
 		self.indiLOG.log(20, 'created new device "{}"  type:{}  address:{}'.format(dev.name, kwargs.get("deviceTypeId",""), kwargs.get("address","")))
 		return dev
@@ -1232,7 +1405,244 @@ class Plugin(indigo.PluginBase):
 
 
 
+	####-----------------	 ---------
+	K_MEDIA_TO_MBIT = {"FE": 100, "GE": 1000, "2.5GE": 2500, "5GE": 5000, "10GE": 10000, "SFP": 1000, "SFP+": 10000}
+
+	def _gwUplinkPort(self, gwDict):
+		"""Find the gateway WAN port in the controller port_table.
+
+		Returns (ifname, portName, speedMbit, maxSpeedMbit) or None. The uplink is identified by the
+		port_table flag is_uplink, so no interface name has to be configured and this works on any
+		gateway model (different models put the WAN on a different ethN / port number).
+		maxSpeedMbit comes from the port media type (GE -> 1000, 2.5GE -> 2500, ...), ie what the port
+		itself can do, which is the sensible "expected" value when the config is set to auto."""
+		try:
+			if self.decideMyLog("WanLink"):
+				for port in gwDict.get("port_table", []):
+					self.indiLOG.log(10,"gwUplinkPort: port_table ifname:{} name:'{}' is_uplink:{} up:{} media:{} speed:{} full_duplex:{}".format(
+									port.get("ifname",""), port.get("name",""), port.get("is_uplink",False), port.get("up",""), port.get("media",""), port.get("speed",""), port.get("full_duplex","")))
+			for port in gwDict.get("port_table", []):
+				if not port.get("is_uplink", False): continue
+				try:    _speed = int(port.get("speed", 0))
+				except: _speed = 0
+				_media = "{}".format(port.get("media", "")).upper()
+				return ("{}".format(port.get("ifname", "")), "{}".format(port.get("name", "")), _speed, self.K_MEDIA_TO_MBIT.get(_media, 0))
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return None
+
+	####-----------------	 ---------
+	def _wanLinkExpectedSpeed(self, maxSpeed):
+		"""Expected minimum WAN link speed in Mbit: the configured value, or what the port itself can do
+		when the setting is auto. 0 means unknown - then the speed is reported but never judged."""
+		if self.wanLinkMinSpeed.lower() != "auto":
+			try:    return int(self.wanLinkMinSpeed)
+			except: return 0
+		return maxSpeed
+
+	####-----------------	 ---------
+	def _checkWANLinkSpeed(self, gwDict, dev, ipNumber):
+		"""Update the wanLink* states of a gateway device from the controller port_table and, when enabled,
+		renegotiate the port if the negotiated speed dropped below what is expected.
+
+		All of this comes from the dict the controller already delivers - no ssh - so with the auto fix
+		switched off this costs nothing beyond four state comparisons."""
+		try:
+			if "wanLinkSpeed" not in dev.states: return                    # states not settled yet
+			if not self.wanLinkWatchON:
+				if dev.states["wanLinkStatus"] != "off": self.addToStatesUpdateList(dev.id, "wanLinkStatus", "off")
+				return
+
+			_up = self._gwUplinkPort(gwDict)
+			if _up is None:
+				if dev.states["wanLinkStatus"] != "no uplink port":
+					self.addToStatesUpdateList(dev.id, "wanLinkStatus", "no uplink port")
+					if self.decideMyLog("WanLink"): self.indiLOG.log(10,"checkWANLinkSpeed: {} has no port_table entry flagged is_uplink, port_table has {} entries".format(dev.name, len(gwDict.get("port_table", []))))
+				return
+
+			_ifname, _portName, _speed, _maxSpeed = _up
+			_expected = self._wanLinkExpectedSpeed(_maxSpeed)
+
+			_portText = "{} / {}".format(_portName, _ifname) if _portName else _ifname
+			if _maxSpeed: _portText += " ({} Mbit)".format(_maxSpeed)     # so the state shows 1000 of 2500 at a glance
+
+			if   _expected <= 0:      _status = "{} Mbit".format(_speed)
+			elif _speed    <= 0:      _status = "link down"
+			elif _speed >= _expected: _status = "ok {} Mbit".format(_speed)
+			else:                     _status = "DEGRADED {} of {} Mbit".format(_speed, _expected)
+
+			if dev.states["wanLinkPort"]     != _portText: self.addToStatesUpdateList(dev.id, "wanLinkPort",     _portText)
+			if dev.states["wanLinkSpeed"]    != _speed:    self.addToStatesUpdateList(dev.id, "wanLinkSpeed",    _speed)
+			if dev.states["wanLinkSpeedMax"] != _maxSpeed: self.addToStatesUpdateList(dev.id, "wanLinkSpeedMax", _maxSpeed)
+			if dev.states["wanLinkStatus"]   != _status:   self.addToStatesUpdateList(dev.id, "wanLinkStatus",   _status)
+
+			if self.decideMyLog("WanLink"):
+				self.indiLOG.log(10,"checkWANLinkSpeed: {} uplink:{} ifname:{} negotiated:{} Mbit portMax:{} Mbit setting:'{}' expected:{} Mbit -> '{}'{}".format(
+								dev.name, _portName, _ifname, _speed, _maxSpeed, self.wanLinkMinSpeed, _expected, _status,
+								"" if not self.wanLinkAutoFix else "; autoFix on, last fix {:.0f} s ago".format(time.time() - self.wanLinkLastFix.get(ipNumber, 0))))
+
+			if not _status.startswith("DEGRADED"):
+				self.wanLinkLastWarn.pop(ipNumber, None)
+				return
+
+			# warn once an hour while it stays degraded, so the log is not filled on every dict read
+			if time.time() - self.wanLinkLastWarn.get(ipNumber, 0) > 3600.:
+				self.wanLinkLastWarn[ipNumber] = time.time()
+				self.indiLOG.log(30,"WAN link of '{}' degraded: {} negotiated {} Mbit, expected at least {} Mbit".format(dev.name, _portText, _speed, _expected))
+
+			if not self.wanLinkAutoFix: return
+			_since = time.time() - self.wanLinkLastFix.get(ipNumber, 0)
+			if _since < self.wanLinkFixEvery:
+				if self.decideMyLog("WanLink"): self.indiLOG.log(10,"checkWANLinkSpeed: {} still degraded, last renegotiation {:.0f} s ago (< {:.0f} s), waiting".format(dev.name, _since, self.wanLinkFixEvery))
+				return
+			self.wanLinkLastFix[ipNumber] = time.time()
+			self.renegotiateWANLink(ipNumber=ipNumber, ifname=_ifname, calledFrom="auto fix: {} Mbit < {} Mbit".format(_speed, _expected))
+
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+	####-----------------	 ---------
+	def renegotiateWANLink(self, ipNumber="", ifname="", calledFrom=""):
+		"""Renegotiate / reset the gateway WAN port over ssh: ethtool -r when the gateway has ethtool,
+		otherwise ip link down + up. This interrupts the internet connection for a few seconds.
+
+		Uses the same expect script and the same unix ssh credentials as every other command the plugin
+		runs on a unifi device, so nothing has to be installed on the gateway itself."""
+		try:
+			if ipNumber == "": ipNumber = self.ipNumbersOf.get("GW", "")
+			if ipNumber == "" or ifname == "":
+				self.indiLOG.log(40,"renegotiateWANLink: need the gateway ip and the interface name, got ip:'{}' if:'{}'".format(ipNumber, ifname))
+				return False
+			if "{}".format(self.connectParams["commandOnServer"].get("GWctrl", "")).find("off") == 0:
+				self.indiLOG.log(40,"renegotiateWANLink: ssh commands to the gateway are switched off (GWctrl)")
+				return False
+			if self.connectParams["UserID"]["unixDevs"] == "":
+				self.indiLOG.log(40,"renegotiateWANLink: no ssh unix userid/password configured for the unifi devices")
+				return False
+
+			_cmdOnGW = "ethtool -r {0} 2>/dev/null || {{ ip link set {0} down; sleep 5; ip link set {0} up; }}".format(ifname)
+			cmd  = self.expectPath + " "
+			cmd += "'" + self.pathToPlugin + self.connectParams["expectCmdFile"]["GWctrl"] + "' "
+			cmd += self._expectCredArgs()
+			_env = self._expectEnv(self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"])
+			cmd += ipNumber + " "
+			cmd += "'" + self.connectParams["promptOnServer"].get(ipNumber, ":~") + "' "
+			cmd += " XXXXsepXXXXX  "
+			cmd += '"' + _cmdOnGW + '"'
+			cmd += self._getHostFileCheck()
+
+			self.indiLOG.log(20,"renegotiateWANLink: resetting WAN port {} on gateway {} ({}) - the internet connection drops for a few seconds".format(ifname, ipNumber, calledFrom))
+			if self.decideMyLog("WanLink") or self.decideMyLog("Expect"): self.indiLOG.log(10,"renegotiateWANLink EXPECT CMD: {}".format(self.maskPw(cmd)))
+			ret, err = self.readPopen(cmd, env=_env)
+			if self.decideMyLog("WanLink") or self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"renegotiateWANLink returned: {}".format(ret))
+			if err:
+				self.indiLOG.log(40,"renegotiateWANLink: ssh to gateway {} failed: {}".format(ipNumber, err))
+				return False
+			return True
+
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return False
+
+	####-----------------	 ---------
+	def _wanLinkIfnameFromStates(self):
+		"""Recover the WAN interface name from the gateway device state wanLinkPort ('Port 5 / eth4 (2500 Mbit)')."""
+		for dev in indigo.devices.iter(self.pluginId):
+			if dev.deviceTypeId != "gateway" or not dev.enabled: continue
+			_port = "{}".format(dev.states.get("wanLinkPort", ""))
+			if "/" in _port: return _port.split("/")[1].split("(")[0].strip()
+			if _port.startswith("eth"): return _port.split(" ")[0].strip()
+		return ""
+
+	####-----------------	 ---------
+	def renegotiateWANLinkMENU(self, valuesDict=None, typeId=""):
+		"""Menu / action entry: reset the gateway WAN port now, whether or not the watch option is on."""
+		try:
+			_ifname = self._wanLinkIfnameFromStates()
+			if _ifname == "":
+				self.indiLOG.log(40,"renegotiateWANLink: the WAN port is not known yet - switch on 'watch WAN port link speed' in the plugin config and wait for one controller read, so the uplink port can be detected")
+			else:
+				self.renegotiateWANLink(ipNumber=self.ipNumbersOf.get("GW", ""), ifname=_ifname, calledFrom="menu/action")
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return valuesDict if valuesDict is not None else True
+
+	####-----------------	 ---------
+	def renegotiateWANLinkACTION(self, action1=None):
+		"""Action entry: reset the gateway WAN port now."""
+		self.renegotiateWANLinkMENU()
+		return True
 	####-----------------  update state lists ---------
+	def _appendDynStates(self, stateList, table):
+		"""append states from a {name: typecode} table to an Indigo state list (dynamic-state prototype)."""
+		_fn = {"s": self.getDeviceStateDictForStringType,
+			   "i": self.getDeviceStateDictForIntegerType,
+			   "n": self.getDeviceStateDictForNumberType,
+			   "b": self.getDeviceStateDictForBoolTrueFalseType}
+		for _st, _code in table.items():
+			stateList.append(_fn[_code](_st, _st, _st))
+		return stateList
+
+	####-----------------	 ---------
+	def getDeviceConfigUiXml(self, typeId, devId):
+		"""Return the device's ConfigUI, injecting the shared group-membership fields (Group0..7 / Gtext0..7) and the debugDev checkbox
+		before </ConfigUI> so they need not be repeated in every Devices.xml block. Falls back cleanly for
+		types with no ConfigUI or that already contain the group fields."""
+		xml = super(Plugin, self).getDeviceConfigUiXml(typeId, devId)
+		try:
+			if xml and "</ConfigUI>" in xml and 'id="Group0"' not in xml:
+				xml = xml.replace("</ConfigUI>", _GROUP_FIELDS_XML + _DEBUG_FIELD_XML + "</ConfigUI>", 1)
+			if xml and "</ConfigUI>" in xml and typeId in K_MINMAX_TRACKED and 'id="minMaxEnable_' not in xml:
+				xml = xml.replace("</ConfigUI>", _minMaxConfigFieldsXml(typeId) + "</ConfigUI>", 1)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return xml
+
+	####-----------------	 ---------
+	def getDeviceStateList(self, dev):
+		"""Indigo builds a device's state list through this - at startup (BEFORE any dict is read), on
+		device save, and after stateListOrDisplayStateIdChanged(). For the prototype types the list is
+		generated from deviceTypeId-keyed tables (common + per-type) instead of the static Devices.xml
+		<States>; every other device type keeps its static states untouched. Because the key is deviceTypeId
+		(known before the dict), the list is always correct - the dict later only fills VALUES."""
+		stateList = super(Plugin, self).getDeviceStateList(dev)
+		try:
+			if stateList is None: stateList = []
+			if dev.deviceTypeId in K_PROTECT_DYNAMIC_TYPES:
+				if dev.deviceTypeId in K_PROTECT_USES_COMMON:
+					self._appendDynStates(stateList, K_PROTECT_COMMON_STATES)
+				for _tbl, _types in K_PROTECT_LAYERS:
+					if dev.deviceTypeId in _types:
+						self._appendDynStates(stateList, _tbl)
+				self._appendDynStates(stateList, K_PROTECT_TYPE_STATES[dev.deviceTypeId])
+				if dev.deviceTypeId in K_PROTECT_HAS_DISPLAYSTATUS:
+					self._appendDynStates(stateList, {"displayStatus":"s"})
+			elif dev.deviceTypeId in K_UNIFI_DYNAMIC_TYPES:
+				self._appendDynStates(stateList, K_UNIFI_COMMON)
+				if dev.deviceTypeId in K_UNIFI_SWITCH_TYPES:
+					# a switch: common + base + feature layers + one port_NN state per physical port
+					_n = int(dev.deviceTypeId.split("-")[-1])
+					self._appendDynStates(stateList, K_UNIFI_SWITCH_BASE)
+					if _n >= 10: self._appendDynStates(stateList, dict([K_UNIFI_SWITCH_TEMP]))
+					if _n >= 12: self._appendDynStates(stateList, dict([K_UNIFI_SWITCH_FAN]))
+					if _n >= 52: self._appendDynStates(stateList, dict([K_UNIFI_SWITCH_VLAN]))
+					self._appendDynStates(stateList, {"port_%02d" % _i: K_UNIFI_PORT_CODE for _i in range(1, _n + 1)})
+				else:
+					self._appendDynStates(stateList, K_UNIFI_TYPE_STATES[dev.deviceTypeId])
+			# per-state daily min/max/average and change/trend states, each group behind its own
+			# checkbox in device config (opt-in, default off - nothing changes for existing devices)
+			if dev.deviceTypeId in K_MINMAX_TRACKED:
+				_props = dev.pluginProps
+				for _st in K_MINMAX_TRACKED[dev.deviceTypeId]:
+					if _props.get("minMaxEnable_"+_st, False):
+						self._appendDynStates(stateList, {_st+_suf: _code for _suf, _code in K_MINMAX_SUFFIXES})
+					if _props.get("enableChanges_"+_st, False):
+						self._appendDynStates(stateList, {_st+_suf: _code for _suf, _code in K_CHANGES_SUFFIXES})
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return stateList
+
+	####-----------------	 ---------
 	def deviceStartComm(self, dev):
 		"""Handle device Start Comm.
 		
@@ -1241,6 +1651,7 @@ class Plugin(indigo.PluginBase):
 		Outputs:
 		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
 		"""
+		statsSqlIgnore.applyLater(dev.id)	# statistics states into the SQL logger or not (device edit / plugin config)
 		if self.decideMyLog("Logic"): self.indiLOG.log(10,"starting device:  {}  {}  {}".format(dev.name, dev.id, dev.states["MAC"]))
 
 		if	self.pluginState == "init":
@@ -1275,17 +1686,14 @@ class Plugin(indigo.PluginBase):
 					dev.updateStateOnServer("onOffState",value=(dev.states["status"].lower()) in["up","rec","ON"], uiValue=dev.states["displayStatus"] )
 					self.indiLOG.log(10,"SupportsOnState after replacePluginPropsOnServer")
 
-			isType={"UniFi":"isUniFi","camera":"isCamera","gateway":"isGateway","Device-SW":"isSwitch","Device-AP":"isAP","neighbor":"isNeighbor"}
-			props = dev.pluginProps
-			devTid = dev.deviceTypeId
-			for iT in isType:
-				testId = devTid[0:min( len(iT),len(devTid) ) ]
-				if iT == testId:
-					isT = isType[iT]
-					if isT not in props or props[isT] != True:
-						props[isT] = True
-						dev.replacePluginPropsOnServer(props)
-					break
+			# enforce the capability + marker props from the deviceTables tables (single source of truth,
+			# replaces the per-type hidden checkboxes that used to live in Devices.xml ConfigUI)
+			_wantProps = deviceProps(dev.deviceTypeId)
+			if _wantProps:
+				props = dev.pluginProps
+				if any(props.get(_k) != _v for _k, _v in _wantProps.items()):
+					props.update(_wantProps)
+					dev.replacePluginPropsOnServer(props)
 
 			if "enableBroadCastEvents" not in props:
 				props = dev.pluginProps
@@ -1417,17 +1825,6 @@ class Plugin(indigo.PluginBase):
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 	####-----------------	 ---------
-	def xxdeviceStopComm(self, dev):
-		"""Handle xxdevice Stop Comm.
-		
-		Inputs:
-		    dev: Caller-supplied value used by this method.
-		Outputs:
-		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
-		"""
-		return
-	
-	####-----------------	 ---------
 	def didDeviceCommPropertyChange(self, origDev, newDev):
 		#if origDev.pluginProps['xxx'] != newDev.pluginProps['address']:
 		#	 return True
@@ -1522,6 +1919,7 @@ class Plugin(indigo.PluginBase):
 				theDictList[0]["Gtext{}".format(groupNo)] =  self.groupNames[groupNo]
 			if typeId == "system_protect":
 				theDictList[0]["cameraSystem"] = self.protectSystem
+			self.devPasswordsToPlain(theDictList[0])		# in place - theDictList is a tuple
 			if typeId.find("Device-SW")>-1:
 				try:
 					dev = indigo.devices[int(devId)]
@@ -1617,10 +2015,6 @@ class Plugin(indigo.PluginBase):
 					refresh = "unifiCloudKeyIP"
 					self.addToStatesUpdateList(dev.id,"ipNumber", self.unifiCloudKeyIP)
 
-				if valuesDict["unifiCloudKeyPort"] != self.unifiCloudKeyPort:
-					self.unifiCloudKeyPort = valuesDict["unifiCloudKeyPort"] 
-					refresh = ["unifiCloudKeyPort"]
-
 				if valuesDict["unifiCONTROLLERUserID"] != self.connectParams["UserID"]["webCTRL"] :
 					self.connectParams["UserID"]["webCTRL"] = valuesDict["unifiCONTROLLERUserID"] 
 					refresh = "unifiCONTROLLERUserID"
@@ -1679,6 +2073,7 @@ class Plugin(indigo.PluginBase):
 				self.quitNOW = "config changed"
 			self.updateConnectParams  = time.time() - 100
 
+			valuesDict = self.devPasswordsToStored(valuesDict)
 
 			return (True, valuesDict)
 		except	Exception as e:
@@ -1690,6 +2085,7 @@ class Plugin(indigo.PluginBase):
 	####-----------------	 ---------
 	def closedDeviceConfigUi(self, valuesDict=None, userCancelled=False, typeId="", devId=0):
 		if userCancelled: return
+		self._rebuildDebugDevMACs()   # a device's debugDev checkbox may have changed
 
 		# Protect sensors: apply changed display settings immediately - rebuild displayStatus with the
 		# just-saved values instead of waiting for the next state change / bootstrap refresh
@@ -1700,6 +2096,11 @@ class Plugin(indigo.PluginBase):
 				_disp = self._buildSensorDisplayStatus(dev.states.get("isConnected", True), typeId, dict(dev.states), valuesDict)
 				if _disp is not None and dev.states.get("displayStatus","") != _disp:
 					dev.updateStateOnServer("displayStatus", _disp)
+				# any boolean sensor: onOffState polarity follows displayWhatValue (onoff_invert)
+				if typeId in kSensorOnOff and dev.states.get("isConnected", True):
+					_trig = self._sensorTriggered(typeId, dev.states)
+					dev.updateStateOnServer("onOffState", self._sensorOnOff(valuesDict, _trig), uiValue=self._sensorOnOffUi(valuesDict, typeId, _trig, _disp or dev.states.get("displayStatus","")))
+					dev.updateStateImageOnServer(self._sensorImage(valuesDict, _trig))
 			except	Exception as e:
 				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 			return
@@ -1814,7 +2215,7 @@ class Plugin(indigo.PluginBase):
 			sshU = "{}".format(v.get("quickSshUID","")).strip()
 			sshP = "{}".format(v.get("quickSshPWD","")).strip()
 			if sshU: setF("unifiUserID",  sshU)
-			if sshP: setF("unifiPassWdz", sshP)
+			if sshP: setF("unifiPassWd", sshP)
 
 			#### UDM family (gateway + built-in switch; validate wires SW13/GW/AP20 from ipUDM/ipUDMON)
 			if prof in ("gwsw","gwswap"):
@@ -1863,26 +2264,6 @@ class Plugin(indigo.PluginBase):
 		return v
 
 
-	####----------------- set unifi controller site ID anmes in dynamic list ---------
-	def filterunifiCloudKeyListOfSiteNames(self, filter="", valuesDict=None, typeId="", targetId=""):
-
-		"""Handle filterunifi Cloud Key List Of Site Names.
-		
-		Inputs:
-		    filter: Caller-supplied value used by this method.
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    targetId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		xList = [["x","set to empty = re-read list from controller"]]
-		for xx in self.unifiCloudKeyListOfSiteNames:
-			xList.append([xx,xx])
-		xList.append(["set","overwrite in next field"])
-		return xList
-
-
 	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 	# This routine returns the UI values for the configuration dialog; the default is to
 	# simply return the self.pluginPrefs dictionary. It can be used to dynamically set
@@ -1910,6 +2291,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict["unifiPassWd"]				= self.connectParams["PassWd"]["unixDevs"]
 			valuesDict["unifiPassWdUDM"]			= self.connectParams["PassWd"]["unixUD"]
 			valuesDict["unifiCONTROLLERPassWd"]		= self.connectParams["PassWd"]["webCTRL"]
+			valuesDict["protectApiKey"]				= self.protectApiKey
 
 			valuesDict["GWtailEnable"]				= self.connectParams["enableListener"]["GWtail"]
 			valuesDict["unifiCloudKeySiteName"]		= self.unifiCloudKeySiteName
@@ -1929,7 +2311,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict["quickWebUID"]     = valuesDict.get("unifiCONTROLLERUserID","")
 			valuesDict["quickWebPWD"]     = valuesDict.get("unifiCONTROLLERPassWd","")
 			valuesDict["quickSshUID"]     = valuesDict.get("unifiUserID","")
-			valuesDict["quickSshPWD"]     = valuesDict.get("unifiPassWdz","")
+			valuesDict["quickSshPWD"]     = valuesDict.get("unifiPassWd","")
 			valuesDict["quickUdmUID"]     = valuesDict.get("unifiUserIDUDM","")
 			valuesDict["quickUdmPWD"]     = valuesDict.get("unifiPassWdUDM","")
 			valuesDict["quickProtectUID"] = valuesDict.get("protectUserId","")
@@ -1989,6 +2371,7 @@ class Plugin(indigo.PluginBase):
 		Outputs:
 		    Returns a value to the caller.
 		"""
+		statsSqlIgnore.prefsChanged(valuesDict)	# default for the statistics states in the SQL logger changed: all devices
 		try:
 			valuesDict["MSG"]								= "ok"
 			rebootRequired									= ""
@@ -2281,7 +2664,9 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,"restart " + rebootRequired)
 				self.quitNOW = "config changed "
 			self.updateConnectParams  = time.time() - 100
-			valuesDict["connectParams"] = json.dumps(self.connectParams)
+			valuesDict["connectParams"] = self.connectParamsForPrefs()
+			# last: the dialog fields hold plain text and indigo writes valuesDict into the prefs after this
+			self.savePasswords(valuesDict)
 
 			self.groupStatusINIT()
 
@@ -2311,24 +2696,6 @@ class Plugin(indigo.PluginBase):
 		if inPath == " ":	 return ""
 		if inPath[-1] !="/": inPath +="/"
 		return inPath
-
-	####-----------------	 ---------
-	def _getNewValusDictField(self,item,	 valuesDict, old, rebootRequired):
-		"""Get New Valus Dict Field.
-		
-		Inputs:
-		    item: Caller-supplied value used by this method.
-		    valuesDict: Caller-supplied value used by this method.
-		    old: Caller-supplied value used by this method.
-		    rebootRequired: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		xxx	   = valuesDict[item]
-		if xxx != old:
-			rebootRequired += " "+item+" changed"
-			#indigo.server.log(" changed: "+item+ " new: >"+ xxx +"< old:>"+old+"<") 
-		return	 xxx, rebootRequired
 
 	####-----------------  config setting ---- END   ----------#########
 
@@ -2394,9 +2761,9 @@ class Plugin(indigo.PluginBase):
 			out += "\n" 
 			out += "\n====== used in ssh userid@switch-IP, AP-IP, USG-IP to get DB dump and listen to events"
 			out += "\nUserID-ssh".ljust(40)								+	self.connectParams["UserID"]["unixDevs"]
-			out += "\nPassWd-ssh".ljust(40)								+	self.connectParams["PassWd"]["unixDevs"]
+			out += "\nPassWd-ssh".ljust(40)								+	("*****" if self.connectParams["PassWd"]["unixDevs"] != "" else "NOT set")
 			out += "\nUserID-ssh-UDM".ljust(40)							+	self.connectParams["UserID"]["unixUD"]
-			out += "\nPassWd-ssh-UDM".ljust(40)							+	self.connectParams["PassWd"]["unixUD"]
+			out += "\nPassWd-ssh-UDM".ljust(40)							+	("*****" if self.connectParams["PassWd"]["unixUD"] != "" else "NOT set")
 			out += "\nread buffer size ".ljust(40)						+	"{:.0f}".format(self.readBuffer)
 			for ipN in self.connectParams["promptOnServer"]:
 				out += ("\npromptOnServer "+ipN).ljust(40)				+	"'"+self.connectParams["promptOnServer"][ipN]+"'"
@@ -2907,7 +3274,7 @@ class Plugin(indigo.PluginBase):
 		    Returns a value to the caller.
 		"""
 		self.connectParams["promptOnServer"] = dict()
-		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+		self.pluginPrefs["connectParams"] = self.connectParamsForPrefs()
 		indigo.server.savePluginPrefs()	
 		self.quitNOW = "restart due to prompt settings reset"
 		self.indiLOG.log(30," reset prompts, initating restart")
@@ -3111,124 +3478,6 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def makeJson(self, dumpIN, sep):  ## {} separated by \n
-		"""Build Json.
-		
-		Inputs:
-		    dumpIN: Caller-supplied value used by this method.
-		    sep: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		try:
-			out = list()
-			temp = "empty"
-			temp2 = "empty"
-			begStr,endStr ="{","}"
-			dump		 = dumpIN.split(sep)
-			lDump = len(dump)
-			if lDump <3: return "","error len(split):{}".format(lDump)
-			if lDump >3:
-				dump = dump[lDump-3:]
-			dump  = dump[1].strip("\n").strip("\r")
-			s1 = dump.find(begStr)
-			dump = dump[s1:]
-			s2 = dump.rfind(endStr)
-			dump = dump[:s2+1].strip("\n").strip("\r")
-			dumpSplit = dump.split("\n")
-			for line in dumpSplit:
-				if len(line) < 5: continue
-				nnn1   = line.find(begStr)
-				temp   = line[nnn1:]
-				nnn2   = temp.rfind(endStr)
-				temp   = temp[0:nnn2+1]
-				temp2	= self.replaceFunc(temp).strip()
-				if len(temp2) >2:
-					try:
-						o =json.loads(temp2)
-						out.append(o)
-					except:
-						self.indiLOG.log(40,"makeJson error , trying to fix:\ntemp2>>>>>{}".format(temp2)+"<<<<<\n>>>>{}".format(dumpIN)+"<<<<<" )
-						try:
-							o=json.loads(temp2+"}")
-							out.append(o)
-							self.indiLOG.log(40,"makeJson error fixed " )
-						except	Exception as e:
-							if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-
-			return out, ""
-		except	Exception as e:
-			if "{}".format(e).find("None") == -1:
-				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-				self.indiLOG.log(40,"makeJson error :\ndump>>>>{}".format(dumpIN)+"<<<<<" )
-		return dump, "error"
-	####-----------------	 ---------
-	def makeJson2(self, dump, sep):
-		"""Build Json2.
-		
-		Inputs:
-		    dump: Caller-supplied value used by this method.
-		    sep: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		try:
-			out = dict()
-			begStr,endStr ="{","}"
-			dump		 = dump.split(sep)
-			if len(dump) !=3: return ""
-			dump  = dump[1].replace("\n","").replace("\r","")
-			s1 = dump.find(begStr)
-			dump = dump[s1:]
-			s2 = dump.rfind(endStr)
-			out=json.loads(dump[:s2+1])
-			return out, ""
-		except	Exception as e:
-			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-
-	####-----------------	 ---------
-	def replaceFunc(self, dump):
-		"""Replace Func.
-		
-		Inputs:
-		    dump: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		try:
-			for ii in range(500):  # remove binData(xxxxx)
-				nn = dump.find("BinData(")
-				if nn ==-1: break
-				endst = dump[nn:].find(")")
-				dump = dump[0:nn-1]+'"xxx"'+ dump[nn+endst+1:]
-
-			for kk in range(1000):	# loop over func Names, max 30
-				ss = 0
-				for ll in range(100): # remove " (xxx) from targest only abc(xx)
-					nn = dump[ss:].find("(")
-					if nn ==-1: break
-					if dump[ss+nn-1] != " ":
-						nn+=ss
-						break
-					ss = nn+1
-
-
-				if nn ==-1: break
-				startSt= dump[0:nn].rfind(" ")
-				replString= dump[startSt+1:nn+1]
-				lenrepString = len(replString)
-				for ii in range(100):  # loop of all occurance of func replacements
-					nn = dump.find(replString)
-					if nn == -1: break
-					pp = dump[nn:].find(")")
-					dump = dump[0:nn] + dump[nn+lenrepString:nn+pp] + dump[nn+pp+1:]
-			return dump
-		except	Exception as e:
-			if "{}".format(e).find("None") == -1:
-				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		return ""
-
-	####-----------------	 ---------
 	def buttonZeroStatsCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		"""Handle button Zero Stats CALLBACK.
 		
@@ -3241,20 +3490,6 @@ class Plugin(indigo.PluginBase):
 		"""
 		self.zeroDataStats()
 		return valuesDict
-	####-----------------	 ---------
-	def buttonResetStatsCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		"""Handle button Reset Stats CALLBACK.
-		
-		Inputs:
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    devId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		self.resetDataStats(calledFrom="buttonResetStatsCALLBACK")
-		return valuesDict
-
 	####-----------------  reboot unifi device	 ---------
 
 	####-----------------	 ---------
@@ -3308,13 +3543,14 @@ class Plugin(indigo.PluginBase):
 		uType 	 = "unixDevs"
 		cmd = self.expectPath +" "
 		cmd+= "'"+self.pathToPlugin + "rebootUNIFIdeviceAP.exp" + "' "
-		cmd+= "'"+self.connectParams["UserID"][uType] + "' '"+self.connectParams["PassWd"][uType] + "' "
+		cmd+= self._expectCredArgs()
+		_env = self._expectEnv(self.connectParams["UserID"][uType], self.connectParams["PassWd"][uType])
 		cmd+= ipNumber + " "
 		cmd+= "'"+self._escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' "
 		cmd +=  self._getHostFileCheck()
 		cmd +=   " &"
-		if self.decideMyLog("Expect"): self.indiLOG.log(10,"REBOOT: "+cmd )
-		ret, err = self.readPopen(cmd)
+		if self.decideMyLog("Expect"): self.indiLOG.log(10,"REBOOT: "+self.maskPw(cmd) )
+		ret, err = self.readPopen(cmd, env=_env)
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"REBOOT returned: {}-{}".format(ret, err) )
 		self._addToMenuXML(valuesDict)
 
@@ -3737,29 +3973,6 @@ class Plugin(indigo.PluginBase):
 
 
 	####-----------------	 ---------
-	def filterMACNoIgnored(self, filter="", valuesDict=None, typeId="", targetId=""):
-		"""Filter MACNo Ignored.
-		
-		Inputs:
-		    filter: Caller-supplied value used by this method.
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    targetId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		xList = list()
-		for dev in indigo.devices.iter(self.pluginId):
-			if "MAC" in dev.states:
-				if "displayStatus" in dev.states and   dev.states["displayStatus"].find("ignored") >-1: continue
-				mac = dev.states["MAC"]
-				if self.isValidMAC(mac):
-					xList.append([mac,dev.states["MAC"] + " - "+dev.name])
-				else:
-					xList.append(["bad mac","badMAC#-"+dev.states["MAC"] + " - "+dev.name])
-		return sorted(xList, key=lambda x: x[1])
-
-	####-----------------	 ---------
 	def filterMAC(self, filter="", valuesDict=None, typeId="", targetId=""):
 		"""Filter MAC.
 		
@@ -3924,7 +4137,7 @@ class Plugin(indigo.PluginBase):
 		"""
 		xList = list()
 		for MAC in self.MACSpecialIgnorelist:
-			if len(dev.states["MAC"]) < 5: continue
+			if len(MAC) < 5: continue
 			xList.append([MAC,MAC])
 		return sorted(xList, key=lambda x: x[1])
 
@@ -4284,14 +4497,13 @@ class Plugin(indigo.PluginBase):
 		"""
 		try: groupNo = int(self.selectedGroup)
 		except: return valuesDict
-		groupPropsName = "Group".format(groupNo)
+		groupPropsName = "Group{}".format(groupNo)
 		self.indiLOG.log(20," groupStatusList:{} removing all members".format(self.groupStatusList)  )
 		self.groupStatusList[groupNo]["members"] = dict()
 		for dev in indigo.devices.iter(self.pluginId):
 			props=dev.pluginProps
 			if groupPropsName in props and props[groupPropsName]:
 				props[groupPropsName] = False
-				gMembers = self.makeGroupMemberstring(props)
 				gMembers = self.makeGroupMemberstring(props)
 				self.updateDevStateGroupMembers(dev, gMembers)
 				dev.replacePluginPropsOnServer(props)
@@ -4452,20 +4664,6 @@ class Plugin(indigo.PluginBase):
 
 	####-----------------  powercycle switch port	---------
 	####-----------------	 ---------
-	def filterUnifiSwitchACTION(self, filter="", valuesDict=None, typeId="", targetId=""):
-		"""Filter Unifi Switch ACTION.
-		
-		Inputs:
-		    filter: Caller-supplied value used by this method.
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    targetId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		return self.filterUnifiSwitch(valuesDict)
-
-	####-----------------	 ---------
 	def filterUnifiSwitch(self, filter="", valuesDict=None, typeId="", targetId=""):
 		"""Filter Unifi Switch.
 		
@@ -4559,30 +4757,6 @@ class Plugin(indigo.PluginBase):
 		return xList
 
 	####-----------------	 ---------
-	def filterUnifiClient(self, filter="", valuesDict=None, typeId="", targetId=""):
-
-		"""Filter Unifi Client.
-		
-		Inputs:
-		    filter: Caller-supplied value used by this method.
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    targetId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		xList = list()
-		for dev2 in indigo.devices.iter("props.isUniFi"):
-			if "SW_Port" in dev2.states and len(dev2.states["SW_Port"]) > 2:
-				sw	 = dev2.states["SW_Port"].split(":")
-				if sw[1].find("poe") >-1:
-					port = sw[1].split("-")[0]
-					xList.append([sw[0]+"-"+port,"sw{}-port#{} - {}".format(sw[0], port, dev2.name)])
-		xList.sort(key = lambda x: x[1]) 
-		return xList
-
-
-	####-----------------	 ---------
 	def buttonConfirmpowerCycleCALLBACKaction(self, action1=None):
 		"""Handle button Confirmpower Cycle CALLBACKaction.
 		
@@ -4614,7 +4788,7 @@ class Plugin(indigo.PluginBase):
 		dtype		= ip_type[1]
 		port		= "{}".format(valuesDict["selectedUnifiSwitchPort"])
 		cmd 		= self.expectPath +" "
-		pv = self.pluginPrefs.get('portCommandversion','""')
+		pv = self.getPref("portCommandversion")
 		if pv not in ["","v2"]: pv = ""
 		if onOffCycle == "CYCLE":
 			cmd += "'"+self.pathToPlugin + f"cyclePort{pv:}.exp' "
@@ -4622,18 +4796,114 @@ class Plugin(indigo.PluginBase):
 			cmd += "'"+self.pathToPlugin + f"onPort{pv:}.exp' "
 		elif  onOffCycle =="OFF":
 			cmd += "'"+self.pathToPlugin + f"offPort{pv:}.exp' "
-		cmd += "'"+self.connectParams["UserID"]["unixDevs"] + "' '"+self.connectParams["PassWd"]["unixDevs"] + "' "
+		cmd += self._expectCredArgs()
+		_env = self._expectEnv(self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"])
 		cmd += ipNumber + " "
 		cmd += port + " "
 		cmd += "'" + self._escapeExpect(self.connectParams["promptOnServer"][ipNumber]) +"' "
 		cmd +=  self._getHostFileCheck()
 		cmd +=   " &"
-		if self.decideMyLog("Expect"): self.indiLOG.log(10,"RECYCLE: "+cmd )
-		ret, err = self.readPopen(cmd)
+		if self.decideMyLog("Expect"): self.indiLOG.log(10,"RECYCLE: "+self.maskPw(cmd) )
+		ret, err = self.readPopen(cmd, env=_env)
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"RECYCLE returned: {}-{}".format(ret, err))
 		self._addToMenuXML(valuesDict)
 		return valuesDict
 
+
+	####-----------------	 ---------
+	####-----------------  filesystems that are ram or a read only image, never the data disk  ---------
+	_dfSkipFs     = ("tmpfs", "devtmpfs", "udev", "none", "shm")
+	_dfSkipMount  = ("/dev", "/run", "/tmp", "/dev/shm", "/run/lock", "/sys/fs/cgroup")
+
+	####-----------------	 ---------
+	def _rootSshCredentials(self):
+		"""ssh credentials for a command that has to run as root on a unifi OS device (df / free /
+		ubnt-systool). That is the UDM/UniFi-OS pair, not the one used for APs and switches, which may
+		well be a normal user without the rights for these commands. Falls back to the device pair when
+		no UniFi-OS credentials are configured."""
+		uid = "{}".format(self.connectParams["UserID"].get("unixUD", ""))
+		pwd = "{}".format(self.connectParams["PassWd"].get("unixUD", ""))
+		if uid == "" or pwd == "":
+			uid = "{}".format(self.connectParams["UserID"].get("unixDevs", ""))
+			pwd = "{}".format(self.connectParams["PassWd"].get("unixDevs", ""))
+		return uid, pwd
+
+	####-----------------	 ---------
+	def _leadingNumber(self, text):
+		"""First number at the start of a line. ubnt-systool prints its value with the next shell prompt
+		glued to it ("16.4root@gateway:~# "), so the number can not be read by splitting on whitespace."""
+		m = re.match(r"\s*(\d+(?:\.\d+)?)", "{}".format(text))
+		return m.group(1) if m else ""
+
+	####-----------------	 ---------
+	def _parseDiskspace(self, ret):
+		"""Pick disk / memory / cpu out of the output of df, free and ubnt-systool.
+
+		Everything defaults to "not available", so a host that does not answer, or does not have
+		ubnt-systool (a self hosted controller on plain debian), reports that instead of a wrong number.
+		"""
+		notAvail = "not available"
+		DiskTot = DiskUsed = DiskFree				= notAvail
+		MemTot = MemUsed = MemFree					= notAvail
+		SharedTot = SharedUsed = SharedFree			= notAvail
+		cpuload = cputemp							= notAvail
+		try:
+			lines = ret.replace("\r", "").split("\n")
+
+			def _gb(kb):	return re.sub(patternAddKomma, r",\g<0>", str(int(float(kb) / 1024. / 1024.))) + "GB"
+			def _mb(kb):	return re.sub(patternAddKomma, r",\g<0>", str(int(float(kb) // 1024)))		  + "MB"
+
+			# ---- df: the biggest real filesystem.
+			# The previous version only accepted a mount point containing "volume" (/volume1, which a
+			# cloudkey with a built in disk has). A gateway or a self hosted controller has no such
+			# mount, so disk size could never be read there. Biggest-real-filesystem picks /volume1 on
+			# a cloudkey just the same, because that is also its biggest one.
+			inDf, best = False, None
+			for line in lines:
+				if line.startswith("Filesystem"):
+					inDf = True
+					continue
+				if not inDf: continue
+				t = line.split()
+				if len(t) < 6 or not t[-2].endswith("%"):
+					continue
+				try:	total, used, free = float(t[1]), float(t[2]), float(t[3])
+				except:	continue
+				if total <= 0: continue
+				if t[0].startswith(self._dfSkipFs) or t[0].startswith("/dev/loop"): continue
+				if t[-1] in self._dfSkipMount: continue
+				if best is None or total > best[0]: best = (total, used, free)
+			if best is not None:
+				try:	DiskTot, DiskUsed, DiskFree = _gb(best[0]), _gb(best[1]), _gb(best[2])
+				except:	pass
+
+			# ---- free: Mem: and Swap: can be found on their own, no need to be inside a section
+			for line in lines:
+				t = line.split()
+				if len(t) > 3 and t[0] == "Mem:":
+					try:	MemTot, MemUsed, MemFree = _mb(t[1]), _mb(t[2]), _mb(t[3])
+					except:	pass
+				elif len(t) > 3 and t[0] == "Swap:":
+					try:	SharedTot, SharedUsed, SharedFree = _gb(t[1]), _gb(t[2]), _gb(t[3])
+					except:	pass
+
+			# ---- ubnt-systool: the value is on the line after the echoed command. The command shows up
+			# twice (once echoed by the terminal, once by the remote shell), so keep the last value that
+			# is really a number - the first copy is followed by the next command, not by a number.
+			for ii, line in enumerate(lines):
+				if ii + 1 >= len(lines): break
+				end = line.rstrip()
+				if end.endswith("ubnt-systool cpuload"):
+					v = self._leadingNumber(lines[ii+1])
+					if v != "": cpuload = v + "%"
+				elif end.endswith("ubnt-systool cputemp"):
+					v = self._leadingNumber(lines[ii+1])
+					if v != "": cputemp = v + "\u00baC"
+
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+		return DiskTot, DiskUsed, DiskFree, MemTot, MemUsed, MemFree, SharedTot, SharedUsed, SharedFree, cpuload, cputemp
 
 	####-----------------	 ---------
 	def _getDiskspace(self, ipNumber, userid, passsword, prompt):
@@ -4649,7 +4919,8 @@ class Plugin(indigo.PluginBase):
 		"""
 		cmd = self.expectPath +" "
 		cmd += "'"+self.pathToPlugin + "getdiskspace.exp' "
-		cmd += "'"+userid+ "' '"+passsword + "' "
+		cmd += self._expectCredArgs()
+		_env = self._expectEnv(userid, passsword)
 		cmd += ipNumber + " "
 		cmd += "'" + prompt +"' "
 		cmd +=  self._getHostFileCheck()
@@ -4682,129 +4953,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cpuload
 root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 41.4
 		"""
-		if self.decideMyLog("Expect"): self.indiLOG.log(20,"getDiskspace: cmd {}".format(cmd))
-		ret, err = self.readPopen(cmd)
+		if self.decideMyLog("Expect"): self.indiLOG.log(20,"getDiskspace: cmd {}".format(self.maskPw(cmd)))
+		ret, err = self.readPopen(cmd, env=_env)
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(20,"getDiskspace: ret {}-{}".format(ret, err))
 
-		startfound = 0
-		DiskTot, DiskUsed, DiskFree, 	MemTot, MemUsed, MemFree, 	SharedTot, SharedUsed, SharedFree,	cpuload, cputemp = ("not available","not available","not available",	 "not available","not available","not available", 	"not available","not available","not available", "not available", "not available")
-
-		for line in ret.split("\n"):
-			if len(line) < 2: continue
-			test = line.split()
-			#self.indiLOG.log(20,f"getDiskspace: test: 0  {line:}")
-
-			# cehck for line Filesystem                    1K-blocks      Used Available Use% Mounted on
-			if line.find("Filesystem    ") == 0: 
-				startfound = 1
-				continue
-
-			if startfound < 1: continue
-
-			# in next section?
-			if startfound == 1 and line.find("     total   ") > -1: 
-				startfound = 2
-				continue
-
-			# use this line for disk space info 
-			if startfound == 1 and test[-1].find("volume") > -1: 
-				startfound = 2
-				#self.indiLOG.log(20,f"getDiskspace: test: 6  {test:}")
-				#dev, DiskT, DiskU, DiskF, use, name = test
-				try:
-					DiskTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])/1024./1024.)))+"GB"
-					DiskUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])/1024./1024.)))+"GB"
-					DiskFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])/1024./1024.)))+"GB"
-				except: pass
-				continue
-
-			# we are after filesystem, checking for Mem:
-			if startfound == 2 and test[0] == "Mem:":
-				startfound = 3
-				#name, MemTot, MemUsed, MemFree, sharedM, buffM, MemAvailable = test
-				if len(test) > 3:
-					try:
-						MemTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])//1024)))+"MB"
-						MemUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])//1024)))+"MB"
-						MemFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])//1024)))+"MB"
-					except:	pass
-				continue
-
-
-			# not used, but decoded
-			if startfound == 3 and test[0] == "Swap:": 
-				startfound = 4
-				if len(test) > 3:
-					try:
-						SharedTot  = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[1])/1024./1024.)))+"GB"
-						SharedUsed = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[2])/1024./1024.)))+"GB"
-						SharedFree = re.sub(patternAddKomma,r",\g<0>",str(int(float(test[3])/1024./1024.)))+"GB"
-					except: pass
-				continue
-
-			# set command cpu load found, next line is cpu?
-			if startfound == 4 and test[-1] == "cpuload": 
-				startfound = 5
-				#self.indiLOG.log(20,f"getDiskspace: test: 4  {test:}")
-				continue
-
-			# line cpuload command was found, this must be the number
-			if startfound == 5 and line.find(prompt) > -1: 
-				startfound = 6
-				if len(line) > 3:
-					cpu = ""
-					for c in line[0:3]: 
-						if c in ["0","1","2","3","4","5","6","7","8","9","."]: cpu += c # use only numbers and .
-						else: break
-					if len(cpu) > 2: cpuload = cpu+"%"
-				continue
-
-			# command cputemp was found, skip to next line?
-			if startfound == 6 and test[-1] == "cputemp" and line.find("root") > -1: 
-				#self.indiLOG.log(20,f"getDiskspace: test: 6  {test:}")
-				startfound = 7
-				continue
-
-			# command cputemp was found in last line , this number must be cpu temp
-			if startfound == 7: 
-				startfound = 8
-				if len(test[0]) > 2:
-					cputemp = test[0]+"ºC"
-				#self.indiLOG.log(20,f"getDiskspace: cpuload: 7  {cputemp:}")
-				break
-
-		return DiskTot,	DiskUsed, DiskFree, MemTot, MemUsed, MemFree, SharedTot, SharedUsed, SharedFree, cpuload, cputemp 
+		return self._parseDiskspace(ret)
 
 
 	#### not offered anymore
-	####-----------------	 ---------
-	def buttonConfirmpowerCycleClientsCALLBACKaction(self, action1=None):
-		"""Handle button Confirmpower Cycle Clients CALLBACKaction.
-		
-		Inputs:
-		    action1: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		return self.buttonConfirmpowerCycleClientsCALLBACK(valuesDict=action1.props)
-
-	####-----------------	 ---------
-	def buttonConfirmpowerCycleClientsCALLBACK(self, valuesDict=None, typeId="", devId=""):
-		"""Handle button Confirmpower Cycle Clients CALLBACK.
-		
-		Inputs:
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		    devId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		ip_type	 =	valuesDict["selectedUnifiClientSwitchPort"].split("-")
-		if len(ip_type) != 2: return valuesDict
-		valuesDict["selectedUnifiSwitch"]		= ip_type[0]+"-SWtail"
-		valuesDict["selectedUnifiSwitchPort"]	= ip_type[1]
-		self.buttonConfirmpowerCycleCALLBACK(valuesDict)
-		return valuesDict
 	#### not offered anymore   END 
 
 
@@ -4900,16 +5056,16 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		cmd = "cd '"+self.indigoPreferencesPluginDir+"backup';"
 		cmd += self.expectPath 
 		cmd += " '"+self.pathToPlugin + "controllerbackup.exp' "
-		cmd += " '"+self.connectParams["UserID"]["unixDevs"]+"' "
-		cmd += " '"+self.connectParams["PassWd"]["unixDevs"]+"' "
+		cmd += " " + self._expectCredArgs()
+		_env = self._expectEnv(self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"])
 		cmd +=     self.unifiCloudKeyIP
 		cmd += " '"+self.ControllerBackupPath.rstrip("/")+"'"
 		cmd +=  self._getHostFileCheck()
 		cmd +=  " '#' &"
 
-		if self.decideMyLog("Expect"): self.indiLOG.log(10,"backup cmd: {}".format(cmd) )
+		if self.decideMyLog("Expect"): self.indiLOG.log(10,"backup cmd: {}".format(self.maskPw(cmd)) )
 
-		ret, err = self.readPopen(cmd)
+		ret, err = self.readPopen(cmd, env=_env)
 
 		if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"backup cmd returned: {}-{}".format(ret, err))
 
@@ -5223,7 +5379,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			if out1 != list() or out2 != list():
 				out =  "\n== UniFi  Deep Packet Info report, lastUpdated: {} == \n".format(lastUpdated)
-				out =  "\n== ** cat and app #s from https://ubntwiki.com/products/software/unifi-controller/api/cat_app_json ** \n".format(lastUpdated)
+				out =  "\n== ** cat and app #s from https://ubntwiki.com/products/software/unifi-controller/api/cat_app_json ** \n"
 				out += "   cat# cat Name-----------------------               rx_bytes         tx_Bytes\n"
 				out += "\n".join(sorted(out1))
 				out += "\n"
@@ -6312,17 +6468,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		return ret
 
 ######## actions and menu restart unifi devices
-	####-----------------	 ---------
-	def buttonConfirmRestartUnifiDeviceConllerCALLBACKaction(self, action1=None):
-		"""Handle button Confirm Restart Unifi Device Conller CALLBACKaction.
-		
-		Inputs:
-		    action1: Caller-supplied value used by this method.
-		Outputs:
-		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
-		"""
-		self.buttonConfirmRestartUnifiDeviceConllerCALLBACK(action1.props)
-
 	def buttonConfirmRestartUnifiDeviceConllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		"""Handle button Confirm Restart Unifi Device Conller CALLBACK.
 		
@@ -6344,17 +6489,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 ######## actions and menu provision unifi devices
-	####-----------------	 ---------
-	def buttonConfirmProvisionUnifiDeviceConllerCALLBACKaction(self, action1=None):
-		"""Handle button Confirm Provision Unifi Device Conller CALLBACKaction.
-		
-		Inputs:
-		    action1: Caller-supplied value used by this method.
-		Outputs:
-		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
-		"""
-		self.buttonConfirmProvisionUnifiDeviceConllerCALLBACK(action1.props)
-
 	def buttonConfirmProvisionUnifiDeviceConllerCALLBACK(self, valuesDict=None, typeId="", devId=""):
 		"""Handle button Confirm Provision Unifi Device Conller CALLBACK.
 		
@@ -6453,7 +6587,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if len(self.deviceDictFromController) == 0:
 				self.indiLOG.log(30,"you need to enable use controller in config ")
 				self.deviceDictFromController = [dict()]
-				return valuesDicts
+				return valuesDict
 				
 			else:
 				idx = 0
@@ -6964,84 +7098,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 
-	####-----------------	 --------- This one is not working .. disabled in menu
-	def executeMCAconfigDumpOnGW(self, valuesDict=None,typeId="" ):
-		"""Execute MCAconfig Dump On GW.
-		
-		Inputs:
-		    valuesDict: Caller-supplied value used by this method.
-		    typeId: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		keepList=["vpn","port-forward","service:radius-server","service:dhcp-server"]
-		jsonAction="print"
-		ret = list()
-		if self.connectParams["commandOnServer"]["GWctrl"].find("off") == 0: return valuesDict
-		try:
-			cmd = self.expectPath +" "
-			cmd += "'"+self.pathToPlugin + self.connectParams["expectCmdFile"]["GWctrl"] + "' " 
-			cmd += "'"+self.connectParams["UserID"]["unixDevs"]+ "' '"+self.connectParams["PassWd"]["unixDevs"]+ "' " 
-			cmd += self.ipNumbersOf["GW"] + " " 
-			cmd += "'"+self.connectParams["promptOnServer"][self.ipNumbersOf["GW"]] + "' " 
-			cmd += " XXXXsepXXXXX " + " " 
-			cmd += "\""+self._escapeExpect(self.connectParams["promptOnServer"][self.ipNumbersOf["GW"]])+"\""
-			cmd +=  self._getHostFileCheck()
-
-			if self.decideMyLog("Expect"): self.indiLOG.log(10," UGA EXPECT CMD: {}".format(cmd))
-			ret, err = self.readPopen(cmd)
-			if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(ret))
-			dbJson, error= self.makeJson2(ret, "XXXXsepXXXXX")
-			outLine = ""
-			if jsonAction == "print":
-				for xx in keepList:
-					if xx.find(":") >-1:
-						yy = xx.split(":")
-						if yy[0] in dbJson and yy[1] in dbJson[yy[0]]:
-							short = dbJson[yy[0]][yy[1]]
-							if yy[1] =="dhcp-server":
-								for z in short:
-									if z =="shared-network-name":
-										for zz in short[z]:
-											for zzz in short[z][zz]: # net_LAN_192.168.1.0-24"
-												if zzz =="subnet":
-													for zzzz in short[z][zz][zzz]:	# "192.168.1.0/24"
-														for zzzzz in short[z][zz][zzz][zzzz]:
-															if zzzzz =="static-mapping":
-																s0 = short[z][zz][zzz][zzzz][zzzzz]
-																## need to sort
-																u = list()
-																v = list()
-																for t in s0:
-																	u.append((s0[t]["mac-address"],s0[t]["ip-address"]))
-																	v.append((self.fixIP(s0[t]["ip-address"]),s0[t]["ip-address"],s0[t]["mac-address"]))
-
-																sortMacKey = sorted(u)
-																sortIPKey  = sorted(v)
-																out = "     static DHCP mappings:\n"
-																for m in range(len(sortMacKey)):
-																	out += sortMacKey[m][0]+" --> "+ sortMacKey[m][1].ljust(20)+"        " +sortIPKey[m][1].ljust(18)+"--> "+ sortIPKey[m][2]+"\n"
-																outLine += "\n==== UGA-setup ==== {}".format(out)
-							else:
-								outLine += "\n==== UGA-setup ====     {}:\n{}".format(xx,json.dumps(short,sort_keys=True,indent=2))
-						else:
-							outLine += "\n==== UGA-setup ==== {} not in json returned from UGA".format(xx)
-					else:
-						if xx in dbJson:
-							outLine += "\n==== UGA-setup ====     {}:\n{}".format(xx,json.dumps(dbJson[xx],sort_keys=True,indent=2))
-						else:
-							outLine += "\n==== UGA-setup ====  not in json returned from UGA"
-				self.indiLOG.log(20,outLine)
-			else:
-				return valuesDict
-
-
-		except	Exception as e:
-			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		return valuesDict
-
-
-
 	####-----------------	 ---------
 	def getunifiOSAndPort(self, controllerOrProtectSelected, ipHttp, useTimeout=None ):
 		"""Handle getunifi OSAnd Port.
@@ -7089,7 +7145,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.lastPortNumber									= self.overWriteControllerPort
 					return True
 
-				self.indiLOG.log(40,"getunifiOSAndPort {}: no contact to controller using overWriteControllerPort".format(ipHttp, self.overWriteControllerPort))
+				self.indiLOG.log(40,"getunifiOSAndPort {}: no contact to controller using overWriteControllerPort:{}".format(ipHttp, self.overWriteControllerPort))
 				return False
 
 
@@ -7120,7 +7176,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						tryport = [self.lastPortNumber] + self.tryHTTPPorts
 					else:
 						tryport = self.tryHTTPPorts
-				self.indiLOG.log(10,"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS[controllerOrProtect] , self.unifiCloudKeyIP, tryport ) )
+				self.indiLOG.log(10,"getunifiOSAndPort existing  os>{}< .. ip#>{}< .. trying ports>{}<".format( self.unifiControllerOS[controllerOrProtectSelected] , self.unifiCloudKeyIP, tryport ) )
 				self._executeCMDOnControllerReset(controllerOrProtectSelected, calledFrom="getunifiOSAndPort")
 
 				for port in tryport:
@@ -7194,10 +7250,11 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			elif method == "request":
 				urlSite	= "https://"+self.unifiCloudKeyIP+":"+self.unifiCloudKeyPort+"/proxy/network/api/self/sites"
+				ret = ""
 				try:
 					ret	= self.unifiSession[controllerOrProtectSelected].get(urlSite, cookies=cookies,  headers=headers, timeout=self.requestTimeout, verify=False).text
-				except :
-					self.indiLOG.log(30,"setunifiCloudKeySiteName for {} has error, getting site ID {}".format(self.unifiCloudKeyIP, str(ret), self.retTextForPing(self.unifiCloudKeyIP)))
+				except	Exception as e:
+					self.logEvery("siteIdGet-"+self.unifiCloudKeyIP, 30, "setunifiCloudKeySiteName for {} has error getting site ID: {}{}".format(self.unifiCloudKeyIP, e, self.retTextForPing(self.unifiCloudKeyIP)))
 					self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=5, calledFrom="setunifiCloudKeySiteName1")
 					return False
 				# should get: {"meta":{"rc":"ok"},"data":[{"_id":"5750f2ade4b04dab3d3d0d4f","name":"default","desc":"stanford","attr_hidden_id":"default","attr_no_delete":true,"role":"admin","role_hotspot":false}]}
@@ -7210,8 +7267,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			try:
 				dictRET = json.loads(ret)
 			except :
-				self.indiLOG.log(30,"setunifiCloudKeySiteName for {} has error, getting site ID, no json object returned: >>{}<<".format(self.unifiCloudKeyIP, "{}".format(ret)))
-				self._executeCMDOnControllerReset(controllerOrProtect, wait=5, calledFrom="setunifiCloudKeySiteName1")
+				# a controller that is still booting answers with its html login page: log the first 150 chars only
+				self.logEvery("siteIdNoJson-"+self.unifiCloudKeyIP, 30, "setunifiCloudKeySiteName for {} has error, getting site ID, no json object returned: >>{}<<".format(self.unifiCloudKeyIP, "{}".format(ret)[0:150].replace("\n"," ")))
+				self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=5, calledFrom="setunifiCloudKeySiteName1")
 				return False
 		
 				
@@ -7242,7 +7300,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 			if str(dictRET).find("error") > -1 and str(dictRET).find("Unauthorized") > -1: 
-					self.indiLOG.log(20,"setunifiCloudKeySiteName  not logged in, resetting connection".format(ret))
+					self.indiLOG.log(20,"setunifiCloudKeySiteName  not logged in, resetting connection, ret:>>{}<<".format(ret))
 			else:
 				self.indiLOG.log(20,"setunifiCloudKeySiteName  error  ret:>>{}<<, resetting connection".format(ret))
 
@@ -7250,11 +7308,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			return False
 
 		except	Exception as e:
-			self.indiLOG.log(40,"setunifiCloudKeySiteName: general error" )
 			er = str(e)
-			if er.find("None") == -1: 
-				self.indiLOG.log(40,"{} ".format(er[0:200]))
-				self.indiLOG.log(40,"{} ".format(er[:-200]))
+			if er.find("None") == -1:
+				self.logEvery("siteIdGeneral", 40, "setunifiCloudKeySiteName: general error: {}".format(er[0:200]), exc_info=True)
 		self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=5,  calledFrom="setunifiCloudKeySiteName3")
 		return False
 
@@ -7311,6 +7367,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			maxretry = 4
 			#if self.decideMyLog("ConnectionCMD"): self.indiLOG.log(10,"into executeCMDOnController 2 " )
 			for tryCount in range(maxretry):
+				# the controller answered 429/too many requests: logging in again before the cooldown
+				# expired only extends the rate limit, so skip the call completely
+				cooldown = self.controllerLoginCooldown.get(controllerOrProtectSelected, 0.)
+				if time.time() < cooldown:
+					self.logEvery("loginCooldown-"+ipHttp, 20, "executeCMDOnController {} rate limited by controller, waiting {:.0f} more secs before next login".format(ipHttp, cooldown - time.time()), every=60)
+					return list()
+
 				if not repeatIfFailed and tryCount > 0: return dictRET
 				if tryCount > 0: 
 					self.sleep(tryCount+1)
@@ -7355,7 +7418,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						if isinstance(resp, str):
 							self.failedControllerLoginCount += 1 
 							if self.failedControllerLoginCount > 2:
-								self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{},".format(self.failedControllerLoginCount , url) )
+								self.logEvery("loginFailStr-"+ipHttp, 30, "UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{},".format(self.failedControllerLoginCount , url) )
 							continue
 
 						if self.decideMyLog("ConnectionRET") or debugOverwrite: self.indiLOG.log(10,"Connection: requests login code:{}; ret-Text:\n {} ...".format(resp.status_code, resp.text) )
@@ -7364,7 +7427,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					except	Exception as e:
 						retPing = self.retTextForPing(ipHttp)
 						if retPing !="":
-							self.indiLOG.log(30,"executeCMDOnController {}  {} ".format(retPing, url))
+							self.logEvery("loginNoPing-"+ipHttp, 30, "executeCMDOnController {}  {} ".format(retPing, url))
 						else:
 							if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
 								self.quitNOW = "restart due to failed Controller Login count  > {}".format(self.failedControllerLoginCount )
@@ -7372,19 +7435,27 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 						self.failedControllerLoginCount += 1 
 						if self.failedControllerLoginCount > 2:
-							#self.indiLOG.log(30,"UNIFI executeCMDOnController  error: >>{}<<".format(e) )
-							self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found,  response: >>{}<<".format(self.failedControllerLoginCount , url, str(resp) ) )
-							if "{}".format(e).find("timed out") == -1:
-								pass
-								#if "{}".format(e).find("None") == -1: self.indiLOG.log(30,"", exc_info=True)
+							self.logEvery("loginFailExc-"+ipHttp, 30, "UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found,  response: >>{}<<".format(self.failedControllerLoginCount , url, str(resp) ) )
 
 						self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=5, calledFrom="executeCMDOnController-login ret code not ok")
 						continue
 
 					if  resp == "" or resp.status_code != requests.codes.ok:
+						# http 429 = too many requests: the controller is up but rate limiting us, usually
+						# because it is still booting. retrying now makes it worse: back off and come back later.
+						# this is not a credential problem, so it must not count towards a plugin restart
+						if resp != "" and resp.status_code == 429:
+							try: 	waitSecs = float(resp.headers.get("Retry-After", 60))
+							except:	waitSecs = 60.
+							waitSecs = max(10., min(self.controllerLoginCooldownMax, waitSecs))
+							self.controllerLoginCooldown[controllerOrProtectSelected] = time.time() + waitSecs
+							self.logEvery("login429-"+ipHttp, 30, "UNIFI executeCMDOnController  LOGIN rate limited (429) by {}, backing off {:.0f} secs".format(ipHttp, waitSecs), every=60)
+							self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=0, calledFrom="executeCMDOnController-login 429")
+							return list()
+
 						self.failedControllerLoginCount += 1 
 						if self.failedControllerLoginCount > 3:
-							self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found, response: >>{}<<\n".format(self.failedControllerLoginCount , url, str(resp) ) )
+							self.logEvery("loginFailCode-"+ipHttp, 30, "UNIFI executeCMDOnController  LOGIN failed ({} times), will try again; url:{}, >>ok<< not found, response: >>{}<<".format(self.failedControllerLoginCount , url, str(resp) ) )
 						self._executeCMDOnControllerReset(controllerOrProtectSelected, wait=5, calledFrom="executeCMDOnController-login ret code not ok")
 						if self.failedControllerLoginCount > self.failedControllerLoginCountMax: 		
 							self.quitNOW = "restart due to failed Controller Login count  = {}".format(self.failedControllerLoginCount )
@@ -7440,6 +7511,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if self.failedControllerLoginCount  > 1:
 					self.indiLOG.log(30,"UNIFI executeCMDOnController  LOGIN fixed after {} tries".format(self.failedControllerLoginCount ) )
 				self.failedControllerLoginCount = 0
+				self.controllerLoginCooldown[controllerOrProtectSelected] = 0.
+				for _k in ("loginFailStr-", "loginFailExc-", "loginFailCode-", "loginNoPing-", "login429-", "loginCooldown-", "siteIdGet-", "siteIdNoJson-", "cmdNoPing-"):
+					self.resetLogEvery(_k + ipHttp)
 				
 				if protect and protectRawPath:
 					# absolute UniFi-OS path (e.g. /api/v2/alarms/protect/test) — not under /proxy/protect/
@@ -7502,7 +7576,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						except	Exception as e:
 							retPing = self.retTextForPing(ipHttp)
 							if retPing !="":
-								self.indiLOG.log(30,"executeCMDOnController {}  {} {}".format(retPing, url, maxretry-tryCount-2))
+								self.logEvery("cmdNoPing-"+ipHttp, 30, "executeCMDOnController {}  {} {}".format(retPing, url, maxretry-tryCount-2))
 								if tryCount > 1:
 									if tryCount < maxretry -2:	pass
 									elif maxretry-tryCount-2 > 0:	self.indiLOG.log(10,"executeCMDOnController read timed out to {:55s}  will try again {} more times".format(url, maxretry-tryCount-2))
@@ -7716,6 +7790,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			for dev in indigo.devices.iter(self.pluginId):
 				if "groupMember" not in dev.states: continue
+				if "status" not in dev.states: continue   # child devices (relay input/output2) have no up/down status
 
 				if dev.states["status"] == "up":
 					self.groupStatusListALL["nHome"]	 +=1
@@ -8454,7 +8529,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						if self.isMiniSwitch[ll]: continue
 						if self.unifiControllerType.find("UDM") > -1 and ll == self.numberForUDM["SW"]: continue
 						ipn = self.ipNumbersOf["SW"][ll]
-						if self.decideMyLog("Logic"): self.indiLOG.log(20,"START SW Thread tr # {}  uDM#:{}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
+						if self.decideMyLog("Logic"): self.indiLOG.log(20,"START SW Thread tr # {}  uDM#:{}  {}  {}".format(ll, self.numberForUDM["SW"], ipn, self.unifiControllerType))
 						#					 self.trSWLog["{}".format(ll)] = threading.Thread(name='self.getMessages', target=self._getMessages, args=(ipn, ll, "SWtail",float(self.readDictEverySeconds["SW"]*2,))
 	 					#					 self.trSWLog["{}".format(ll)].start()
 						waitBeforeStart += addtoWait
@@ -8496,6 +8571,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if self.indigoVersion == 7.4 and self.indigoRelease == 0: return 
 			#tt = ["beacon",              "rPI","rPI-Sensor","BLEconnect","sensor"]
 			if not self.enableSqlLogging: 
+				outONV = ""
 				for v in self.varExcludeSQLList:
 					try:
 						if v not in indigo.variables: continue
@@ -8507,6 +8583,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						sp["sqlLoggerIgnoreChanges"] = ""
 						var.replaceSharedPropsOnServer(sp)
 					except: pass
+				if len(outONV) > 0:
+					self.indiLOG.log(10,"switching ON SQL logging for variables:{}".format(outONV) )
 				return 
 
 
@@ -8605,7 +8683,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if time.time() - self.updateConnectParams > 0 :
 					self.updateConnectParams  = time.time() + 100
 					#self.indiLOG.log(10,"saving updated connect parameters from config")
-					self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+					self.pluginPrefs["connectParams"] = self.connectParamsForPrefs()
 					indigo.server.savePluginPrefs()	
 	 
 				self.countLoop += 1
@@ -8619,7 +8697,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		self.indiLOG.log(20,"after loop , quitNow= >>{}<<".format(self.quitNOW ) )
 
 		if time.time() - self.updateConnectParams > 0 :
-			self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+			self.pluginPrefs["connectParams"] = self.connectParamsForPrefs()
 			indigo.server.savePluginPrefs()	
 
 		self.postLoop()
@@ -8685,8 +8763,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 			if self.quitNOW != "": return "break"
 
-			if datetime.datetime.now().minute%5 == 0: 
+			if datetime.datetime.now().minute%5 == 0:
 				self.updateDevStateswRXTXbytes()
+
+			self.moveAveragesToLastDay()
+			if datetime.datetime.now().minute%10 == 0:
+				self.saveChangedValues()
 
 			if self.quitNOW != "": return "break"
 
@@ -8707,12 +8789,13 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
 		"""
 		self.pluginState   = "stop"
-		indigo.server.savePluginPrefs()	
+		indigo.server.savePluginPrefs()
+		self.saveChangedValues()
 
 		if self.quitNOW == "config changed":
 			self.resetDataStats(calledFrom="postLoop")
 		if self.quitNOW == "": self.quitNOW = " restart / stop requested "
-		self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+		self.pluginPrefs["connectParams"] = self.connectParamsForPrefs()
 
 		self.consumeDataThread["log"]["status"]  = "stop"
 		self.consumeDataThread["dict"]["status"] = "stop"
@@ -8732,8 +8815,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		try: 	self.trGWLog.join()
 		except: pass
 		try: 	self.trGWDict.join()
-		except: pass
-		try: 	self.trVDLog.join()
 		except: pass
 
 		## kill all expect "uniFi" programs
@@ -9093,7 +9174,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						self.indiLOG.log(10,"{} is back from suspended status".format(dev.name))
 				else:
 					if dev.states["status"] != "susp":
-						self.setImageAndStatus(dev, "susp", oldStatus=dev.states["status"],ts=time.time(), level=1, text1= "{:30s}  status :{:10s};  set to suspend".format(dev.name, status), iType="PER-susp",reason="Period Check susp "+status)
+						self.setImageAndStatus(dev, "susp", oldStatus=dev.states["status"],ts=time.time(), level=1, text1= "{:30s}  status :{:10s};  set to suspend".format(dev.name, dev.states["status"]), iType="PER-susp",reason="Period Check susp "+dev.states["status"])
 						self.MAC2INDIGO[xType][MAC]["lastUp"] = time.time()
 						changed = True
 					return changed
@@ -9473,7 +9554,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									"unifiCloudKeyIP":self.unifiCloudKeyIP,
 									"unifiCloudKeyPort":self.unifiCloudKeyPort,
 									"unifiCONTROLLERUserID":self.connectParams["UserID"]["webCTRL"] ,
-									"unifiCONTROLLERPassWd":self.connectParams["PassWd"]["webCTRL"],
+									"unifiCONTROLLERPassWd":self.encryptPrefValue(self.connectParams["PassWd"]["webCTRL"]),
 									"unifiControllerType":self.unifiControllerType,
 									"unifiCloudKeySiteName":self.unifiCloudKeySiteName,
 									"overWriteControllerPort":self.overWriteControllerPort,
@@ -9509,8 +9590,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if props["unifiCONTROLLERUserID"] != self.connectParams["UserID"]["webCTRL"] :
 					props["unifiCONTROLLERUserID"] = self.connectParams["UserID"]["webCTRL"]
 					refresh = True
-				if props["unifiCONTROLLERPassWd"] != self.connectParams["PassWd"]["webCTRL"]:
-					props["unifiCONTROLLERPassWd"] = self.connectParams["PassWd"]["webCTRL"]
+				if self.setDevPasswordProp(props, "unifiCONTROLLERPassWd", self.connectParams["PassWd"]["webCTRL"]):
 					refresh = True
 				MAC = dev.states["MAC"]
 				if MAC == "":
@@ -9520,7 +9600,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							MAC = udev.states.get("MAC","")
 							refresh = True
 							break
-				disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, cpu_load, cpu_temp = self._getDiskspace(self.unifiCloudKeyIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
+				_dsUid, _dsPwd = self._rootSshCredentials()
+				disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, cpu_load, cpu_temp = self._getDiskspace(self.unifiCloudKeyIP, _dsUid, _dsPwd, self.connectParams["promptOnServer"].get(self.unifiCloudKeyIP, "#") )
 				self.setstateIfNotEmpty(systemDev, "disk_total", 	disk_total )
 				self.setstateIfNotEmpty(systemDev, "disk_used", 	disk_used )
 				self.setstateIfNotEmpty(systemDev, "disk_free", 	disk_free )
@@ -9558,7 +9639,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 										"protectPORT":self.protectPORT,
 										"cameraSystem":"protect",
 										"protectUserId":self.connectParams["UserID"]["protCTRL"] ,
-										"protectPassword":self.connectParams["PassWd"]["protCTRL"],
+										"protectPassword":self.encryptPrefValue(self.connectParams["PassWd"]["protCTRL"]),
 						}
 					)
 					MAC = dev.states["MAC"]
@@ -9586,8 +9667,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if props["protectUserId"] != self.connectParams["UserID"]["protCTRL"] :
 						props["protectUserId"] = self.connectParams["UserID"]["protCTRL"]
 						refresh = True
-					if props["protectPassword"] != self.connectParams["PassWd"]["protCTRL"]:
-						props["protectPassword"] = self.connectParams["PassWd"]["protCTRL"]
+					if self.setDevPasswordProp(props, "protectPassword", self.connectParams["PassWd"]["protCTRL"]):
 						refresh = True
 					MAC = protectDev.states["MAC"] 
 					if MAC == "":
@@ -9599,7 +9679,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								break
 	
 					if self.protectIP != self.unifiCloudKeyIP:
-						disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, 	cpu_load, cpu_temp = self._getDiskspace(self.protectIP, self.connectParams["UserID"]["unixDevs"], self.connectParams["PassWd"]["unixDevs"], "#" )
+						_dsUid, _dsPwd = self._rootSshCredentials()
+						disk_total, disk_used, disk_free, 	memory_total, memory_used, memory_free, 	SharedTot, SharedUsed, SharedFree, 	cpu_load, cpu_temp = self._getDiskspace(self.protectIP, _dsUid, _dsPwd, self.connectParams["promptOnServer"].get(self.protectIP, "#") )
 						self.setstateIfNotEmpty(protectDev, "disk_total", 	disk_total )
 						self.setstateIfNotEmpty(protectDev, "disk_used", 	disk_used )
 						self.setstateIfNotEmpty(protectDev, "disk_free", 	disk_free )
@@ -9911,12 +9992,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			self.lastResetUnifiDevice[ipNumber]  = time.time()
 			cmd  = self.expectPath + " '" 
 			cmd += self.pathToPlugin + self.connectParams["expectRestart"][uType] + "' "
-			cmd += "'"+userid + "' '"+passwd + "' " 
+			cmd += self._expectCredArgs()
 			cmd += ipNumber + " " 
 			cmd += "'"+self._escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' "  
 			cmd +=  self._getHostFileCheck()
-			ret, err = self.readPopen(cmd)
-			self.indiLOG.log(10,"resetUnifiDevice  {}-{};  cmd:{}    return:{}".format(uType, ipNumber, cmd, ret) )
+			ret, err = self.readPopen(cmd, env=self._expectEnv(userid, passwd))
+			self.indiLOG.log(10,"resetUnifiDevice  {}-{};  cmd:{}    return:{}".format(uType, ipNumber, self.maskPw(cmd), ret) )
 			return False
 		except	Exception as e:
 				if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
@@ -10100,31 +10181,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####------ camera PROTEC ---	-------END
 
-
-
-
-
-	####-----------------	 ---------
-	def updateStatewCheck(self,dev, state , value, check = "", NotEq = False):
-		"""Update Statew Check.
-		
-		Inputs:
-		    dev: Caller-supplied value used by this method.
-		    state: Caller-supplied value used by this method.
-		    value: Caller-supplied value used by this method.
-		    check: Caller-supplied value used by this method.
-		    NotEq: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		if state not in dev.states:		   return False
-		if NotEq:
-			if dev.states[state] != check: return False
-		else:
-			if state == check:			   return False
-		if dev.states[state]  ==  value:   return False
-		self.addToStatesUpdateList(dev.id,state,  value )
-		return True
 
 
 
@@ -10728,7 +10784,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								self.MAC2INDIGO[xType][MAC]["last_seen"]
 							) )
 							except	Exception as e:
-								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"error for mac:{}".format(mac), exc_info=True)
+								if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"error for mac:{}".format(MAC), exc_info=True)
 
 					if MAC in macInfo and macInfo[MAC]["SW_Port"] != "" and dev.states.get("SW_Port","") != macInfo[MAC]["SW_Port"]:
 						changed = True
@@ -10947,9 +11003,19 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		    Returns a value to the caller.
 		"""
 		try:
-			if restartCode > 0: 
+			# log only the start of the received text - it can be the whole UD dict (100s of lines)
+			_txt = " ".join("{}".format(newlinesFromServer).split())
+			_lines = _txt[:150] + ("... ({} chars)".format(len(_txt)) if len(_txt) > 150 else "")
+			# code 1 (closed by remote host) happens when the gateway runs its nightly jobs: debug level only,
+			# unless it repeats for the same device within 10 minutes
+			_logLevel = 20
+			if restartCode == 1:
+				if not hasattr(self, "_lastRemoteClose"): self._lastRemoteClose = {}
+				_logLevel = 20 if time.time() - self._lastRemoteClose.get(ipNumber, 0) < 600 else 10
+				self._lastRemoteClose[ipNumber] = time.time()
+			if restartCode > 0:
 				if self.rebootUnifiDeviceOnError:
-					self.indiLOG.log(20,"getMessages: code:{:}  need restart of listener and send reboot if code>10- lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+					self.indiLOG.log(_logLevel,"getMessages: code:{:}  need restart of listener and send reboot if code>10- lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, _lines))
 					self.suspendedUnifiSystemDevicesIP[ipNumber] = time.time() + 60.
 					if restartCode > 10: self.resetUnifiDevice(ipNumber, uType)
 					self.sleep(60.)
@@ -10957,7 +11023,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					except: pass
 					return True
 
-				self.indiLOG.log(20,"getMessages: code:{:} - no reboot issued, blocked by:rebootUnifiDeviceOnError=False, lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, newlinesFromServer.strip("\n")))
+				self.indiLOG.log(_logLevel,"getMessages: code:{:} - no reboot issued, blocked by:rebootUnifiDeviceOnError=False, lastDataRceived:{:.1f}; from {:}-{:}  lines:{:}".format(restartCode, time.time()-goodDataReceivedTime, ipNumber, uType, _lines))
 			return False
 
 		except	Exception as e:
@@ -11043,7 +11109,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				else: 
 					prompt = "not defined"
 
-				self.indiLOG.log(40,"getMessages: (1 - test connect)  error for {}, @ip#: {}, prompt:'{}'; wrong ip{}/ password or system down or ssh timed out or ..? ".format(uType, ipNumber, self.retTextForPing(ipNumber), prompt) )
+				self.logEvery("testConnect-{}-{}".format(uType, ipNumber), 40, "getMessages: (1 - test connect)  error for {}, @ip#: {}, prompt:'{}'; wrong ip/password or system down or ssh timed out or ..?{} ".format(uType, ipNumber, prompt, self.retTextForPing(ipNumber)) )
 			
 				self.msgListenerActive[uType] = 0
 				retCode = 2
@@ -11241,8 +11307,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if time.time() > self.lastMessageReceivedInListener[ipNumber]: 
 				self.lastMessageReceivedInListener[ipNumber] = time.time()
 
-			# we accept any message as good data 
+			# we accept any message as good data
 			goodDataReceivedTime = time.time()
+			self._unifiRecovered(ipNumber)
 
 			if newlinesFromServer.find("ThisIsTheAliveTestFromUnifiToPlugin") > -1:
 				self.dataStats["tcpip"][uType][ipNumber]["aliveTestCount"] += 1
@@ -11294,7 +11361,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				return goodDataReceivedTime, combinedLines, lastMSG
 				
 			if self._debugThisDevices(uType, apN):
-				self.indiLOG.log(10,"checkAndPrepDict:  {}/{} , raw data:{} 0:200".format(uType, ipNumber,  dictDatadictData[0:200]))
+				self.indiLOG.log(10,"checkAndPrepDict:  {}/{} , raw data:{} 0:200".format(uType, ipNumber,  dictData[0:200]))
 		
 			
 			partialRead = False
@@ -11342,6 +11409,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				combinedLines = ""
 				self.logQueueDict.put((theDict, ipNumber, apN, uType, unifiDeviceType))
 				goodDataReceivedTime = time.time()
+				self._unifiRecovered(ipNumber)
 				self.dataStats["tcpip"][uType][ipNumber]["inErrorTime"] -= 30
 
 			except	Exception as e:
@@ -11478,7 +11546,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			userid, passwd = self._getUidPasswd(uType,ipNumber)
 			if userid =="": return
 
-			if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: with @{:<15};   uType: {};   UID/PWD: {}/{}".format(ipNumber, uType, userid, passwd) )
+			if self.decideMyLog("Expect"): self.indiLOG.log(10,"startConnect: with @{:<15};   uType: {};   UID: {};   PWD: {}".format(ipNumber, uType, userid, "set" if passwd != "" else "NOT set") )
 
 			if ipNumber not in self.listenStart:
 				self.listenStart[ipNumber] = dict()
@@ -11490,7 +11558,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if uType.find("dict") > -1:
 					cmd  = self.expectPath + " '" 
 					cmd += self.pathToPlugin + self.connectParams["expectCmdFile"][uType] + "' "
-					cmd += "'"+userid + "' '"+passwd + "' " 
+					cmd += self._expectCredArgs()
 					cmd += ipNumber + " " 
 					cmd += "'"+self._escapeExpect(self.connectParams["promptOnServer"][ipNumber]) + "' " 
 					cmd += self.connectParams["endDictToken"][uType]+ " " 
@@ -11505,14 +11573,14 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				else:
 					cmd = self.expectPath + " '" 
 					cmd +=  self.pathToPlugin +self.connectParams["expectCmdFile"][uType] + "' "
-					cmd += "'"+userid + "' '"+passwd + "' "
+					cmd += self._expectCredArgs()
 					cmd += ipNumber + " "
 					cmd += "'"+self._escapeExpect(self.connectParams["promptOnServer"][ipNumber])+"' " 
 					cmd += " \""+self.connectParams["commandOnServer"][uType]+"\" "
 
 				cmd +=  self._getHostFileCheck()
-				if self.decideMyLog("Expect"): self.indiLOG.log(20,"startConnect: cmd {}".format(cmd) )
-				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+				if self.decideMyLog("Expect"): self.indiLOG.log(20,"startConnect: cmd {}".format(self.maskPw(cmd)) )
+				ListenProcessFileHandle = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, env=self._expectEnv(userid, passwd))
 				##pid = ListenProcessFileHandle.pid
 				msg = "{}".format(ListenProcessFileHandle.stderr)
 				if msg.find("open file") == -1 and msg.find("io.BufferedReader") == -1:	# try this again
@@ -11581,30 +11649,40 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		    Returns a value to the caller.
 		"""
 		try:
-			userid, passwd = self._getUidPasswd(uType,ipNumber)
-			if userid == "": 
-				self.indiLOG.log(40,"testServerIf ssh connection OK: userid>>{}<<, passwd>>{}<<  wrong for {}-{}".format(userid, passwd, uType, ipNumber) )
+			# plugin is shutting down: a reconnect test is pointless, and its expect child would be killed
+			# mid-run anyway, producing a misleading "ssh connection to server failed" error for every listener
+			if self.pluginState == "stop" or self.quitNOW != "":
 				return False
 
-			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' '" + userid + "' '" + passwd + "' " + ipNumber 
+			userid, passwd = self._getUidPasswd(uType,ipNumber)
+			if userid == "":
+				self.indiLOG.log(40,"testServerIf ssh connection OK: userid>>{}<<, passwd>>{}<<  wrong for {}-{}".format(userid, "set" if passwd != "" else "NOT set", uType, ipNumber) )
+				return False
+
+			cmd = self.expectPath+ " '" + self.pathToPlugin +"test.exp' " + self._expectCredArgs() + ipNumber 
 			cmd+= self._getHostFileCheck()
+			_env = self._expectEnv(userid, passwd)
 
 
 			if ipNumber in self.lastMessageReceivedInListener: self.lastMessageReceivedInListener[ipNumber] = time.time()
 
 			if batch:
-				if self.decideMyLog("Expect"): self.indiLOG.log(10,"testServerIfOK: batch {}".format(cmd) )
-				subprocess.Popen(cmd+" &", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+				if self.decideMyLog("Expect"): self.indiLOG.log(10,"testServerIfOK: batch {}".format(self.maskPw(cmd)) )
+				subprocess.Popen(cmd+" &", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, env=_env)
 				return 
 
-			if self.decideMyLog("Expect"): self.indiLOG.log(10,"testServerIfOK: {}".format(cmd) )
-			ret, err = self.readPopen(cmd)
+			if self.decideMyLog("Expect"): self.indiLOG.log(10,"testServerIfOK: {}".format(self.maskPw(cmd)) )
+			ret, err = self.readPopen(cmd, env=_env)
 			xx = ret.replace("\r","")
 			if self.decideMyLog("ExpectRET"): self.indiLOG.log(10,"returned from expect-command: {}".format(xx))
 
 			## check if we need to fix unknown host in .ssh/known_hosts
 			if len(err) > 0:
-				self.indiLOG.log(40,"testServerIf ssh connection to server failed, cmd: {}{}".format(cmd, self.retTextForPing(ipNumber)) )
+				# stop began while the test was in flight - the child was killed, not a real connection problem
+				if self.pluginState == "stop" or self.quitNOW != "":
+					return False
+				# cmd contains the login password - mask every known secret before logging
+				self.logEvery("sshFail-"+ipNumber, 40, self.maskPw("testServerIf ssh connection to server failed, cmd: {}{}".format(cmd, self.retTextForPing(ipNumber))) )
 				retx, ok = self.fixHostsFile(ret,ipNumber)
 				if not ok: 
 					self.indiLOG.log(40,"testServerIfOK failed, will retry ")
@@ -11644,7 +11722,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 				self.connectParams["promptOnServer"][ipNumber] = prompt
 				
-				self.pluginPrefs["connectParams"] = json.dumps(self.connectParams)
+				self.pluginPrefs["connectParams"] = self.connectParamsForPrefs()
 
 				self.indiLOG.log(10,"testServerIfOK: =========== known prompts: \n{}".format(self.connectParams["promptOnServer"]))
 				return True
@@ -12151,13 +12229,18 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				try:
 					sensorId     = self.getpropReplaceNoneWith(sensor, "id",  substituteIfMissing="0")
 					sensorType   = self.getpropReplaceNoneWith(sensor, "type", substituteIfMissing="")
-					# Redirect only known USL Gateway/Hub hardware to the bridge handler.
-					# Individual USL sensor accessories (USL-GlassBreak, USL-Entry, etc.) must NOT be redirected.
-					if sensorType.upper() in _USL_GATEWAY_SENSOR_TYPES:
-						if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: sensor type:{} is USL-Gateway hardware, routing to bridge handler".format(sensorType))
+					modelKey     = "{}".format(self.getpropReplaceNoneWith(sensor, "modelKey", substituteIfMissing="")).lower()
+					# classify by modelKey FIRST - it is the stable class identifier (one value per device class:
+					# fob/bridge/sensor/...), while "type" varies per hardware model and region (USL-Fob-EU, ...).
+					# Only WITHIN modelKey "sensor" is "type" needed, to pick the subtype (entry/motion/...).
+					if modelKey == "bridge" or sensorType.upper() in _USL_GATEWAY_SENSOR_TYPES:
+						if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: {} (modelKey:{}) is USL-Gateway hardware, routing to bridge handler".format(sensorType, modelKey))
 						systemInfoProtect.setdefault("bridges", []).append(sensor)
 						continue
-					deviceTypeId = sensorTypeMap.get(sensorType.upper())
+					if modelKey == "fob":
+						deviceTypeId = "sensor_protect_keyfob"
+					else:
+						deviceTypeId = sensorTypeMap.get(sensorType.upper())
 					if deviceTypeId is None:
 						# Substring fallback for USL sensor types not in the exact map
 						st = sensorType.upper()
@@ -12352,7 +12435,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						states["btSignalStrength"]   = _bt.get("signalStrength")   or 0
 						states["btSignalNoiseRatio"] = _bt.get("signalNoiseRatio") or 0
 
-					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					states["created"] = self._protectCreated(self.PROTECT_SENSORS, sensorId)
 					# default displayWhatValue stored in props so it's available from creation
 					if   deviceTypeId in ("sensor_protect_environmental","sensor_protect_allInOne"): _dispDefault = "temperature"
 					elif deviceTypeId == "sensor_protect_airquality":                              _dispDefault = "aqi"
@@ -12418,28 +12501,28 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
 						elif deviceTypeId == "sensor_protect_glassbreak":
 							triggered = states.get("glassBreakDetected", False)
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("GLASS BREAK" if triggered else "ok"))
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or ("GLASS BREAK" if triggered else "ok")))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId == "sensor_protect_motion":
 							triggered = states.get("motionDetected", False)
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("MOTION" if triggered else "clear"))
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or ("MOTION" if triggered else "clear")))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId == "sensor_protect_entry":
 							triggered = states.get("isOpened", False)
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("OPEN" if triggered else "CLOSED"))
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or ("open" if triggered else "closed")))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId == "sensor_protect_siren":
 							triggered = states.get("sirenActive", False)
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ACTIVE" if triggered else "idle"))
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or ("ACTIVE" if triggered else "idle")))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId == "sensor_protect_smoke_co":
 							triggered = bool(states.get("smokeAlarm", False) or states.get("coAlarm", False))
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or ("ALARM" if triggered else "ok"))
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or ("ALARM" if triggered else "ok")))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId == "sensor_protect_airquality":
 							triggered = bool(states.get("vapeDetected", False))
-							dev.updateStateOnServer("onOffState", triggered, uiValue=_disp or "CONNECTED")
-							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn)
+							dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, triggered), uiValue=self._sensorOnOffUi(dev.pluginProps, deviceTypeId, triggered, _disp or "CONNECTED"))
+							dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, triggered))
 						elif deviceTypeId in ("sensor_protect_environmental", "sensor_protect_allInOne"):
 							_disp = states.get("displayStatus", "") or "CONNECTED"
 							if deviceTypeId == "sensor_protect_allInOne" and states.get("waterDetectedEnabled"):
@@ -12499,7 +12582,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						states["btSignalStrength"]   = _bt.get("signalStrength")   or 0
 						states["btSignalNoiseRatio"] = _bt.get("signalNoiseRatio") or 0
 
-					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					states["created"] = self._protectCreated(self.PROTECT_RELAYS, relayId)
 					baseName = "Relay_Protect_" + (states.get("name","") or mac) + "_" + mac
 					if relayId not in self.PROTECT_RELAYS:
 						if not self.protectCreateSensors: continue  # relay device creation disabled in config (quick setup)
@@ -12704,7 +12787,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 							except: sensorNames.append(sdata.get("devName","?"))
 						states["sensorList"] = ", ".join(sorted(sensorNames))
 					except: states["sensorList"] = ""
-					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					states["created"] = self._protectCreated(self.PROTECT_SENSORS, bridgeId)
 					if self.decideMyLog("Protect"): self.indiLOG.log(10,"getProtectSensorsIntoIndigo: bridge name:{} protectMAC:{} host:{} networkMAC:{} nSensors:{}".format(states["name"], states["MAC"], bridgeHost, networkMAC, states["numberOfSensors"]))
 
 					if bridgeId not in self.PROTECT_SENSORS:
@@ -12872,7 +12955,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 						try:    states["displayStatus"] = "vol {}%".format(int(states["volume"]))
 						except: states["displayStatus"] = "idle"
 					else:                              states["displayStatus"] = "idle"
-					states["created"] = states.get("created", "") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					states["created"] = self._protectCreated(self.PROTECT_SENSORS, speakerId)
 
 					if speakerId not in self.PROTECT_SENSORS:
 						if not self.protectCreateSensors: continue  # speaker device creation disabled in config (quick setup)
@@ -13064,7 +13147,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				time.sleep(5)
 				if self.pluginState == "stop" or self.protectWSWatchdogThread.get("status") != "run":
 					break
-				_wsTimeout = int(self.pluginPrefs.get("protectWSWatchdogTimeout", "") or 30)
+				_wsTimeout = int(self.getPref("protectWSWatchdogTimeout") or 30)
 				if (_wsTimeout > 0
 						and self.protectSensorThread.get("status") == "run"
 						and time.time() - self.lastProtectWSMessageTime > _wsTimeout):
@@ -13258,6 +13341,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 								if noDataCounter > 0:
 									self.indiLOG.log(10,"Controller WS: reconnected after {} tries".format(noDataCounter))
 								noDataCounter = 0
+								for _k in ("ctrlWSconnect", "ctrlWShandshake", "ctrlWSsession"):
+									self.resetLogEvery(_k)
 								msgSleep      = 10
 								self.indiLOG.log(10,"Controller WS: connected to {}".format(url))
 								async for msg in ws:
@@ -13269,11 +13354,12 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 										self.indiLOG.log(10,"Controller WS: connection closed/error, will reconnect")
 										break
 						except aiohttp.ClientConnectorError as e:
-							self.indiLOG.log(40,"Controller WS: cannot connect to {}: {}".format(url, e), exc_info=True)
+							# a controller that is down/booting fails on every reconnect: traceback once, then one line per 5 min
+							self.logEvery("ctrlWSconnect", 40, "Controller WS: cannot connect to {}: {}".format(url, e), exc_info=(noDataCounter == 0))
 						except aiohttp.WSServerHandshakeError as e:
-							self.indiLOG.log(40,"Controller WS: handshake failed ({}): {}".format(e.status, e), exc_info=True)
+							self.logEvery("ctrlWShandshake", 40, "Controller WS: handshake failed ({}): {}".format(e.status, e), exc_info=(noDataCounter == 0))
 						except Exception as e:
-							self.indiLOG.log(40,"Controller WS: session error: {}".format(e), exc_info=True)
+							self.logEvery("ctrlWSsession", 40, "Controller WS: session error: {}".format(e), exc_info=(noDataCounter == 0))
 				except asyncio.CancelledError:
 					return
 				except Exception as e:
@@ -13425,20 +13511,28 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 	####-----------------	 ---------
 	def _wsHandleProtectButtonPress(self, ws_id, payload):
 		"""Handle WS sensorButtonPressed event — keyfob or relay input press."""
-		if self.decideMyLog("ProtWS"): self.indiLOG.log(10,"WS sensorButtonPressed payload:{}".format(payload))
 		_meta      = payload.get("metadata", {}) or {}
 		_device_id = (_meta.get("sensorId", {}) or {}).get("text", "") or ws_id
 		_btn       = (_meta.get("button",   {}) or {}).get("text", "")
 		_pressType = (_meta.get("buttonPressType", {}) or {}).get("text", "")
-		_inputNum  = 1 if _btn == "input1" else 2 if _btn == "input2" else None
-		if _device_id and _device_id in self.PROTECT_RELAYS and _inputNum:
-			self._fetchAndUpdateRelayInput(_device_id, _inputNum, None, pressType=_pressType)
-			if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed relay:{} input:{} pressType:{}".format(_device_id, _inputNum, _pressType))
-			return True
+
+		# resolve the device FIRST, so the per-device debugDev checkbox can gate the logging below:
+		# a button press is the one event a user turns per-device debug on for, and it used to be
+		# visible only with the global ProtWS/Protect areas enabled
 		if   _device_id in self.PROTECT_SENSORS: _devId = self.PROTECT_SENSORS[_device_id]["devId"]
 		elif _device_id in self.PROTECT_RELAYS:  _devId = self.PROTECT_RELAYS[_device_id]["devId"]
 		else:                                    _devId = None
 		_dev = indigo.devices.get(_devId) if _devId else None
+		try:    _debugDev = bool(_dev.pluginProps.get("debugDev", False)) if _dev else False
+		except: _debugDev = False
+
+		if _debugDev or self.decideMyLog("ProtWS"): self.indiLOG.log(10,"WS sensorButtonPressed payload:{}".format(payload))
+
+		_inputNum  = 1 if _btn == "input1" else 2 if _btn == "input2" else None
+		if _device_id and _device_id in self.PROTECT_RELAYS and _inputNum:
+			self._fetchAndUpdateRelayInput(_device_id, _inputNum, None, pressType=_pressType)
+			if _debugDev or self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed relay:{} input:{} pressType:{}".format(_device_id, _inputNum, _pressType))
+			return True
 		if not _dev:
 			_suppress_key = "sensorBtn_" + _device_id
 			if _suppress_key not in self.SUPPRESS_LOG or time.time() - self.SUPPRESS_LOG[_suppress_key] > 600:
@@ -13448,7 +13542,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		_dedup_key = "btnDedup_{}_{}_{}" .format(_device_id, _btn, _pressType)
 		_dtStr = ""
 		if _dedup_key in self.SUPPRESS_LOG and time.time() - self.SUPPRESS_LOG[_dedup_key] < 2.0:
-			if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed duplicate suppressed: btn:{} pressType:{}".format(_btn, _pressType))
+			if _debugDev or self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed duplicate suppressed: btn:{} pressType:{}".format(_btn, _pressType))
 			return False
 		self.SUPPRESS_LOG[_dedup_key] = time.time()
 		_dtStr = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -13475,7 +13569,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				self.addToStatesUpdateList(_devId, "lastActionAt", _dtStr)
 			if "lastAction" in _dev.states and _pressType:
 				self.addToStatesUpdateList(_devId, "lastAction", _pressType)
-		if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed dev:{} btn:{} pressType:{} at {}".format(_device_id, _btn, _pressType, _dtStr))
+		if _debugDev or self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed dev:{} btn:{} pressType:{} at {}".format(_device_id, _btn, _pressType, _dtStr))
 		# a button press is definitive proof the fob is connected - assert it BEFORE the display rebuild,
 		# else a press that wakes a sleeping fob renders as DISCONN (isConnected still False at this moment;
 		# the awayState:ONLINE update only arrives after the event)
@@ -13492,7 +13586,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				self.addToStatesUpdateList(_devId, "displayStatus", _newDisp)
 				if "onOffState" in _dev.states:
 					self.addToStatesUpdateList(_devId, "onOffState", True)
-			if self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed displayStatus:{}".format(_newDisp))
+			if _debugDev or self.decideMyLog("Protect"): self.indiLOG.log(10,"WS sensorButtonPressed displayStatus:{}".format(_newDisp))
 		except Exception as e:
 			self.indiLOG.log(40,"WS sensorButtonPressed displayStatus rebuild failed: {}".format(e), exc_info=True)
 		return True
@@ -13727,7 +13821,24 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			elif modelKey in _ignoreModelKeys:
 				pass
 			else:
-				self.indiLOG.log(20,"WS UNHANDLED modelKey:{}; contact author to add to _ignoreModelKeys;  action:{} id:{} payload:{}".format(modelKey, act, ws_id, payload))
+				# more context, so it is clear whether this is something the plugin SHOULD handle:
+				# is the id one of our unifi devices, and what does the payload say about itself
+				if   ws_id in self.PROTECT:         _who = "YES, known camera '{}' (devId:{})".format(self.PROTECT[ws_id].get("devName",""),         self.PROTECT[ws_id].get("devId",""))
+				elif ws_id in self.PROTECT_SENSORS: _who = "YES, known sensor '{}' (devId:{})".format(self.PROTECT_SENSORS[ws_id].get("devName",""), self.PROTECT_SENSORS[ws_id].get("devId",""))
+				elif ws_id in self.PROTECT_RELAYS:  _who = "YES, known relay  '{}' (devId:{})".format(self.PROTECT_RELAYS[ws_id].get("devName",""),  self.PROTECT_RELAYS[ws_id].get("devId",""))
+				else:                               _who = "NO, id is not one of our unifi devices"
+				if isinstance(payload, dict):
+					_says = ", ".join("{}:{}".format(kk, payload[kk]) for kk in ("name","type","modelKey","mac","host","state","marketName","modelName") if payload.get(kk) not in (None, "", {}, []))
+					_keys = ",".join(sorted(payload.keys()))
+				else:
+					_says = ""
+					_keys = "payload is a {}, not a dict".format(type(payload).__name__)
+				# same modelKey at most every 10 min, so an unhandled record that repeats does not fill the log
+				_sKey = "wsUnhandled_" + modelKey
+				if _sKey not in self.SUPPRESS_LOG or time.time() - self.SUPPRESS_LOG[_sKey] > 600:
+					self.SUPPRESS_LOG[_sKey] = time.time()
+					self.indiLOG.log(20,"WS UNHANDLED modelKey:{}; is one of our unifi devices: {};{} contact author to add to _ignoreModelKeys;  action:{} id:{} payloadKeys:{} payload:{}".format(
+									modelKey, _who, (" payload says "+_says+";") if _says else "", act, ws_id, _keys, payload))
 
 			# states queued via addToStatesUpdateList are flushed by executeUpdateStatesList in the worker thread
 
@@ -13798,6 +13909,78 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if _n: return "{}/{}".format(_n, btn)
 		except: pass
 		return btn
+
+	####-----------------	 ---------
+	def _protectCreated(self, protectDevices, protectId):
+		"""Value for the "created" state of a Protect device. The states dict is rebuilt on every poll, so the
+		device's existing value has to be kept here; the current time is used only when there is none yet."""
+		try:    created = indigo.devices[protectDevices[protectId]["devId"]].states.get("created", "")
+		except: created = ""
+		return created or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+	####-----------------	 ---------
+	def _sensorTriggered(self, deviceTypeId, vals):
+		"""True when a boolean Protect sensor is currently tripped, read from kSensorOnOff.
+		A tuple "key" means any of those states counts (smoke/CO). Unknown types are never tripped."""
+		try:
+			spec = kSensorOnOff.get(deviceTypeId)
+			if not spec: return False
+			keys = spec["key"] if isinstance(spec["key"], tuple) else (spec["key"],)
+			for k in keys:
+				try:
+					if vals[k]: return True
+				except: pass
+			return False
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return False
+
+	####-----------------	 ---------
+	def _onOffInverted(self, props):
+		"""True when this device's display option asks for an inverted onOffState.
+		"onoff_closed" is the original entry-sensor-only value, still honoured so devices
+		configured before the option became general keep working without being re-saved."""
+		return "{}".format((props or {}).get("displayWhatValue", "")) in ("onoff_invert", "onoff_closed")
+
+	####-----------------	 ---------
+	def _sensorOnOff(self, props, triggered):
+		"""onOffState for a boolean Protect sensor: True = tripped, unless the device's display option
+		selects the inverted reading, in which case True = idle (eg a closed door for an entry sensor)."""
+		if self._onOffInverted(props): return not triggered
+		return triggered
+
+	####-----------------	 ---------
+	def _sensorImage(self, props, triggered):
+		"""State image (the red / green dot) for a boolean Protect sensor: red = SensorTripped when the
+		sensor is tripped, green = SensorOn when it is idle. The device's "iconColor" option swaps the
+		two. It is deliberately INDEPENDENT of the displayWhatValue / onoff_invert text setting, so the
+		icon colour and the open/closed wording can be inverted separately, in any combination."""
+		try:
+			if "{}".format((props or {}).get("iconColor", "")) == "invert": triggered = not triggered
+		except: pass
+		return indigo.kStateImageSel.SensorTripped if triggered else indigo.kStateImageSel.SensorOn
+
+	####-----------------	 ---------
+	def _sensorOnOffUi(self, props, deviceTypeId, triggered, fallback=""):
+		"""onOffState.ui text for a boolean Protect sensor.
+
+		With the inverted option selected it renders the INVERTED onOffState from _sensorOnOff using the
+		type's word pair from kSensorOnOff, so it reads as the opposite of the physical sensor (a closed
+		door shows "open"). That is the point of the option: this display differs from the plain one
+		instead of repeating it. Any other selection keeps the caller's text, ie the stamped displayStatus.
+		The time is taken from the stamp the fallback already carries - displayStatus, stamped when the
+		sensor last changed - so both displays show the same time instead of the last poll; with no stamp
+		to reuse it is set to now."""
+		if not self._onOffInverted(props): return fallback
+		spec = kSensorOnOff.get(deviceTypeId)
+		if not spec: return fallback
+		word = spec["off"] if triggered else spec["on"]
+		try:
+			m  = re.search(r'(\d{2,4})-(\d\d)-(\d\d) (\d\d:\d\d:\d\d)\s*$', fallback or "")
+			ts = "{}-{}-{} {}".format(m.group(1)[-2:], m.group(2), m.group(3), m.group(4)) if m else time.strftime("%y-%m-%d %H:%M:%S")
+			return self.padDisplay(word, ts)
+		except:
+			return self.padDisplay(word, time.strftime("%y-%m-%d %H:%M:%S"))
 
 	####-----------------	 ---------
 	def _buildSensorDisplayStatus(self, isConnected, deviceTypeId, vals, props=None):
@@ -13893,7 +14076,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				try: return _s("{} ppm".format(int(float(c))) if c != "" and c is not None else "CONNECTED")
 				except: return _s("CONNECTED")
 			if dispWhat == "temp_humidity":
-				unit   = self.pluginPrefs.get("temperatureUnit", "C")
+				unit   = self.getPref("temperatureUnit")
 				unit_s = "ºC" if unit == "C" else "ºF"
 				parts = []
 				try:
@@ -13913,7 +14096,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			try: return _s("AQI {}".format(int(float(a))) if a != "" and a is not None else "CONNECTED")
 			except: return _s("CONNECTED")
 		if deviceTypeId in ("sensor_protect_environmental", "sensor_protect_allInOne"):
-			unit   = self.pluginPrefs.get("temperatureUnit", "C")
+			unit   = self.getPref("temperatureUnit")
 			unit_s = "ºC" if unit == "C" else "ºF"
 			def fmt_temp(t):
 				if t == "" or t is None: return None
@@ -14300,6 +14483,20 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if newDisplay is not None and dev.states.get("displayStatus","") != newDisplay:
 				self.addToStatesUpdateList(devId,"displayStatus",newDisplay)
 
+			# onOffState, its ui text and the red/green icon - the live WebSocket delta has to set these
+			# too, not just displayStatus, or an open/close only shows up on the next poll of
+			# getProtectSensorsIntoIndigo. Generic for every boolean sensor in kSensorOnOff; the trigger is
+			# read from mergedVals so this payload's value is used, not the not-yet-committed dev.states.
+			if dev.deviceTypeId in kSensorOnOff:
+				_fb = newDisplay or dev.states.get("displayStatus","")
+				if not isConnNow:
+					dev.updateStateOnServer("onOffState", False, uiValue=_fb or "DISCONN")
+					dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+				else:
+					_trig = self._sensorTriggered(dev.deviceTypeId, mergedVals)
+					dev.updateStateOnServer("onOffState", self._sensorOnOff(dev.pluginProps, _trig), uiValue=self._sensorOnOffUi(dev.pluginProps, dev.deviceTypeId, _trig, _fb))
+					dev.updateStateImageOnServer(self._sensorImage(dev.pluginProps, _trig))
+
 		except Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
@@ -14634,6 +14831,104 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			try: valuesDict["MSG"] = "error - see log"
 			except: pass
 		return valuesDict
+
+	####-----------------	 ---------
+	def menuTimeSlots(self, filter="", valuesDict=None, typeId="", targetId=0):
+		"""Dynamic option lists for the per-device time menus (were static <List>s repeated in the device
+		blocks). The XML 'filter' attribute picks the slot set:
+		   filter="idle"                -> max idle seconds (0..240, no "use common")
+		   filter="dhcpage"             -> DHCP AGE threshold, incl. "use default expiration"
+		   filter="wol"                 -> Wake-On-Lan repeat interval, incl. "do not use wakeOnLan"
+		   filter="common"              -> plugin config: the COMMON expiration time (no "use common", it IS the common one)
+		   filter="expiration" / empty  -> UP -> DOWN -> EXPIRED times, incl. "use common expiration time"."""
+		_f = "{}".format(filter).lower()
+		if _f == "common":
+			return [
+				["10",  "10 seconds (for testing only)"],
+				["20",  "20 seconds (for testing only)"],
+				["30",  "30 seconds (for testing only)"],
+				["40",  "40 seconds (for testing only)"],
+				["60",  "60 seconds"],
+				["90",  "90 seconds (default)"],
+				["120", "2 minutes"],
+				["180", "3 minutes"],
+				["300", "5 minutes"],
+				["360", "6 minutes"],
+				["420", "7 minutes"],
+				["480", "8 minutes"],
+				["540", "9 minutes"],
+				["600", "10 minutes"],
+			]
+		if _f == "dhcpage":
+			return [
+				["0",   "0 seconds"],
+				["1",   "1 second"],
+				["10",  "10 seconds"],
+				["20",  "20 seconds"],
+				["30",  "30 seconds"],
+				["40",  "40 seconds"],
+				["60",  "60 seconds"],
+				["75",  "75 seconds"],
+				["90",  "90 seconds"],
+				["100", "100 seconds"],
+				["120", "120 seconds"],
+				["150", "150 seconds"],
+				["-1",  "use default expiration (default)"],
+			]
+		if _f == "wol":
+			return [
+				["0",   "do not use wakeOnLan"],
+				["20",  "20 seconds"],
+				["30",  "30 seconds"],
+				["60",  "60 seconds"],
+				["90",  "90 seconds"],
+				["120", "2 minutes"],
+				["150", "150 seconds"],
+				["180", "3 minutes"],
+				["240", "4 minutes"],
+				["300", "5 minutes"],
+				["360", "6 minutes"],
+			]
+		if _f == "idle":
+			return [
+				["0",   "0 seconds"],
+				["1",   "1 second"],
+				["3",   "3 seconds"],
+				["5",   "5 seconds"],
+				["10",  "10 seconds"],
+				["15",  "15 seconds"],
+				["20",  "20 seconds"],
+				["30",  "30 seconds"],
+				["40",  "40 seconds"],
+				["60",  "60 seconds"],
+				["75",  "75 seconds"],
+				["90",  "90 seconds"],
+				["100", "100 seconds"],
+				["120", "120 seconds"],
+				["150", "150 seconds"],
+				["180", "180 seconds"],
+				["240", "240 seconds"],
+			]
+		return [
+			["1",   "1 seconds (for testing)"],
+			["10",  "10 seconds (for testing)"],
+			["20",  "20 seconds (for testing)"],
+			["30",  "30 seconds"],
+			["40",  "40 seconds"],
+			["60",  "60 seconds"],
+			["75",  "75 seconds"],
+			["90",  "90 seconds (default)"],
+			["120", "2 minutes"],
+			["180", "3 minutes"],
+			["240", "4 minutes"],
+			["300", "5 minutes"],
+			["360", "6 minutes"],
+			["420", "7 minutes"],
+			["490", "8 minutes"],
+			["540", "9 minutes"],
+			["600", "10 minutes"],
+			["-1",  "use common expiration time"],
+		]
 
 	####-----------------	 ---------
 	def filterRelayDevice(self, filter="", valuesDict=None, typeId="", targetId=""):
@@ -15315,6 +15610,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					self.PROTECT[cameraId]["events"][newId]["eventEnd"]    			= 0
 					self.lastCameraEvent = datetime.datetime.fromtimestamp(event["start"]/1000.).strftime("%Y-%m-%d %H:%M:%S") 
 
+					props = dev.pluginProps if dev != "" else dict()
 					if self.copyProtectsnapshots == "on" or (self.copyProtectsnapshots == "selectedByDevice" and "eventThumbnailOn" in props and props["eventThumbnailOn"] ):
 						self.PROTECT[cameraId]["events"][newId]["thumbnailLastCopyTime"] 	= time.time() + 15 # try to get thumbnail in the next 15 secs
 					else:
@@ -15384,7 +15680,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					if testEV["eventType"]  == "ring" and self.PROTECT[cameraId]["events"][evId]["status"] == "ring":
 						dev = indigo.devices[self.PROTECT[cameraId]["devId"]]
 						if dev.states["status"] == "ring":
-							if self.decideMyLog("ProtEvents"): self.indiLOG.log(10,"getProtectEvents: setting status to CONNECTED for expired ring event {}".format(self.PROTECT[cameraId]["devName"], testEV["thumbnailCopied"]) )
+							if self.decideMyLog("ProtEvents"): self.indiLOG.log(10,"getProtectEvents: setting status to CONNECTED for expired ring event {}, thumbnailCopied:{}".format(self.PROTECT[cameraId]["devName"], testEV["thumbnailCopied"]) )
 							dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 							self.addToStatesUpdateList(dev.id, "status", "CONNECTED")
 							rmEvent[evId] = 1
@@ -15578,16 +15874,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	####-----------------	 ---------
 	####-----send commd parameters to cameras through protect ------
-	####-----------------	 ---------
-	def buttonSendCommandToProtectLcdMessageCALLBACKaction (self, action1=None):
-		"""Handle button Send Command To Protect Lcd Message CALLBACKaction.
-		
-		Inputs:
-		    action1: Caller-supplied value used by this method.
-		Outputs:
-		    Returns a value to the caller.
-		"""
-		return self.buttonSendCommandToProtectLcdMessageCALLBACK(valuesDict= action1.props)
 	def buttonSendCommandToProtectLcdMessageCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
 		"""Handle button Send Command To Protect Lcd Message CALLBACK.
 		
@@ -16005,17 +16291,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 	####-----------------	 ---------
-	def buttonSendCommandToProtectPTZALLBACKaction (self, action1=None):
-		"""Handle button Send Command To Protect PTZALLBACKaction.
+	def buttonSendCommandToProtectPTZCALLBACKaction (self, action1=None):
+		"""Handle button Send Command To Protect PTZCALLBACKaction.
 		
 		Inputs:
 		    action1: Caller-supplied value used by this method.
 		Outputs:
 		    Returns a value to the caller.
 		"""
-		return self.buttonSendCommandToProtectPTZALLBACK(valuesDict= action1.props)
-	def buttonSendCommandToProtectPTZALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
-		"""Handle button Send Command To Protect PTZALLBACK.
+		return self.buttonSendCommandToProtectPTZCALLBACK(valuesDict= action1.props)
+	def buttonSendCommandToProtectPTZCALLBACK(self, valuesDict=None, typeId="", devId="",returnCmd=False):
+		"""Handle button Send Command To Protect PTZCALLBACK.
 		
 		Inputs:
 		    valuesDict: Caller-supplied value used by this method.
@@ -16329,8 +16615,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					"force": "true",
 					"w": wh[0],
 			}
-			deb1 = self.pluginPrefs.get("debugConnectionCMD", False)
-			deb2 = self.pluginPrefs.get("debugConnectionRET", False)
+			deb1 = self.getPref("debugConnectionCMD")
+			deb2 = self.getPref("debugConnectionRET")
 			if  self.decideMyLog("ProtEvents"): 
 				self.pluginPrefs["debugConnectionCMD"] = True
 				self.pluginPrefs["debugConnectionRET"] = True
@@ -17222,58 +17508,6 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	#################  update APs
 	####-----------------	 ---------
-	def checkInListSwitch(self):
-
-		"""Check In List Switch.
-		
-		Inputs:
-		    None.
-		Outputs:
-		    Returns None; updates plugin state, Indigo state, files, logs, or external devices as needed.
-		"""
-		xType = "UN"
-		ignore = dict()
-		try:
-			for dev in indigo.devices.iter("props.isSwitch"):
-				nn  = int(dev.states["switchNo"])
-				if not self.devsEnabled["SW"][nn]:
-					ignore["inListSwitch_{}".format(nn)] = -1
-				if  not self.isValidIP(self.ipNumbersOf["SW"][nn]):
-					ignore["inListSwitch_{}".format(nn)] = -1
-
-			for nn in range(_GlobalConst_numberOfSW):
-				if not self.devsEnabled["SW"][nn]:
-					ignore["inListSwitch_{}".format(nn)] = -1
-				if  not self.isValidIP(self.ipNumbersOf["SW"][nn]):
-					ignore["inListSwitch_{}".format(nn)] = -1
-
-			if not self.devsEnabled["GW"]:
-				ignore["inListDHCP"] = 0
-				ignore["upTimeDHCP"] = ""
-			if  not self.isValidIP(self.ipNumbersOf["GW"]):
-				ignore["inListDHCP"] = 0
-				ignore["upTimeDHCP"] = ""
-
-			save = False
-			if len(ignore) > 0:
-				for MAC in self.MAC2INDIGO[xType]:
-					for xx in ignore:
-						if xx in self.MAC2INDIGO[xType][MAC]:
-							if self.MAC2INDIGO[xType][MAC][xx] != ignore[xx]:
-								self.MAC2INDIGO[xType][MAC][xx]  = ignore[xx]
-								save = True
-						else:
-								self.MAC2INDIGO[xType][MAC][xx]  = ignore[xx]
-								save = True
-				if save:
-					self.saveMACdata()
-
-		except	Exception as e:
-			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		return
-
-
-	####-----------------	 ---------
 	#################  update APs
 	####-----------------	 ---------
 	def _doInList(self,suffixN,	wifiIPAP=""):
@@ -17551,7 +17785,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 									else:
 										if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-SW-2    {} SW DICT network_table , Uptime not changed, continue expiration timer".format(MAC))
 								else: # will only expired if not in list anymore
-									if "usePingDOWN" in props and props["usePingDOWN"]	 and status !="up" and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
+									if "usePingDOWN" in props and props["usePingDOWN"]	 and oldStatus !="up" and self.sendWakewOnLanAndPing(MAC,dev.states["ipNumber"], props=props, calledFrom ="doSWITCHdictClients") != 0:
 										if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-SW-3    {} SW DICT network_table , but does not answer ping, continue expiration timer".format(MAC))
 									else:
 										if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-SW-4    {} reset timer for status up     answers ping in  DHCP list".format(MAC))
@@ -17651,7 +17885,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				break
 			if host_table == "":
 				if "host_table" not in gwDict["network_table"]:
-					if self.decideMyLog("Logic"): self.indiLOG.log(10,"DC-DHCP-E1 no DHCP in gwateway ?.. skipping info ".format(gwDict["network_table"][0:100]) )
+					if self.decideMyLog("Logic"): self.indiLOG.log(10,"DC-DHCP-E1 no DHCP in gwateway ?.. skipping info, network_table:{}".format(gwDict["network_table"][0:100]) )
 					return # DHCP not enabled on gateway, no info from GW available
 
 			if "connect_request_ip" in gwDict:
@@ -17891,7 +18125,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 												self.MAC2INDIGO[xType][MAC]["lastUp"] = time.time()
 												newStatus = "up"
 											else:
-												if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DPI-3   {} set timer for status down GW DICT network_table AGE>max:" .format(MAC,props["useAgeforStatusDHCP"]))
+												if self.decideMyLog("DictDetails", MAC=MAC): self.indiLOG.log(10,"DC-DPI-3   {} set timer for status down GW DICT network_table AGE>max:{}" .format(MAC, props["useAgeforStatusDHCP"]))
 												newStatus = "startDown"
 
 								else: # good data, should be up
@@ -18582,7 +18816,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 					for table in gwDict["port_table"]:
 						if ethName in table:
 							if "mac" in table: 
-								nameList[ethName] = mac
+								nameList[ethName] = table["mac"]
 
 
 				###  wan default
@@ -18857,6 +19091,8 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 				if dev.states["wanSpeedTest"] 			!= wanSpeedTest:										self.addToStatesUpdateList(dev.id,"wanSpeedTest", wanSpeedTest)
 				if dev.states["wanDownload"] 			!= wanDownload:											self.addToStatesUpdateList(dev.id,"wanDownload", wanDownload)
 				if dev.states["wanUpTime"] 			!= wanUpTime: 											self.addToStatesUpdateList(dev.id,"wanUpTime", wanUpTime)
+
+				self._checkWANLinkSpeed(gwDict, dev, ipNumber)
 
 				if dev.states["wan2"] 					!= wan2UP:												self.addToStatesUpdateList(dev.id,"wan2", "up" if wan2UP else "down")
 				if dev.states["MACwan2"] 				!= MACwan2:												self.addToStatesUpdateList(dev.id,"MACwan2", MACwan2)
@@ -19177,7 +19413,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			if MAC in self.MAC2INDIGO[xType]:
 				try:
 					dev = indigo.devices[self.MAC2INDIGO[xType][MAC]["devId"]]
-					if dev.deviceTypeId != devType: raise error
+					if dev.deviceTypeId != devType: raise ValueError("deviceTypeId {} != {}".format(dev.deviceTypeId, devType))
 					new = False
 				except:
 					if self.decideMyLog("Logic", MAC=MAC): self.indiLOG.log(10,"{}   {}   wrong  {}".format(MAC, self.MAC2INDIGO[xType][MAC], devType) )
@@ -19874,7 +20110,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		Outputs:
 		    Returns a value to the caller.
 		"""
-		if self.pluginPrefs.get("hostFileCheck","") == "ignore":
+		if self.getPref("hostFileCheck") == "ignore":
 			return " yes "
 		return " no "
 
@@ -19930,6 +20166,22 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 	####-----------------	 ---------
+	def _isSmallChange(self, devId, key, value):
+		"""True when value is too close to the device's current state to be worth writing (kSmallChangeSteps /
+		kSmallChangeFraction). Compares the numbers
+		only, so "1,234MB", "62\u00baC" and "62.5" all work; anything not numeric counts as a real change."""
+		try:
+			def num(v):
+				m = re.match(r'\s*(-?\d+(?:\.\d+)?)', "{}".format(v).replace(",", ""))
+				return float(m.group(1)) if m else None
+			old = num(indigo.devices[int(devId)].states.get(key, ""))
+			new = num(value)
+			if old is None or new is None: return False
+			if key in kSmallChangeSteps: return abs(new - old) < kSmallChangeSteps[key]
+			return abs(new - old) <= abs(old) * kSmallChangeFraction
+		except: return False
+
+	####-----------------	 ---------
 	def addToStatesUpdateList(self,devid, key, value):
 		"""Add To States Update List.
 		
@@ -19942,6 +20194,7 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		"""
 		try:
 			devId = "{}".format(devid)
+			if key in kSmallChangeStates and self._isSmallChange(devId, key, value): return
 			### no down during startup .. 100 secs
 			if key == "status" and value.lower() not in ["up", "connected", "event", "rec", "motion", "vehicle", "person"]:
 				if time.time() - self.pluginStartTime < 0:
@@ -19959,6 +20212,10 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 			localCopy[devId][key] = value
 			self.devStateChangeList = copy.deepcopy(localCopy)
 
+			# numeric sensor value -> fill the derived min/max/average and change/trend states.
+			# derived keys are not in K_MINMAX_ALLKEYS, so the recursion ends after one level
+			if key in K_MINMAX_ALLKEYS:
+				self._fillMinMaxAndChanges(devId, key, value)
 
 		except	Exception as e:
 			if len("{}".format(e))	> 5 :
@@ -19966,6 +20223,199 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		return
 
 
+	####----------------- min/max/average + changes/trend tracking (same scheme as homematic/piBeacon plugins) ---------
+	def _fillMinMaxAndChanges(self, devid, key, value):
+		"""Dispatch one new sensor reading into the two optional tracking groups of its device."""
+		try:
+			dev = indigo.devices[int(devid)]
+			if key not in K_MINMAX_TRACKED.get(dev.deviceTypeId, ()): return
+			try:	val = float(value)
+			except:	return
+			props = dev.pluginProps
+			if props.get("minMaxEnable_"+key, False):
+				self.fillMinMaxSensors(dev, key, val, 1)
+			if props.get("enableChanges_"+key, False):
+				self.updateChangedValuesInLastXXMinutes(dev, key, val, 1)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+	####-----------------	 ---------
+	def fillMinMaxSensors(self, dev, stateName, value, decimalPlaces):
+		"""Raise MaxToday / lower MinToday (with timestamps) and recompute the TIME-WEIGHTED daily average."""
+		try:
+			if stateName+"_MaxToday" not in dev.states:											return
+			if dev.pluginProps.get("ignoreZerominMaxEnable_"+stateName, False) and value == 0:	return
+			devId = dev.id
+			tNow = datetime.datetime.now().strftime("%H:%M:%S")
+
+			if value > float(dev.states[stateName+"_MaxToday"]) or len("{}".format(dev.states[stateName+"_MaxTodayAt"])) == 0:
+				self.addToStatesUpdateList(devId, stateName+"_MaxToday",   round(value, decimalPlaces))
+				self.addToStatesUpdateList(devId, stateName+"_MaxTodayAt", tNow)
+
+			if (
+					( value < float(dev.states[stateName+"_MinToday"]) or len("{}".format(dev.states[stateName+"_MinTodayAt"])) == 0 ) or
+					( value > 0 and dev.pluginProps.get("ignoreZerominMaxEnable_"+stateName, False) and float(dev.states[stateName+"_MinToday"]) == 0 )
+				):
+				self.addToStatesUpdateList(devId, stateName+"_MinToday",   round(value, decimalPlaces))
+				self.addToStatesUpdateList(devId, stateName+"_MinTodayAt", tNow)
+
+			if stateName+"_AveToday" in dev.states and stateName+"_MeasurementsToday" in dev.states:
+				if devId not in self.averagesCounts: self.averagesCounts[devId] = dict()
+				if stateName+"_MeasurementsToday" not in self.averagesCounts[devId]:
+					self.averagesCounts[devId][stateName+"_MeasurementsToday"] = [dev.states[stateName+"_MeasurementsToday"], 0]
+				nMeas = max(0, self.averagesCounts[devId][stateName+"_MeasurementsToday"][0])
+
+				# TIME-WEIGHTED average: a reading is weighted by how LONG it was valid, not by how
+				# often it arrived. accumulator = [timeOfLastReading, valueValidSinceThen, secondsSoFarToday],
+				# kept in self.changedValues so it is persisted+restored with the change history
+				devIdS = "{}".format(devId)
+				if devIdS not in self.changedValues: self.changedValues[devIdS] = dict()
+				accKey = stateName+"_aveTimeWeighted"
+				acc    = self.changedValues[devIdS].get(accKey,"")
+				now    = time.time()
+				try:	currentAve = float(dev.states[stateName+"_AveToday"])
+				except:	currentAve = None
+
+				if type(acc) != type([]) or len(acc) != 3:	# first reading, or accumulator lost in a crash
+					if currentAve is None or nMeas < 1:		# no usable average yet -> start from this reading
+						self.changedValues[devIdS][accKey] = [now, value, 0.]
+						newAve = value
+					else:
+						# AveToday already covers today up to now, so it must KEEP that weight -
+						# rebuild the weight from the clock: seconds since midnight
+						secsToday = now - time.mktime(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timetuple())
+						self.changedValues[devIdS][accKey] = [now, value, max(0., secsToday)]
+						newAve = currentAve
+				else:
+					lastTime, lastVal, accSecs = acc
+					dtSecs = max(0., now - lastTime)		# clock moved backwards -> 0
+					if currentAve is None: currentAve = lastVal
+					if accSecs + dtSecs > 0:	newAve = (currentAve*accSecs + lastVal*dtSecs) / (accSecs + dtSecs)
+					else:						newAve = value
+					self.changedValues[devIdS][accKey] = [now, value, accSecs + dtSecs]
+
+				self.addToStatesUpdateList(devId, stateName+"_AveToday", round(newAve, decimalPlaces))
+				self.averagesCounts[devId][stateName+"_MeasurementsToday"][0] += 1
+				if time.time() - self.averagesCounts[devId][stateName+"_MeasurementsToday"][1] > 63.1:
+					self.averagesCounts[devId][stateName+"_MeasurementsToday"][1] = time.time()
+					self.addToStatesUpdateList(devId, stateName+"_MeasurementsToday", nMeas+1)
+
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"{} {} {}".format(dev.name, stateName, value), exc_info=True)
+
+	####-----------------	 ---------
+	def updateChangedValuesInLastXXMinutes(self, dev, stateToUpdate, value, decimalPlaces):
+		"""Update the <state>_ChangeXX states from the kept history and derive the Trend from it."""
+		try:
+			if stateToUpdate+"_ChangeHours01" not in dev.states: return
+
+			devIdS = "{}".format(dev.id)
+			props = dev.pluginProps
+			trendTimeDeltaMin = int(props.get("trendTimeDeltaMin_"+stateToUpdate,"600"))
+			trendDelta = float(props.get("trendDelta_"+stateToUpdate,100.)) / 100.
+
+			updateList = list()
+			for suf, code in K_CHANGES_SUFFIXES:
+				state = stateToUpdate + suf
+				if state not in dev.states: continue
+				if   suf.find("_ChangeHours")   == 0: deltaSecs = int(suf.split("_ChangeHours")[1])   * 3600
+				elif suf.find("_ChangeMinutes") == 0: deltaSecs = int(suf.split("_ChangeMinutes")[1]) * 60
+				else: continue
+				updateList.append({"state":state, "deltaSecs":deltaSecs, "pointer":0})
+			if len(updateList) < 1: return
+
+			if devIdS not in self.changedValues: self.changedValues[devIdS] = dict()
+			if stateToUpdate+"list" in self.changedValues[devIdS]:
+				valueList = self.changedValues[devIdS][stateToUpdate+"list"]
+			else:
+				valueList = [(0,0),(0,0)]
+
+			valueList.append([int(time.time()), round(value, decimalPlaces)])
+
+			updateList = sorted(updateList, key = lambda x: x["deltaSecs"])
+			cutMax	= updateList[-1]["deltaSecs"]
+			for ii in range(len(valueList)):
+				if len(valueList) <= 2: break
+				if (valueList[-1][0] - valueList[0][0]) > cutMax: valueList.pop(0)
+				else: break
+
+			ll = len(valueList)
+			if ll > 1:
+				for kk in range(len(updateList)):
+					cut = updateList[kk]["deltaSecs"]
+					updateList[kk]["pointer"] = 0
+					if cut != cutMax:
+						for ii in range(ll-1,-1,-1):
+							if (valueList[-1][0] - valueList[ii][0]) <= cut:
+								updateList[kk]["pointer"] = ii
+							else:
+								break
+
+					changed = round(( valueList[-1][1] - valueList[updateList[kk]["pointer"]][1] ), decimalPlaces)
+					if changed != dev.states[updateList[kk]["state"]]:
+						self.addToStatesUpdateList(dev.id, updateList[kk]["state"], changed)
+
+					if stateToUpdate+"_Trend" in dev.states:
+						if cut == trendTimeDeltaMin:
+							changedPerc = 200 * ( valueList[-1][1] - valueList[updateList[kk]["pointer"]][1] ) / max(0.01, valueList[-1][1] + valueList[updateList[kk]["pointer"]][1] )
+							if   changedPerc > trendDelta*8:	Trend = "^^^^"
+							elif changedPerc > trendDelta*4:	Trend = "^^^"
+							elif changedPerc > trendDelta*2:	Trend = "^^"
+							elif changedPerc > trendDelta: 		Trend = "^"
+							elif changedPerc < -trendDelta*8:	Trend = "vvvv"
+							elif changedPerc < -trendDelta*4:	Trend = "vvv"
+							elif changedPerc < -trendDelta*2:	Trend = "vv"
+							elif changedPerc < -trendDelta:		Trend = "v"
+							else:								Trend = "=="
+							if Trend != dev.states[stateToUpdate+"_Trend"]:
+								self.addToStatesUpdateList(dev.id, stateToUpdate+"_Trend", Trend)
+
+			self.changedValues[devIdS][stateToUpdate+"list"] = valueList
+
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"{} {} {}".format(dev.name, stateToUpdate, value), exc_info=True)
+
+	####-----------------	 ---------
+	def moveAveragesToLastDay(self):
+		"""At midnight roll the Today min/max/ave/measurement states into Yesterday and reseed Today."""
+		try:
+			dNow = datetime.datetime.now()
+			if dNow.hour != 0 or self.pluginPrefs.get("dayResetMinMax", -1) == dNow.day: return
+			self.pluginPrefs["dayResetMinMax"] = dNow.day
+			tNow = dNow.strftime("%H:%M:%S")
+			self.averagesCounts = dict()
+			for dev in indigo.devices.iter(self.pluginId):
+				if not dev.enabled: continue
+				if dev.deviceTypeId not in K_MINMAX_TRACKED: continue
+				for ttx in K_MINMAX_TRACKED[dev.deviceTypeId]:
+					try:
+						if ttx not in dev.states or ttx+"_MaxToday" not in dev.states: continue
+						val = dev.states[ttx]
+						for xx in ["_Max", "_Min", "_Ave", "_Measurements"]:
+							self.addToStatesUpdateList(dev.id, ttx+xx+"Yesterday", dev.states[ttx+xx+"Today"])
+							if xx != "_Measurements": self.addToStatesUpdateList(dev.id, ttx+xx+"Today", val)
+						self.addToStatesUpdateList(dev.id, ttx+"_MeasurementsToday", 1)
+						self.addToStatesUpdateList(dev.id, ttx+"_MaxYesterdayAt", dev.states[ttx+"_MaxTodayAt"])
+						self.addToStatesUpdateList(dev.id, ttx+"_MinYesterdayAt", dev.states[ttx+"_MinTodayAt"])
+						self.addToStatesUpdateList(dev.id, ttx+"_MaxTodayAt", tNow)
+						self.addToStatesUpdateList(dev.id, ttx+"_MinTodayAt", tNow)
+						# drop the time-weight accumulator, the new day starts with 0 seconds
+						try:	del self.changedValues["{}".format(dev.id)][ttx+"_aveTimeWeighted"]
+						except: pass
+					except	Exception as e:
+						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+			self.executeUpdateStatesList()
+			self.saveChangedValues()
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+	####-----------------	 ---------
+	def saveChangedValues(self):
+		"""Persist the change history + time-weight accumulators (restored at startup)."""
+		try:
+			self.writeJson(self.changedValues, fName=self.indigoPreferencesPluginDir+"changedValues.json")
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 
 	####-----------------	 ---------
@@ -20314,16 +20764,17 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 	
 ####-------------------------------------------------------------------------####
-	def readPopen(self, cmd):
+	def readPopen(self, cmd, env=None):
 		"""Read Popen.
 		
 		Inputs:
 		    cmd: Caller-supplied value used by this method.
+		    env: environment for the child process, as made by _expectEnv(); None = inherit ours.
 		Outputs:
 		    Returns a value to the caller.
 		"""
 		try:
-			ret, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+			ret, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env).communicate()
 			return ret.decode('utf-8'), err.decode('utf-8')
 
 		except Exception as e:
@@ -20416,6 +20867,290 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 
 
 	####-----------------	 ---------
+	def getPref(self, key, fallback=""):
+		"""Read a plugin preference. kDefaultPluginPrefs is THE default: if the key is not in
+		pluginPrefs yet (fresh install, or a pref added in a later version - indigo does not apply
+		the xml defaults of new properties to an existing install) its value there is used.
+		The fallback argument is only a last resort for keys that are not in that table."""
+		return self.pluginPrefs.get(key, kDefaultPluginPrefs.get(key, fallback))
+
+####-----------------  passwords / api keys in the plugin prefs  ---------
+####-----------------  they are stored as "enc1:.." tokens (pwCrypt.py, key derived from this Mac's hardware
+####-----------------  uuid), so a copy of the prefs file is useless elsewhere. Same scheme as the utilities
+####-----------------  plugin. The plugin itself always works with the plain values: decrypted once at
+####-----------------  startup by loadPasswords(), encrypted again by savePasswords() when the config is saved.
+####-----------------  Prefs of an older version hold plain text; they are converted on the first start.
+
+	passwordPrefs = ("unifiCONTROLLERPassWd", "unifiPassWd", "unifiPassWdUDM", "protectPassword", "protectApiKey",
+					 "quickWebPWD", "quickSshPWD", "quickUdmPWD", "quickProtectPWD", "quickApiKey")
+
+	####-----------------	 ---------
+	def prefIsTrue(self, value):
+		"""A pref written by a checkbox can be a bool or one of its string forms."""
+		return value is True or "{}".format(value).lower() in ("true", "1", "yes", "on")
+
+	####-----------------	 ---------
+	def decryptPrefValue(self, stored):
+		"""prefs value -> plain text. An "enc1:.." token is decrypted; anything else is used as it is -
+		that is a pref from an older version, or a value typed into the prefs file by hand. "" stays "".
+		A token that does not decrypt (prefs copied from another Mac) gives "" and one logged warning."""
+		try:
+			text = "{}".format(stored)
+			if not self.pw.isToken(text): return text
+			plain = self.pw.decrypt(text)
+			if plain is None:
+				self.logEvery("pwDecryptFailed", 40, "a password in the plugin prefs can not be decrypted - the prefs were encrypted on a different Mac. Please enter the passwords again in the plugin config", every=3600)
+				return ""
+			return plain
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return ""
+
+	####-----------------	 ---------
+	def encryptPrefValue(self, plain):
+		"""plain text -> "enc1:.." token. Returns the plain text unchanged when encryption is switched off
+		in the config, or when no key can be made (hardware uuid not readable) - never None, so a password
+		can not be lost by a failed encryption."""
+		try:
+			text = "{}".format(plain)
+			if text == "" or not self.passwordsEncrypted: return text
+			token = self.pw.encrypt(text)
+			if token is None:
+				self.logEvery("pwEncryptFailed", 30, "passwords can not be encrypted, the hardware id of this Mac is not readable - they stay plain text in the plugin prefs", every=3600)
+				return text
+			return token
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return "{}".format(plain)
+
+	####-----------------	 ---------
+	def loadPasswords(self):
+		"""Startup: decrypt every password pref into self.pwPlain (what the plugin works with) and write the
+		prefs back in the format the "passwordsEncrypted" setting asks for - that converts the plain text of
+		an older version into tokens once, and back to plain text if the setting is switched off."""
+		try:
+			self.pwPlain = dict()
+			flagKnown = "passwordsEncrypted" in self.pluginPrefs
+			self.passwordsEncrypted = self.prefIsTrue(self.pluginPrefs.get("passwordsEncrypted", True))
+			for key in self.passwordPrefs:
+				self.pwPlain[key] = self.decryptPrefValue(self.pluginPrefs.get(key, ""))
+			converted = False
+			for key in self.passwordPrefs:
+				stored  = "{}".format(self.pluginPrefs.get(key, ""))
+				isTok   = self.pw.isToken(stored)
+				# re-store only when the form is wrong: plain text while encryption is on, or a token
+				# while it is off. Never because the token differs - encrypt() uses a new nonce every
+				# time, so a fresh token never equals the stored one and the prefs would be rewritten
+				# on every start.
+				if self.passwordsEncrypted and not isTok and stored != "":
+					self.pluginPrefs[key] = self.encryptPrefValue(self.pwPlain[key])
+					converted = True
+				elif not self.passwordsEncrypted and isTok:
+					self.pluginPrefs[key] = self.pwPlain[key]
+					converted = True
+			self.pluginPrefs["passwordsEncrypted"] = self.passwordsEncrypted
+			if converted and not flagKnown and self.passwordsEncrypted:
+				self.indiLOG.log(20,"passwords in the plugin prefs are now stored encrypted (untick \"store passwords encrypted\" in the config to keep them as plain text)")
+		except	Exception as e:
+			self.pwPlain = {key: "{}".format(self.pluginPrefs.get(key, "")) for key in self.passwordPrefs}
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+	####-----------------	 ---------
+	def savePasswords(self, valuesDict):
+		"""Config dialog saved: the password fields always hold plain text, because getPrefsConfigUiValues
+		fills them from the plain values in memory. Keep the plain text in self.pwPlain and replace it in
+		valuesDict with the stored form, since indigo writes valuesDict into the prefs after this."""
+		try:
+			self.passwordsEncrypted = self.prefIsTrue(valuesDict.get("passwordsEncrypted", True))
+			for key in self.passwordPrefs:
+				plain = "{}".format(valuesDict.get(key, ""))
+				# a field that still holds a token was not retyped (and must not be encrypted a second
+				# time): take the value it stands for. decryptPrefValue passes plain text through.
+				if self.pw.isToken(plain): plain = self.decryptPrefValue(plain)
+				self.pwPlain[key] = plain
+				valuesDict[key]   = self.encryptPrefValue(plain)
+			valuesDict["passwordsEncrypted"] = self.passwordsEncrypted
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return valuesDict
+
+	####-----------------	 ---------
+	def connectParamsForPrefs(self):
+		"""connectParams as json for the prefs, with its PassWd entries encrypted - that dict carries a copy
+		of every password, so dumping it as it is would put them back into the prefs as plain text."""
+		try:
+			cp = copy.deepcopy(self.connectParams)
+			for key in cp.get("PassWd", dict()):
+				cp["PassWd"][key] = self.encryptPrefValue(cp["PassWd"][key])
+			return json.dumps(cp)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return json.dumps(self.connectParams)
+
+	####-----------------	 ---------
+	def decryptConnectParams(self, cp):
+		"""Decrypt the PassWd entries of a connectParams dict read from the prefs, in place."""
+		try:
+			for key in cp.get("PassWd", dict()):
+				cp["PassWd"][key] = self.decryptPrefValue(cp["PassWd"][key])
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return cp
+
+	####-----------------  a device of type system_controller / system_protect keeps a copy of the web /
+	####-----------------  protect password in its pluginProps. Nothing reads it back, it only mirrors the
+	####-----------------  plugin config, but indigo stores pluginProps in its database, so it is kept in
+	####-----------------  the same encrypted form as the prefs.
+
+	devicePasswordProps = ("unifiCONTROLLERPassWd", "protectPassword")
+
+	####-----------------	 ---------
+	def setDevPasswordProp(self, props, key, plain):
+		"""Put a password into a device pluginProps dict in the form the "passwordsEncrypted" setting asks
+		for. Returns True when props was changed, ie the caller has to call replacePluginPropsOnServer.
+
+		The stored value is decrypted for the comparison, never compared as a token: encrypt() uses a new
+		nonce every time, so two tokens of the same password always differ and the device props would be
+		rewritten on every pass through the poll loop."""
+		try:
+			stored = "{}".format(props.get(key, ""))
+			wanted = "{}".format(plain)
+			if self.decryptPrefValue(stored) == wanted:
+				# right password - re-store only when the stored form is wrong
+				if wanted == "": return False
+				if self.passwordsEncrypted	 and not self.pw.isToken(stored):	pass
+				elif not self.passwordsEncrypted and self.pw.isToken(stored):	pass
+				else: return False
+			props[key] = self.encryptPrefValue(wanted)
+			return True
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return False
+
+	####-----------------	 ---------
+	def devPasswordsToPlain(self, valuesDict):
+		"""Device config dialog opened: show the password itself, not the "enc1:.." token it is stored as."""
+		try:
+			for key in self.devicePasswordProps:
+				if key in valuesDict: valuesDict[key] = self.decryptPrefValue(valuesDict[key])
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return valuesDict
+
+	####-----------------	 ---------
+	def devPasswordsToStored(self, valuesDict):
+		"""Device config dialog saved: put the stored form back, indigo writes valuesDict into pluginProps."""
+		try:
+			for key in self.devicePasswordProps:
+				if key not in valuesDict: continue
+				plain = "{}".format(valuesDict[key])
+				if self.pw.isToken(plain): plain = self.decryptPrefValue(plain)	# not retyped, do not encrypt twice
+				valuesDict[key] = self.encryptPrefValue(plain)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return valuesDict
+
+	####-----------------  ssh credentials for the expect scripts  ---------
+	####-----------------  the command line of a process is readable by every user on the mac ("ps -ef"),
+	####-----------------  so userid and password are handed to expect in its environment instead, which
+	####-----------------  only the same user can read. The .exp scripts take $env(UNIFIAP_UID/PWD) when
+	####-----------------  those are set and fall back to argv 0/1, so they still run by hand.
+
+	expectUidVar = "UNIFIAP_UID"
+	expectPwdVar = "UNIFIAP_PWD"
+
+	####-----------------	 ---------
+	def _expectEnv(self, userid, passwd):
+		"""The environment for an expect child: our own, plus the ssh credentials. The full copy is needed,
+		expect finds ssh / sftp through PATH."""
+		try:
+			env = dict(os.environ)
+			env[self.expectUidVar] = "{}".format(userid)
+			env[self.expectPwdVar] = "{}".format(passwd)
+			return env
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return None
+
+	####-----------------	 ---------
+	def _expectCredArgs(self):
+		"""What goes into the command line where userid and password used to be: 2 empty arguments, so the
+		position of every following argument stays the same as before."""
+		return "'' '' "
+
+	####-----------------	 ---------
+	def maskPw(self, text):
+		"""Replace every known password / api key in text with ***** before it goes into the log."""
+		try:
+			out = "{}".format(text)
+			for secret in set(list(getattr(self, "pwPlain", dict()).values()) + list(self.connectParams.get("PassWd", dict()).values())):
+				if isinstance(secret, str) and len(secret) > 2: out = out.replace(secret, "*****")
+			return out
+		except:
+			return "{}".format(text)
+
+	####-----------------	 ---------
+	def _unifiRecovered(self, ipNumber):
+		"""Called on good listener data from ipNumber: if that device had muted the event log
+		(UnifiQuietFilter), log that it is back, how long it was gone and how many messages were muted."""
+		try:
+			st = self._unifiQuiet
+			if ipNumber not in st["downSince"]: return
+			mins = (time.time() - st["downSince"].pop(ipNumber)) / 60.
+			self.indiLOG.log(20, "UniFi {} recovered after {:.1f} min, {} connection messages muted".format(ipNumber, mins, st["suppressed"]))
+			if not st["downSince"]:
+				st["until"]      = 0.
+				st["suppressed"] = 0
+		except: pass
+
+	####-----------------	 ---------
+	def logEvery(self, key, level, text, every=300, firstN=1, exc_info=False):
+		"""Log a repeating message at most once per <every> seconds.
+
+		Used for failures that repeat on every poll while a controller / AP is unreachable
+		(login retries, ssh/ping failures, websocket reconnects): the first <firstN> occurrences
+		are logged, after that one line per <every> seconds, with the suppressed count appended.
+
+		Inputs:
+		    key: identifies the message; one throttle counter per key.
+		    level: log level, as for indiLOG.log.
+		    text: the message.
+		    every: minimum seconds between two logged lines for this key.
+		    firstN: log the first N occurrences unthrottled.
+		    exc_info: pass the traceback - only on the lines that are actually logged.
+		Outputs:
+		    Returns True when the message was logged.
+		"""
+		try:
+			now  = time.time()
+			# logEvery can be called before startup() ran, eg from __init__ or a very early thread
+			if not hasattr(self, "SUPPRESS_LOG_N"): self.SUPPRESS_LOG_N = dict()
+			info = self.SUPPRESS_LOG_N.get(key)
+			if info is None:
+				info = {"count":0, "skipped":0, "last":0.}
+				self.SUPPRESS_LOG_N[key] = info
+			info["count"] += 1
+			if info["count"] > firstN and now - info["last"] < every:
+				info["skipped"] += 1
+				return False
+			if info["skipped"] > 0:
+				text += "  [+{} more in the last {:.0f} secs]".format(info["skipped"], now - info["last"])
+			info["skipped"] = 0
+			info["last"]	= now
+			self.indiLOG.log(level, text, exc_info=exc_info)
+			return True
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return False
+
+	####-----------------	 ---------
+	def resetLogEvery(self, key):
+		"""Forget the throttle state for <key>, so the next message is logged again.
+		Called when the condition cleared (eg login succeeded, listener reconnected)."""
+		try: 	del self.SUPPRESS_LOG_N[key]
+		except: pass
+
+	####-----------------	 ---------
 	def decideMyLog(self, msgLevel, MAC=""):
 		"""Handle decide My Log.
 		
@@ -20426,7 +21161,9 @@ root@UniFi-CloudKey-Gen2-Plus:~# ubnt-systool cputemp
 		    Returns a value to the caller.
 		"""
 		try:
-			if MAC != "" and MAC in self.MACloglist:				return True
+			if MAC != "":
+				if MAC in self.MACloglist:							return True
+				if self.debugDevMACs and "{}".format(MAC).replace(":","").upper() in self.debugDevMACs: return True
 			if msgLevel	 == "all" or "all" in self.debugLevel:		return True
 			if msgLevel	 == ""  and "all" not in self.debugLevel:	return False
 			if msgLevel in self.debugLevel:							return True
@@ -20476,3 +21213,38 @@ class LevelFormatter(logging.Formatter):
 			return self._level_formatters[record.levelno].format(record)
 
 		return super(LevelFormatter, self).format(record)
+
+####-----------------	 ---------
+# event-log filter: when the UniFi gateway / controller goes away (eg its nightly update ~03:30) every
+# listener, login and websocket path logs its own error. The first warning/error from one of the
+# connection functions below is shown and mutes the rest of them in the Indigo event log for 5 minutes;
+# the plugin log file still gets everything. Plugin._unifiRecovered logs when data flows again.
+class UnifiQuietFilter(logging.Filter):
+	kConnectionFuncs = ("logEvery", "_executeCMDOnController", "executeCMDOnController", "setunifiCloudKeySiteName",
+						"testServerIfOK", "_checkIfRestartNeeded", "retcodeNotOk", "_listen")
+	kQuietSecs = 300
+
+	def __init__(self, plugin):
+		"""Keep a reference to the plugin, which holds the quiet-window state in _unifiQuiet."""
+		super(UnifiQuietFilter, self).__init__()
+		self.plugin = plugin
+
+	def filter(self, record):
+		"""Return False to drop a connection message from the event log while the quiet window is open."""
+		try:
+			if record.funcName not in self.kConnectionFuncs: return True
+			st  = self.plugin._unifiQuiet
+			now = time.time()
+			if now < st["until"]:
+				st["suppressed"] += 1
+				return False
+			if record.levelno < logging.WARNING: return True
+			# first warning/error: open the window and remember which device went away
+			m  = re.search(r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b', "{}".format(record.msg))
+			ip = m.group(1) if m else ""
+			st["until"]      = now + self.kQuietSecs
+			st["suppressed"] = 0
+			if ip and ip not in st["downSince"]: st["downSince"][ip] = now
+			record.msg = "{}  [UniFi connection messages muted for {} min]".format(record.msg, self.kQuietSecs // 60)
+		except: pass
+		return True

@@ -249,13 +249,6 @@
 			<Field	  id="confirm10" type="button" tooltip="" >
 				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>buttonConfirmPrintWlanConfInfoFromControllerCALLBACK</CallbackMethod>
 			</Field>
-<!-->  this one does not work .. covered by other 
-			<Field id="simpleSeparator111" type="separator"/>
-			<Field	id="Label11" type="label"> <Label>Print UGA setup parameters:</Label> </Field>
-			<Field	  id="confirm11" type="button" tooltip="" >
-				<Label>Click to </Label><Title>PRINT </Title> <CallbackMethod>executeMCAconfigDumpOnGW</CallbackMethod>
-			</Field>
--->
 		</ConfigUI>
 	</MenuItem>
 
@@ -386,13 +379,6 @@
 	<MenuItem id="restartListeners">
 		<Name>LISTENERS ... Manage ..</Name>
 		<ConfigUI>
-				<Field	  id="resetCam" type="button" tooltip="" >
-					<Label>Camera listener</Label><Title>Restart </Title><CallbackMethod>buttonRestartVDListenerCALLBACK</CallbackMethod>
-				</Field>
-			<Field id="resetCam2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">  
-			<Label>This will restart the camera listener propcesses </Label> 
-			</Field>
-			<Field id="simpleSeparatorCam" type="separator"/>
 				<Field	  id="resetGW" type="button" tooltip="" >
 					<Label>Gateway listener</Label><Title>Restart</Title><CallbackMethod>buttonRestartGWListenerCALLBACK</CallbackMethod>
 				</Field>
@@ -470,6 +456,25 @@ it will make the plugin restart </Label>
 
 
 
+	<MenuItem id="GWwanLink">
+		<Name>GATEWAY ... renegotiate WAN port ..</Name>
+		<ConfigUI>
+			<Field id="wanLinkMenuLabel" type="label" fontColor="red">
+			<Label>Resets / renegotiates the gateway WAN (uplink) port over ssh: ethtool -r, falling back to ip link down + up.
+
+The internet connection is interrupted for a few seconds.</Label>
+			</Field>
+			<Field id="wanLinkMenuLabel2" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+			<Label>Use this when the WAN port negotiated a lower speed than it should - see the gateway device states wanLinkSpeed, wanLinkSpeedMax and wanLinkStatus. The port is detected automatically from the controller port_table, but "watch WAN port link speed" must be enabled in the plugin config (Gateway section) so the plugin knows which port to reset.
+
+NOT verified on a UCG/UDM yet: ethtool may not exist on the gateway, and a software port reset is not necessarily equivalent to unplugging the cable.</Label>
+			</Field>
+			<Field id="wanLinkMenuSep" type="separator"/>
+			<Field id="wanLinkMenuButton" type="button" tooltip="ethtool -r on the WAN port, falling back to ip link down/up">
+				<Label>click to</Label><Title>renegotiate WAN port now</Title><CallbackMethod>renegotiateWANLinkMENU</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 	<MenuItem id="ManageGroupsTypes">
 		<Name>Groups ... Manage device types..</Name>
 		<ConfigUI>
@@ -861,7 +866,7 @@ it will make the plugin restart </Label>
            </Field>
 
 			<Field	  id="setZoomProtect" type="button" tooltip="" >
-				<Label>--- Click to </Label><Title>Set Zoom </Title><CallbackMethod>buttonSendCommandToProtectsetzoomCALLBACK</CallbackMethod>
+				<Label>--- Click to </Label><Title>Set Zoom </Title><CallbackMethod>buttonSendCommandToProtectZOOMCALLBACK</CallbackMethod>
 			</Field>
 
 
@@ -1068,7 +1073,7 @@ it will make the plugin restart </Label>
 			<Field	  id="confirmSW" type="button" tooltip="" >
 				<Label>confirm SW</Label><Title>CONFIRM </Title> <CallbackMethod>buttonConfirmSWCALLBACK</CallbackMethod>
 			</Field>
-			<Field	  id="consoleOnly" type="checkbox"  hidden = "true" ></Field>
+			<Field	  id="consoleOnly" type="checkbox"  hidden="true" ></Field>
 
 
 			<Field	   id="selectedUnifiSwitchPort" type="menu" defaultValue="1">

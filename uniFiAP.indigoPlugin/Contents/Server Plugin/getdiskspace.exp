@@ -1,9 +1,14 @@
 set userID [lindex $argv 0 ] 
 set password [lindex $argv 1 ] 
+# the plugin passes empty strings in argv 0/1 and the real credentials in the environment,
+# so they do not show up in the world readable "ps -ef" command line of this process.
+# running this script by hand with userid/password as the first 2 arguments still works.
+if {[info exists env(UNIFIAP_UID)]} {set userID   $env(UNIFIAP_UID)}
+if {[info exists env(UNIFIAP_PWD)]} {set password $env(UNIFIAP_PWD)}
 set ipNumber [lindex $argv 2 ] 
 set endToken [lindex $argv 3 ]
 
-set timeout 5
+set timeout 20
 if  {[lindex $argv 4] == "yes"} {spawn  ssh -o StrictHostKeyChecking=no $userID@$ipNumber} else {spawn  ssh $userID@$ipNumber}
 
 expect {
@@ -16,11 +21,43 @@ expect {
         send "$password\n"
     }
 }
-set timeout 1
-expect "$endToken"
+# wait for a shell prompt before sending anything: the one the plugin knows for this host, or any
+# of the usual endings (# for root, $ for a normal user, % for zsh). This used to be 1 second, which
+# is not enough on a device that prints a long login banner - the commands were then sent blind and
+# the script quit before the answers arrived, so the plugin silently got nothing.
+set timeout 15
+expect {
+    "assword"        { puts "\nGETDISKSPACE-LOGIN-FAILED"; exit 2 }
+    "denied"         { puts "\nGETDISKSPACE-LOGIN-FAILED"; exit 2 }
+    "$endToken"      {}
+    -re {[#$%>] ?$}  {}
+    timeout          {}
+}
+
+# the endToken can be a single "#", which also turns up in the login banner ("... #1 SMP ...") long
+# before the shell is ready, so the match above can land on the banner. Ask for one more prompt and
+# wait for that one: then the commands can not be typed into the banner of a host still logging in.
+sleep 0.3
+send "\r"
+set timeout 10
+expect {
+    "$endToken"      {}
+    -re {[#$%>] ?$}  {}
+    timeout          {}
+}
 
 send "df\rfree\rubnt-systool cpuload\r\rubnt-systool cputemp\r"
-expect "$endToken"
-sleep 1
+
+# read the answers: one prompt per command sent, stop as soon as the host goes quiet
+set timeout 10
+for {set i 0} {$i < 6} {incr i} {
+    expect {
+        "$endToken"      {}
+        -re {[#$%>] ?$}  {}
+        timeout          { break }
+    }
+}
+sleep 0.5
 send "exit\r"
+set timeout 10
 expect eof

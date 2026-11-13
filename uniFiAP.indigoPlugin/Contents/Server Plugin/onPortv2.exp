@@ -1,5 +1,10 @@
 set userID [lindex $argv 0 ] 
 set password [lindex $argv 1 ] 
+# the plugin passes empty strings in argv 0/1 and the real credentials in the environment,
+# so they do not show up in the world readable "ps -ef" command line of this process.
+# running this script by hand with userid/password as the first 2 arguments still works.
+if {[info exists env(UNIFIAP_UID)]} {set userID   $env(UNIFIAP_UID)}
+if {[info exists env(UNIFIAP_PWD)]} {set password $env(UNIFIAP_PWD)}
 set ipNumber [lindex $argv 2 ] 
 set port [lindex $argv 3]
 set endToken [lindex $argv 4]
@@ -18,7 +23,7 @@ expect {
     }
 }
 set timeout 3
-expect "Permission denied" {send \003\r"; exit 1}
+expect "Permission denied" {send "\003\r"; exit 1}
 sleep 1
 expect *
 send "\r"
